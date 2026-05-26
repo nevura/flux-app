@@ -9,6 +9,12 @@ import { saveBudget, chargeScheduled, saveCreditPayment, deleteCreditPayment } f
 import type { AccountWithBalance, Transaction, Category, ScheduledTransaction, Budget, Person, CreditPayment } from '@/lib/types'
 import TransactionModal from '@/components/transactions/TransactionModal'
 import AuditModal from './AuditModal'
+import { useCountUp } from '@/lib/hooks'
+
+function AnimatedCurrency({ value }: { value: number }) {
+  const animated = useCountUp(value)
+  return <>{formatCurrency(animated)}</>
+}
 
 
 const PM_CARDS: Record<string, { bg: string; shadow: string }> = {
@@ -209,7 +215,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
             Saldo actual
           </p>
           <p className="text-[48px] font-black text-white leading-none tracking-tight tabular-nums">
-            {formatCurrency(totalBalance)}
+            <AnimatedCurrency value={totalBalance} />
           </p>
         </div>
 
@@ -282,7 +288,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
             <>
               <div className="flex items-end justify-between mb-2">
                 <p className="text-[28px] font-black tabular-nums leading-none" style={{ color: 'white' }}>
-                  {formatCurrency(monthExpenses)}
+                  <AnimatedCurrency value={monthExpenses} />
                 </p>
                 <p className="text-[14px] font-bold pb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
                   de {formatCurrency(budgetAmount)}
@@ -338,7 +344,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
                 <i className="fa-solid fa-chevron-left text-white text-xs" />
               </button>
               <p className="text-[38px] font-black text-white leading-none tabular-nums flex-1 text-center">
-                {formatCurrency(spendView === 'daily' ? dailySpend : weeklySpend)}
+                <AnimatedCurrency value={spendView === 'daily' ? dailySpend : weeklySpend} />
               </p>
               <button
                 onClick={() => spendView === 'daily' ? setDayOffset(o => o + 1) : setWeekOffset(o => o + 1)}
@@ -522,7 +528,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
                     className="text-[20px] font-black tabular-nums leading-none"
                     style={{ color: acc.balance < 0 ? '#2b2b2b' : 'white' }}
                   >
-                    {formatCurrency(acc.balance)}
+                    <AnimatedCurrency value={acc.balance} />
                   </p>
                 </div>
               )

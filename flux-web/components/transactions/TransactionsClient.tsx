@@ -30,11 +30,13 @@ export default function TransactionsClient({ initialTransactions, categories, ac
   const [searchOpen, setSearchOpen]     = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [pickerYear, setPickerYear] = useState(year)
+  const [slideDir, setSlideDir] = useState<'right' | 'left' | null>(null)
 
   const catMap = useMemo(() => Object.fromEntries(categories.map(c => [c.id, c])), [categories])
   const accMap = useMemo(() => Object.fromEntries(accounts.map(a => [a.id, a])), [accounts])
 
   function navigate(dir: -1 | 1) {
+    setSlideDir(dir === 1 ? 'right' : 'left')
     let m = month + dir
     let y = year
     if (m < 1)  { m = 12; y-- }
@@ -444,7 +446,10 @@ export default function TransactionsClient({ initialTransactions, categories, ac
         </div>
       )}
 
-      <div key={`${year}-${month}-${search}-${showShared}`} className="px-4 py-4 max-w-lg mx-auto animate-fade-up">
+      <div
+        key={`${year}-${month}-${search}-${showShared}`}
+        className={`px-4 py-4 max-w-lg mx-auto ${slideDir === 'right' ? 'animate-slide-from-right' : slideDir === 'left' ? 'animate-slide-from-left' : 'animate-fade-up'}`}
+      >
         {grouped.length === 0 ? (
           <div className="text-center py-16" style={{ color: 'rgba(255,255,255,0.25)' }}>
             <i className="fa-solid fa-magnifying-glass text-4xl mb-3 block opacity-30" />
@@ -453,12 +458,12 @@ export default function TransactionsClient({ initialTransactions, categories, ac
         ) : (
           <div className="space-y-4">
             {grouped.map(([day, txs], gi) => (
-              <div key={day} className="animate-fade-up" style={{ animationDelay: `${gi * 0.05}s` }}>
+              <div key={day} className="animate-fade-up" style={{ animationDelay: `${gi * 0.04}s` }}>
                 <p className="text-[10px] font-black uppercase tracking-[2px] mb-2 px-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
                   {formatDateShort(day + 'T12:00:00')}
                 </p>
                 <div className="space-y-1.5">
-                  {txs.map(tx => {
+                  {txs.map((tx, ti) => {
                     const isTransfer = tx.type === 'TR-TRANSFER'
                     const cat = catMap[tx.category_id ?? '']
                     const d = isTransfer
@@ -471,8 +476,8 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                       <button
                         key={tx.id}
                         onClick={() => openEdit(tx)}
-                        className="w-full rounded-[16px] px-4 py-3.5 flex items-center gap-3 active:scale-[0.98] transition-transform text-left"
-                        style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.1)' }}
+                        className="w-full rounded-[16px] px-4 py-3.5 flex items-center gap-3 active:scale-[0.98] transition-transform text-left animate-fade-up"
+                        style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.1)', animationDelay: `${gi * 0.04 + ti * 0.025}s` }}
                       >
                         <div className={`w-11 h-11 rounded-[12px] flex items-center justify-center flex-shrink-0 ${d.bg}`}>
                           <i className={`${d.icon} ${d.color} text-sm`} />
