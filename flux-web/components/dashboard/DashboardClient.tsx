@@ -9,11 +9,21 @@ import { saveBudget, chargeScheduled, saveCreditPayment, deleteCreditPayment } f
 import type { AccountWithBalance, Transaction, Category, ScheduledTransaction, Budget, Person, CreditPayment } from '@/lib/types'
 import TransactionModal from '@/components/transactions/TransactionModal'
 import AuditModal from './AuditModal'
-import { useCountUp } from '@/lib/hooks'
+import { useCountUp, useAnimatedWidth } from '@/lib/hooks'
 
 function AnimatedCurrency({ value }: { value: number }) {
   const animated = useCountUp(value)
   return <>{formatCurrency(animated)}</>
+}
+
+function AnimatedBar({ pct, color }: { pct: number; color: string }) {
+  const w = useAnimatedWidth(pct)
+  return (
+    <div
+      className="h-full rounded-full"
+      style={{ width: `${w}%`, background: color, transition: 'width 900ms cubic-bezier(0.22,1,0.36,1)' }}
+    />
+  )
 }
 
 
@@ -295,10 +305,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
                 </p>
               </div>
               <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
-                <div
-                  className="h-full rounded-full transition-all duration-700"
-                  style={{ width: `${budgetPct}%`, background: budgetOver ? '#FF453A' : budgetLeft < budgetAmount * 0.20 ? '#FF8A80' : '#30D158' }}
-                />
+                <AnimatedBar pct={budgetPct} color={budgetOver ? '#FF453A' : budgetLeft < budgetAmount * 0.20 ? '#FF8A80' : '#30D158'} />
               </div>
               <p className="text-[14px] tracking-[0.5px] font-bold mt-2 tabular-nums" style={{ color: budgetOver ? '#FF453A' : budgetLeft < budgetAmount * 0.20 ? '#FF8A80' : '#30D158' }}>
                 {budgetOver ? `¡Excedido! Te pasaste por ${formatCurrency(Math.abs(budgetLeft))}` : budgetLeft < budgetAmount * 0.20 ? `¡Cuidado! Quedan ${formatCurrency(budgetLeft)}` : `¡Vamos bien! Quedan ${formatCurrency(budgetLeft)}`}
@@ -413,7 +420,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
                     </p>
                   </div>
                   <div className="h-1.5 rounded-full overflow-hidden mb-2" style={{ background: 'rgba(255,255,255,0.07)' }}>
-                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${incomePct}%`, background: '#30D158' }} />
+                    <AnimatedBar pct={incomePct} color="#30D158" />
                   </div>
                   <div className="flex justify-between">
                     <p className="text-[12px] font-bold tabular-nums" style={{ color: '#30D158' }}>
@@ -437,7 +444,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
                     </p>
                   </div>
                   <div className="h-1.5 rounded-full overflow-hidden mb-2" style={{ background: 'rgba(255,255,255,0.07)' }}>
-                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${expensePct}%`, background: expensePct >= 100 ? '#30D158' : '#FF453A' }} />
+                    <AnimatedBar pct={expensePct} color={expensePct >= 100 ? '#30D158' : '#FF453A'} />
                   </div>
                   <div className="flex justify-between">
                     <p className="text-[12px] font-bold tabular-nums" style={{ color: expensePct >= 100 ? '#30D158' : '#FF453A' }}>
@@ -466,8 +473,8 @@ export default function DashboardClient({ user, accounts, transactions, categori
                   return (
                     <button
                       key={s.id}
-                      className="w-full flex items-center gap-3 active:opacity-70 transition-opacity text-left animate-fade-up"
-                      style={{ animationDelay: `${i * 0.05}s` }}
+                      className="w-full flex items-center gap-3 active:opacity-70 transition-opacity text-left animate-spring-in"
+                      style={{ animationDelay: `${i * 0.06}s` }}
                       onClick={() => setScheduledAction({ id: s.id, name: s.name, amount: Number(s.amount), type: s.type })}
                     >
                       <div className={`w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 ${d.bg}`}>

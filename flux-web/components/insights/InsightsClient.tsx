@@ -5,6 +5,36 @@ import { useRouter } from 'next/navigation'
 import { formatCurrency, getCategoryDisplay, getColor } from '@/lib/utils'
 import { MONTHS_ES } from '@/lib/constants'
 import type { Transaction, Category } from '@/lib/types'
+import { useCountUp, useAnimatedWidth } from '@/lib/hooks'
+
+function AnimatedCurrency({ value }: { value: number }) {
+  const animated = useCountUp(value)
+  return <>{formatCurrency(animated)}</>
+}
+
+function AnimatedBar({ pct, color }: { pct: number; color: string }) {
+  const w = useAnimatedWidth(pct)
+  return (
+    <div
+      className="h-full rounded-full"
+      style={{ width: `${w}%`, background: color, transition: 'width 900ms cubic-bezier(0.22,1,0.36,1)' }}
+    />
+  )
+}
+
+function GrowBar({ target, color }: { target: number; color: string }) {
+  const [h, setH] = useState(0)
+  useEffect(() => {
+    const id = setTimeout(() => setH(target), 60)
+    return () => clearTimeout(id)
+  }, [target])
+  return (
+    <div
+      className="flex-1 rounded-t-[4px]"
+      style={{ height: h, background: color, transition: 'height 750ms cubic-bezier(0.22,1,0.36,1)' }}
+    />
+  )
+}
 
 interface MonthlyRow { year: number; month: number; income: number; expenses: number }
 
@@ -62,6 +92,10 @@ function DonutChart({ slices }: { slices: Array<{ label: string; value: number; 
               fill={p.color}
               opacity={hovered === null || hovered === p.i ? 1 : 0.35}
               className="cursor-pointer transition-opacity duration-150"
+              style={{
+                transformOrigin: '100px 100px',
+                animation: `pie-slice-in 0.4s cubic-bezier(0.34,1.56,0.64,1) ${p.i * 0.07}s both`,
+              }}
               onMouseEnter={() => setHovered(p.i)}
               onMouseLeave={() => setHovered(null)}
               onTouchStart={() => setHovered(p.i)}
@@ -320,7 +354,7 @@ export default function InsightsClient({ transactions, categories, monthlySummar
                 {byCategory.map((item, i) => {
                   const d = getCategoryDisplay(catMap[item.id])
                   return (
-                    <div key={item.id}>
+                    <div key={item.id} className="animate-spring-in" style={{ animationDelay: `${i * 0.055}s` }}>
                       <div className="flex items-center gap-3 mb-2">
                         <div className={`w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0 ${d.bg}`}>
                           <i className={`${d.icon} ${d.color} text-sm`} />
@@ -334,7 +368,7 @@ export default function InsightsClient({ transactions, categories, monthlySummar
                           </div>
                           <div className="flex items-center gap-2 mt-1.5">
                             <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.07)' }}>
-                              <div className="h-full rounded-full transition-all duration-500" style={{ width: `${item.pct}%`, background: '#007AFF' }} />
+                              <AnimatedBar pct={item.pct} color="#007AFF" />
                             </div>
                             <span className="text-[11px] font-black tabular-nums flex-shrink-0" style={{ color: '#007AFF', minWidth: '2.5rem', textAlign: 'right' }}>
                               {item.pct.toFixed(0)}%
@@ -362,13 +396,13 @@ export default function InsightsClient({ transactions, categories, monthlySummar
             <div className="rounded-[20px] p-4 animate-fade-up" style={{ background: 'rgba(48,209,88,0.1)', border: '1px solid rgba(48,209,88,0.2)' }}>
               <p className="text-[9px] font-black tracking-[2px] uppercase mb-1" style={{ color: 'rgba(48,209,88,0.7)' }}>Ingresos</p>
               <p className="text-[22px] font-black tabular-nums leading-none" style={{ color: '#30D158' }}>
-                +{formatCurrency(income)}
+                +<AnimatedCurrency value={income} />
               </p>
             </div>
             <div className="rounded-[20px] p-4 animate-fade-up" style={{ background: 'rgba(255,69,58,0.1)', border: '1px solid rgba(255,69,58,0.2)', animationDelay: '0.05s' }}>
               <p className="text-[9px] font-black tracking-[2px] uppercase mb-1" style={{ color: 'rgba(255,69,58,0.7)' }}>Gastos</p>
               <p className="text-[22px] font-black tabular-nums leading-none" style={{ color: '#FF453A' }}>
-                -{formatCurrency(expenses)}
+                -<AnimatedCurrency value={expenses} />
               </p>
             </div>
           </div>
@@ -417,8 +451,8 @@ export default function InsightsClient({ transactions, categories, monthlySummar
                   return (
                     <div key={i} className="flex-1 flex flex-col items-center gap-1">
                       <div className="w-full flex items-end gap-0.5" style={{ height: 92 }}>
-                        <div className="flex-1 rounded-t-[4px] transition-all" style={{ height: incH, background: isCurrent ? '#30D158' : 'rgba(48,209,88,0.4)' }} />
-                        <div className="flex-1 rounded-t-[4px] transition-all" style={{ height: expH, background: isCurrent ? '#FF453A' : 'rgba(255,69,58,0.4)' }} />
+                        <GrowBar target={incH} color={isCurrent ? '#30D158' : 'rgba(48,209,88,0.4)'} />
+                        <GrowBar target={expH} color={isCurrent ? '#FF453A' : 'rgba(255,69,58,0.4)'} />
                       </div>
                       <p className="text-[10px] font-black uppercase tracking-wide text-center" style={{ color: isCurrent ? 'white' : 'rgba(255,255,255,0.3)' }}>
                         {MONTHS_ES[row.month - 1].slice(0, 3)} {row.year.toString().slice(2)}

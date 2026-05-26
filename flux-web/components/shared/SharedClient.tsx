@@ -3,6 +3,12 @@
 import { useMemo, useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { formatCurrency, formatDateShort } from '@/lib/utils'
+import { useCountUp } from '@/lib/hooks'
+
+function AnimatedCurrency({ value }: { value: number }) {
+  const animated = useCountUp(value)
+  return <>{formatCurrency(animated)}</>
+}
 import { settleParticipant, partialSettle, settleAndRecord } from '@/actions/transactions'
 import type { Transaction, Person, SplitParticipant, Account, Category, AccountWithBalance } from '@/lib/types'
 import TransactionModal from '@/components/transactions/TransactionModal'
@@ -156,16 +162,16 @@ export default function SharedClient({ transactions, people, accounts, categorie
         {/* Summary strip */}
         {balances.length > 0 && (
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-[20px] p-4" style={{ background: 'rgba(48,209,88,0.1)', border: '1px solid rgba(48,209,88,0.2)' }}>
+            <div className="rounded-[20px] p-4 animate-spring-in" style={{ background: 'rgba(48,209,88,0.1)', border: '1px solid rgba(48,209,88,0.2)' }}>
               <p className="text-[9px] font-black tracking-[2px] uppercase mb-1" style={{ color: 'rgba(48,209,88,0.7)' }}>Me deben</p>
               <p className="text-[22px] font-black tabular-nums leading-none" style={{ color: '#30D158' }}>
-                +{formatCurrency(totalOwesMe)}
+                +<AnimatedCurrency value={totalOwesMe} />
               </p>
             </div>
-            <div className="rounded-[20px] p-4" style={{ background: 'rgba(255,69,58,0.1)', border: '1px solid rgba(255,69,58,0.2)' }}>
+            <div className="rounded-[20px] p-4 animate-spring-in" style={{ background: 'rgba(255,69,58,0.1)', border: '1px solid rgba(255,69,58,0.2)', animationDelay: '0.07s' }}>
               <p className="text-[9px] font-black tracking-[2px] uppercase mb-1" style={{ color: 'rgba(255,69,58,0.7)' }}>Debo</p>
               <p className="text-[22px] font-black tabular-nums leading-none" style={{ color: '#FF453A' }}>
-                -{formatCurrency(totalIOwe)}
+                -<AnimatedCurrency value={totalIOwe} />
               </p>
             </div>
           </div>
@@ -185,11 +191,11 @@ export default function SharedClient({ transactions, people, accounts, categorie
           </div>
         ) : (
           <div className="space-y-2">
-            {balances.map(b => {
+            {balances.map((b, bi) => {
               const isOpen = expanded === b.person.id
               const netPositive = b.net >= 0
               return (
-                <div key={b.person.id} className="rounded-[20px] overflow-hidden" style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.12)' }}>
+                <div key={b.person.id} className="rounded-[20px] overflow-hidden animate-spring-in" style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.12)', animationDelay: `${bi * 0.07}s` }}>
                   <button
                     onClick={() => setExpanded(isOpen ? null : b.person.id)}
                     className="w-full flex items-center gap-4 px-5 py-4"
@@ -206,7 +212,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                     </div>
                     <div className="text-right flex-shrink-0">
                       <p className="text-[16px] font-black tabular-nums" style={{ color: netPositive ? '#30D158' : '#FF453A' }}>
-                        {netPositive ? '+' : '-'}{formatCurrency(Math.abs(b.net))}
+                        {netPositive ? '+' : '-'}<AnimatedCurrency value={Math.abs(b.net)} />
                       </p>
                       <p className="text-[12px] font-black mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>
                         {netPositive ? 'me debe' : 'les debo'}
@@ -216,7 +222,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                   </button>
 
                   {isOpen && (
-                    <div className="px-5 pb-4 space-y-2" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div className="px-5 pb-4 space-y-2 animate-fade-up" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                       {b.pending.map(({ tx, participant }) => {
                         const unpaid = participant.value - (participant.paidAmount ?? 0)
                         const isTheyOwe = tx.split_data?.splitMode === 'THEY' || tx.split_data?.splitMode === 'DIV'

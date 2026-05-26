@@ -511,7 +511,6 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                             {selected && quickMode === 'manual' ? (
                               <input
                                 type="text"
-                                inputMode="decimal"
                                 value={manualAmounts[person.id] ?? ''}
                                 onChange={e => setManualAmounts(prev => ({ ...prev, [person.id]: e.target.value }))}
                                 onBlur={e => {

@@ -3,6 +3,12 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatCurrency, formatDateShort, getCategoryDisplay } from '@/lib/utils'
+import { useCountUp } from '@/lib/hooks'
+
+function AnimatedCurrency({ value }: { value: number }) {
+  const animated = useCountUp(value)
+  return <>{formatCurrency(animated)}</>
+}
 import { MONTHS_ES } from '@/lib/constants'
 import { searchAllTransactions, fetchSharedTransactions } from '@/actions/transactions'
 import type { Transaction, Category, AccountWithBalance, Person } from '@/lib/types'
@@ -244,11 +250,11 @@ export default function TransactionsClient({ initialTransactions, categories, ac
         <div className="flex gap-2 mb-4">
           <div className="flex-1 rounded-2xl p-3 text-center" style={{ background: 'rgba(48,209,88,0.1)', border: '1px solid rgba(48,209,88,0.2)' }}>
             <p className="text-[9px] font-black tracking-[2px] uppercase mb-0.5" style={{ color: 'rgba(48,209,88,0.7)' }}>Ingresos</p>
-            <p className="text-[16px] font-black tabular-nums" style={{ color: '#30D158' }}>+{formatCurrency(totals.income)}</p>
+            <p className="text-[16px] font-black tabular-nums" style={{ color: '#30D158' }}>+<AnimatedCurrency value={totals.income} /></p>
           </div>
           <div className="flex-1 rounded-2xl p-3 text-center" style={{ background: 'rgba(255,69,58,0.1)', border: '1px solid rgba(255,69,58,0.2)' }}>
             <p className="text-[9px] font-black tracking-[2px] uppercase mb-0.5" style={{ color: 'rgba(255,69,58,0.7)' }}>Gastos</p>
-            <p className="text-[16px] font-black tabular-nums" style={{ color: '#FF453A' }}>-{formatCurrency(totals.expenses)}</p>
+            <p className="text-[16px] font-black tabular-nums" style={{ color: '#FF453A' }}>-<AnimatedCurrency value={totals.expenses} /></p>
           </div>
         </div>
 
@@ -387,7 +393,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
               {hasPending && (
                 <button
                   onClick={() => { setShowPending(p => !p); if (showShared) { setShowShared(false); setSharedResults(null) }; setFilterTypes([]); setFilterCats([]) }}
-                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[11px] font-bold transition-all"
+                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[11px] font-bold transition-all animate-spring-in"
                   style={{
                     background: showPending ? 'rgba(255,159,10,0.2)' : 'rgba(255,159,10,0.08)',
                     border: showPending ? '1px solid rgba(255,159,10,0.45)' : '1px solid rgba(255,159,10,0.2)',
@@ -402,8 +408,9 @@ export default function TransactionsClient({ initialTransactions, categories, ac
               <button
                 onClick={toggleShared}
                 disabled={isLoadingShared}
-                className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[11px] font-bold transition-all disabled:opacity-60"
+                className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[11px] font-bold transition-all disabled:opacity-60 animate-spring-in"
                 style={{
+                  animationDelay: hasPending ? '0.06s' : '0s',
                   background: showShared ? 'rgba(100,210,255,0.2)' : 'rgba(100,210,255,0.08)',
                   border: showShared ? '1px solid rgba(100,210,255,0.45)' : '1px solid rgba(100,210,255,0.2)',
                   color: '#64D2FF',
@@ -476,8 +483,8 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                       <button
                         key={tx.id}
                         onClick={() => openEdit(tx)}
-                        className="w-full rounded-[16px] px-4 py-3.5 flex items-center gap-3 active:scale-[0.98] transition-transform text-left animate-fade-up"
-                        style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.1)', animationDelay: `${gi * 0.04 + ti * 0.025}s` }}
+                        className="w-full rounded-[16px] px-4 py-3.5 flex items-center gap-3 active:scale-[0.98] transition-transform text-left animate-spring-in"
+                        style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.1)', animationDelay: `${gi * 0.045 + ti * 0.03}s` }}
                       >
                         <div className={`w-11 h-11 rounded-[12px] flex items-center justify-center flex-shrink-0 ${d.bg}`}>
                           <i className={`${d.icon} ${d.color} text-sm`} />

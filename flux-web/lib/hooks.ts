@@ -1,6 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 
-export function useCountUp(target: number, duration = 700) {
+export function useAnimatedWidth(target: number, delay = 60) {
+  const [w, setW] = useState(0)
+  useEffect(() => {
+    const id = setTimeout(() => setW(target), delay)
+    return () => clearTimeout(id)
+  }, [target, delay])
+  return w
+}
+
+export function useCountUp(target: number, duration = 1000) {
   const [value, setValue] = useState(0)
   const prevRef = useRef<number | null>(null)
   const rafRef = useRef<number>(0)

@@ -177,7 +177,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
         </div>
       </header>
 
-      <div key={activeTab} className="px-4 py-4 max-w-lg mx-auto animate-fade-in">
+      <div key={activeTab} className="px-4 py-4 max-w-lg mx-auto animate-fade-up">
         {activeTab === 'shortcuts' && (
           <div className="space-y-4">
             {/* Default budget */}
