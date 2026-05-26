@@ -1,0 +1,16 @@
+# Claude Code local settings
+.claude/
+
+# Personal data exports
+*.csv
+migration_data.sql
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# Shortcut binaries (reinstall from iCloud)
+*.shortcut

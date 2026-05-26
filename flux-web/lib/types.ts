@@ -1,0 +1,204 @@
+// ── Database row types ────────────────────────────────────────────────────────
+
+export interface Profile {
+  id: string
+  email: string | null
+  full_name: string | null
+  avatar_url: string | null
+  timezone: string
+  currency: string
+  default_monthly_budget: number | null
+  created_at: string
+  updated_at: string
+}
+
+export interface ShortcutToken {
+  id: string
+  user_id: string
+  token: string
+  name: string
+  last_used_at: string | null
+  created_at: string
+}
+
+export interface Category {
+  id: string
+  user_id: string | null
+  name: string
+  icon_id: string
+  color_id: string
+  is_default: boolean
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
+export interface Account {
+  id: string
+  user_id: string
+  name: string
+  payment_method_id: string
+  color_id: string
+  payment_day: number | null
+  credit_limit: number | null
+  is_active: boolean
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
+export interface AccountWithBalance extends Account {
+  balance: number
+}
+
+export interface Person {
+  id: string
+  user_id: string
+  name: string
+  phone: string | null
+  is_me: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface SplitParticipant {
+  id: string
+  nombre: string
+  value: number
+  paidAmount: number
+  paidStatus: boolean
+}
+
+export interface SplitData {
+  mode: 'AMT' | 'PCT'
+  splitMode: 'DIV' | 'IOWE' | 'THEY'
+  data: SplitParticipant[]
+}
+
+export interface Transaction {
+  id: string
+  user_id: string
+  concept: string
+  type: 'TR-GASTO' | 'TR-INGRESO' | 'TR-TRANSFER'
+  amount: number
+  adjustment: number
+  category_id: string | null
+  account_id: string
+  destination_account_id: string | null
+  transaction_date: string
+  is_validated: boolean
+  scheduled_id: string | null
+  split_data: SplitData | null
+  exclude_from_budget: boolean
+  is_receivable: boolean
+  is_payable: boolean
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface ScheduledTransaction {
+  id: string
+  user_id: string
+  name: string
+  type: 'TR-GASTO' | 'TR-INGRESO' | 'TR-TRANSFER'
+  amount: number
+  category_id: string | null
+  account_id: string
+  destination_account_id: string | null
+  frequency_num: number
+  frequency_unit: 'dia' | 'semana' | 'mes' | 'año'
+  payment_day: number | null
+  notification_days: number
+  status: 'ACTIVO' | 'PAUSADO' | 'CANCELADO'
+  next_charge_date: string | null
+  last_charge_date: string | null
+  last_notification_date: string | null
+  split_data: SplitData | null
+  created_at: string
+  updated_at: string
+}
+
+export interface Budget {
+  id: string
+  user_id: string
+  month: number
+  year: number
+  amount: number
+  created_at: string
+  updated_at: string
+}
+
+export interface CreditPayment {
+  id: string
+  user_id: string
+  account_id: string
+  year: number
+  month: number
+  amount: number
+  payment_type: 'transfer' | 'deposit'
+  source_account_id: string | null
+  notes: string | null
+  paid_at: string
+  created_at: string
+  updated_at: string
+}
+
+// ── Form types ────────────────────────────────────────────────────────────────
+
+export interface TransactionForm {
+  concept: string
+  type: 'TR-GASTO' | 'TR-INGRESO' | 'TR-TRANSFER'
+  amount: string
+  category_id: string
+  account_id: string
+  destination_account_id?: string
+  transaction_date: string
+  split_data?: SplitData | null
+  exclude_from_budget?: boolean
+  notes?: string
+  scheduled_id?: string
+}
+
+// ── UI / Computed types ────────────────────────────────────────────────────────
+
+export interface MonthlySummary {
+  year: number
+  month: number
+  income: number
+  expenses: number
+  net: number
+}
+
+export interface StaticIcon {
+  id_icon: string
+  icon_base: string
+}
+
+export interface StaticColor {
+  id_color: string
+  hex: string
+  tailwind: string
+  bg: string
+}
+
+export interface PaymentMethod {
+  id_metodo_pago: string
+  nombre: string
+  icon: string
+  id_color: string
+}
+
+// ── Shortcut API payload ──────────────────────────────────────────────────────
+
+export interface ShortcutPayload {
+  concept: string
+  amount: number | string
+  type?: 'Gasto' | 'Ingreso' | 'Transferencia'
+  category?: string      // category name or id
+  account?: string       // account name or id
+  destination?: string   // for transfers
+  date?: string
+  validated?: 0 | 1
+  notes?: string
+}

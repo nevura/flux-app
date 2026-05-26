@@ -1,0 +1,114 @@
+'use client'
+
+export const dynamic = 'force-dynamic'
+
+import { useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
+
+export default function LoginPage() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [mode, setMode] = useState<'login' | 'signup'>('login')
+  const [loading, setLoading] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    const supabase = createClient()
+    try {
+      if (mode === 'signup') {
+        const { error } = await supabase.auth.signUp({ email, password })
+        if (error) throw error
+        toast.success('Cuenta creada — revisa tu correo para confirmar')
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password })
+        if (error) throw error
+        window.location.href = '/home'
+      }
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Error al iniciar sesión')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-[#020617]">
+      {/* Logo */}
+      <div className="mb-8 flex flex-col items-center gap-3 animate-fade-up">
+        <div className="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+          <i className="fa-solid fa-wallet text-white text-2xl" />
+        </div>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-white">Flux</h1>
+          <p className="text-slate-400 text-sm mt-0.5">Finanzas que fluyen</p>
+        </div>
+      </div>
+
+      {/* Card */}
+      <div className="w-full max-w-sm bg-slate-900 rounded-3xl border border-slate-800 p-6 animate-fade-up" style={{ animationDelay: '0.05s' }}>
+        {/* Tabs */}
+        <div className="flex rounded-2xl bg-slate-800 p-1 mb-6">
+          {(['login', 'signup'] as const).map(m => (
+            <button
+              key={m}
+              onClick={() => setMode(m)}
+              className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${
+                mode === m ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-slate-300'
+              }`}
+            >
+              {m === 'login' ? 'Entrar' : 'Registrarse'}
+            </button>
+          ))}
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Correo</label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="tu@correo.com"
+              className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 transition-colors"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Contraseña</label>
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="••••••••"
+              minLength={6}
+              className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 transition-colors"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="mt-2 w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-indigo-500/20 active:scale-95"
+          >
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <i className="fa-solid fa-spinner fa-spin" />
+                {mode === 'login' ? 'Entrando…' : 'Creando cuenta…'}
+              </span>
+            ) : (
+              mode === 'login' ? 'Entrar' : 'Crear cuenta'
+            )}
+          </button>
+        </form>
+      </div>
+
+      <p className="mt-6 text-xs text-slate-600 text-center animate-fade-up" style={{ animationDelay: '0.1s' }}>
+        Powered by Nevura
+      </p>
+    </div>
+  )
+}

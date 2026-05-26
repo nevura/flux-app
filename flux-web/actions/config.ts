@@ -1,0 +1,279 @@
+'use server'
+
+import { revalidatePath } from 'next/cache'
+import { createClient } from '@/lib/supabase/server'
+import { generateCategoryId, generateAccountId, adjustmentFor, getMexicoNow } from '@/lib/utils'
+import type { Category, Account, ScheduledTransaction } from '@/lib/types'
+
+// ── Categories ────────────────────────────────────────────────────────────────
+
+export async function saveCategory(data: Partial<Category> & { name: string; icon_id: string; color_id: string }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+
+  const id = data.id || generateCategoryId(data.name)
+  const { error } = await supabase.from('categories').upsert({ ...data, id, user_id: user.id })
+  if (error) return { error: error.message }
+  revalidatePath('/home')
+  revalidatePath('/settings')
+  return { error: null, id }
+}
+
+export async function deleteCategory(id: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+  const { error } = await supabase.from('categories').delete().eq('id', id).eq('user_id', user.id)
+  if (error) return { error: error.message }
+  revalidatePath('/settings')
+  return { error: null }
+}
+
+// ── Accounts ──────────────────────────────────────────────────────────────────
+
+export async function saveAccount(data: Partial<Account> & { name: string; payment_method_id: string }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+
+  const id = data.id || generateAccountId(data.payment_method_id)
+  const { error } = await supabase.from('accounts').upsert({ ...data, id, user_id: user.id })
+  if (error) return { error: error.message }
+  revalidatePath('/home')
+  revalidatePath('/settings')
+  return { error: null, id }
+}
+
+export async function deleteAccount(id: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+  const { error } = await supabase.from('accounts').delete().eq('id', id).eq('user_id', user.id)
+  if (error) return { error: error.message }
+  revalidatePath('/settings')
+  return { error: null }
+}
+
+// ── Scheduled Transactions ────────────────────────────────────────────────────
+
+export async function saveScheduled(data: Partial<ScheduledTransaction>) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+
+  const payload = { ...data, user_id: user.id }
+  const { error } = data.id
+    ? await supabase.from('scheduled_transactions').update(payload).eq('id', data.id).eq('user_id', user.id)
+    : await supabase.from('scheduled_transactions').insert(payload)
+
+  if (error) return { error: error.message }
+  revalidatePath('/settings')
+  return { error: null }
+}
+
+export async function deleteScheduled(id: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+  const { error } = await supabase.from('scheduled_transactions').delete().eq('id', id).eq('user_id', user.id)
+  if (error) return { error: error.message }
+  revalidatePath('/settings')
+  return { error: null }
+}
+
+// ── Budget ────────────────────────────────────────────────────────────────────
+
+export async function saveBudget(amount: number, year: number, month: number) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+
+  const { data: existing } = await supabase
+    .from('budgets').select('id')
+    .eq('user_id', user.id).eq('year', year).eq('month', month)
+    .maybeSingle()
+
+  const { error } = existing
+    ? await supabase.from('budgets').update({ amount }).eq('id', existing.id)
+    : await supabase.from('budgets').insert({ user_id: user.id, amount, year, month })
+
+  if (error) return { error: error.message }
+  revalidatePath('/home')
+  return { error: null }
+}
+
+// ── Profile ───────────────────────────────────────────────────────────────────
+
+export async function updateProfile(fullName: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+
+  const { error } = await supabase.from('profiles').update({ full_name: fullName.trim() || null }).eq('id', user.id)
+  if (error) return { error: error.message }
+  revalidatePath('/home')
+  revalidatePath('/settings')
+  return { error: null }
+}
+
+export async function saveDefaultBudget(amount: number | null) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+
+  const { error } = await supabase.from('profiles').update({ default_monthly_budget: amount }).eq('id', user.id)
+  if (error) return { error: error.message }
+  revalidatePath('/home')
+  revalidatePath('/settings')
+  return { error: null }
+}
+
+// ── Apply balance adjustment ──────────────────────────────────────────────────
+
+export async function addPerson(name: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado', person: null }
+
+  const suffix = Math.random().toString(36).slice(2, 10).toUpperCase()
+  const id = `PER-${suffix}`
+  const { data: person, error } = await supabase.from('people').insert({ id, user_id: user.id, name }).select().single()
+  if (error) return { error: error.message, person: null }
+  revalidatePath('/home')
+  revalidatePath('/transactions')
+  revalidatePath('/settings')
+  return { error: null, person }
+}
+
+export async function updatePerson(id: string, name: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+  const { error } = await supabase.from('people').update({ name: name.trim() }).eq('id', id).eq('user_id', user.id)
+  if (error) return { error: error.message }
+  revalidatePath('/settings')
+  revalidatePath('/transactions')
+  return { error: null }
+}
+
+export async function deletePerson(id: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+  const { error } = await supabase.from('people').delete().eq('id', id).eq('user_id', user.id).eq('is_me', false)
+  if (error) return { error: error.message }
+  revalidatePath('/settings')
+  revalidatePath('/transactions')
+  return { error: null }
+}
+
+export async function chargeScheduled(id: string, skip: boolean) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+
+  const { data: sched, error: fetchErr } = await supabase
+    .from('scheduled_transactions').select('*')
+    .eq('id', id).eq('user_id', user.id).single()
+  if (fetchErr || !sched) return { error: 'Recurrente no encontrado' }
+
+  const base = sched.next_charge_date ? new Date(sched.next_charge_date + 'T12:00:00') : new Date()
+  const next = new Date(base)
+  const num = sched.frequency_num
+  if (sched.frequency_unit === 'dia') next.setDate(next.getDate() + num)
+  else if (sched.frequency_unit === 'semana') next.setDate(next.getDate() + num * 7)
+  else if (sched.frequency_unit === 'mes') next.setMonth(next.getMonth() + num)
+  else if (sched.frequency_unit === 'año') next.setFullYear(next.getFullYear() + num)
+  const nextDateStr = next.toISOString().slice(0, 10)
+  const today = getMexicoNow().slice(0, 10)
+
+  if (!skip) {
+    const amount = Number(sched.amount)
+    const { error: txErr } = await supabase.from('transactions').insert({
+      user_id: user.id,
+      concept: sched.name,
+      type: sched.type,
+      amount,
+      adjustment: sched.type === 'TR-TRANSFER' ? -amount : adjustmentFor(sched.type, amount),
+      category_id: sched.category_id ?? null,
+      account_id: sched.account_id,
+      destination_account_id: sched.destination_account_id ?? null,
+      transaction_date: today,
+      is_validated: true,
+      scheduled_id: id,
+    })
+    if (txErr) return { error: txErr.message }
+  }
+
+  const { error: updateErr } = await supabase
+    .from('scheduled_transactions')
+    .update({ next_charge_date: nextDateStr, ...(skip ? {} : { last_charge_date: today }) })
+    .eq('id', id).eq('user_id', user.id)
+  if (updateErr) return { error: updateErr.message }
+
+  revalidatePath('/home')
+  revalidatePath('/transactions')
+  return { error: null }
+}
+
+export async function applyAdjustment(accountId: string, accountName: string, delta: number) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+
+  const { error } = await supabase.from('transactions').insert({
+    user_id: user.id,
+    concept: `Ajuste en ${accountName}`,
+    type: delta > 0 ? 'TR-INGRESO' : 'TR-GASTO',
+    amount: Math.abs(delta),
+    adjustment: delta,
+    category_id: 'CAT-AUDIT',
+    account_id: accountId,
+    is_validated: false,
+  })
+  if (error) return { error: error.message }
+  revalidatePath('/home')
+  return { error: null }
+}
+
+// ── Credit card payments ───────────────────────────────────────────────────────
+
+export async function saveCreditPayment(data: {
+  account_id: string
+  year: number
+  month: number
+  amount: number
+  payment_type: 'transfer' | 'deposit'
+  source_account_id?: string | null
+  notes?: string
+}) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+
+  const { error } = await supabase.from('credit_payments').upsert(
+    { ...data, user_id: user.id },
+    { onConflict: 'user_id,account_id,year,month' },
+  )
+  if (error) return { error: error.message }
+  revalidatePath('/home')
+  return { error: null }
+}
+
+export async function deleteCreditPayment(account_id: string, year: number, month: number) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+
+  const { error } = await supabase
+    .from('credit_payments')
+    .delete()
+    .eq('user_id', user.id)
+    .eq('account_id', account_id)
+    .eq('year', year)
+    .eq('month', month)
+  if (error) return { error: error.message }
+  revalidatePath('/home')
+  return { error: null }
+}
