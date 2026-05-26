@@ -223,16 +223,17 @@ export default function TransactionModal({ transaction, accounts, categories, pe
               <div className="flex items-center justify-center gap-1">
                 <span className="text-[28px] font-black" style={{ color: 'rgba(255,255,255,0.4)' }}>$</span>
                 <input
-                  type="number"
-                  required
-                  min="0.01"
-                  step="0.01"
+                  type="text"
+                  inputMode="decimal"
                   value={amount}
                   onChange={e => setAmount(e.target.value)}
+                  onBlur={() => {
+                    const v = evalExpr(amount)
+                    if (v > 0) setAmount(String(v))
+                  }}
                   placeholder="0.00"
                   className="bg-transparent border-none outline-none text-[44px] font-black tabular-nums text-center w-full max-w-[220px]"
                   style={{ color: amount ? cfg.color : 'rgba(255,255,255,0.2)' }}
-                  inputMode="decimal"
                 />
               </div>
               <div

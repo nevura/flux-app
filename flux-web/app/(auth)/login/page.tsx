@@ -7,10 +7,11 @@ import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
+  const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
-  const [mode, setMode] = useState<'login' | 'signup'>('login')
-  const [loading, setLoading] = useState(false)
+  const [mode, setMode]         = useState<'login' | 'signup'>('login')
+  const [loading, setLoading]   = useState(false)
+  const [oauthLoading, setOauthLoading] = useState<'apple' | 'google' | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -30,6 +31,21 @@ export default function LoginPage() {
       toast.error(err instanceof Error ? err.message : 'Error al iniciar sesión')
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleOAuth(provider: 'apple' | 'google') {
+    setOauthLoading(provider)
+    const supabase = createClient()
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    })
+    if (error) {
+      toast.error(error.message)
+      setOauthLoading(null)
     }
   }
 
@@ -106,6 +122,44 @@ export default function LoginPage() {
             )}
           </button>
         </form>
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 my-5">
+          <div className="flex-1 h-px bg-slate-700" />
+          <span className="text-xs text-slate-500 font-medium">o continúa con</span>
+          <div className="flex-1 h-px bg-slate-700" />
+        </div>
+
+        {/* OAuth buttons */}
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={() => handleOAuth('apple')}
+            disabled={!!oauthLoading}
+            className="w-full flex items-center justify-center gap-2.5 py-3 rounded-xl font-semibold text-sm transition-all active:scale-95 disabled:opacity-50"
+            style={{ background: '#000', border: '1px solid rgba(255,255,255,0.12)', color: '#fff' }}
+          >
+            {oauthLoading === 'apple' ? (
+              <i className="fa-solid fa-spinner fa-spin" />
+            ) : (
+              <i className="fa-brands fa-apple text-[18px]" />
+            )}
+            Continuar con Apple
+          </button>
+
+          <button
+            onClick={() => handleOAuth('google')}
+            disabled={!!oauthLoading}
+            className="w-full flex items-center justify-center gap-2.5 py-3 rounded-xl font-semibold text-sm transition-all active:scale-95 disabled:opacity-50"
+            style={{ background: '#1C1C1E', border: '1px solid rgba(255,255,255,0.12)', color: '#fff' }}
+          >
+            {oauthLoading === 'google' ? (
+              <i className="fa-solid fa-spinner fa-spin" />
+            ) : (
+              <i className="fa-brands fa-google text-[15px]" />
+            )}
+            Continuar con Google
+          </button>
+        </div>
       </div>
 
       <p className="mt-6 text-xs text-slate-600 text-center animate-fade-up" style={{ animationDelay: '0.1s' }}>

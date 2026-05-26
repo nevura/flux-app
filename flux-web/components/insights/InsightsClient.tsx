@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useRef, useCallback, useEffect } from 'react'
+import { useState, useMemo, useRef, useCallback, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatCurrency, getCategoryDisplay, getColor } from '@/lib/utils'
 import { MONTHS_ES } from '@/lib/constants'
@@ -85,23 +85,21 @@ function DonutChart({ slices }: { slices: Array<{ label: string; value: number; 
     <div className="flex flex-col items-center">
       <div className="relative w-[240px] h-[240px]">
         <svg viewBox="0 0 200 200" className="w-full h-full">
-          {paths.map(p => (
-            <path
-              key={p.i}
-              d={p.path}
-              fill={p.color}
-              opacity={hovered === null || hovered === p.i ? 1 : 0.35}
-              className="cursor-pointer transition-opacity duration-150"
-              style={{
-                transformOrigin: '100px 100px',
-                animation: `pie-slice-in 0.65s cubic-bezier(0.16,1,0.3,1) ${p.i * 0.11}s both`,
-              }}
-              onMouseEnter={() => setHovered(p.i)}
-              onMouseLeave={() => setHovered(null)}
-              onTouchStart={() => setHovered(p.i)}
-              onTouchEnd={() => setHovered(null)}
-            />
-          ))}
+          <g style={{ transformOrigin: '100px 100px', animation: 'donut-enter 0.8s cubic-bezier(0.16,1,0.3,1) both' }}>
+            {paths.map(p => (
+              <path
+                key={p.i}
+                d={p.path}
+                fill={p.color}
+                opacity={hovered === null || hovered === p.i ? 1 : 0.35}
+                className="cursor-pointer transition-opacity duration-150"
+                onMouseEnter={() => setHovered(p.i)}
+                onMouseLeave={() => setHovered(null)}
+                onTouchStart={() => setHovered(p.i)}
+                onTouchEnd={() => setHovered(null)}
+              />
+            ))}
+          </g>
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           {active ? (
@@ -126,6 +124,7 @@ function DonutChart({ slices }: { slices: Array<{ label: string; value: number; 
 
 export default function InsightsClient({ transactions, categories, monthlySummary, year, month }: Props) {
   const router = useRouter()
+  const [isNavigating, startNavigate] = useTransition()
   const [pickerOpen, setPickerOpen] = useState(false)
   const [pickerYear, setPickerYear] = useState(year)
   const [activeScreen, setActiveScreen] = useState(0)
@@ -139,7 +138,11 @@ export default function InsightsClient({ transactions, categories, monthlySummar
     let m = month + dir, y = year
     if (m < 1) { m = 12; y-- }
     if (m > 12) { m = 1; y++ }
-    router.push(`/insights?year=${y}&month=${m}`)
+    startNavigate(() => router.push(`/insights?year=${y}&month=${m}`))
+  }
+
+  function navigatePicker(y: number, m: number) {
+    startNavigate(() => router.push(`/insights?year=${y}&month=${m}`))
   }
 
   const handleScroll = useCallback(() => {
@@ -279,7 +282,7 @@ export default function InsightsClient({ transactions, categories, monthlySummar
                       disabled={isFuture}
                       onClick={e => {
                         e.stopPropagation()
-                        router.push(`/insights?year=${pickerYear}&month=${i + 1}`)
+                        navigatePicker(pickerYear, i + 1)
                         setPickerOpen(false)
                       }}
                       className="py-2 rounded-[10px] text-[11px] font-black capitalize transition-all"
@@ -322,7 +325,12 @@ export default function InsightsClient({ transactions, categories, monthlySummar
         ref={scrollRef}
         key={`${year}-${month}`}
         className="flex overflow-x-auto animate-fade-up"
-        style={{ scrollSnapType: 'x mandatory', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+        style={{
+          scrollSnapType: 'x mandatory', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch',
+          opacity: isNavigating ? 0.45 : 1,
+          transition: 'opacity 0.22s ease-out',
+          pointerEvents: isNavigating ? 'none' : undefined,
+        } as React.CSSProperties}
         onScroll={handleScroll}
       >
 
