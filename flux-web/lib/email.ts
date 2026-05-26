@@ -56,3 +56,33 @@ export async function sendApprovalRejectedEmail(opts: { to: string }) {
     html: template,
   })
 }
+
+export async function sendTdcReminderEmail(opts: {
+  to: string
+  accountName: string
+  paymentDay: number
+}) {
+  const html = loadTemplate('tdc-reminder')
+    .replace(/\{\{ACCOUNT_NAME\}\}/g, opts.accountName)
+    .replace(/\{\{PAYMENT_DAY\}\}/g, String(opts.paymentDay))
+
+  return resend.emails.send({
+    from: `FluxApp <${FROM}>`,
+    to: opts.to,
+    subject: `Recordatorio: pago de ${opts.accountName} mañana`,
+    html,
+  })
+}
+
+export async function sendMonthlyAdjustmentEmail(opts: { to: string }) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://fluxapp-nevura.vercel.app'
+  const html = loadTemplate('monthly-adjustment')
+    .replace(/\{\{APP_URL\}\}/g, appUrl)
+
+  return resend.emails.send({
+    from: `FluxApp <${FROM}>`,
+    to: opts.to,
+    subject: 'Cierre de mes — revisa tus saldos en Flux',
+    html,
+  })
+}

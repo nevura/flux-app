@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recordatorio de pago TDC — Flux</title>
+</head>
+<body style="margin:0;padding:0;background-color:#0C0C0E;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#0C0C0E;min-height:100vh;">
+    <tr>
+      <td align="center" style="padding:48px 20px;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;">
+
+          <!-- Logo -->
+          <tr>
+            <td align="center" style="padding-bottom:36px;">
+              <div style="width:68px;height:68px;background:#007AFF;border-radius:18px;display:inline-block;text-align:center;line-height:68px;">
+                <img src="https://raw.githubusercontent.com/nevura/flux-app/main/flux-web/public/icon-192.png" width="44" height="44" alt="Flux" style="vertical-align:middle;border-radius:8px;" />
+              </div>
+              <p style="margin:14px 0 4px;font-size:26px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">Flux</p>
+              <p style="margin:0;font-size:14px;color:rgba(255,255,255,0.4);">Finanzas que fluyen</p>
+            </td>
+          </tr>
+
+          <!-- Card -->
+          <tr>
+            <td style="background:#1C1C1E;border-radius:24px;padding:36px 32px;border:1px solid rgba(255,255,255,0.08);">
+
+              <!-- Icon -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" style="padding-bottom:20px;">
+                    <div style="width:52px;height:52px;background:rgba(255,149,0,0.12);border-radius:14px;display:inline-block;text-align:center;line-height:52px;font-size:22px;">
+                      💳
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Heading -->
+              <p style="margin:0 0 8px;font-size:22px;font-weight:700;color:#ffffff;text-align:center;letter-spacing:-0.3px;">
+                Pago de tarjeta mañana
+              </p>
+              <p style="margin:0 0 24px;font-size:15px;color:rgba(255,255,255,0.55);text-align:center;line-height:1.6;">
+                Mañana es el día de pago de tu tarjeta de crédito.
+              </p>
+
+              <!-- Account info -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
+                <tr>
+                  <td style="background:rgba(255,149,0,0.08);border:1px solid rgba(255,149,0,0.2);border-radius:12px;padding:16px;">
+                    <p style="margin:0 0 4px;font-size:12px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;">Cuenta</p>
+                    <p style="margin:0 0 8px;font-size:17px;color:#ffffff;font-weight:600;">{{ACCOUNT_NAME}}</p>
+                    <p style="margin:0;font-size:13px;color:rgba(255,149,0,0.9);">Día de pago: {{PAYMENT_DAY}}</p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Divider -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="border-top:1px solid rgba(255,255,255,0.08);padding-top:20px;">
+                    <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.3);text-align:center;">
+                      Revisa tu estado de cuenta y realiza tu pago a tiempo para evitar intereses.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding-top:28px;">
+              <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.15);">
+                Powered by <strong style="color:rgba(255,255,255,0.25);">Nevura</strong>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
