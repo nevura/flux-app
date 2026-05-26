@@ -21,7 +21,7 @@ export default function AppNav() {
     >
       <div className="mx-auto max-w-lg">
         <div
-          className="mx-3 mb-3 flex items-center justify-around rounded-[26px] px-1 py-1.5"
+          className="mx-3 mb-3 flex items-center justify-around rounded-[26px] px-1 py-2"
           style={{
             background: 'rgba(28,28,30,0.92)',
             backdropFilter: 'blur(24px)',
@@ -36,20 +36,18 @@ export default function AppNav() {
               <Link
                 key={tab.href}
                 href={tab.href}
-                className={`flex items-center gap-2 rounded-2xl transition-all duration-200 select-none ${
-                  active
-                    ? 'px-4 py-2.5'
-                    : 'px-3 py-2.5'
+                className={`flex items-center gap-2 rounded-2xl transition-all duration-200 select-none active:scale-95 ${
+                  active ? 'px-4 py-3' : 'px-4 py-3'
                 }`}
                 style={active ? {
                   background: 'rgba(255,255,255,0.12)',
                 } : undefined}
               >
                 <i className={`${tab.icon} transition-all duration-200 ${
-                  active ? 'text-white text-[15px]' : 'text-[rgba(255,255,255,0.4)] text-[18px]'
+                  active ? 'text-white text-[17px]' : 'text-[rgba(255,255,255,0.4)] text-[19px]'
                 }`} />
                 {active && (
-                  <span className="text-[12px] font-black text-white tracking-tight whitespace-nowrap">
+                  <span className="text-[13px] font-black text-white tracking-tight whitespace-nowrap">
                     {tab.label}
                   </span>
                 )}

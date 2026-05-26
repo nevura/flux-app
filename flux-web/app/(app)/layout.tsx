@@ -9,8 +9,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex flex-col min-h-screen">
-      <main className="flex-1 pb-[calc(4.5rem+var(--safe-bottom))]">
-        {children}
+      <main className="flex-1 pb-[calc(5rem+var(--safe-bottom))]">
+        <div className="animate-fade-in">
+          {children}
+        </div>
       </main>
       <AppNav />
     </div>
