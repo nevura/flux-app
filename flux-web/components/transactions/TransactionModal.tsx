@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
 import { addTransaction, updateTransaction, deleteTransaction } from '@/actions/transactions'
 import { addPerson } from '@/actions/config'
@@ -149,7 +150,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
     })
   }
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop */}
       <div
@@ -634,6 +635,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
           )}
         </div>
       </div>
-    </>
+    </>,
+    document.body
   )
 }

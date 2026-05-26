@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-export function useAnimatedWidth(target: number, delay = 60) {
+export function useAnimatedWidth(target: number, delay = 100) {
   const [w, setW] = useState(0)
   useEffect(() => {
     const id = setTimeout(() => setW(target), delay)
@@ -9,7 +9,7 @@ export function useAnimatedWidth(target: number, delay = 60) {
   return w
 }
 
-export function useCountUp(target: number, duration = 1000) {
+export function useCountUp(target: number, duration = 1700) {
   const [value, setValue] = useState(0)
   const prevRef = useRef<number | null>(null)
   const rafRef = useRef<number>(0)

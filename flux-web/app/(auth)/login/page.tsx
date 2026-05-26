@@ -37,7 +37,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-[#020617]">
       {/* Logo */}
       <div className="mb-8 flex flex-col items-center gap-3 animate-fade-up">
-        <div className="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg" style={{ background: '#007AFF', boxShadow: '0 8px 24px rgba(0,122,255,0.35)' }}>
           <i className="fa-solid fa-wallet text-white text-2xl" />
         </div>
         <div className="text-center">
@@ -55,8 +55,9 @@ export default function LoginPage() {
               key={m}
               onClick={() => setMode(m)}
               className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${
-                mode === m ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-slate-300'
+                mode === m ? 'text-white shadow' : 'text-slate-400 hover:text-slate-300'
               }`}
+              style={mode === m ? { background: '#007AFF' } : undefined}
             >
               {m === 'login' ? 'Entrar' : 'Registrarse'}
             </button>
@@ -72,7 +73,7 @@ export default function LoginPage() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="tu@correo.com"
-              className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 transition-colors"
+              className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-[#007AFF] transition-colors"
             />
           </div>
 
@@ -85,14 +86,15 @@ export default function LoginPage() {
               onChange={e => setPassword(e.target.value)}
               placeholder="••••••••"
               minLength={6}
-              className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 transition-colors"
+              className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-[#007AFF] transition-colors"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="mt-2 w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-colors shadow-lg shadow-indigo-500/20 active:scale-95"
+            className="mt-2 w-full disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all active:scale-95"
+            style={{ background: '#007AFF', boxShadow: '0 4px 16px rgba(0,122,255,0.3)' }}
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">

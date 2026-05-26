@@ -17,7 +17,7 @@ function AnimatedBar({ pct, color }: { pct: number; color: string }) {
   return (
     <div
       className="h-full rounded-full"
-      style={{ width: `${w}%`, background: color, transition: 'width 900ms cubic-bezier(0.22,1,0.36,1)' }}
+      style={{ width: `${w}%`, background: color, transition: 'width 1500ms cubic-bezier(0.22,1,0.36,1)' }}
     />
   )
 }
@@ -25,13 +25,13 @@ function AnimatedBar({ pct, color }: { pct: number; color: string }) {
 function GrowBar({ target, color }: { target: number; color: string }) {
   const [h, setH] = useState(0)
   useEffect(() => {
-    const id = setTimeout(() => setH(target), 60)
+    const id = setTimeout(() => setH(target), 100)
     return () => clearTimeout(id)
   }, [target])
   return (
     <div
       className="flex-1 rounded-t-[4px]"
-      style={{ height: h, background: color, transition: 'height 750ms cubic-bezier(0.22,1,0.36,1)' }}
+      style={{ height: h, background: color, transition: 'height 1250ms cubic-bezier(0.22,1,0.36,1)' }}
     />
   )
 }
@@ -94,7 +94,7 @@ function DonutChart({ slices }: { slices: Array<{ label: string; value: number; 
               className="cursor-pointer transition-opacity duration-150"
               style={{
                 transformOrigin: '100px 100px',
-                animation: `pie-slice-in 0.4s cubic-bezier(0.34,1.56,0.64,1) ${p.i * 0.07}s both`,
+                animation: `pie-slice-in 0.65s cubic-bezier(0.16,1,0.3,1) ${p.i * 0.11}s both`,
               }}
               onMouseEnter={() => setHovered(p.i)}
               onMouseLeave={() => setHovered(null)}

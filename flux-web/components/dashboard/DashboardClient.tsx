@@ -21,7 +21,7 @@ function AnimatedBar({ pct, color }: { pct: number; color: string }) {
   return (
     <div
       className="h-full rounded-full"
-      style={{ width: `${w}%`, background: color, transition: 'width 900ms cubic-bezier(0.22,1,0.36,1)' }}
+      style={{ width: `${w}%`, background: color, transition: 'width 1500ms cubic-bezier(0.22,1,0.36,1)' }}
     />
   )
 }
@@ -803,37 +803,42 @@ export default function DashboardClient({ user, accounts, transactions, categori
         document.body,
       )}
 
-      {/* FAB — above the navigation bar */}
-      <button
-        onClick={openAdd}
-        className="fixed z-[55] flex items-center justify-center rounded-full active:scale-90 transition-transform"
-        style={{
-          width: 56,
-          height: 56,
-          right: '1.25rem',
-          bottom: 'calc(5rem + var(--safe-bottom))',
-          background: '#007AFF',
-          boxShadow: '0 8px 28px rgba(0,122,255,0.55)',
-        }}
-      >
-        <i className="fa-solid fa-plus text-white text-lg" />
-      </button>
+      {createPortal(
+        <>
+          {/* FAB — above the navigation bar */}
+          <button
+            onClick={openAdd}
+            className="fixed z-[55] flex items-center justify-center rounded-full active:scale-90 transition-transform"
+            style={{
+              width: 56,
+              height: 56,
+              right: '1.25rem',
+              bottom: 'calc(5rem + var(--safe-bottom))',
+              background: '#007AFF',
+              boxShadow: '0 8px 28px rgba(0,122,255,0.55)',
+            }}
+          >
+            <i className="fa-solid fa-plus text-white text-lg" />
+          </button>
 
-      {modalOpen && (
-        <TransactionModal
-          transaction={editingTx}
-          accounts={accounts}
-          categories={categories}
-          people={people}
-          onClose={() => setModalOpen(false)}
-        />
-      )}
+          {modalOpen && (
+            <TransactionModal
+              transaction={editingTx}
+              accounts={accounts}
+              categories={categories}
+              people={people}
+              onClose={() => setModalOpen(false)}
+            />
+          )}
 
-      {auditOpen && (
-        <AuditModal
-          accounts={accounts}
-          onClose={() => setAuditOpen(false)}
-        />
+          {auditOpen && (
+            <AuditModal
+              accounts={accounts}
+              onClose={() => setAuditOpen(false)}
+            />
+          )}
+        </>,
+        document.body
       )}
     </div>
   )
