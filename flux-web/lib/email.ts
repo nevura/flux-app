@@ -1,0 +1,58 @@
+import { Resend } from 'resend'
+import { readFileSync } from 'fs'
+import { join } from 'path'
+
+const resend = new Resend(process.env.RESEND_API_KEY)
+const FROM = process.env.RESEND_FROM ?? 'onboarding@resend.dev'
+
+function loadTemplate(name: string): string {
+  return readFileSync(join(process.cwd(), 'email-templates', `${name}.html`), 'utf-8')
+}
+
+export async function sendApprovalRequestEmail(opts: {
+  adminEmail: string
+  applicantEmail: string
+  applicantName?: string
+  approveUrl: string
+  rejectUrl: string
+}) {
+  const template = loadTemplate('approval-request')
+  const html = template
+    .replace(/\{\{APPLICANT_EMAIL\}\}/g, opts.applicantEmail)
+    .replace(/\{\{APPLICANT_NAME\}\}/g, opts.applicantName ?? opts.applicantEmail)
+    .replace(/\{\{APPROVE_URL\}\}/g, opts.approveUrl)
+    .replace(/\{\{REJECT_URL\}\}/g, opts.rejectUrl)
+
+  return resend.emails.send({
+    from: `FluxApp <${FROM}>`,
+    to: opts.adminEmail,
+    subject: `Nueva solicitud de acceso — ${opts.applicantEmail}`,
+    html,
+  })
+}
+
+export async function sendApprovalGrantedEmail(opts: {
+  to: string
+  loginUrl: string
+}) {
+  const template = loadTemplate('approval-granted')
+  const html = template.replace(/\{\{LOGIN_URL\}\}/g, opts.loginUrl)
+
+  return resend.emails.send({
+    from: `FluxApp <${FROM}>`,
+    to: opts.to,
+    subject: 'Tu acceso a Flux fue aprobado',
+    html,
+  })
+}
+
+export async function sendApprovalRejectedEmail(opts: { to: string }) {
+  const template = loadTemplate('approval-rejected')
+
+  return resend.emails.send({
+    from: `FluxApp <${FROM}>`,
+    to: opts.to,
+    subject: 'Solicitud de acceso a Flux',
+    html: template,
+  })
+}

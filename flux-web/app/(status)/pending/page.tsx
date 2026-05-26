@@ -12,7 +12,7 @@ export default function PendingPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-[#020617]">
       <div className="mb-8 flex flex-col items-center gap-3 animate-fade-up">
-        <div className="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg" style={{ background: '#007AFF', boxShadow: '0 8px 24px rgba(0,122,255,0.35)' }}>
           <i className="fa-solid fa-wallet text-white text-2xl" />
         </div>
         <div className="text-center">
