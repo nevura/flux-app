@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   description: 'Controla tus finanzas personales con Flux',
   manifest: '/manifest.json',
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Flux' },
+  icons: {
+    apple: '/apple-touch-icon.png',
+  },
 }
 
 export const viewport: Viewport = {
