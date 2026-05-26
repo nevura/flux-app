@@ -39,23 +39,32 @@ export async function POST(req: NextRequest) {
   try {
     raw = await req.json()
   } catch {
-    return NextResponse.json({ error: 'JSON inválido' }, { status: 400 })
+    return NextResponse.json({ error: 'JSON inválido', hint: 'Asegúrate de que el cuerpo de solicitud sea tipo JSON (no Formulario)' }, { status: 400 })
   }
+
+  // Accept many common Spanish variants for field names
   const body: ShortcutPayload = {
-    amount:      raw.amount      ?? raw.cantidad,
+    amount:      raw.amount      ?? raw.cantidad   ?? raw.monto,
     concept:     raw.concept     ?? raw.concepto,
     type:        raw.type        ?? raw.tipo,
     category:    raw.category    ?? raw.categoria,
     account:     raw.account     ?? raw.cuenta,
-    destination: raw.destination ?? raw.cuenta_destino,
+    destination: raw.destination ?? raw.cuenta_destino ?? raw.destino,
     date:        raw.date        ?? raw.fecha,
     validated:   raw.validated   ?? raw.validado,
     notes:       raw.notes       ?? raw.notas,
   }
 
   const amount = parseAmount(body.amount)
-  if (!amount) return NextResponse.json({ error: 'Monto inválido' }, { status: 400 })
-  if (!body.concept) return NextResponse.json({ error: 'Concepto requerido' }, { status: 400 })
+  if (!amount) return NextResponse.json({
+    error: 'Monto inválido o faltante',
+    received_fields: Object.keys(raw),
+    amount_value: raw.amount ?? raw.cantidad ?? raw.monto ?? null,
+  }, { status: 400 })
+  if (!body.concept) return NextResponse.json({
+    error: 'Concepto requerido',
+    received_fields: Object.keys(raw),
+  }, { status: 400 })
 
   // Resolve type
   const typeMap: Record<string, string> = {
@@ -112,7 +121,11 @@ export async function POST(req: NextRequest) {
     accountId = userAccounts?.[0]?.id ?? null
   }
 
-  if (!accountId) return NextResponse.json({ error: 'Sin cuenta disponible' }, { status: 400 })
+  if (!accountId) return NextResponse.json({
+    error: 'Sin cuenta disponible',
+    account_sent: body.account ?? null,
+    available_accounts: userAccounts?.map(a => a.name) ?? [],
+  }, { status: 400 })
 
   const date = body.date ? new Date(body.date).toISOString() : new Date().toISOString()
 
