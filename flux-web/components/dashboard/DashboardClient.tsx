@@ -65,6 +65,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
   const [tdcPayType, setTdcPayType] = useState<'transfer' | 'deposit'>('transfer')
   const [tdcSource, setTdcSource] = useState('')
   const [isTdcPending, startTdc] = useTransition()
+  const [isSkipPending, startSkip] = useTransition()
 
   const catMap = useMemo(() => Object.fromEntries(categories.map(c => [c.id, c])), [categories])
   const totalBalance = useMemo(() => accounts.reduce((s, a) => s + a.balance, 0), [accounts])
@@ -194,7 +195,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
 
   function handleSkipTdc() {
     if (!tdcModal) return
-    startTdc(async () => {
+    startSkip(async () => {
       const res = await saveCreditPayment({
         account_id: tdcModal.id,
         year, month,
@@ -811,12 +812,14 @@ export default function DashboardClient({ user, accounts, transactions, categori
               {!creditPayMap[tdcModal.id] && (
                 <button
                   onClick={handleSkipTdc}
-                  disabled={isTdcPending}
+                  disabled={isSkipPending || isTdcPending}
                   className="w-full py-3 rounded-[16px] text-[13px] font-black disabled:opacity-50 active:scale-[0.98] transition-all"
                   style={{ background: 'rgba(100,210,255,0.08)', color: '#64D2FF', border: '1px solid rgba(100,210,255,0.2)' }}
                 >
-                  <i className="fa-solid fa-forward mr-2" />
-                  Omitir este mes
+                  {isSkipPending
+                    ? <i className="fa-solid fa-spinner fa-spin" />
+                    : <><i className="fa-solid fa-forward mr-2" />Omitir este mes</>
+                  }
                 </button>
               )}
 

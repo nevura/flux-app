@@ -322,8 +322,8 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
               </button>
               {deleteConfirm === cat.id ? (
                 <div className="flex items-center gap-1.5">
-                  <button onClick={() => setDeleteConfirm(null)} className="px-2 py-1 rounded-lg text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.07)' }}>No</button>
-                  <button onClick={() => handleDelete(cat.id)} className="px-2 py-1 rounded-lg text-[11px] font-bold text-white" style={{ background: '#FF453A' }}>Sí</button>
+                  <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold" style={{ color: 'rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.08)' }}>No</button>
+                  <button onClick={() => handleDelete(cat.id)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold text-white" style={{ background: '#FF453A' }}>Sí</button>
                 </div>
               ) : (
                 <button onClick={() => setDeleteConfirm(cat.id)} className="px-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
@@ -464,8 +464,8 @@ function AccountsTab({ accounts, isPending, startTransition }: {
               </button>
               {deleteConfirm === acc.id ? (
                 <div className="flex items-center gap-1.5">
-                  <button onClick={() => setDeleteConfirm(null)} className="px-2 py-1 rounded-lg text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.07)' }}>No</button>
-                  <button onClick={() => handleDelete(acc.id)} className="px-2 py-1 rounded-lg text-[11px] font-bold text-white" style={{ background: '#FF453A' }}>Sí</button>
+                  <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold" style={{ color: 'rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.08)' }}>No</button>
+                  <button onClick={() => handleDelete(acc.id)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold text-white" style={{ background: '#FF453A' }}>Sí</button>
                 </div>
               ) : (
                 <button onClick={() => setDeleteConfirm(acc.id)} className="px-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
@@ -755,8 +755,8 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
             </div>
             {deleteConfirm === s.id ? (
               <div className="flex items-center gap-1.5">
-                <button onClick={() => setDeleteConfirm(null)} className="px-2 py-1 rounded-lg text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.07)' }}>No</button>
-                <button onClick={() => handleDelete(s.id)} className="px-2 py-1 rounded-lg text-[11px] font-bold text-white" style={{ background: '#FF453A' }}>Sí</button>
+                <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold" style={{ color: 'rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.08)' }}>No</button>
+                <button onClick={() => handleDelete(s.id)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold text-white" style={{ background: '#FF453A' }}>Sí</button>
               </div>
             ) : (
               <button onClick={() => setDeleteConfirm(s.id)} className="px-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
@@ -1228,8 +1228,8 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
           </button>
           {deleteConfirm === person.id ? (
             <div className="flex items-center gap-1.5">
-              <button onClick={() => setDeleteConfirm(null)} className="px-2 py-1 rounded-lg text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.07)' }}>No</button>
-              <button onClick={() => handleDelete(person.id)} className="px-2 py-1 rounded-lg text-[11px] font-bold text-white" style={{ background: '#FF453A' }}>Sí</button>
+              <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold" style={{ color: 'rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.08)' }}>No</button>
+              <button onClick={() => handleDelete(person.id)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold text-white" style={{ background: '#FF453A' }}>Sí</button>
             </div>
           ) : (
             <button onClick={() => setDeleteConfirm(person.id)} className="px-2" style={{ color: 'rgba(255,255,255,0.4)' }}>

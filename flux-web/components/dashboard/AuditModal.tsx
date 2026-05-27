@@ -124,33 +124,37 @@ export default function AuditModal({ accounts, onClose }: Props) {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="relative">
                     {isTDC && (
-                      <span className="text-[20px] font-black flex-shrink-0" style={{ color: '#FF453A' }}>−</span>
-                    )}
-                    <div className="relative flex-1">
-                      <input
-                        value={inputs[acc.id] ?? ''}
-                        onChange={e => setInputs(prev => ({ ...prev, [acc.id]: e.target.value }))}
-                        placeholder={isTDC ? 'Deuda actual, ej: 5000+320' : 'Saldo real, ej: 1500+800'}
-                        className="w-full rounded-[12px] px-3 py-2.5 pr-10 text-[14px] font-bold text-white outline-none"
-                        style={{
-                          background: 'rgba(255,255,255,0.07)',
-                          border: `1px solid ${hasChange
-                            ? (delta! > 0 ? 'rgba(48,209,88,0.5)' : 'rgba(255,69,58,0.5)')
-                            : 'rgba(255,255,255,0.1)'}`,
-                        }}
-                        inputMode="decimal"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setInputs(prev => ({ ...prev, [acc.id]: (prev[acc.id] ?? '') + '+' }))}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-[8px] flex items-center justify-center text-[13px] font-black transition-all active:scale-90"
-                        style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }}
+                      <span
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-[15px] font-black pointer-events-none select-none z-10"
+                        style={{ color: '#FF453A' }}
                       >
-                        +
-                      </button>
-                    </div>
+                        −
+                      </span>
+                    )}
+                    <input
+                      value={inputs[acc.id] ?? ''}
+                      onChange={e => setInputs(prev => ({ ...prev, [acc.id]: e.target.value }))}
+                      placeholder={isTDC ? 'Deuda actual, ej: 5000+320' : 'Saldo real, ej: 1500+800'}
+                      className="w-full rounded-[12px] py-2.5 pr-10 text-[14px] font-bold text-white outline-none"
+                      style={{
+                        paddingLeft: isTDC ? '1.5rem' : '0.75rem',
+                        background: 'rgba(255,255,255,0.07)',
+                        border: `1px solid ${hasChange
+                          ? (delta! > 0 ? 'rgba(48,209,88,0.5)' : 'rgba(255,69,58,0.5)')
+                          : 'rgba(255,255,255,0.1)'}`,
+                      }}
+                      inputMode="decimal"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setInputs(prev => ({ ...prev, [acc.id]: (prev[acc.id] ?? '') + '+' }))}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-[8px] flex items-center justify-center text-[13px] font-black transition-all active:scale-90"
+                      style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }}
+                    >
+                      +
+                    </button>
                   </div>
 
                   {computed !== null && (
