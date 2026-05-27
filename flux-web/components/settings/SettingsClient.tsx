@@ -128,18 +128,18 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
             borderBottom: '1px solid rgba(0,122,255,0.12)',
           }}
         >
-          <div className="flex items-center gap-3">
+          <div className="relative flex items-center">
             <button
               onClick={() => setSection(null)}
-              className="flex items-center gap-1.5 text-sm font-semibold transition-colors"
+              className="flex items-center gap-1.5 text-sm font-semibold transition-colors z-10"
               style={{ color: '#007AFF' }}
             >
               <i className="fa-solid fa-chevron-left text-xs" />
               Ajustes
             </button>
-            <div className="flex-1" />
-            <h1 className="text-[15px] font-bold text-white">{current.label}</h1>
-            <div className="flex-1" />
+            <h1 className="absolute inset-0 flex items-center justify-center text-[15px] font-bold text-white pointer-events-none">
+              {current.label}
+            </h1>
           </div>
         </header>
 
@@ -221,16 +221,8 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
           borderBottom: '1px solid rgba(0,122,255,0.12)',
         }}
       >
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center mb-4">
           <h1 className="text-xl font-black text-white">Ajustes</h1>
-          <button
-            onClick={handleSignOut}
-            className="text-sm flex items-center gap-1.5 transition-colors"
-            style={{ color: 'rgba(255,255,255,0.35)' }}
-          >
-            <i className="fa-solid fa-right-from-bracket" />
-            Salir
-          </button>
         </div>
 
         {/* Profile card */}
@@ -394,7 +386,7 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-white">Mis categorías</p>
-        <button onClick={() => setEditing({})} className="text-xs font-semibold flex items-center gap-1" style={{ color: '#007AFF' }}>
+        <button onClick={() => setEditing({})} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95" style={{ background: 'rgba(0,122,255,0.12)', color: '#007AFF' }}>
           <i className="fa-solid fa-plus" /> Nueva
         </button>
       </div>
@@ -537,7 +529,7 @@ function AccountsTab({ accounts, isPending, startTransition }: {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-white">Cuentas</p>
-        <button onClick={() => setEditing({})} className="text-xs font-semibold flex items-center gap-1" style={{ color: '#007AFF' }}>
+        <button onClick={() => setEditing({})} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95" style={{ background: 'rgba(0,122,255,0.12)', color: '#007AFF' }}>
           <i className="fa-solid fa-plus" /> Nueva
         </button>
       </div>
@@ -798,7 +790,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-white">Transacciones recurrentes</p>
-        <button onClick={openNew} className="text-xs font-semibold flex items-center gap-1" style={{ color: '#007AFF' }}>
+        <button onClick={openNew} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95" style={{ background: 'rgba(0,122,255,0.12)', color: '#007AFF' }}>
           <i className="fa-solid fa-plus" /> Nueva
         </button>
       </div>
@@ -1558,7 +1550,7 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-white">Contactos</p>
-        <button onClick={() => setEditing({ name: '' })} className="text-xs font-semibold flex items-center gap-1" style={{ color: '#007AFF' }}>
+        <button onClick={() => setEditing({ name: '' })} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95" style={{ background: 'rgba(0,122,255,0.12)', color: '#007AFF' }}>
           <i className="fa-solid fa-plus" /> Nuevo
         </button>
       </div>
