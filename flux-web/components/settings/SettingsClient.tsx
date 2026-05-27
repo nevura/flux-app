@@ -52,8 +52,17 @@ function BottomSheet({ onClose, children, title }: { onClose: () => void; childr
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
+const SECTIONS: { key: Tab; icon: string; label: string; description: string }[] = [
+  { key: 'shortcuts'   as Tab, icon: 'fa-solid fa-mobile-screen', label: 'Atajos',      description: 'iPhone Shortcuts y presupuesto' },
+  { key: 'categorias'  as Tab, icon: 'fa-solid fa-tags',          label: 'Categorías',  description: 'Categorías personalizadas' },
+  { key: 'cuentas'     as Tab, icon: 'fa-solid fa-wallet',        label: 'Cuentas',     description: 'Efectivo, débito y crédito' },
+  { key: 'personas'    as Tab, icon: 'fa-solid fa-users',         label: 'Personas',    description: 'Contactos para dividir gastos' },
+  { key: 'suscripcion' as Tab, icon: 'fa-solid fa-crown',         label: 'Plan',        description: 'Suscripción y facturación' },
+  { key: 'planificados'as Tab, icon: 'fa-solid fa-calendar',      label: 'Recurrentes', description: 'Suscripciones y cobros fijos' },
+].sort((a, b) => a.label.localeCompare(b.label, 'es'))
+
 export default function SettingsClient({ profile, shortcutToken, categories, accounts, scheduled, people }: Props) {
-  const [activeTab, setActiveTab] = useState<Tab>('shortcuts')
+  const [section, setSection] = useState<Tab | null>(null)
   const [isPending, startTransition] = useTransition()
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput] = useState(profile?.full_name ?? '')
@@ -86,6 +95,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
     if (params.get('checkout') === 'success') {
       toast.success('¡Suscripción activada! Bienvenido a Flux Pro')
       window.history.replaceState({}, '', '/settings')
+      setSection('suscripcion')
     }
   }, [])
 
@@ -93,26 +103,116 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
   const defaultCategories = categories.filter(c => c.user_id === null)
   const displayName = nameInput || profile?.full_name
 
+  const trialDaysLeft = profile?.subscription_status === 'trialing' && profile?.trial_ends_at
+    ? Math.max(0, Math.ceil((new Date(profile.trial_ends_at).getTime() - Date.now()) / 86_400_000))
+    : null
+
   async function handleSignOut() {
     const supabase = createClient()
     await supabase.auth.signOut()
     window.location.href = '/login'
   }
 
-  const TABS: { key: Tab; icon: string; label: string }[] = [
-    { key: 'shortcuts', icon: 'fa-solid fa-mobile-screen', label: 'Atajos' },
-    { key: 'planificados', icon: 'fa-solid fa-calendar', label: 'Recurrentes' },
-    { key: 'cuentas', icon: 'fa-solid fa-wallet', label: 'Cuentas' },
-    { key: 'categorias', icon: 'fa-solid fa-tags', label: 'Categorías' },
-    { key: 'personas', icon: 'fa-solid fa-users', label: 'Personas' },
-    { key: 'suscripcion', icon: 'fa-solid fa-crown', label: 'Plan' },
-  ]
+  // ── Section view ─────────────────────────────────────────────────────────────
+  if (section !== null) {
+    const current = SECTIONS.find(s => s.key === section)!
+    return (
+      <div className="min-h-screen" style={{ background: '#020617' }}>
+        <header
+          className="sticky top-0 z-40 px-5 pb-4"
+          style={{
+            paddingTop: 'calc(1rem + var(--safe-top))',
+            background: 'rgba(2,6,23,0.95)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderBottom: '1px solid rgba(0,122,255,0.12)',
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSection(null)}
+              className="flex items-center gap-1.5 text-sm font-semibold transition-colors"
+              style={{ color: '#007AFF' }}
+            >
+              <i className="fa-solid fa-chevron-left text-xs" />
+              Ajustes
+            </button>
+            <div className="flex-1" />
+            <h1 className="text-[15px] font-bold text-white">{current.label}</h1>
+            <div className="flex-1" />
+          </div>
+        </header>
 
+        <div key={section} className="px-4 py-4 max-w-lg mx-auto animate-fade-up">
+          {section === 'shortcuts' && (
+            <div className="space-y-4">
+              <div className="rounded-2xl overflow-hidden" style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.15)' }}>
+                <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(0,122,255,0.08)' }}>
+                  <i className="fa-solid fa-chart-line text-xl" style={{ color: '#007AFF' }} />
+                  <p className="text-sm font-bold text-white">Presupuesto predeterminado</p>
+                </div>
+                <div className="px-4 py-3">
+                  {editingDefBudget ? (
+                    <div className="flex gap-2">
+                      <input
+                        type="number" min="0" step="0.01" autoFocus
+                        value={defBudgetInput}
+                        onChange={e => setDefBudgetInput(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') handleSaveDefBudget(); if (e.key === 'Escape') setEditingDefBudget(false) }}
+                        placeholder="0.00 (vacío para quitar)"
+                        className="flex-1 rounded-lg px-3 py-2 text-sm font-bold text-white outline-none tabular-nums"
+                        style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(0,122,255,0.4)' }}
+                        inputMode="decimal"
+                      />
+                      <button onClick={handleSaveDefBudget} disabled={isDefBudgetPending} className="px-3 py-2 rounded-lg text-xs font-bold text-white disabled:opacity-50" style={{ background: '#007AFF' }}>
+                        {isDefBudgetPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'OK'}
+                      </button>
+                      <button onClick={() => setEditingDefBudget(false)} className="px-2 rounded-lg" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }}>✕</button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <p className="text-base font-bold" style={{ color: profile?.default_monthly_budget ? 'white' : 'rgba(255,255,255,0.3)' }}>
+                        {profile?.default_monthly_budget ? `${formatCurrency(profile.default_monthly_budget)} / mes` : 'Sin presupuesto predeterminado'}
+                      </p>
+                      <button onClick={() => setEditingDefBudget(true)} className="text-sm font-semibold flex items-center gap-1" style={{ color: '#007AFF' }}>
+                        <i className="fa-solid fa-pencil text-[14px]" /> Editar
+                      </button>
+                    </div>
+                  )}
+                  <p className="text-sm mt-1.5" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                    Se aplica cuando no hay presupuesto configurado para el mes actual.
+                  </p>
+                </div>
+              </div>
+              <ShortcutInstall token={shortcutToken} />
+            </div>
+          )}
+
+          {section === 'categorias' && (
+            <CategoriesTab customCategories={customCategories} defaultCategories={defaultCategories} isPending={isPending} startTransition={startTransition} />
+          )}
+          {section === 'cuentas' && (
+            <AccountsTab accounts={accounts} isPending={isPending} startTransition={startTransition} />
+          )}
+          {section === 'planificados' && (
+            <ScheduledTab scheduled={scheduled} categories={categories} accounts={accounts} people={people} isPending={isPending} startTransition={startTransition} />
+          )}
+          {section === 'personas' && (
+            <PeopleTab people={people} isPending={isPending} startTransition={startTransition} />
+          )}
+          {section === 'suscripcion' && (
+            <SubscriptionTab profile={profile} />
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // ── List view ─────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen" style={{ background: '#020617' }}>
-      {/* Header */}
       <header
-        className="sticky top-0 z-40 px-5 pb-3"
+        className="sticky top-0 z-40 px-5 pb-4"
         style={{
           paddingTop: 'calc(1rem + var(--safe-top))',
           background: 'rgba(2,6,23,0.95)',
@@ -121,20 +221,24 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
           borderBottom: '1px solid rgba(0,122,255,0.12)',
         }}
       >
-        <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold">Ajustes</h1>
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-xl font-black text-white">Ajustes</h1>
           <button
             onClick={handleSignOut}
-            className="text-sm flex items-center gap-1.5 transition-colors" style={{ color: 'rgba(255,255,255,0.4)' }}
+            className="text-sm flex items-center gap-1.5 transition-colors"
+            style={{ color: 'rgba(255,255,255,0.35)' }}
           >
             <i className="fa-solid fa-right-from-bracket" />
             Salir
           </button>
         </div>
 
-        {/* Profile */}
-        <div className="flex items-center gap-3 mt-3">
-          <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-white text-lg font-bold flex-shrink-0" style={{ background: '#007AFF' }}>
+        {/* Profile card */}
+        <div className="flex items-center gap-3">
+          <div
+            className="w-12 h-12 rounded-2xl flex items-center justify-center text-white text-xl font-black flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #007AFF, #0056CC)' }}
+          >
             {(displayName || profile?.email || 'U')[0].toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
@@ -146,7 +250,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                   onChange={e => setNameInput(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') handleSaveName(); if (e.key === 'Escape') setEditingName(false) }}
                   placeholder="Tu nombre"
-                  className="flex-1 rounded-lg px-2.5 py-1.5 text-lg font-semibold text-white outline-none min-w-0"
+                  className="flex-1 rounded-lg px-2.5 py-1.5 text-base font-semibold text-white outline-none min-w-0"
                   style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(0,122,255,0.4)' }}
                 />
                 <button onClick={handleSaveName} disabled={isNamePending} className="text-xs font-bold flex-shrink-0" style={{ color: '#007AFF' }}>
@@ -156,126 +260,103 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
               </div>
             ) : (
               <div className="flex items-center gap-1.5">
-                <p className="text-lg font-semibold text-white truncate">{displayName || 'Sin nombre'}</p>
-                <button onClick={() => setEditingName(true)} className="transition-colors flex-shrink-0" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                <p className="text-base font-bold text-white truncate">{displayName || 'Sin nombre'}</p>
+                <button onClick={() => setEditingName(true)} className="transition-colors flex-shrink-0" style={{ color: 'rgba(255,255,255,0.35)' }}>
                   <i className="fa-solid fa-pencil text-[10px]" />
                 </button>
               </div>
             )}
-            {/* Show email only if no display name set */}
-            {!displayName && (
-              <p className="text-xs truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>{profile?.email}</p>
-            )}
+            <p className="text-xs truncate" style={{ color: 'rgba(255,255,255,0.35)' }}>{profile?.email}</p>
           </div>
-        </div>
-
-        {/* Tab bar */}
-        <div className="flex gap-1 mt-3 overflow-x-auto no-scrollbar">
-          {TABS.map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className="flex-shrink-0 flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-bold transition-all"
-              style={activeTab === tab.key
-                ? { background: '#007AFF', color: 'white' }
-                : { color: 'rgba(255,255,255,0.4)' }}
-            >
-              <i className={tab.icon} />
-              {tab.label}
-            </button>
-          ))}
         </div>
       </header>
 
-      <div key={activeTab} className="px-4 py-4 max-w-lg mx-auto animate-fade-up">
-        {activeTab === 'shortcuts' && (
-          <div className="space-y-4">
-            {/* Default budget */}
-            <div className="rounded-2xl overflow-hidden" style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.15)' }}>
-              <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(0,122,255,0.08)' }}>
-                <i className="fa-solid fa-chart-line text-xl" style={{ color: '#007AFF' }} />
-                <p className="text-sm font-bold text-white">Presupuesto predeterminado</p>
-              </div>
-              <div className="px-4 py-3">
-                {editingDefBudget ? (
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      autoFocus
-                      value={defBudgetInput}
-                      onChange={e => setDefBudgetInput(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter') handleSaveDefBudget(); if (e.key === 'Escape') setEditingDefBudget(false) }}
-                      placeholder="0.00 (vacío para quitar)"
-                      className="flex-1 rounded-lg px-3 py-2 text-sm font-bold text-white outline-none tabular-nums"
-                      style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(0,122,255,0.4)' }}
-                      inputMode="decimal"
-                    />
-                    <button onClick={handleSaveDefBudget} disabled={isDefBudgetPending} className="px-3 py-2 rounded-lg text-xs font-bold text-white disabled:opacity-50" style={{ background: '#007AFF' }}>
-                      {isDefBudgetPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'OK'}
-                    </button>
-                    <button onClick={() => setEditingDefBudget(false)} className="px-2 rounded-lg" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }}>✕</button>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between">
-                    <p className="text-base font-bold" style={{ color: profile?.default_monthly_budget ? 'white' : 'rgba(255,255,255,0.3)' }}>
-                      {profile?.default_monthly_budget ? `${formatCurrency(profile.default_monthly_budget)} / mes` : 'Sin presupuesto predeterminado'}
-                    </p>
-                    <button onClick={() => setEditingDefBudget(true)} className="text-sm font-semibold flex items-center gap-1" style={{ color: '#007AFF' }}>
-                      <i className="fa-solid fa-pencil text-[14px]" /> Editar
-                    </button>
-                  </div>
-                )}
-                <p className="text-sm mt-1.5" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                  Se aplica cuando no hay presupuesto configurado para el mes actual.
-                </p>
-              </div>
+      <div className="px-4 py-5 max-w-lg mx-auto space-y-3 animate-fade-up">
+
+        {/* Trial banner */}
+        {trialDaysLeft !== null && (
+          <button
+            onClick={() => setSection('suscripcion')}
+            className="w-full rounded-[18px] px-4 py-3.5 flex items-center gap-3 text-left transition-all active:scale-[0.98]"
+            style={{ background: 'rgba(255,159,10,0.1)', border: '1px solid rgba(255,159,10,0.35)' }}
+          >
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,159,10,0.18)' }}>
+              <i className="fa-solid fa-clock text-sm" style={{ color: '#FF9F0A' }} />
             </div>
-
-            <ShortcutInstall token={shortcutToken} />
-          </div>
+            <div className="flex-1">
+              <p className="text-[13px] font-black" style={{ color: '#FF9F0A' }}>
+                {trialDaysLeft === 0 ? 'Tu prueba expira hoy' : `${trialDaysLeft} día${trialDaysLeft === 1 ? '' : 's'} de prueba restantes`}
+              </p>
+              <p className="text-[11px] font-semibold" style={{ color: 'rgba(255,159,10,0.7)' }}>Toca para suscribirte y no perder acceso</p>
+            </div>
+            <i className="fa-solid fa-chevron-right text-xs" style={{ color: 'rgba(255,159,10,0.5)' }} />
+          </button>
         )}
 
-        {activeTab === 'categorias' && (
-          <CategoriesTab
-            customCategories={customCategories}
-            defaultCategories={defaultCategories}
-            isPending={isPending}
-            startTransition={startTransition}
-          />
-        )}
+        {/* Options list */}
+        <div className="rounded-[20px] overflow-hidden" style={{ border: '1px solid rgba(0,122,255,0.1)' }}>
+          {SECTIONS.map((s, i) => {
+            const isLast = i === SECTIONS.length - 1
+            const isPlan = s.key === 'suscripcion'
+            return (
+              <button
+                key={s.key}
+                onClick={() => setSection(s.key)}
+                className="w-full flex items-center gap-4 px-4 py-4 text-left transition-all active:scale-[0.99]"
+                style={{
+                  background: isPlan && profile?.subscription_status === 'active'
+                    ? 'rgba(48,209,88,0.05)'
+                    : '#0F172A',
+                  borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.05)',
+                }}
+              >
+                <div
+                  className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0"
+                  style={{
+                    background: isPlan && profile?.subscription_status === 'active'
+                      ? 'rgba(48,209,88,0.15)'
+                      : 'rgba(0,122,255,0.12)',
+                  }}
+                >
+                  <i
+                    className={`${s.icon} text-sm`}
+                    style={{
+                      color: isPlan && profile?.subscription_status === 'active'
+                        ? '#30D158'
+                        : isPlan && trialDaysLeft !== null
+                          ? '#FF9F0A'
+                          : '#007AFF',
+                    }}
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[14px] font-bold text-white">{s.label}</p>
+                  <p className="text-[12px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                    {isPlan && profile?.subscription_status === 'active'
+                      ? 'Flux Pro · Activo'
+                      : isPlan && trialDaysLeft !== null
+                        ? `${trialDaysLeft} días de prueba`
+                        : s.description}
+                  </p>
+                </div>
+                <i className="fa-solid fa-chevron-right text-xs" style={{ color: 'rgba(255,255,255,0.2)' }} />
+              </button>
+            )
+          })}
+        </div>
 
-        {activeTab === 'cuentas' && (
-          <AccountsTab
-            accounts={accounts}
-            isPending={isPending}
-            startTransition={startTransition}
-          />
-        )}
+        <button
+          onClick={handleSignOut}
+          className="w-full py-3.5 rounded-[16px] text-[13px] font-bold transition-all active:scale-[0.98]"
+          style={{ background: 'rgba(255,69,58,0.08)', color: '#FF453A', border: '1px solid rgba(255,69,58,0.15)' }}
+        >
+          <i className="fa-solid fa-right-from-bracket mr-2" />
+          Cerrar sesión
+        </button>
 
-        {activeTab === 'planificados' && (
-          <ScheduledTab
-            scheduled={scheduled}
-            categories={categories}
-            accounts={accounts}
-            people={people}
-            isPending={isPending}
-            startTransition={startTransition}
-          />
-        )}
-
-        {activeTab === 'personas' && (
-          <PeopleTab
-            people={people}
-            isPending={isPending}
-            startTransition={startTransition}
-          />
-        )}
-
-        {activeTab === 'suscripcion' && (
-          <SubscriptionTab profile={profile} />
-        )}
+        <p className="text-center text-[11px] pb-8" style={{ color: 'rgba(255,255,255,0.15)' }}>
+          Flux · Powered by Nevura
+        </p>
       </div>
     </div>
   )
