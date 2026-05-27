@@ -31,7 +31,9 @@ export async function GET(request: Request) {
     await sendApprovalGrantedEmail({
       to: profile.email,
       loginUrl: `${origin}/login`,
-    }).catch(() => {})
+    }).catch((err) => {
+      console.error('[approve] sendApprovalGrantedEmail failed:', err)
+    })
   }
 
   return NextResponse.redirect(`${origin}/api/admin/approve/done`)
