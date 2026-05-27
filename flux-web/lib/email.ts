@@ -2,7 +2,12 @@ import { Resend } from 'resend'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+let _resend: Resend | null = null
+function getResend() {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY!)
+  return _resend
+}
+
 const FROM = process.env.RESEND_FROM ?? 'onboarding@resend.dev'
 
 function loadTemplate(name: string): string {
@@ -23,7 +28,7 @@ export async function sendApprovalRequestEmail(opts: {
     .replace(/\{\{APPROVE_URL\}\}/g, opts.approveUrl)
     .replace(/\{\{REJECT_URL\}\}/g, opts.rejectUrl)
 
-  return resend.emails.send({
+  return getResend().emails.send({
     from: `FluxApp <${FROM}>`,
     to: opts.adminEmail,
     subject: `Nueva solicitud de acceso — ${opts.applicantEmail}`,
@@ -38,7 +43,7 @@ export async function sendApprovalGrantedEmail(opts: {
   const template = loadTemplate('approval-granted')
   const html = template.replace(/\{\{LOGIN_URL\}\}/g, opts.loginUrl)
 
-  return resend.emails.send({
+  return getResend().emails.send({
     from: `FluxApp <${FROM}>`,
     to: opts.to,
     subject: 'Tu acceso a Flux fue aprobado',
@@ -49,7 +54,7 @@ export async function sendApprovalGrantedEmail(opts: {
 export async function sendApprovalRejectedEmail(opts: { to: string }) {
   const template = loadTemplate('approval-rejected')
 
-  return resend.emails.send({
+  return getResend().emails.send({
     from: `FluxApp <${FROM}>`,
     to: opts.to,
     subject: 'Solicitud de acceso a Flux',
@@ -66,7 +71,7 @@ export async function sendTdcReminderEmail(opts: {
     .replace(/\{\{ACCOUNT_NAME\}\}/g, opts.accountName)
     .replace(/\{\{PAYMENT_DAY\}\}/g, String(opts.paymentDay))
 
-  return resend.emails.send({
+  return getResend().emails.send({
     from: `FluxApp <${FROM}>`,
     to: opts.to,
     subject: `Recordatorio: pago de ${opts.accountName} mañana`,
@@ -79,7 +84,7 @@ export async function sendMonthlyAdjustmentEmail(opts: { to: string }) {
   const html = loadTemplate('monthly-adjustment')
     .replace(/\{\{APP_URL\}\}/g, appUrl)
 
-  return resend.emails.send({
+  return getResend().emails.send({
     from: `FluxApp <${FROM}>`,
     to: opts.to,
     subject: 'Cierre de mes — revisa tus saldos en Flux',
