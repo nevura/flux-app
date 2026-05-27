@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useState, useEffect } from 'react'
 
 const TABS = [
   { href: '/home',         icon: 'fa-solid fa-wallet',       label: 'Inicio' },
@@ -13,6 +14,12 @@ const TABS = [
 
 export default function AppNav() {
   const pathname = usePathname()
+  const [pendingHref, setPendingHref] = useState<string | null>(null)
+
+  // Clear optimistic state once real navigation completes
+  useEffect(() => {
+    setPendingHref(null)
+  }, [pathname])
 
   return (
     <nav
@@ -31,19 +38,17 @@ export default function AppNav() {
           }}
         >
           {TABS.map(tab => {
-            const active = pathname === tab.href || (tab.href !== '/home' && pathname.startsWith(tab.href))
+            const isCurrentPath = pathname === tab.href || (tab.href !== '/home' && pathname.startsWith(tab.href))
+            const active = isCurrentPath || pendingHref === tab.href
             return (
               <Link
                 key={tab.href}
                 href={tab.href}
-                className={`flex items-center gap-2 rounded-2xl transition-all duration-200 select-none active:scale-95 ${
-                  active ? 'px-4 py-3' : 'px-4 py-3'
-                }`}
-                style={active ? {
-                  background: 'rgba(255,255,255,0.12)',
-                } : undefined}
+                onClick={() => { if (!isCurrentPath) setPendingHref(tab.href) }}
+                className="flex items-center gap-2 rounded-2xl transition-all duration-150 select-none active:scale-95 px-4 py-3"
+                style={active ? { background: 'rgba(255,255,255,0.12)' } : undefined}
               >
-                <i className={`${tab.icon} transition-all duration-200 ${
+                <i className={`${tab.icon} transition-all duration-150 ${
                   active ? 'text-white text-[17px]' : 'text-[rgba(255,255,255,0.4)] text-[19px]'
                 }`} />
                 {active && (
