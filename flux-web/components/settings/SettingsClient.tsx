@@ -312,11 +312,11 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
         {customCategories.map((cat, i) => {
           const d = getCategoryDisplay(cat)
           return (
-            <div key={cat.id} className="rounded-2xl px-4 py-3 flex items-center gap-3 animate-fade-up" style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.12)', animationDelay: `${i * 0.04}s` }}>
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${d.bg}`}>
+            <div key={cat.id} className="rounded-2xl px-4 py-4 flex items-center gap-4 animate-fade-up" style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.12)', animationDelay: `${i * 0.04}s` }}>
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${d.bg}`}>
                 <i className={`${d.icon} ${d.color} text-sm`} />
               </div>
-              <span className="flex-1 text-sm font-semibold text-white">{cat.name}</span>
+              <span className="flex-1 text-[15px] font-semibold text-white">{cat.name}</span>
               <button onClick={() => setEditing(cat)} className="px-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
                 <i className="fa-solid fa-pen text-xs" />
               </button>
@@ -451,8 +451,8 @@ function AccountsTab({ accounts, isPending, startTransition }: {
         {accounts.map((acc, i) => {
           const method = getPaymentMethod(acc.payment_method_id)
           return (
-            <div key={acc.id} className="rounded-2xl px-4 py-3 flex items-center gap-3 animate-fade-up" style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.12)', animationDelay: `${i * 0.04}s` }}>
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(0,122,255,0.12)' }}>
+            <div key={acc.id} className="rounded-2xl px-4 py-4 flex items-center gap-4 animate-fade-up" style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.12)', animationDelay: `${i * 0.04}s` }}>
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: 'rgba(0,122,255,0.12)' }}>
                 <i className={`${method.icon} text-sm`} style={{ color: '#007AFF' }} />
               </div>
               <div className="flex-1">
@@ -733,8 +733,8 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
         const d = getCategoryDisplay(cat)
         const isActive = s.status === 'ACTIVO'
         return (
-          <div key={s.id} className="rounded-2xl px-4 py-3 flex items-center gap-3 animate-fade-up" style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.12)', animationDelay: `${i * 0.04}s` }}>
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${d.bg}`}>
+          <div key={s.id} className="rounded-2xl px-4 py-4 flex items-center gap-4 animate-fade-up" style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.12)', animationDelay: `${i * 0.04}s` }}>
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${d.bg}`}>
               <i className={`${d.icon} ${d.color} text-sm`} />
             </div>
             <div className="flex-1 min-w-0">
@@ -1218,8 +1218,8 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
       )}
 
       {contacts.map((person, i) => (
-        <div key={person.id} className="rounded-2xl px-4 py-3 flex items-center gap-3 animate-fade-up" style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.12)', animationDelay: `${i * 0.04}s` }}>
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-[15px]" style={{ background: 'rgba(100,210,255,0.12)', color: '#64D2FF' }}>
+        <div key={person.id} className="rounded-2xl px-4 py-4 flex items-center gap-4 animate-fade-up" style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.12)', animationDelay: `${i * 0.04}s` }}>
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center font-black text-[15px]" style={{ background: 'rgba(100,210,255,0.12)', color: '#64D2FF' }}>
             {person.name[0]?.toUpperCase() ?? '?'}
           </div>
           <span className="flex-1 text-sm font-semibold text-white truncate">{person.name}</span>

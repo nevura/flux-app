@@ -140,10 +140,10 @@ export default function AuditModal({ accounts, onClose }: Props) {
                       className="w-full rounded-[12px] py-2.5 pr-10 text-[14px] font-bold text-white outline-none"
                       style={{
                         paddingLeft: isTDC ? '1.5rem' : '0.75rem',
-                        background: 'rgba(255,255,255,0.07)',
+                        background: isTDC ? 'rgba(255,69,58,0.07)' : 'rgba(255,255,255,0.07)',
                         border: `1px solid ${hasChange
                           ? (delta! > 0 ? 'rgba(48,209,88,0.5)' : 'rgba(255,69,58,0.5)')
-                          : 'rgba(255,255,255,0.1)'}`,
+                          : isTDC ? 'rgba(255,69,58,0.25)' : 'rgba(255,255,255,0.1)'}`,
                       }}
                       inputMode="decimal"
                     />

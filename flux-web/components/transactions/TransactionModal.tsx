@@ -234,8 +234,8 @@ export default function TransactionModal({ transaction, accounts, categories, pe
               <div className="flex items-center justify-center gap-1">
                 <span className="text-[28px] font-black" style={{ color: 'rgba(255,255,255,0.4)' }}>$</span>
                 <input
-                  type="tel"
-                  inputMode="tel"
+                  type="text"
+                  inputMode="decimal"
                   value={amount}
                   onChange={e => setAmount(e.target.value)}
                   onBlur={() => {
@@ -254,6 +254,16 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                   background: `linear-gradient(to right, transparent, ${cfg.color})`,
                 }}
               />
+              <div className="flex justify-center mt-3">
+                <button
+                  type="button"
+                  onClick={() => setAmount(prev => prev + '+')}
+                  className="w-10 h-8 rounded-[10px] text-[16px] font-black transition-all active:scale-90"
+                  style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.1)' }}
+                >
+                  +
+                </button>
+              </div>
             </div>
 
             {/* Concept */}
