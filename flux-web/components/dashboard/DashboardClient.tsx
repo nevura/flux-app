@@ -192,6 +192,22 @@ export default function DashboardClient({ user, accounts, transactions, categori
     })
   }
 
+  function handleSkipTdc() {
+    if (!tdcModal) return
+    startTdc(async () => {
+      const res = await saveCreditPayment({
+        account_id: tdcModal.id,
+        year, month,
+        amount: 0,
+        payment_type: 'deposit',
+        source_account_id: null,
+      })
+      if (res.error) { toast.error(res.error); return }
+      toast.success('Ciclo omitido')
+      setTdcModal(null)
+    })
+  }
+
   return (
     <div className="min-h-screen" style={{ background: '#020617' }}>
 
@@ -553,6 +569,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
               {creditCards.map((acc, i) => {
                 const payment = creditPayMap[acc.id]
                 const isPaid = !!payment
+                const isSkipped = isPaid && payment.amount === 0
                 const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Mexico_City' }))
                 const dueDay = acc.payment_day
                 const diffDays = dueDay != null
@@ -571,22 +588,26 @@ export default function DashboardClient({ user, accounts, transactions, categori
                     <div
                       className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0"
                       style={{
-                        background: isPaid
-                          ? 'rgba(48,209,88,0.15)'
-                          : isOverdue ? 'rgba(255,69,58,0.15)' : 'rgba(255,138,128,0.15)',
+                        background: isSkipped
+                          ? 'rgba(100,210,255,0.15)'
+                          : isPaid
+                            ? 'rgba(48,209,88,0.15)'
+                            : isOverdue ? 'rgba(255,69,58,0.15)' : 'rgba(255,138,128,0.15)',
                       }}
                     >
                       <i
-                        className={isPaid ? 'fa-solid fa-check' : 'fa-regular fa-credit-card'}
+                        className={isSkipped ? 'fa-solid fa-forward' : isPaid ? 'fa-solid fa-check' : 'fa-regular fa-credit-card'}
                         style={{
                           fontSize: 14,
-                          color: isPaid ? '#30D158' : isOverdue ? '#FF453A' : '#FF8A80',
+                          color: isSkipped ? '#64D2FF' : isPaid ? '#30D158' : isOverdue ? '#FF453A' : '#FF8A80',
                         }}
                       />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[13px] font-bold text-white truncate">{acc.name}</p>
-                      {isPaid ? (
+                      {isSkipped ? (
+                        <p className="text-[11px]" style={{ color: '#64D2FF' }}>Omitido este mes</p>
+                      ) : isPaid ? (
                         <p className="text-[11px] truncate" style={{ color: '#30D158' }}>
                           {formatCurrency(payment.amount)} · {payment.payment_type === 'transfer'
                             ? (sourceAcc ? `de ${sourceAcc.name}` : 'Transferencia')
@@ -786,7 +807,20 @@ export default function DashboardClient({ user, accounts, transactions, categori
                 {isTdcPending ? <i className="fa-solid fa-spinner fa-spin" /> : '✓ Registrar pago'}
               </button>
 
-              {/* Unmark — only if already recorded */}
+              {/* Omitir — solo si no hay pago registrado */}
+              {!creditPayMap[tdcModal.id] && (
+                <button
+                  onClick={handleSkipTdc}
+                  disabled={isTdcPending}
+                  className="w-full py-3 rounded-[16px] text-[13px] font-black disabled:opacity-50 active:scale-[0.98] transition-all"
+                  style={{ background: 'rgba(100,210,255,0.08)', color: '#64D2FF', border: '1px solid rgba(100,210,255,0.2)' }}
+                >
+                  <i className="fa-solid fa-forward mr-2" />
+                  Omitir este mes
+                </button>
+              )}
+
+              {/* Desmarcar — solo si ya hay pago/omisión registrada */}
               {creditPayMap[tdcModal.id] && (
                 <button
                   onClick={handleDeleteTdc}
@@ -794,7 +828,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
                   className="w-full py-3 rounded-[16px] text-[13px] font-black disabled:opacity-50 active:scale-[0.98] transition-all"
                   style={{ background: 'rgba(255,69,58,0.08)', color: '#FF453A', border: '1px solid rgba(255,69,58,0.15)' }}
                 >
-                  Marcar como no pagado
+                  Desmarcar
                 </button>
               )}
             </div>

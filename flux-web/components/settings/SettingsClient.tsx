@@ -276,6 +276,7 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
   startTransition: (fn: () => void) => void
 }) {
   const [editing, setEditing] = useState<Partial<Category> | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
   function handleSave() {
     if (!editing?.name) return
@@ -290,7 +291,7 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
     startTransition(async () => {
       const res = await deleteCategory(id)
       if (res.error) toast.error(res.error)
-      else toast.success('Eliminada')
+      else { toast.success('Eliminada'); setDeleteConfirm(null) }
     })
   }
 
@@ -319,9 +320,16 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
               <button onClick={() => setEditing(cat)} className="px-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
                 <i className="fa-solid fa-pen text-xs" />
               </button>
-              <button onClick={() => handleDelete(cat.id)} className="px-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                <i className="fa-solid fa-trash text-xs" />
-              </button>
+              {deleteConfirm === cat.id ? (
+                <div className="flex items-center gap-1.5">
+                  <button onClick={() => setDeleteConfirm(null)} className="px-2 py-1 rounded-lg text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.07)' }}>No</button>
+                  <button onClick={() => handleDelete(cat.id)} className="px-2 py-1 rounded-lg text-[11px] font-bold text-white" style={{ background: '#FF453A' }}>Sí</button>
+                </div>
+              ) : (
+                <button onClick={() => setDeleteConfirm(cat.id)} className="px-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  <i className="fa-solid fa-trash text-xs" />
+                </button>
+              )}
             </div>
           )
         })}
@@ -411,6 +419,7 @@ function AccountsTab({ accounts, isPending, startTransition }: {
   startTransition: (fn: () => void) => void
 }) {
   const [editing, setEditing] = useState<Partial<Account> | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
   function handleSave() {
     if (!editing?.name) return
@@ -425,7 +434,7 @@ function AccountsTab({ accounts, isPending, startTransition }: {
     startTransition(async () => {
       const res = await deleteAccount(id)
       if (res.error) toast.error(res.error)
-      else toast.success('Eliminada')
+      else { toast.success('Eliminada'); setDeleteConfirm(null) }
     })
   }
 
@@ -453,9 +462,16 @@ function AccountsTab({ accounts, isPending, startTransition }: {
               <button onClick={() => setEditing(acc)} className="px-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
                 <i className="fa-solid fa-pen text-xs" />
               </button>
-              <button onClick={() => handleDelete(acc.id)} className="px-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                <i className="fa-solid fa-trash text-xs" />
-              </button>
+              {deleteConfirm === acc.id ? (
+                <div className="flex items-center gap-1.5">
+                  <button onClick={() => setDeleteConfirm(null)} className="px-2 py-1 rounded-lg text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.07)' }}>No</button>
+                  <button onClick={() => handleDelete(acc.id)} className="px-2 py-1 rounded-lg text-[11px] font-bold text-white" style={{ background: '#FF453A' }}>Sí</button>
+                </div>
+              ) : (
+                <button onClick={() => setDeleteConfirm(acc.id)} className="px-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  <i className="fa-solid fa-trash text-xs" />
+                </button>
+              )}
             </div>
           )
         })}
@@ -566,6 +582,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
   startTransition: (fn: () => void) => void
 }) {
   const [editing, setEditing] = useState<SchedForm | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [localPeople, setLocalPeople] = useState(people)
   const [newPersonName, setNewPersonName] = useState('')
   const [addingPerson, setAddingPerson] = useState(false)
@@ -671,7 +688,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
     startTransition(async () => {
       const res = await deleteScheduled(id)
       if (res.error) toast.error(res.error)
-      else toast.success('Eliminado')
+      else { toast.success('Eliminado'); setDeleteConfirm(null) }
     })
   }
 
@@ -736,9 +753,16 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
             >
               <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${isActive ? 'translate-x-4' : 'translate-x-0.5'}`} />
             </div>
-            <button onClick={() => handleDelete(s.id)} className="px-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
-              <i className="fa-solid fa-trash text-xs" />
-            </button>
+            {deleteConfirm === s.id ? (
+              <div className="flex items-center gap-1.5">
+                <button onClick={() => setDeleteConfirm(null)} className="px-2 py-1 rounded-lg text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.07)' }}>No</button>
+                <button onClick={() => handleDelete(s.id)} className="px-2 py-1 rounded-lg text-[11px] font-bold text-white" style={{ background: '#FF453A' }}>Sí</button>
+              </div>
+            ) : (
+              <button onClick={() => setDeleteConfirm(s.id)} className="px-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                <i className="fa-solid fa-trash text-xs" />
+              </button>
+            )}
           </div>
         )
       })}
@@ -1149,6 +1173,7 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
 }) {
   const [contacts, setContacts] = useState(initialPeople.filter(p => !p.is_me))
   const [editing, setEditing] = useState<{ id?: string; name: string } | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
   function handleSave() {
     if (!editing || !editing.name.trim()) return
@@ -1175,6 +1200,7 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
       if (res.error) { toast.error(res.error); return }
       setContacts(prev => prev.filter(p => p.id !== id))
       toast.success('Eliminado')
+      setDeleteConfirm(null)
     })
   }
 
@@ -1200,9 +1226,16 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
           <button onClick={() => setEditing({ id: person.id, name: person.name })} className="px-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
             <i className="fa-solid fa-pen text-xs" />
           </button>
-          <button onClick={() => handleDelete(person.id)} className="px-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
-            <i className="fa-solid fa-trash text-xs" />
-          </button>
+          {deleteConfirm === person.id ? (
+            <div className="flex items-center gap-1.5">
+              <button onClick={() => setDeleteConfirm(null)} className="px-2 py-1 rounded-lg text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.07)' }}>No</button>
+              <button onClick={() => handleDelete(person.id)} className="px-2 py-1 rounded-lg text-[11px] font-bold text-white" style={{ background: '#FF453A' }}>Sí</button>
+            </div>
+          ) : (
+            <button onClick={() => setDeleteConfirm(person.id)} className="px-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
+              <i className="fa-solid fa-trash text-xs" />
+            </button>
+          )}
         </div>
       ))}
 

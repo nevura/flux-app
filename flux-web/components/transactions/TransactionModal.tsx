@@ -2,8 +2,9 @@
 
 import { useState, useTransition, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { addTransaction, updateTransaction, deleteTransaction } from '@/actions/transactions'
+import { addTransaction, updateTransaction, deleteTransaction, confirmTransaction } from '@/actions/transactions'
 import { addPerson } from '@/actions/config'
 import { getCategoryDisplay, getMexicoNow } from '@/lib/utils'
 import type { Transaction, AccountWithBalance, Category, Person, SplitData } from '@/lib/types'
@@ -20,25 +21,35 @@ interface Props {
 type TxType = 'TR-GASTO' | 'TR-INGRESO' | 'TR-TRANSFER'
 
 const TYPE_CONFIG = {
-  'TR-GASTO':    { label: 'Gasto',         color: '#FF453A', icon: 'fa-solid fa-arrow-up-right' },
-  'TR-INGRESO':  { label: 'Ingreso',        color: '#30D158', icon: 'fa-solid fa-arrow-down-left' },
-  'TR-TRANSFER': { label: 'Transferencia',  color: '#64D2FF', icon: 'fa-solid fa-shuffle' },
+  'TR-GASTO': { label: 'Gasto', color: '#FF453A', icon: 'fa-solid fa-arrow-up-right' },
+  'TR-INGRESO': { label: 'Ingreso', color: '#30D158', icon: 'fa-solid fa-arrow-down-left' },
+  'TR-TRANSFER': { label: 'Transferencia', color: '#64D2FF', icon: 'fa-solid fa-shuffle' },
 }
 
 export default function TransactionModal({ transaction, accounts, categories, people, onClose, presetType }: Props) {
   const isEdit = Boolean(transaction)
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const needsConfirm = isEdit && transaction?.is_validated === false
 
-  const [type, setType]       = useState<TxType>(transaction?.type ?? presetType ?? 'TR-GASTO')
+  async function handleConfirm() {
+    if (!transaction) return
+    await confirmTransaction(transaction.id)
+    toast.success('Movimiento confirmado')
+    router.refresh()
+    onClose()
+  }
+
+  const [type, setType] = useState<TxType>(transaction?.type ?? presetType ?? 'TR-GASTO')
   const [concept, setConcept] = useState(transaction?.concept ?? '')
-  const [amount, setAmount]   = useState(transaction ? String(transaction.amount) : '')
-  const [catId, setCatId]     = useState(transaction?.category_id ?? '')
-  const [accId, setAccId]     = useState(transaction?.account_id ?? accounts[0]?.id ?? '')
-  const [destId, setDestId]   = useState(transaction?.destination_account_id ?? '')
-  const [date, setDate]       = useState(transaction?.transaction_date?.slice(0, 16) ?? getMexicoNow().slice(0, 16))
+  const [amount, setAmount] = useState(transaction ? String(transaction.amount) : '')
+  const [catId, setCatId] = useState(transaction?.category_id ?? '')
+  const [accId, setAccId] = useState(transaction?.account_id ?? accounts[0]?.id ?? '')
+  const [destId, setDestId] = useState(transaction?.destination_account_id ?? '')
+  const [date, setDate] = useState(transaction?.transaction_date?.slice(0, 16) ?? getMexicoNow().slice(0, 16))
   const [exclude, setExclude] = useState(transaction?.exclude_from_budget ?? false)
-  const [notes, setNotes]     = useState(transaction?.notes ?? '')
+  const [notes, setNotes] = useState(transaction?.notes ?? '')
 
   const initSplit = transaction?.split_data
   const [localPeople, setLocalPeople] = useState(people)
@@ -63,8 +74,8 @@ export default function TransactionModal({ transaction, accounts, categories, pe
   }
   type QuickMode = 'equal' | 'manual'
 
-  const [splitEnabled, setSplitEnabled]   = useState(initSplit != null)
-  const [quickMode, setQuickMode]         = useState<QuickMode>(
+  const [splitEnabled, setSplitEnabled] = useState(initSplit != null)
+  const [quickMode, setQuickMode] = useState<QuickMode>(
     initSplit?.splitMode === 'DIV' ? 'equal' : initSplit?.splitMode === 'THEY' ? 'manual' : 'equal'
   )
   const [splitSelected, setSplitSelected] = useState<Set<string>>(
@@ -124,7 +135,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
 
   const filteredCats = categories.filter(c => {
     if (c.id === 'CAT-AUDIT') return false
-    if (type === 'TR-INGRESO') return ['CAT-DEF-HON','CAT-DEF-INV','CAT-DEF-VENT','CAT-DEF-OTHER'].includes(c.id) || c.user_id !== null
+    if (type === 'TR-INGRESO') return ['CAT-DEF-HON', 'CAT-DEF-INV', 'CAT-DEF-VENT', 'CAT-DEF-OTHER'].includes(c.id) || c.user_id !== null
     return true
   })
 
@@ -463,8 +474,8 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                     {/* Quick mode selector */}
                     <div className="flex gap-1.5">
                       {([
-                        { id: 'equal'  as const, label: 'Partes iguales', sub: 'Yo pagué todo — ellos me deben', icon: 'fa-solid fa-equals' },
-                        { id: 'manual' as const, label: 'Personalizado',  sub: 'Monto libre por persona',       icon: 'fa-solid fa-sliders' },
+                        { id: 'equal' as const, label: 'Partes iguales', sub: 'Yo pagué todo — ellos me deben', icon: 'fa-solid fa-equals' },
+                        { id: 'manual' as const, label: 'Personalizado', sub: 'Monto libre por persona', icon: 'fa-solid fa-sliders' },
                       ]).map(opt => (
                         <button
                           key={opt.id}
@@ -615,6 +626,19 @@ export default function TransactionModal({ transaction, accounts, categories, pe
               ? <i className="fa-solid fa-spinner fa-spin" />
               : isEdit ? 'Guardar cambios' : 'Agregar movimiento'}
           </button>
+
+          {needsConfirm && (
+            <button
+              type="button"
+              onClick={handleConfirm}
+              disabled={isPending}
+              className="w-full py-3 rounded-[14px] text-[13px] font-black transition-all active:scale-[0.98] disabled:opacity-50"
+              style={{ color: '#FF9F0A', background: 'rgba(255,159,10,0.12)', border: '1px solid rgba(255,159,10,0.3)' }}
+            >
+              <i className="fa-solid fa-check mr-2" />
+              Confirmar movimiento
+            </button>
+          )}
 
           {isEdit && !confirmDelete && (
             <button
