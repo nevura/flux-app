@@ -234,8 +234,8 @@ export default function TransactionModal({ transaction, accounts, categories, pe
               <div className="flex items-center justify-center gap-1">
                 <span className="text-[28px] font-black" style={{ color: 'rgba(255,255,255,0.4)' }}>$</span>
                 <input
-                  type="text"
-                  inputMode="decimal"
+                  type="tel"
+                  inputMode="tel"
                   value={amount}
                   onChange={e => setAmount(e.target.value)}
                   onBlur={() => {
