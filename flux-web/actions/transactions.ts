@@ -81,6 +81,23 @@ export async function updateTransaction(id: string, form: TransactionForm) {
   return { error: null }
 }
 
+export async function confirmTransaction(id: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+
+  const { error } = await supabase
+    .from('transactions')
+    .update({ is_validated: true })
+    .eq('id', id)
+    .eq('user_id', user.id)
+
+  if (error) return { error: error.message }
+  revalidatePath('/home')
+  revalidatePath('/transactions')
+  return { error: null }
+}
+
 export async function deleteTransaction(id: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

@@ -243,6 +243,19 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                   background: `linear-gradient(to right, transparent, ${cfg.color})`,
                 }}
               />
+              <div className="flex justify-center gap-2 mt-3">
+                {['+', '-', '(', ')'].map(op => (
+                  <button
+                    key={op}
+                    type="button"
+                    onClick={() => setAmount(prev => prev + op)}
+                    className="w-10 h-8 rounded-[10px] text-[14px] font-black transition-all active:scale-90"
+                    style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.1)' }}
+                  >
+                    {op}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Concept */}

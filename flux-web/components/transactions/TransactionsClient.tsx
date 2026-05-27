@@ -11,7 +11,7 @@ function AnimatedCurrency({ value }: { value: number }) {
   return <>{formatCurrency(animated)}</>
 }
 import { MONTHS_ES } from '@/lib/constants'
-import { searchAllTransactions, fetchSharedTransactions } from '@/actions/transactions'
+import { searchAllTransactions, fetchSharedTransactions, confirmTransaction } from '@/actions/transactions'
 import type { Transaction, Category, AccountWithBalance, Person } from '@/lib/types'
 import TransactionModal from './TransactionModal'
 
@@ -136,6 +136,12 @@ export default function TransactionsClient({ initialTransactions, categories, ac
 
   function openEdit(tx: Transaction) { setEditing(tx); setModalOpen(true) }
   function openAdd() { setEditing(null); setModalOpen(true) }
+
+  async function handleConfirm(e: React.MouseEvent, id: string) {
+    e.stopPropagation()
+    await confirmTransaction(id)
+    router.refresh()
+  }
 
   const now = new Date()
   const isCurrentMonth = year === now.getFullYear() && month === (now.getMonth() + 1)
@@ -480,25 +486,42 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                     const isIncome  = tx.type === 'TR-INGRESO'
                     const isExpense = tx.type === 'TR-GASTO'
                     const amtColor  = isIncome ? '#30D158' : isExpense ? '#FF453A' : '#64D2FF'
+                    const isPending = !tx.is_validated
                     return (
                       <button
                         key={tx.id}
                         onClick={() => openEdit(tx)}
                         className="w-full rounded-[16px] px-4 py-3.5 flex items-center gap-3 active:scale-[0.98] transition-transform text-left animate-spring-in"
-                        style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.1)', animationDelay: `${gi * 0.045 + ti * 0.03}s` }}
+                        style={{
+                          background: isPending ? 'rgba(255,159,10,0.07)' : '#0F172A',
+                          border: isPending ? '1px solid rgba(255,159,10,0.3)' : '1px solid rgba(0,122,255,0.1)',
+                          animationDelay: `${gi * 0.045 + ti * 0.03}s`,
+                        }}
                       >
                         <div className={`w-11 h-11 rounded-[12px] flex items-center justify-center flex-shrink-0 ${d.bg}`}>
                           <i className={`${d.icon} ${d.color} text-sm`} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-[13px] font-bold text-white truncate">{tx.concept}</p>
-                          <p className="text-[11px] mt-0.5 truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>{d.name}</p>
+                          <p className="text-[11px] mt-0.5 truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                            {isPending && <span style={{ color: '#FF9F0A' }}>Por confirmar · </span>}
+                            {d.name}
+                          </p>
                         </div>
-                        <div className="text-right flex-shrink-0">
+                        <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
                           <p className="text-[14px] font-black tabular-nums" style={{ color: amtColor }}>
                             {isIncome ? '+' : isExpense ? '-' : ''}{formatCurrency(Number(tx.amount))}
                           </p>
-                          {(tx.is_receivable || tx.is_payable) && (
+                          {isPending ? (
+                            <button
+                              onClick={(e) => handleConfirm(e, tx.id)}
+                              className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black transition-all active:scale-90"
+                              style={{ background: 'rgba(255,159,10,0.2)', color: '#FF9F0A', border: '1px solid rgba(255,159,10,0.35)' }}
+                            >
+                              <i className="fa-solid fa-check" />
+                              Confirmar
+                            </button>
+                          ) : (tx.is_receivable || tx.is_payable) && (
                             <span className="text-[9px] font-black mt-0.5 inline-block px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(255,159,10,0.15)', color: '#FF9F0A' }}>
                               {tx.is_receivable ? 'Por cobrar' : 'Por pagar'}
                             </span>

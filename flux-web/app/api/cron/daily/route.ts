@@ -71,13 +71,25 @@ export async function GET(request: Request) {
 
   const { data: tdcAccounts } = await (admin
     .from('accounts') as any)
-    .select('user_id, name, payment_day')
+    .select('id, user_id, name, payment_day')
     .eq('payment_method_id', 'MP-TDC')
     .eq('payment_day', tomorrowDay)
     .eq('is_active', true)
 
   for (const acc of (tdcAccounts ?? [])) {
     try {
+      // Skip if payment already recorded for this month
+      const { data: alreadyPaid } = await (admin
+        .from('credit_payments') as any)
+        .select('id')
+        .eq('user_id', acc.user_id)
+        .eq('account_id', acc.id)
+        .eq('year', tomorrow.getFullYear())
+        .eq('month', tomorrow.getMonth() + 1)
+        .maybeSingle()
+
+      if (alreadyPaid) continue
+
       const { data: profile } = await (admin
         .from('profiles') as any)
         .select('email')
