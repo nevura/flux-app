@@ -116,5 +116,36 @@ export async function GET(request: Request) {
     }
   }
 
+  // ── 4. Expiración de trials y suscripciones ──────────────────────────────
+  const graceCutoff = new Date(today)
+  graceCutoff.setDate(graceCutoff.getDate() - 2) // 2 días de gracia
+  const graceCutoffStr = graceCutoff.toISOString().slice(0, 10)
+
+  // trialing → grace (trial terminó hace ≤2 días)
+  await (admin.from('profiles') as any)
+    .update({ subscription_status: 'grace' })
+    .eq('subscription_status', 'trialing')
+    .lt('trial_ends_at', todayStr)
+
+  // trialing/grace → expired (pasaron los 2 días de gracia)
+  await (admin.from('profiles') as any)
+    .update({ subscription_status: 'expired' })
+    .in('subscription_status', ['trialing', 'grace'])
+    .lt('trial_ends_at', graceCutoffStr)
+
+  // active → grace si la suscripción de Stripe venció (sin pago)
+  await (admin.from('profiles') as any)
+    .update({ subscription_status: 'grace' })
+    .eq('subscription_status', 'active')
+    .not('subscription_ends_at', 'is', null)
+    .lt('subscription_ends_at', todayStr)
+
+  // grace → expired (2 días después de que venció la suscripción)
+  await (admin.from('profiles') as any)
+    .update({ subscription_status: 'expired' })
+    .eq('subscription_status', 'grace')
+    .not('subscription_ends_at', 'is', null)
+    .lt('subscription_ends_at', graceCutoffStr)
+
   return NextResponse.json({ ok: true, date: todayStr, ...results })
 }

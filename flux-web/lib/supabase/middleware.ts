@@ -24,27 +24,28 @@ export async function updateSession(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   const path = request.nextUrl.pathname
-  const isAuthRoute   = path.startsWith('/login') || path.startsWith('/signup')
-  const isApiRoute    = path.startsWith('/api/')
-  const isStatusRoute = path.startsWith('/pending') || path.startsWith('/rejected')
+  const isAuthRoute     = path.startsWith('/login') || path.startsWith('/signup')
+  const isAuthCallback  = path.startsWith('/auth/')
+  const isApiRoute      = path.startsWith('/api/')
+  const isStatusRoute   = path.startsWith('/pending') || path.startsWith('/rejected')
 
-  if (!user && !isAuthRoute && !isApiRoute) {
+  if (!user && !isAuthRoute && !isAuthCallback && !isApiRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  if (user && isAuthRoute) {
+  if (user && isAuthRoute && !isAuthCallback) {
     const url = request.nextUrl.clone()
     url.pathname = '/home'
     return NextResponse.redirect(url)
   }
 
-  // Check approval status for authenticated users accessing app routes
-  if (user && !isAuthRoute && !isApiRoute && !isStatusRoute) {
+  // Check approval + subscription status for authenticated users
+  if (user && !isAuthRoute && !isAuthCallback && !isApiRoute && !isStatusRoute) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('status')
+      .select('status, subscription_status, trial_ends_at, subscription_ends_at')
       .eq('id', user.id)
       .single()
 
@@ -58,6 +59,11 @@ export async function updateSession(request: NextRequest) {
       url.pathname = '/rejected'
       return NextResponse.redirect(url)
     }
+
+    // Pass subscription info as headers so pages can read it without extra DB calls
+    supabaseResponse.headers.set('x-subscription-status', profile?.subscription_status ?? 'trialing')
+    if (profile?.trial_ends_at) supabaseResponse.headers.set('x-trial-ends-at', profile.trial_ends_at)
+    if (profile?.subscription_ends_at) supabaseResponse.headers.set('x-subscription-ends-at', profile.subscription_ends_at)
   }
 
   return supabaseResponse
