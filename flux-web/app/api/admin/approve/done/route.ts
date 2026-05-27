@@ -2,9 +2,35 @@ import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
   const already = new URL(request.url).searchParams.get('already')
-  const msg = already ? 'Este usuario ya estaba aprobado.' : 'Usuario aprobado correctamente. Se le envió un correo de acceso.'
-  return new NextResponse(
-    `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Flux Admin</title></head><body style="font-family:sans-serif;background:#0C0C0E;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;"><div style="text-align:center;"><div style="font-size:48px;margin-bottom:16px;">✅</div><h2 style="margin:0 0 8px;">Acceso aprobado</h2><p style="color:rgba(255,255,255,0.5);margin:0;">${msg}</p></div></body></html>`,
-    { headers: { 'Content-Type': 'text/html' } },
-  )
+  const subtitle = already
+    ? 'Este usuario ya tenía acceso aprobado.'
+    : 'El usuario recibió un correo con el enlace para entrar.'
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acceso aprobado — Flux</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F2F2F7; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .card { background: #fff; border-radius: 20px; padding: 48px 36px; max-width: 400px; width: 100%; text-align: center; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+    .icon { width: 72px; height: 72px; background: #E8FAF0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 24px; }
+    h1 { font-size: 22px; font-weight: 700; color: #1C1C1E; margin-bottom: 10px; letter-spacing: -0.4px; }
+    p { font-size: 15px; color: #6D6D72; line-height: 1.6; margin-bottom: 32px; }
+    .badge { display: inline-block; background: #E8FAF0; color: #30B055; font-size: 12px; font-weight: 600; padding: 5px 14px; border-radius: 20px; margin-bottom: 24px; }
+    .footer { margin-top: 32px; font-size: 12px; color: #AEAEB2; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">✅</div>
+    <span class="badge">Acción completada</span>
+    <h1>Acceso aprobado</h1>
+    <p>${subtitle}</p>
+    <p class="footer">Puedes cerrar esta ventana.</p>
+  </div>
+</body>
+</html>`
+  return new NextResponse(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } })
 }
