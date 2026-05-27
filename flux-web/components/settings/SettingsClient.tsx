@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { getCategoryDisplay, getPaymentMethod, formatCurrency } from '@/lib/utils'
 import { STATIC_ICONS, STATIC_COLORS, PAYMENT_METHODS, SHORTCUT_LINKS } from '@/lib/constants'
-import { saveCategory, deleteCategory, saveAccount, deleteAccount, saveScheduled, deleteScheduled, updateProfile, saveDefaultBudget, addPerson, updatePerson, deletePerson } from '@/actions/config'
+import { saveCategory, deleteCategory, saveAccount, deleteAccount, saveScheduled, deleteScheduled, updateProfile, saveDefaultBudget, updateThemePreference, addPerson, updatePerson, deletePerson } from '@/actions/config'
 import type { Profile, Category, Account, ScheduledTransaction, Person } from '@/lib/types'
 import ShortcutInstall from './ShortcutInstall'
 
@@ -99,11 +99,7 @@ const SECTIONS: { key: Tab; icon: string; label: string; description: string }[]
 export default function SettingsClient({ profile, shortcutToken, categories, accounts, scheduled, people }: Props) {
   const [section, setSection] = useState<Tab | null>(null)
   const [isPending, startTransition] = useTransition()
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
-
-  useEffect(() => {
-    setTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark')
-  }, [])
+  const [theme, setTheme] = useState<'dark' | 'light'>(profile?.theme_preference ?? 'dark')
 
   function applyTheme(t: 'dark' | 'light') {
     setTheme(t)
@@ -113,6 +109,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
       document.documentElement.removeAttribute('data-theme')
     }
     try { localStorage.setItem('flux-theme', t) } catch {}
+    updateThemePreference(t)
   }
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput] = useState(profile?.full_name ?? '')

@@ -13,6 +13,7 @@ export interface Profile {
   stripe_subscription_id: string | null
   trial_ends_at: string | null
   subscription_ends_at: string | null
+  theme_preference: 'dark' | 'light'
   created_at: string
   updated_at: string
 }

@@ -117,6 +117,16 @@ export async function updateProfile(fullName: string) {
   return { error: null }
 }
 
+export async function updateThemePreference(theme: 'dark' | 'light') {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+
+  const { error } = await supabase.from('profiles').update({ theme_preference: theme }).eq('id', user.id)
+  if (error) return { error: error.message }
+  return { error: null }
+}
+
 export async function saveDefaultBudget(amount: number | null) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

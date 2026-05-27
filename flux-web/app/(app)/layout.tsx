@@ -4,6 +4,7 @@ import AppNav from '@/components/layout/AppNav'
 import PullToRefresh from '@/components/layout/PullToRefresh'
 import SubscriptionBanner from '@/components/subscription/SubscriptionBanner'
 import ReadOnlyOverlay from '@/components/subscription/ReadOnlyOverlay'
+import ThemeSync from '@/components/layout/ThemeSync'
 import { getSubscriptionInfo } from '@/lib/subscription'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -11,10 +12,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const sub = await getSubscriptionInfo()
+  const [sub, { data: profile }] = await Promise.all([
+    getSubscriptionInfo(),
+    supabase.from('profiles').select('theme_preference').eq('id', user.id).single(),
+  ])
 
   return (
     <div className="flex flex-col min-h-screen">
+      <ThemeSync theme={(profile?.theme_preference as 'dark' | 'light') ?? 'dark'} />
       <SubscriptionBanner status={sub.status} daysLeft={sub.daysLeft} />
       {sub.isReadOnly && <ReadOnlyOverlay />}
       <PullToRefresh>
