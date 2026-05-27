@@ -95,9 +95,9 @@ export default function TransactionsClient({ initialTransactions, categories, ac
   }, [search])
 
   const TYPE_OPTIONS = [
-    { value: 'TR-GASTO',    label: 'Gastos',          icon: 'fa-solid fa-arrow-up',   color: '#FF453A' },
-    { value: 'TR-INGRESO',  label: 'Ingresos',        icon: 'fa-solid fa-arrow-down', color: '#30D158' },
-    { value: 'TR-TRANSFER', label: 'Transferencias',  icon: 'fa-solid fa-shuffle',    color: '#64D2FF' },
+    { value: 'TR-GASTO',    label: 'Gastos',          icon: 'fa-solid fa-arrow-up',   color: 'var(--f-expense)' },
+    { value: 'TR-INGRESO',  label: 'Ingresos',        icon: 'fa-solid fa-arrow-down', color: 'var(--f-income)'  },
+    { value: 'TR-TRANSFER', label: 'Transferencias',  icon: 'fa-solid fa-shuffle',    color: 'var(--f-transfer)' },
   ]
 
   const filtered = useMemo(() => {
@@ -142,14 +142,14 @@ export default function TransactionsClient({ initialTransactions, categories, ac
   const isCurrentMonth = year === now.getFullYear() && month === (now.getMonth() + 1)
 
   return (
-    <div className="min-h-screen" style={{ background: '#020617' }}>
+    <div className="min-h-screen" style={{ background: 'var(--f-bg)' }}>
       {/* Header */}
       <header
         className="sticky top-0 z-40 px-5"
         style={{
           paddingTop: 'calc(1.25rem + var(--safe-top))',
           paddingBottom: '0.75rem',
-          background: 'rgba(2,6,23,0.95)',
+          background: 'var(--f-bg-glass)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
         }}
@@ -159,24 +159,25 @@ export default function TransactionsClient({ initialTransactions, categories, ac
           <button
             onClick={() => navigate(-1)}
             className="w-9 h-9 rounded-2xl flex items-center justify-center active:scale-90 transition-transform"
-            style={{ background: 'rgba(255,255,255,0.08)' }}
+            style={{ background: 'var(--f-bg-input)' }}
           >
-            <i className="fa-solid fa-chevron-left text-white text-xs" />
+            <i className="fa-solid fa-chevron-left text-xs" style={{ color: 'var(--f-text)' }} />
           </button>
 
           <div className="text-center">
             <button
               onClick={() => { setPickerYear(year); setPickerOpen(true) }}
-              className="flex items-center gap-1.5 text-[17px] font-black text-white capitalize"
+              className="flex items-center gap-1.5 text-[17px] font-black capitalize"
+              style={{ color: 'var(--f-text)' }}
             >
               {MONTHS_ES[month - 1]} {year}
-              <i className="fa-solid fa-chevron-down text-[10px]" style={{ color: 'rgba(255,255,255,0.4)' }} />
+              <i className="fa-solid fa-chevron-down text-[10px]" style={{ color: 'var(--f-text-3)' }} />
             </button>
             {!isCurrentMonth && (
               <button
                 onClick={() => router.push('/transactions')}
                 className="text-[11px] font-bold block"
-                style={{ color: '#007AFF' }}
+                style={{ color: 'var(--f-blue)' }}
               >
                 Ir al mes actual
               </button>
@@ -187,9 +188,9 @@ export default function TransactionsClient({ initialTransactions, categories, ac
             onClick={() => navigate(1)}
             disabled={isCurrentMonth}
             className="w-9 h-9 rounded-2xl flex items-center justify-center active:scale-90 transition-transform disabled:opacity-30"
-            style={{ background: 'rgba(255,255,255,0.08)' }}
+            style={{ background: 'var(--f-bg-input)' }}
           >
-            <i className="fa-solid fa-chevron-right text-white text-xs" />
+            <i className="fa-solid fa-chevron-right text-xs" style={{ color: 'var(--f-text)' }} />
           </button>
 
           {/* Month/Year Picker */}
@@ -198,24 +199,24 @@ export default function TransactionsClient({ initialTransactions, categories, ac
               <div className="fixed inset-0 z-40" onClick={() => setPickerOpen(false)} />
               <div
                 className="absolute left-0 right-0 top-full mt-2 rounded-[20px] p-4 z-50"
-                style={{ background: '#0F172A', border: '1px solid rgba(255,255,255,0.12)', boxShadow: '0 16px 48px rgba(0,0,0,0.6)' }}
+                style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-shadow-pop)' }}
               >
                 <div className="flex items-center justify-between mb-3">
                   <button
                     onClick={e => { e.stopPropagation(); setPickerYear(y => y - 1) }}
                     className="w-8 h-8 rounded-full flex items-center justify-center active:scale-90"
-                    style={{ background: 'rgba(255,255,255,0.1)' }}
+                    style={{ background: 'var(--f-bg-input)' }}
                   >
-                    <i className="fa-solid fa-chevron-left text-white text-xs" />
+                    <i className="fa-solid fa-chevron-left text-xs" style={{ color: 'var(--f-text)' }} />
                   </button>
-                  <p className="text-[15px] font-black text-white">{pickerYear}</p>
+                  <p className="text-[15px] font-black" style={{ color: 'var(--f-text)' }}>{pickerYear}</p>
                   <button
                     onClick={e => { e.stopPropagation(); setPickerYear(y => y + 1) }}
                     disabled={pickerYear >= now.getFullYear()}
                     className="w-8 h-8 rounded-full flex items-center justify-center active:scale-90 disabled:opacity-30"
-                    style={{ background: 'rgba(255,255,255,0.1)' }}
+                    style={{ background: 'var(--f-bg-input)' }}
                   >
-                    <i className="fa-solid fa-chevron-right text-white text-xs" />
+                    <i className="fa-solid fa-chevron-right text-xs" style={{ color: 'var(--f-text)' }} />
                   </button>
                 </div>
                 <div className="grid grid-cols-4 gap-1.5">
@@ -233,9 +234,9 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                         }}
                         className="py-2 rounded-[10px] text-[11px] font-black capitalize transition-all"
                         style={{
-                          background: isSelected ? 'rgba(0,122,255,0.2)' : 'rgba(255,255,255,0.05)',
-                          color: isSelected ? '#007AFF' : isFuture ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.7)',
-                          border: isSelected ? '1px solid rgba(0,122,255,0.4)' : '1px solid transparent',
+                          background: isSelected ? 'var(--f-accent-bg)' : 'var(--f-bg-input)',
+                          color: isSelected ? 'var(--f-blue)' : isFuture ? 'var(--f-text-4)' : 'var(--f-text-2)',
+                          border: isSelected ? '1px solid var(--f-accent-border)' : '1px solid transparent',
                         }}
                       >
                         {m.slice(0, 3)}
@@ -250,13 +251,13 @@ export default function TransactionsClient({ initialTransactions, categories, ac
 
         {/* Summary */}
         <div className="flex gap-2 mb-4">
-          <div className="flex-1 rounded-2xl p-3 text-center" style={{ background: 'rgba(48,209,88,0.1)', border: '1px solid rgba(48,209,88,0.2)' }}>
-            <p className="text-[9px] font-black tracking-[2px] uppercase mb-0.5" style={{ color: 'rgba(48,209,88,0.7)' }}>Ingresos</p>
-            <p className="text-[16px] font-black tabular-nums" style={{ color: '#30D158' }}>+<AnimatedCurrency value={totals.income} /></p>
+          <div className="flex-1 rounded-2xl p-3 text-center" style={{ background: 'var(--f-income-bg)', border: '1px solid var(--f-income-border)' }}>
+            <p className="text-[9px] font-black tracking-[2px] uppercase mb-0.5" style={{ color: 'var(--f-income)', opacity: 0.7 }}>Ingresos</p>
+            <p className="text-[16px] font-black tabular-nums" style={{ color: 'var(--f-income)' }}>+<AnimatedCurrency value={totals.income} /></p>
           </div>
-          <div className="flex-1 rounded-2xl p-3 text-center" style={{ background: 'rgba(255,69,58,0.1)', border: '1px solid rgba(255,69,58,0.2)' }}>
-            <p className="text-[9px] font-black tracking-[2px] uppercase mb-0.5" style={{ color: 'rgba(255,69,58,0.7)' }}>Gastos</p>
-            <p className="text-[16px] font-black tabular-nums" style={{ color: '#FF453A' }}>-<AnimatedCurrency value={totals.expenses} /></p>
+          <div className="flex-1 rounded-2xl p-3 text-center" style={{ background: 'var(--f-expense-bg)', border: '1px solid var(--f-expense-border)' }}>
+            <p className="text-[9px] font-black tracking-[2px] uppercase mb-0.5" style={{ color: 'var(--f-expense)', opacity: 0.7 }}>Gastos</p>
+            <p className="text-[16px] font-black tabular-nums" style={{ color: 'var(--f-expense)' }}>-<AnimatedCurrency value={totals.expenses} /></p>
           </div>
         </div>
 
@@ -268,9 +269,9 @@ export default function TransactionsClient({ initialTransactions, categories, ac
               onClick={() => { setTypeDropOpen(o => !o); setCatDropOpen(false) }}
               className="w-full flex items-center justify-between px-3 py-2 rounded-[12px] text-[12px] font-bold"
               style={{
-                background: filterTypes.length > 0 ? 'rgba(0,122,255,0.15)' : 'rgba(255,255,255,0.07)',
-                border: filterTypes.length > 0 ? '1px solid rgba(0,122,255,0.35)' : '1px solid rgba(255,255,255,0.08)',
-                color: filterTypes.length > 0 ? '#007AFF' : 'rgba(255,255,255,0.5)',
+                background: filterTypes.length > 0 ? 'var(--f-accent-bg)' : 'var(--f-bg-input)',
+                border: filterTypes.length > 0 ? '1px solid var(--f-accent-border)' : '1px solid var(--f-line)',
+                color: filterTypes.length > 0 ? 'var(--f-blue)' : 'var(--f-text-2)',
               }}
             >
               <span>{filterTypes.length > 0 ? `Tipo (${filterTypes.length})` : 'Tipo'}</span>
@@ -281,7 +282,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                 <div className="fixed inset-0 z-40" onClick={() => setTypeDropOpen(false)} />
                 <div
                   className="absolute top-full mt-1 left-0 right-0 rounded-[16px] p-2 z-50"
-                  style={{ background: '#0F172A', border: '1px solid rgba(255,255,255,0.12)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}
+                  style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-shadow-pop)' }}
                 >
                   {TYPE_OPTIONS.map(opt => {
                     const checked = filterTypes.includes(opt.value)
@@ -290,11 +291,11 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                         key={opt.value}
                         onClick={() => toggleType(opt.value)}
                         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-left transition-all"
-                        style={{ background: checked ? 'rgba(0,122,255,0.15)' : 'transparent' }}
+                        style={{ background: checked ? 'var(--f-accent-bg)' : 'transparent' }}
                       >
                         <i className={`${opt.icon} text-[11px] w-3.5 flex-shrink-0`} style={{ color: opt.color }} />
-                        <span className="text-[13px] font-semibold flex-1" style={{ color: checked ? 'white' : 'rgba(255,255,255,0.65)' }}>{opt.label}</span>
-                        {checked && <i className="fa-solid fa-check text-[9px]" style={{ color: '#007AFF' }} />}
+                        <span className="text-[13px] font-semibold flex-1" style={{ color: checked ? 'var(--f-text)' : 'var(--f-text-2)' }}>{opt.label}</span>
+                        {checked && <i className="fa-solid fa-check text-[9px]" style={{ color: 'var(--f-blue)' }} />}
                       </button>
                     )
                   })}
@@ -302,7 +303,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                     <button
                       onClick={() => setFilterTypes([])}
                       className="w-full py-1.5 text-[11px] font-bold text-center mt-1 rounded-[8px]"
-                      style={{ color: '#FF453A', background: 'rgba(255,69,58,0.08)' }}
+                      style={{ color: 'var(--f-expense)', background: 'var(--f-expense-bg)' }}
                     >
                       Limpiar
                     </button>
@@ -318,9 +319,9 @@ export default function TransactionsClient({ initialTransactions, categories, ac
               onClick={() => { setCatDropOpen(o => !o); setTypeDropOpen(false) }}
               className="w-full flex items-center justify-between px-3 py-2 rounded-[12px] text-[12px] font-bold"
               style={{
-                background: filterCats.length > 0 ? 'rgba(0,122,255,0.15)' : 'rgba(255,255,255,0.07)',
-                border: filterCats.length > 0 ? '1px solid rgba(0,122,255,0.35)' : '1px solid rgba(255,255,255,0.08)',
-                color: filterCats.length > 0 ? '#007AFF' : 'rgba(255,255,255,0.5)',
+                background: filterCats.length > 0 ? 'var(--f-accent-bg)' : 'var(--f-bg-input)',
+                border: filterCats.length > 0 ? '1px solid var(--f-accent-border)' : '1px solid var(--f-line)',
+                color: filterCats.length > 0 ? 'var(--f-blue)' : 'var(--f-text-2)',
               }}
             >
               <span>{filterCats.length > 0 ? `Cat. (${filterCats.length})` : 'Categoría'}</span>
@@ -331,7 +332,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                 <div className="fixed inset-0 z-40" onClick={() => setCatDropOpen(false)} />
                 <div
                   className="absolute top-full mt-1 left-0 right-0 rounded-[16px] p-2 z-50 max-h-64 overflow-y-auto"
-                  style={{ background: '#0F172A', border: '1px solid rgba(255,255,255,0.12)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}
+                  style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-shadow-pop)' }}
                 >
                   {categories.filter(c => c.id !== 'CAT-AUDIT').map(cat => {
                     const d = getCategoryDisplay(cat)
@@ -341,13 +342,13 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                         key={cat.id}
                         onClick={() => toggleCat(cat.id)}
                         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-left transition-all"
-                        style={{ background: checked ? 'rgba(0,122,255,0.15)' : 'transparent' }}
+                        style={{ background: checked ? 'var(--f-accent-bg)' : 'transparent' }}
                       >
                         <div className={`w-5 h-5 rounded-[6px] flex items-center justify-center flex-shrink-0 ${d.bg}`}>
                           <i className={`${d.icon} ${d.color} text-[9px]`} />
                         </div>
-                        <span className="text-[13px] font-semibold flex-1 truncate" style={{ color: checked ? 'white' : 'rgba(255,255,255,0.65)' }}>{cat.name}</span>
-                        {checked && <i className="fa-solid fa-check text-[9px]" style={{ color: '#007AFF' }} />}
+                        <span className="text-[13px] font-semibold flex-1 truncate" style={{ color: checked ? 'var(--f-text)' : 'var(--f-text-2)' }}>{cat.name}</span>
+                        {checked && <i className="fa-solid fa-check text-[9px]" style={{ color: 'var(--f-blue)' }} />}
                       </button>
                     )
                   })}
@@ -355,7 +356,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                     <button
                       onClick={() => setFilterCats([])}
                       className="w-full py-1.5 text-[11px] font-bold text-center mt-1 rounded-[8px]"
-                      style={{ color: '#FF453A', background: 'rgba(255,69,58,0.08)' }}
+                      style={{ color: 'var(--f-expense)', background: 'var(--f-expense-bg)' }}
                     >
                       Limpiar
                     </button>
@@ -371,7 +372,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
           {searchOpen ? (
             <div className="flex items-center gap-2 animate-search-expand">
               <div className="relative flex-1">
-                <i className="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-xs" style={{ color: 'rgba(0,122,255,0.7)' }} />
+                <i className="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-xs" style={{ color: 'var(--f-blue)', opacity: 0.7 }} />
                 <input
                   autoFocus
                   value={search}
@@ -379,13 +380,13 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                   onKeyDown={e => { if (e.key === 'Escape') { setSearchOpen(false); setSearch('') } }}
                   placeholder="Buscar movimiento…"
                   className="w-full rounded-[14px] pl-9 pr-4 py-2.5 text-[13px] font-medium outline-none"
-                  style={{ background: 'rgba(0,122,255,0.1)', border: '1px solid rgba(0,122,255,0.3)', color: 'white' }}
+                  style={{ background: 'var(--f-accent-bg)', border: '1px solid var(--f-accent-border)', color: 'var(--f-text)' }}
                 />
               </div>
               <button
                 onClick={() => { setSearchOpen(false); setSearch('') }}
                 className="flex-shrink-0 text-[12px] font-bold px-1 py-2"
-                style={{ color: '#007AFF' }}
+                style={{ color: 'var(--f-blue)' }}
               >
                 Cancelar
               </button>
@@ -397,9 +398,9 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                   onClick={() => { setShowPending(p => !p); if (showShared) { setShowShared(false); setSharedResults(null) }; setFilterTypes([]); setFilterCats([]) }}
                   className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[11px] font-bold transition-all animate-spring-in"
                   style={{
-                    background: showPending ? 'rgba(255,159,10,0.2)' : 'rgba(255,159,10,0.08)',
-                    border: showPending ? '1px solid rgba(255,159,10,0.45)' : '1px solid rgba(255,159,10,0.2)',
-                    color: '#FF9F0A',
+                    background: showPending ? 'var(--f-pending-bg)' : 'var(--f-bg-input)',
+                    border: showPending ? '1px solid var(--f-pending-border)' : '1px solid var(--f-line)',
+                    color: 'var(--f-pending)',
                   }}
                 >
                   <i className="fa-solid fa-clock text-[9px]" />
@@ -413,9 +414,9 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                 className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[11px] font-bold transition-all disabled:opacity-60 animate-spring-in"
                 style={{
                   animationDelay: hasPending ? '0.06s' : '0s',
-                  background: showShared ? 'rgba(100,210,255,0.2)' : 'rgba(100,210,255,0.08)',
-                  border: showShared ? '1px solid rgba(100,210,255,0.45)' : '1px solid rgba(100,210,255,0.2)',
-                  color: '#64D2FF',
+                  background: showShared ? 'var(--f-transfer-bg)' : 'var(--f-bg-input)',
+                  border: showShared ? '1px solid var(--f-transfer-border)' : '1px solid var(--f-line)',
+                  color: 'var(--f-transfer)',
                 }}
               >
                 {isLoadingShared
@@ -428,9 +429,9 @@ export default function TransactionsClient({ initialTransactions, categories, ac
               <button
                 onClick={() => setSearchOpen(true)}
                 className="flex-shrink-0 ml-auto w-9 h-9 rounded-[12px] flex items-center justify-center transition-all"
-                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.08)' }}
+                style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
               >
-                <i className="fa-solid fa-magnifying-glass text-xs" style={{ color: 'rgba(255,255,255,0.5)' }} />
+                <i className="fa-solid fa-magnifying-glass text-xs" style={{ color: 'var(--f-text-2)' }} />
               </button>
             </div>
           )}
@@ -439,12 +440,12 @@ export default function TransactionsClient({ initialTransactions, categories, ac
 
       {(allSearchResults !== null || isSearchingAll || sharedResults !== null || isLoadingShared) && (
         <div className="px-4 pt-3 max-w-lg mx-auto">
-          <div className="flex items-center gap-2 px-3 py-2 rounded-[10px]" style={{ background: 'rgba(0,122,255,0.08)', border: '1px solid rgba(0,122,255,0.2)' }}>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-[10px]" style={{ background: 'var(--f-accent-bg)', border: '1px solid var(--f-accent-border)' }}>
             {(isSearchingAll || isLoadingShared)
-              ? <i className="fa-solid fa-spinner fa-spin text-[10px]" style={{ color: '#007AFF' }} />
-              : <i className="fa-solid fa-magnifying-glass text-[10px]" style={{ color: '#007AFF' }} />
+              ? <i className="fa-solid fa-spinner fa-spin text-[10px]" style={{ color: 'var(--f-blue)' }} />
+              : <i className="fa-solid fa-magnifying-glass text-[10px]" style={{ color: 'var(--f-blue)' }} />
             }
-            <p className="text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            <p className="text-[11px] font-bold" style={{ color: 'var(--f-text-2)' }}>
               {isSearchingAll || isLoadingShared
                 ? 'Buscando…'
                 : sharedResults
@@ -460,7 +461,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
         className={`px-4 py-4 max-w-lg mx-auto ${slideDir === 'right' ? 'animate-slide-from-right' : slideDir === 'left' ? 'animate-slide-from-left' : 'animate-fade-up'}`}
       >
         {grouped.length === 0 ? (
-          <div className="text-center py-16" style={{ color: 'rgba(255,255,255,0.25)' }}>
+          <div className="text-center py-16" style={{ color: 'var(--f-text-4)' }}>
             <i className="fa-solid fa-magnifying-glass text-4xl mb-3 block opacity-30" />
             <p className="text-sm font-bold">{isSearchingAll || isLoadingShared ? 'Buscando…' : 'Sin movimientos'}</p>
           </div>
@@ -468,7 +469,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
           <div className="space-y-4">
             {grouped.map(([day, txs], gi) => (
               <div key={day} className="animate-fade-up" style={{ animationDelay: `${gi * 0.04}s` }}>
-                <p className="text-[10px] font-black uppercase tracking-[2px] mb-2 px-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                <p className="text-[10px] font-black uppercase tracking-[2px] mb-2 px-1" style={{ color: 'var(--f-text-3)' }}>
                   {formatDateShort(day + 'T12:00:00')}
                 </p>
                 <div className="space-y-1.5">
@@ -480,7 +481,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                       : getCategoryDisplay(cat)
                     const isIncome  = tx.type === 'TR-INGRESO'
                     const isExpense = tx.type === 'TR-GASTO'
-                    const amtColor  = isIncome ? '#30D158' : isExpense ? '#FF453A' : '#64D2FF'
+                    const amtColor  = isIncome ? 'var(--f-income)' : isExpense ? 'var(--f-expense)' : 'var(--f-transfer)'
                     const isPending = !tx.is_validated
                     return (
                       <button
@@ -488,8 +489,8 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                         onClick={() => openEdit(tx)}
                         className="w-full rounded-[16px] px-4 py-3.5 flex items-center gap-3 active:scale-[0.98] transition-transform text-left animate-spring-in"
                         style={{
-                          background: isPending ? 'rgba(255,159,10,0.07)' : '#0F172A',
-                          border: isPending ? '1px solid rgba(255,159,10,0.3)' : '1px solid rgba(0,122,255,0.1)',
+                          background: isPending ? 'var(--f-pending-bg)' : 'var(--f-bg-card)',
+                          border: isPending ? '1px solid var(--f-pending-border)' : '1px solid var(--f-accent-border)',
                           animationDelay: `${gi * 0.045 + ti * 0.03}s`,
                         }}
                       >
@@ -497,9 +498,9 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                           <i className={`${d.icon} ${d.color} text-sm`} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[13px] font-bold text-white truncate">{tx.concept}</p>
-                          <p className="text-[11px] mt-0.5 truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                            {isPending && <span style={{ color: '#FF9F0A' }}>Por confirmar · </span>}
+                          <p className="text-[13px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{tx.concept}</p>
+                          <p className="text-[11px] mt-0.5 truncate" style={{ color: 'var(--f-text-3)' }}>
+                            {isPending && <span style={{ color: 'var(--f-pending)' }}>Por confirmar · </span>}
                             {d.name}
                           </p>
                         </div>
@@ -508,7 +509,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                             {isIncome ? '+' : isExpense ? '-' : ''}{formatCurrency(Number(tx.amount))}
                           </p>
                           {!isPending && (tx.is_receivable || tx.is_payable) && (
-                            <span className="text-[9px] font-black mt-0.5 inline-block px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(255,159,10,0.15)', color: '#FF9F0A' }}>
+                            <span className="text-[9px] font-black mt-0.5 inline-block px-1.5 py-0.5 rounded-full" style={{ background: 'var(--f-pending-bg)', color: 'var(--f-pending)' }}>
                               {tx.is_receivable ? 'Por cobrar' : 'Por pagar'}
                             </span>
                           )}
@@ -535,8 +536,8 @@ export default function TransactionsClient({ initialTransactions, categories, ac
               height: 56,
               right: '1.25rem',
               bottom: 'calc(5rem + var(--safe-bottom))',
-              background: '#007AFF',
-              boxShadow: '0 8px 28px rgba(0,122,255,0.55)',
+              background: 'var(--f-blue)',
+              boxShadow: 'var(--f-shadow-accent)',
             }}
           >
             <i className="fa-solid fa-plus text-white text-lg" />

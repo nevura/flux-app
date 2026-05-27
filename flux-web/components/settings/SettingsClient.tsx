@@ -19,7 +19,7 @@ interface Props {
   people: Person[]
 }
 
-type Tab = 'shortcuts' | 'categorias' | 'cuentas' | 'planificados' | 'personas' | 'suscripcion'
+type Tab = 'shortcuts' | 'categorias' | 'cuentas' | 'planificados' | 'personas' | 'suscripcion' | 'apariencia'
 
 // ── Bottom Sheet ──────────────────────────────────────────────────────────────
 
@@ -37,10 +37,14 @@ function BottomSheet({ onClose, children, title }: { onClose: () => void; childr
     if (!vv) return
     function onViewportResize() {
       if (!sheetRef.current) return
-      const keyboardHeight = Math.max(0, window.innerHeight - vv!.height - vv!.offsetTop)
-      sheetRef.current.style.transform = keyboardHeight > 0
-        ? `translateY(-${keyboardHeight}px)`
-        : ''
+      const kh = Math.max(0, window.innerHeight - vv!.height - vv!.offsetTop)
+      if (kh > 0) {
+        sheetRef.current.style.bottom = `${kh}px`
+        sheetRef.current.style.maxHeight = `${vv!.height * 0.92}px`
+      } else {
+        sheetRef.current.style.bottom = ''
+        sheetRef.current.style.maxHeight = ''
+      }
     }
     vv.addEventListener('resize', onViewportResize)
     vv.addEventListener('scroll', onViewportResize)
@@ -61,8 +65,8 @@ function BottomSheet({ onClose, children, title }: { onClose: () => void; childr
           paddingBottom: 'calc(1.5rem + var(--safe-bottom))',
           maxHeight: '90dvh',
           overflowY: 'auto',
-          transition: 'transform 0.15s ease-out',
-          willChange: 'transform',
+          transition: 'bottom 0.15s ease-out, max-height 0.15s ease-out',
+          willChange: 'bottom',
         }}
       >
         {title && (
@@ -83,17 +87,33 @@ function BottomSheet({ onClose, children, title }: { onClose: () => void; childr
 // ── Main Component ────────────────────────────────────────────────────────────
 
 const SECTIONS: { key: Tab; icon: string; label: string; description: string }[] = [
-  { key: 'shortcuts'   as Tab, icon: 'fa-solid fa-mobile-screen', label: 'Atajos',      description: 'iPhone Shortcuts y presupuesto' },
-  { key: 'categorias'  as Tab, icon: 'fa-solid fa-tags',          label: 'Categorías',  description: 'Categorías personalizadas' },
-  { key: 'cuentas'     as Tab, icon: 'fa-solid fa-wallet',        label: 'Cuentas',     description: 'Efectivo, débito y crédito' },
-  { key: 'personas'    as Tab, icon: 'fa-solid fa-users',         label: 'Personas',    description: 'Contactos para dividir gastos' },
-  { key: 'suscripcion' as Tab, icon: 'fa-solid fa-crown',         label: 'Plan',        description: 'Suscripción y facturación' },
-  { key: 'planificados'as Tab, icon: 'fa-solid fa-calendar',      label: 'Recurrentes', description: 'Suscripciones y cobros fijos' },
+  { key: 'apariencia'  as Tab, icon: 'fa-solid fa-circle-half-stroke', label: 'Apariencia',  description: 'Modo claro u oscuro' },
+  { key: 'shortcuts'   as Tab, icon: 'fa-solid fa-mobile-screen',      label: 'Atajos',      description: 'iPhone Shortcuts y presupuesto' },
+  { key: 'categorias'  as Tab, icon: 'fa-solid fa-tags',               label: 'Categorías',  description: 'Categorías personalizadas' },
+  { key: 'cuentas'     as Tab, icon: 'fa-solid fa-wallet',             label: 'Cuentas',     description: 'Efectivo, débito y crédito' },
+  { key: 'personas'    as Tab, icon: 'fa-solid fa-users',              label: 'Personas',    description: 'Contactos para dividir gastos' },
+  { key: 'suscripcion' as Tab, icon: 'fa-solid fa-crown',              label: 'Plan',        description: 'Suscripción y facturación' },
+  { key: 'planificados'as Tab, icon: 'fa-solid fa-calendar',           label: 'Recurrentes', description: 'Suscripciones y cobros fijos' },
 ].sort((a, b) => a.label.localeCompare(b.label, 'es'))
 
 export default function SettingsClient({ profile, shortcutToken, categories, accounts, scheduled, people }: Props) {
   const [section, setSection] = useState<Tab | null>(null)
   const [isPending, startTransition] = useTransition()
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+
+  useEffect(() => {
+    setTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark')
+  }, [])
+
+  function applyTheme(t: 'dark' | 'light') {
+    setTheme(t)
+    if (t === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light')
+    } else {
+      document.documentElement.removeAttribute('data-theme')
+    }
+    try { localStorage.setItem('flux-theme', t) } catch {}
+  }
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput] = useState(profile?.full_name ?? '')
   const [isNamePending, startNameTx] = useTransition()
@@ -215,6 +235,38 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                 </div>
               </div>
               <ShortcutInstall token={shortcutToken} />
+            </div>
+          )}
+
+          {section === 'apariencia' && (
+            <div className="space-y-3">
+              {([
+                { key: 'dark'  as const, icon: 'fa-solid fa-moon',               label: 'Oscuro', desc: 'Fondo oscuro — ideal para usar de noche' },
+                { key: 'light' as const, icon: 'fa-solid fa-sun',                label: 'Claro',  desc: 'Fondo claro — más fácil con mucha luz' },
+              ]).map(opt => {
+                const active = theme === opt.key
+                return (
+                  <button
+                    key={opt.key}
+                    onClick={() => applyTheme(opt.key)}
+                    className="w-full flex items-center gap-4 px-4 py-4 rounded-[18px] text-left transition-all active:scale-[0.99]"
+                    style={{
+                      background: active ? 'var(--f-accent-bg)' : 'var(--f-bg-card)',
+                      border: active ? '1.5px solid var(--f-accent-border)' : '1px solid var(--f-line)',
+                    }}
+                  >
+                    <div className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0"
+                      style={{ background: active ? 'var(--f-accent-bg)' : 'var(--f-bg-input)' }}>
+                      <i className={`${opt.icon} text-sm`} style={{ color: active ? 'var(--f-blue)' : 'var(--f-text-3)' }} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[14px] font-bold" style={{ color: 'var(--f-text)' }}>{opt.label}</p>
+                      <p className="text-[12px]" style={{ color: 'var(--f-text-3)' }}>{opt.desc}</p>
+                    </div>
+                    {active && <i className="fa-solid fa-check text-sm" style={{ color: 'var(--f-blue)' }} />}
+                  </button>
+                )
+              })}
             </div>
           )}
 
