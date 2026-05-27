@@ -30,11 +30,11 @@ export default function AppNav() {
         <div
           className="mx-3 mb-3 flex items-center justify-around rounded-[26px] px-1 py-2"
           style={{
-            background: 'rgba(28,28,30,0.92)',
+            background: 'var(--f-bg-nav)',
             backdropFilter: 'blur(24px)',
             WebkitBackdropFilter: 'blur(24px)',
-            border: '1px solid rgba(255,255,255,0.09)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+            border: '1px solid var(--f-line)',
+            boxShadow: 'var(--f-shadow-nav)',
           }}
         >
           {TABS.map(tab => {
@@ -46,13 +46,14 @@ export default function AppNav() {
                 href={tab.href}
                 onClick={() => { if (!isCurrentPath) setPendingHref(tab.href) }}
                 className="flex items-center gap-2 rounded-2xl transition-all duration-150 select-none active:scale-95 px-4 py-3"
-                style={active ? { background: 'rgba(255,255,255,0.12)' } : undefined}
+                style={active ? { background: 'var(--f-bg-input)' } : undefined}
               >
-                <i className={`${tab.icon} transition-all duration-150 ${
-                  active ? 'text-white text-[17px]' : 'text-[rgba(255,255,255,0.4)] text-[19px]'
-                }`} />
+                <i className={`${tab.icon} transition-all duration-150`} style={{
+                  color: active ? 'var(--f-text)' : 'var(--f-text-3)',
+                  fontSize: active ? '17px' : '19px',
+                }} />
                 {active && (
-                  <span className="text-[13px] font-black text-white tracking-tight whitespace-nowrap">
+                  <span className="text-[13px] font-black tracking-tight whitespace-nowrap" style={{ color: 'var(--f-text)' }}>
                     {tab.label}
                   </span>
                 )}

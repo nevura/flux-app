@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useEffect } from 'react'
+import { useState, useTransition, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
@@ -24,16 +24,46 @@ type Tab = 'shortcuts' | 'categorias' | 'cuentas' | 'planificados' | 'personas' 
 // ── Bottom Sheet ──────────────────────────────────────────────────────────────
 
 function BottomSheet({ onClose, children, title }: { onClose: () => void; children: React.ReactNode; title?: string }) {
+  const sheetRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = '' }
   }, [])
+
+  // Lift sheet above keyboard on mobile using visualViewport
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    function onViewportResize() {
+      if (!sheetRef.current) return
+      const keyboardHeight = Math.max(0, window.innerHeight - vv!.height - vv!.offsetTop)
+      sheetRef.current.style.transform = keyboardHeight > 0
+        ? `translateY(-${keyboardHeight}px)`
+        : ''
+    }
+    vv.addEventListener('resize', onViewportResize)
+    vv.addEventListener('scroll', onViewportResize)
+    return () => {
+      vv.removeEventListener('resize', onViewportResize)
+      vv.removeEventListener('scroll', onViewportResize)
+    }
+  }, [])
+
   return createPortal(
     <>
       <div className="fixed inset-0 z-[200] bg-black/60 animate-fade-in" onClick={onClose} />
       <div
+        ref={sheetRef}
         className="fixed bottom-0 left-0 right-0 z-[200] rounded-t-[28px] animate-slide-up mx-auto max-w-lg"
-        style={{ background: '#0F172A', paddingBottom: 'calc(1.5rem + var(--safe-bottom))', maxHeight: '90dvh', overflowY: 'auto' }}
+        style={{
+          background: '#0F172A',
+          paddingBottom: 'calc(1.5rem + var(--safe-bottom))',
+          maxHeight: '90dvh',
+          overflowY: 'auto',
+          transition: 'transform 0.15s ease-out',
+          willChange: 'transform',
+        }}
       >
         {title && (
           <div className="flex items-center justify-between px-5 pt-5 pb-3">

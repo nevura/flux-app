@@ -221,8 +221,14 @@ html, body {
   font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+/* Hide scrollbars everywhere */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  display: none;
+}
 
 /* ─────────────────────────────────────────────────────────────────────────────
    SONNER TOAST — Pro glow style (respects theme)
