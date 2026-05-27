@@ -19,7 +19,7 @@ interface Props {
   people: Person[]
 }
 
-type Tab = 'shortcuts' | 'categorias' | 'cuentas' | 'planificados' | 'personas'
+type Tab = 'shortcuts' | 'categorias' | 'cuentas' | 'planificados' | 'personas' | 'suscripcion'
 
 // ── Bottom Sheet ──────────────────────────────────────────────────────────────
 
@@ -80,6 +80,15 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
     })
   }
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('checkout') === 'success') {
+      toast.success('¡Suscripción activada! Bienvenido a Flux Pro')
+      window.history.replaceState({}, '', '/settings')
+    }
+  }, [])
+
   const customCategories = categories.filter(c => c.user_id !== null)
   const defaultCategories = categories.filter(c => c.user_id === null)
   const displayName = nameInput || profile?.full_name
@@ -96,6 +105,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
     { key: 'cuentas', icon: 'fa-solid fa-wallet', label: 'Cuentas' },
     { key: 'categorias', icon: 'fa-solid fa-tags', label: 'Categorías' },
     { key: 'personas', icon: 'fa-solid fa-users', label: 'Personas' },
+    { key: 'suscripcion', icon: 'fa-solid fa-crown', label: 'Plan' },
   ]
 
   return (
@@ -261,6 +271,10 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
             isPending={isPending}
             startTransition={startTransition}
           />
+        )}
+
+        {activeTab === 'suscripcion' && (
+          <SubscriptionTab profile={profile} />
         )}
       </div>
     </div>
@@ -1161,6 +1175,261 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
         )
       })()}
     </div>
+  )
+}
+
+// ── Subscription Tab ─────────────────────────────────────────────────────────
+
+const PRICE_MONTHLY = 'price_1TbXRPJ3c9aWVlXAvs1otlmf'
+const PRICE_YEARLY = 'price_1TbXTnJ3c9aWVlXA8x3EQobG'
+
+function SubscriptionTab({ profile }: { profile: Profile | null }) {
+  const [loadingMonthly, setLoadingMonthly] = useState(false)
+  const [loadingYearly, setLoadingYearly] = useState(false)
+  const [loadingPortal, setLoadingPortal] = useState(false)
+
+  const status = profile?.subscription_status
+  const isActive = status === 'active' || status === 'trialing'
+  const hasCustomer = !!profile?.stripe_customer_id
+
+  async function handleCheckout(priceId: string, setLoading: (v: boolean) => void) {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priceId }),
+      })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+      else toast.error(data.error ?? 'Error al iniciar pago')
+    } catch {
+      toast.error('Error de conexión')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handlePortal() {
+    setLoadingPortal(true)
+    try {
+      const res = await fetch('/api/stripe/portal', { method: 'POST' })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+      else toast.error(data.error ?? 'Error al abrir portal')
+    } catch {
+      toast.error('Error de conexión')
+    } finally {
+      setLoadingPortal(false)
+    }
+  }
+
+  function formatDate(iso: string | null | undefined) {
+    if (!iso) return '—'
+    return new Date(iso).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })
+  }
+
+  if (isActive) {
+    const isTrialing = status === 'trialing'
+    return (
+      <div className="space-y-4">
+        <div
+          className="rounded-[20px] p-5"
+          style={{
+            background: isTrialing ? 'rgba(255,159,10,0.08)' : 'rgba(48,209,88,0.08)',
+            border: `1px solid ${isTrialing ? 'rgba(255,159,10,0.3)' : 'rgba(48,209,88,0.3)'}`,
+            boxShadow: `0 0 32px ${isTrialing ? 'rgba(255,159,10,0.1)' : 'rgba(48,209,88,0.1)'}`,
+          }}
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <div
+              className="w-11 h-11 rounded-[14px] flex items-center justify-center"
+              style={{ background: isTrialing ? 'rgba(255,159,10,0.15)' : 'rgba(48,209,88,0.15)' }}
+            >
+              <i
+                className={`fa-solid ${isTrialing ? 'fa-clock' : 'fa-crown'} text-lg`}
+                style={{ color: isTrialing ? '#FF9F0A' : '#30D158' }}
+              />
+            </div>
+            <div>
+              <p className="text-[15px] font-black text-white">
+                {isTrialing ? 'Período de prueba' : 'Flux Pro · Activo'}
+              </p>
+              <p className="text-[12px] font-semibold" style={{ color: isTrialing ? '#FF9F0A' : '#30D158' }}>
+                {isTrialing
+                  ? `Prueba hasta ${formatDate(profile?.trial_ends_at)}`
+                  : `Activo hasta ${formatDate(profile?.subscription_ends_at)}`}
+              </p>
+            </div>
+          </div>
+          <p className="text-[12px] mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            {isTrialing
+              ? 'Suscríbete antes de que expire tu período de prueba para no perder acceso.'
+              : 'Gracias por suscribirte. Tienes acceso completo a todas las funciones.'}
+          </p>
+          <button
+            onClick={handlePortal}
+            disabled={loadingPortal}
+            className="w-full py-3.5 rounded-[14px] text-[14px] font-black text-white transition-all active:scale-[0.98] disabled:opacity-50"
+            style={{ background: isTrialing ? '#FF9F0A' : '#30D158', color: '#000' }}
+          >
+            {loadingPortal
+              ? <i className="fa-solid fa-spinner fa-spin" />
+              : isTrialing ? 'Suscribirme ahora' : 'Administrar suscripción'}
+          </button>
+        </div>
+
+        {isTrialing && (
+          <div className="space-y-3">
+            <p className="text-[11px] font-black uppercase tracking-[2px]" style={{ color: 'rgba(255,255,255,0.35)' }}>Planes</p>
+            <PriceCard
+              label="Mensual"
+              price="$89"
+              period="/mes"
+              badge={null}
+              loading={loadingMonthly}
+              onSelect={() => handleCheckout(PRICE_MONTHLY, setLoadingMonthly)}
+            />
+            <PriceCard
+              label="Anual"
+              price="$829"
+              period="/año"
+              badge="Ahorra 2 meses"
+              loading={loadingYearly}
+              onSelect={() => handleCheckout(PRICE_YEARLY, setLoadingYearly)}
+            />
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  if (status === 'past_due' || status === 'unpaid' || status === 'incomplete') {
+    return (
+      <div className="space-y-4">
+        <div
+          className="rounded-[20px] p-5"
+          style={{ background: 'rgba(255,69,58,0.08)', border: '1px solid rgba(255,69,58,0.3)', boxShadow: '0 0 32px rgba(255,69,58,0.1)' }}
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-11 h-11 rounded-[14px] flex items-center justify-center" style={{ background: 'rgba(255,69,58,0.15)' }}>
+              <i className="fa-solid fa-triangle-exclamation text-lg" style={{ color: '#FF453A' }} />
+            </div>
+            <div>
+              <p className="text-[15px] font-black text-white">Pago pendiente</p>
+              <p className="text-[12px] font-semibold" style={{ color: '#FF453A' }}>Actualiza tu método de pago</p>
+            </div>
+          </div>
+          <p className="text-[12px] mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            No pudimos procesar tu pago. Actualiza tu tarjeta para continuar usando Flux Pro.
+          </p>
+          {hasCustomer && (
+            <button
+              onClick={handlePortal}
+              disabled={loadingPortal}
+              className="w-full py-3.5 rounded-[14px] text-[14px] font-black text-white transition-all active:scale-[0.98] disabled:opacity-50"
+              style={{ background: '#FF453A' }}
+            >
+              {loadingPortal ? <i className="fa-solid fa-spinner fa-spin" /> : 'Actualizar método de pago'}
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // No subscription / canceled
+  return (
+    <div className="space-y-4">
+      {status === 'canceled' && (
+        <div className="rounded-[16px] px-4 py-3 flex items-center gap-2" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <i className="fa-solid fa-circle-xmark text-sm" style={{ color: 'rgba(255,255,255,0.3)' }} />
+          <p className="text-[13px] font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>Tu suscripción fue cancelada</p>
+        </div>
+      )}
+
+      <div
+        className="rounded-[20px] p-5"
+        style={{ background: 'rgba(0,122,255,0.07)', border: '1px solid rgba(0,122,255,0.2)', boxShadow: '0 0 40px rgba(0,122,255,0.08)' }}
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-12 h-12 rounded-[14px] flex items-center justify-center" style={{ background: 'rgba(0,122,255,0.15)' }}>
+            <i className="fa-solid fa-crown text-xl" style={{ color: '#007AFF' }} />
+          </div>
+          <div>
+            <p className="text-[17px] font-black text-white">Flux Pro</p>
+            <p className="text-[12px]" style={{ color: 'rgba(255,255,255,0.45)' }}>Desbloquea todas las funciones</p>
+          </div>
+        </div>
+        <div className="space-y-2 mb-4">
+          {['Transacciones ilimitadas', 'Atajos de iPhone', 'Auditoría de cuentas', 'Recordatorios automáticos', 'Soporte prioritario'].map(f => (
+            <div key={f} className="flex items-center gap-2">
+              <i className="fa-solid fa-check text-[11px]" style={{ color: '#30D158' }} />
+              <span className="text-[13px] font-semibold text-white">{f}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <p className="text-[11px] font-black uppercase tracking-[2px]" style={{ color: 'rgba(255,255,255,0.35)' }}>Elige tu plan</p>
+
+      <PriceCard
+        label="Anual"
+        price="$829"
+        period="/año"
+        badge="Ahorra 2 meses"
+        loading={loadingYearly}
+        onSelect={() => handleCheckout(PRICE_YEARLY, setLoadingYearly)}
+      />
+      <PriceCard
+        label="Mensual"
+        price="$89"
+        period="/mes"
+        badge={null}
+        loading={loadingMonthly}
+        onSelect={() => handleCheckout(PRICE_MONTHLY, setLoadingMonthly)}
+      />
+
+      <p className="text-[11px] text-center" style={{ color: 'rgba(255,255,255,0.25)' }}>
+        Cancela cuando quieras · Pago seguro con Stripe
+      </p>
+    </div>
+  )
+}
+
+function PriceCard({ label, price, period, badge, loading, onSelect }: {
+  label: string
+  price: string
+  period: string
+  badge: string | null
+  loading: boolean
+  onSelect: () => void
+}) {
+  return (
+    <button
+      onClick={onSelect}
+      disabled={loading}
+      className="w-full rounded-[18px] px-5 py-4 flex items-center justify-between transition-all active:scale-[0.98] disabled:opacity-50"
+      style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.2)' }}
+    >
+      <div className="flex flex-col items-start gap-0.5">
+        <p className="text-[14px] font-black text-white">{label}</p>
+        {badge && (
+          <span className="text-[10px] font-black px-2 py-0.5 rounded-full" style={{ background: 'rgba(48,209,88,0.15)', color: '#30D158' }}>
+            {badge}
+          </span>
+        )}
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="text-right">
+          <span className="text-[22px] font-black text-white tabular-nums">{price}</span>
+          <span className="text-[12px] font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>{period}</span>
+        </div>
+        {loading
+          ? <i className="fa-solid fa-spinner fa-spin text-sm" style={{ color: '#007AFF' }} />
+          : <i className="fa-solid fa-chevron-right text-xs" style={{ color: 'rgba(0,122,255,0.7)' }} />}
+      </div>
+    </button>
   )
 }
 
