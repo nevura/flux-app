@@ -5,6 +5,7 @@ import PullToRefresh from '@/components/layout/PullToRefresh'
 import SubscriptionBanner from '@/components/subscription/SubscriptionBanner'
 import ReadOnlyOverlay from '@/components/subscription/ReadOnlyOverlay'
 import ThemeSync from '@/components/layout/ThemeSync'
+import WakeOnFocus from '@/components/layout/WakeOnFocus'
 import { getSubscriptionInfo } from '@/lib/subscription'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -20,6 +21,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex flex-col min-h-screen">
       <ThemeSync theme={(profile?.theme_preference as 'dark' | 'light') ?? 'dark'} />
+      <WakeOnFocus />
       <SubscriptionBanner status={sub.status} daysLeft={sub.daysLeft} />
       {sub.isReadOnly && <ReadOnlyOverlay />}
       <PullToRefresh>

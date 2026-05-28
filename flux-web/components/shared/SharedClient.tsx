@@ -35,6 +35,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
   const [settling, setSettling] = useState<string | null>(null)
   const [partialMode, setPartialMode] = useState<string | null>(null)
   const [partialInput, setPartialInput] = useState('')
+  const [partialAccountId, setPartialAccountId] = useState('')
   const [confirmKey, setConfirmKey] = useState<string | null>(null)
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -99,11 +100,12 @@ export default function SharedClient({ transactions, people, accounts, categorie
     if (isNaN(amt) || amt <= 0) { toast.error('Monto inválido'); return }
     cancelConfirm()
     startPartial(async () => {
-      const res = await partialSettle(txId, participantId, amt)
+      const res = await partialSettle(txId, participantId, amt, partialAccountId || undefined)
       if (res.error) { toast.error(res.error); return }
-      toast.success('Abono registrado')
+      toast.success(partialAccountId ? 'Abono registrado' : 'Abono aplicado')
       setPartialMode(null)
       setPartialInput('')
+      setPartialAccountId('')
     })
   }
 
@@ -236,8 +238,11 @@ export default function SharedClient({ transactions, people, accounts, categorie
                 <div key={b.person.id} className="rounded-[20px] overflow-hidden animate-spring-in"
                   style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', animationDelay: `${bi * 0.07}s` }}>
 
-                  {/* Person header row */}
-                  <div className="flex items-center gap-3 px-4 pt-4 pb-3">
+                  {/* Header row — tap to toggle desglose */}
+                  <button
+                    className="w-full flex items-center gap-3 px-4 pt-4 pb-3 text-left transition-all active:opacity-70"
+                    onClick={() => { setExpanded(isOpen ? null : b.person.id); setGlobalSettleId(null); setGlobalAbonoId(null) }}
+                  >
                     <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
                       style={{ background: netPositive ? 'var(--f-income-bg)' : 'var(--f-expense-bg)', border: `1px solid ${netPositive ? 'var(--f-income-border)' : 'var(--f-expense-border)'}` }}>
                       <i className="fa-solid fa-user text-sm" style={{ color: netPositive ? 'var(--f-income)' : 'var(--f-expense)' }} />
@@ -248,7 +253,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                         {b.pending.length} gasto{b.pending.length !== 1 ? 's' : ''} pendiente{b.pending.length !== 1 ? 's' : ''}
                       </p>
                     </div>
-                    <div className="text-right flex-shrink-0 mr-1">
+                    <div className="text-right flex-shrink-0">
                       <p className="text-[16px] font-black tabular-nums" style={{ color: netPositive ? 'var(--f-income)' : 'var(--f-expense)' }}>
                         {netPositive ? '+' : '-'}<AnimatedCurrency value={Math.abs(b.net)} />
                       </p>
@@ -256,32 +261,28 @@ export default function SharedClient({ transactions, people, accounts, categorie
                         {netPositive ? 'me debe' : 'les debo'}
                       </p>
                     </div>
-                  </div>
+                    <i
+                      className="fa-solid fa-chevron-right text-[11px] flex-shrink-0 ml-1 transition-transform duration-200"
+                      style={{ color: 'var(--f-text-4)', transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}
+                    />
+                  </button>
 
-                  {/* Action buttons row */}
-                  <div className="flex gap-1.5 px-4 pb-3">
-                    <button
-                      onClick={() => { setExpanded(isOpen ? null : b.person.id); setGlobalSettleId(null); setGlobalAbonoId(null) }}
-                      className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-[10px] text-[11px] font-black transition-all active:scale-95"
-                      style={{ background: isOpen ? 'var(--f-accent-bg)' : 'var(--f-bg-input)', color: isOpen ? 'var(--f-blue)' : 'var(--f-text-3)', border: `1px solid ${isOpen ? 'var(--f-accent-border)' : 'var(--f-line)'}` }}
-                    >
-                      <i className="fa-solid fa-list text-[9px]" />
-                      Desglose
-                    </button>
+                  {/* 2 action buttons */}
+                  <div className="flex gap-2 px-4 pb-3">
                     <button
                       onClick={() => { setGlobalAbonoId(isAbonoOpen ? null : b.person.id); setGlobalSettleId(null); setGlobalAbonoAmount(''); setGlobalAbonoAccountId('') }}
-                      className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-[10px] text-[11px] font-black transition-all active:scale-95"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[10px] text-[12px] font-black transition-all active:scale-95"
                       style={{ background: isAbonoOpen ? 'var(--f-accent-bg)' : 'var(--f-bg-input)', color: isAbonoOpen ? 'var(--f-blue)' : 'var(--f-text-3)', border: `1px solid ${isAbonoOpen ? 'var(--f-accent-border)' : 'var(--f-line)'}` }}
                     >
-                      <i className="fa-solid fa-coins text-[9px]" />
+                      <i className="fa-solid fa-coins text-[10px]" />
                       Abonar
                     </button>
                     <button
                       onClick={() => { setGlobalSettleId(isGlobalOpen ? null : b.person.id); setGlobalAbonoId(null); setGlobalAccountId('') }}
-                      className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-[10px] text-[11px] font-black transition-all active:scale-95"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[10px] text-[12px] font-black transition-all active:scale-95"
                       style={{ background: isGlobalOpen ? 'var(--f-income-bg)' : 'var(--f-bg-input)', color: isGlobalOpen ? 'var(--f-income)' : 'var(--f-text-3)', border: `1px solid ${isGlobalOpen ? 'var(--f-income-border)' : 'var(--f-line)'}` }}
                     >
-                      <i className="fa-solid fa-check-double text-[9px]" />
+                      <i className="fa-solid fa-check-double text-[10px]" />
                       Saldar todo
                     </button>
                   </div>
@@ -488,7 +489,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                                   {isSettling ? <i className="fa-solid fa-spinner fa-spin" /> : isTheyOwe ? '✓ Cobrado' : '✓ Pagado'}
                                 </button>
                                 <button
-                                  onClick={() => { setPartialMode(isPartialOpen ? null : key); setPartialInput(''); cancelConfirm() }}
+                                  onClick={() => { setPartialMode(isPartialOpen ? null : key); setPartialInput(''); setPartialAccountId(''); cancelConfirm() }}
                                   disabled={isPending || isPartialPending}
                                   className="flex-1 py-1.5 rounded-[8px] text-[12px] font-black disabled:opacity-40 transition-all active:scale-95"
                                   style={{ background: isPartialOpen ? 'var(--f-accent-bg)' : 'var(--f-bg-input)', color: 'var(--f-blue)', border: `1px solid ${isPartialOpen ? 'var(--f-accent-border)' : 'var(--f-line)'}` }}
@@ -508,28 +509,41 @@ export default function SharedClient({ transactions, people, accounts, categorie
 
                             {/* Partial payment input */}
                             {isPartialOpen && !isConfirming && (
-                              <div className="flex gap-2">
-                                <input
-                                  autoFocus
-                                  type="number"
-                                  min="0"
-                                  step="0.01"
-                                  value={partialInput}
-                                  onChange={e => setPartialInput(e.target.value)}
-                                  onKeyDown={e => { if (e.key === 'Enter') requestConfirm(key, 'partial') }}
-                                  placeholder={`Máx. ${formatCurrency(unpaid)}`}
-                                  className="flex-1 rounded-[10px] px-3 py-2 text-[14px] font-bold outline-none tabular-nums"
-                                  style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-border)', color: 'var(--f-text)' }}
-                                  inputMode="decimal"
-                                />
-                                <button
-                                  onClick={() => requestConfirm(key, 'partial')}
-                                  disabled={isPartialPending}
-                                  className="px-3 rounded-[10px] text-[14px] font-black text-white disabled:opacity-50"
-                                  style={{ background: 'var(--f-blue)' }}
+                              <div className="space-y-2">
+                                <div className="flex gap-2">
+                                  <input
+                                    autoFocus
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={partialInput}
+                                    onChange={e => setPartialInput(e.target.value)}
+                                    onKeyDown={e => { if (e.key === 'Enter') requestConfirm(key, 'partial') }}
+                                    placeholder={`Máx. ${formatCurrency(unpaid)}`}
+                                    className="flex-1 rounded-[10px] px-3 py-2 text-[14px] font-bold outline-none tabular-nums"
+                                    style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-border)', color: 'var(--f-text)' }}
+                                    inputMode="decimal"
+                                  />
+                                  <button
+                                    onClick={() => requestConfirm(key, 'partial')}
+                                    disabled={isPartialPending || !partialInput}
+                                    className="px-3 rounded-[10px] text-[14px] font-black text-white disabled:opacity-50"
+                                    style={{ background: 'var(--f-blue)' }}
+                                  >
+                                    OK
+                                  </button>
+                                </div>
+                                <select
+                                  value={partialAccountId}
+                                  onChange={e => setPartialAccountId(e.target.value)}
+                                  className="w-full rounded-[10px] px-3 py-2 text-[13px] font-bold outline-none"
+                                  style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)', colorScheme: 'dark' }}
                                 >
-                                  OK
-                                </button>
+                                  <option value="">Sin registrar en cuenta</option>
+                                  {accounts.map(acc => (
+                                    <option key={acc.id} value={acc.id}>{acc.name}</option>
+                                  ))}
+                                </select>
                               </div>
                             )}
                           </div>

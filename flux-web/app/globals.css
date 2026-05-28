@@ -136,12 +136,18 @@
   --f-accent-border: rgba(0,122,255,0.18);
   --f-accent-glow:   rgba(0,122,255,0.20);
 
+  /* ── Brand colors — darker for legibility on white backgrounds ── */
+  --f-income:        #1A7F37;    /* accessible dark green */
+  --f-expense:       #C0392B;    /* accessible dark red */
+  --f-transfer:      #0A84C8;    /* accessible dark cyan */
+
   /* ── Status backgrounds (ligeramente más saturados en light) ── */
-  --f-income-bg:     rgba(48,209,88,0.10);
-  --f-income-border: rgba(48,209,88,0.22);
-  --f-expense-bg:    rgba(255,69,58,0.08);
-  --f-expense-border:rgba(255,69,58,0.20);
-  --f-transfer-bg:   rgba(100,210,255,0.12);
+  --f-income-bg:     rgba(26,127,55,0.10);
+  --f-income-border: rgba(26,127,55,0.22);
+  --f-expense-bg:    rgba(192,57,43,0.08);
+  --f-expense-border:rgba(192,57,43,0.20);
+  --f-transfer-bg:   rgba(10,132,200,0.10);
+  --f-transfer-border:rgba(10,132,200,0.20);
   --f-warning-bg:    rgba(255,149,0,0.09);
   --f-warning-border:rgba(255,149,0,0.20);
   --f-pending-bg:    rgba(255,159,10,0.09);
@@ -260,6 +266,19 @@ html, body {
 @keyframes toast-slide-down {
   from { opacity: 0; transform: translateY(-12px) scale(0.93); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Light mode fixes ─────────────────────────────────────────────────────────
+   text-white adapts to dark text in light mode.
+   Inline style={{ color }} always wins (higher specificity), so colored-bg
+   buttons that set color explicitly are not affected.
+────────────────────────────────────────────────────────────────────────────── */
+[data-theme="light"] .text-white {
+  color: var(--f-text);
+}
+/* Active nav tab icon uses accent blue in light mode */
+[data-theme="light"] .nav-icon-active {
+  color: var(--f-blue) !important;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────

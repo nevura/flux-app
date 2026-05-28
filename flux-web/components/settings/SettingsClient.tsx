@@ -307,8 +307,8 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
         {/* Profile card */}
         <div className="flex items-center gap-3">
           <div
-            className="w-12 h-12 rounded-2xl flex items-center justify-center text-white text-xl font-black flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #007AFF, #0056CC)' }}
+            className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-black flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #007AFF, #0056CC)', color: '#fff' }}
           >
             {(displayName || profile?.email || 'U')[0].toUpperCase()}
           </div>

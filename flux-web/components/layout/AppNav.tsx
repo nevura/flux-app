@@ -48,7 +48,7 @@ export default function AppNav() {
                 className="flex items-center gap-2 rounded-2xl transition-all duration-150 select-none active:scale-95 px-4 py-3"
                 style={active ? { background: 'var(--f-bg-input)' } : undefined}
               >
-                <i className={`${tab.icon} transition-all duration-150`} style={{
+                <i className={`${tab.icon} transition-all duration-150${active ? ' nav-icon-active' : ''}`} style={{
                   color: active ? 'var(--f-text)' : 'var(--f-text-3)',
                   fontSize: active ? '17px' : '19px',
                 }} />

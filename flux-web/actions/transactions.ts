@@ -143,13 +143,13 @@ export async function settleParticipant(txId: string, participantId: string) {
   return { error: null }
 }
 
-export async function partialSettle(txId: string, participantId: string, amount: number) {
+export async function partialSettle(txId: string, participantId: string, amount: number, accountId?: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autorizado' }
 
   const { data: tx, error: fetchErr } = await supabase
-    .from('transactions').select('split_data')
+    .from('transactions').select('*')
     .eq('id', txId).eq('user_id', user.id).single()
   if (fetchErr || !tx) return { error: 'Transacción no encontrada' }
 
@@ -165,8 +165,25 @@ export async function partialSettle(txId: string, participantId: string, amount:
   const { error } = await supabase.from('transactions')
     .update({ split_data: { ...sd, data: newData } })
     .eq('id', txId).eq('user_id', user.id)
-
   if (error) return { error: error.message }
+
+  if (accountId) {
+    const isTheyOwe = sd.splitMode === 'THEY' || sd.splitMode === 'DIV'
+    const txType = isTheyOwe ? 'TR-INGRESO' : 'TR-GASTO'
+    await supabase.from('transactions').insert({
+      user_id: user.id,
+      concept: `${isTheyOwe ? 'Abono cobrado' : 'Abono pagado'}: ${tx.concept}`,
+      type: txType,
+      amount,
+      adjustment: adjustmentFor(txType, amount),
+      category_id: tx.category_id,
+      account_id: accountId,
+      transaction_date: getMexicoNow().slice(0, 10),
+      is_validated: true,
+    })
+    revalidatePath('/transactions')
+  }
+
   revalidatePath('/shared')
   revalidatePath('/home')
   return { error: null }
