@@ -88,14 +88,14 @@ function BottomSheet({ onClose, children, title }: { onClose: () => void; childr
 // ── Main Component ────────────────────────────────────────────────────────────
 
 const SECTIONS: { key: Tab; icon: string; label: string; description: string }[] = [
-  { key: 'perfil'       as Tab, icon: 'fa-solid fa-user',              label: 'Perfil',      description: 'Nombre, usuario y contacto' },
-  { key: 'apariencia'  as Tab, icon: 'fa-solid fa-circle-half-stroke', label: 'Apariencia',  description: 'Modo claro u oscuro' },
-  { key: 'shortcuts'   as Tab, icon: 'fa-solid fa-mobile-screen',      label: 'Atajos',      description: 'iPhone Shortcuts y presupuesto' },
-  { key: 'categorias'  as Tab, icon: 'fa-solid fa-tags',               label: 'Categorías',  description: 'Categorías personalizadas' },
-  { key: 'cuentas'     as Tab, icon: 'fa-solid fa-wallet',             label: 'Cuentas',     description: 'Efectivo, débito y crédito' },
-  { key: 'personas'    as Tab, icon: 'fa-solid fa-users',              label: 'Personas',    description: 'Contactos para dividir gastos' },
-  { key: 'suscripcion' as Tab, icon: 'fa-solid fa-crown',              label: 'Plan',        description: 'Suscripción y facturación' },
-  { key: 'planificados'as Tab, icon: 'fa-solid fa-calendar',           label: 'Recurrentes', description: 'Suscripciones y cobros fijos' },
+  { key: 'perfil' as Tab, icon: 'fa-solid fa-user', label: 'Perfil', description: 'Nombre, usuario y contacto' },
+  { key: 'apariencia' as Tab, icon: 'fa-solid fa-circle-half-stroke', label: 'Apariencia', description: 'Modo claro u oscuro' },
+  { key: 'shortcuts' as Tab, icon: 'fa-solid fa-mobile-screen', label: 'Atajos', description: 'iPhone Shortcuts y presupuesto' },
+  { key: 'categorias' as Tab, icon: 'fa-solid fa-tags', label: 'Categorías', description: 'Categorías personalizadas' },
+  { key: 'cuentas' as Tab, icon: 'fa-solid fa-wallet', label: 'Cuentas', description: 'Efectivo, débito y crédito' },
+  { key: 'personas' as Tab, icon: 'fa-solid fa-users', label: 'Personas', description: 'Contactos para dividir gastos' },
+  { key: 'suscripcion' as Tab, icon: 'fa-solid fa-crown', label: 'Plan', description: 'Suscripción y facturación' },
+  { key: 'planificados' as Tab, icon: 'fa-solid fa-calendar', label: 'Recurrentes', description: 'Suscripciones y cobros fijos' },
 ].sort((a, b) => a.label.localeCompare(b.label, 'es'))
 
 export default function SettingsClient({ profile, shortcutToken, categories, accounts, scheduled, people }: Props) {
@@ -110,7 +110,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
     } else {
       document.documentElement.removeAttribute('data-theme')
     }
-    try { localStorage.setItem('flux-theme', t) } catch {}
+    try { localStorage.setItem('flux-theme', t) } catch { }
     updateThemePreference(t)
   }
   const [editingName, setEditingName] = useState(false)
@@ -131,11 +131,11 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
   const [isPhonePending, startPhoneTx] = useTransition()
 
   function handleUsernameInput(v: string) {
-    const clean = v.toLowerCase().replace(/[^a-z0-9_.]/g, '').slice(0, 20)
+    const clean = v.toLowerCase().replace(/[^a-z0-9_.\-]/g, '').slice(0, 20)
     setUsernameInput(clean)
     setUsernameAvailable(null)
     if (clean === profile?.username) return
-    if (!/^[a-z0-9_.]{3,20}$/.test(clean)) return
+    if (!/^[a-z0-9_.\-]{3,20}$/.test(clean)) return
     setUsernameChecking(true)
     // debounced check happens in useEffect
   }
@@ -143,7 +143,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
   useEffect(() => {
     if (!editingUsername) return
     const clean = usernameInput.toLowerCase()
-    if (clean === profile?.username || !/^[a-z0-9_.]{3,20}$/.test(clean)) return
+    if (clean === profile?.username || !/^[a-z0-9_.\-]{3,20}$/.test(clean)) return
     const t = setTimeout(async () => {
       const res = await checkUsernameAvailable(clean)
       setUsernameAvailable(res.available)
@@ -251,11 +251,9 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                 </div>
               </div>
 
-              {/* Rows */}
-              <div className="rounded-[20px] overflow-hidden" style={{ border: '1px solid var(--f-accent-bg)' }}>
-
+              <div className="rounded-[20px] overflow-hidden" style={{ border: '1px solid var(--f-line)' }}>
                 {/* Nombre */}
-                <div className="px-4 py-4" style={{ background: 'var(--f-bg-elevated)', borderBottom: '1px solid var(--f-bg-card)' }}>
+                <div className="px-4 py-4" style={{ background: 'var(--f-bg-card)', borderBottom: '1px solid var(--f-line)' }}>
                   <p className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Nombre</p>
                   {editingName ? (
                     <div className="flex gap-2 items-center">
@@ -273,7 +271,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                     </div>
                   ) : (
                     <div className="flex items-center justify-between">
-                      <p className="text-[15px] font-bold text-white">{displayName || 'Sin nombre'}</p>
+                      <p className="text-[15px] font-bold" style={{ color: 'var(--f-text)' }}>{displayName || 'Sin nombre'}</p>
                       <button onClick={() => setEditingName(true)} className="text-sm font-semibold flex items-center gap-1" style={{ color: 'var(--f-blue)' }}>
                         <i className="fa-solid fa-pencil text-[12px]" /> Editar
                       </button>
@@ -282,7 +280,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                 </div>
 
                 {/* @username */}
-                <div className="px-4 py-4" style={{ background: 'var(--f-bg-elevated)', borderBottom: '1px solid var(--f-bg-card)' }}>
+                <div className="px-4 py-4" style={{ background: 'var(--f-bg-card)', borderBottom: '1px solid var(--f-line)' }}>
                   <p className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Usuario</p>
                   {editingUsername ? (
                     <div className="space-y-2">
@@ -304,7 +302,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                       <p className="text-[11px] font-medium" style={{ color: usernameAvailable === false ? 'var(--f-expense)' : 'var(--f-text-4)' }}>
                         {usernameAvailable === false ? 'Ese usuario ya está en uso'
                           : usernameAvailable === true ? '¡Disponible!'
-                          : '3-20 caracteres · letras, números, _ y .'}
+                          : '3-20 caracteres · letras, números, _ . -'}
                       </p>
                       <div className="flex gap-2">
                         <button onClick={() => { setEditingUsername(false); setUsernameInput(profile?.username ?? '') }}
@@ -331,7 +329,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                 </div>
 
                 {/* Teléfono */}
-                <div className="px-4 py-4" style={{ background: 'var(--f-bg-elevated)', borderBottom: '1px solid var(--f-bg-card)' }}>
+                <div className="px-4 py-4" style={{ background: 'var(--f-bg-card)', borderBottom: '1px solid var(--f-line)' }}>
                   <p className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Teléfono</p>
                   {editingPhone ? (
                     <div className="flex gap-2 items-center">
@@ -360,7 +358,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                 </div>
 
                 {/* Correo (read-only) */}
-                <div className="px-4 py-4" style={{ background: 'var(--f-bg-elevated)' }}>
+                <div className="px-4 py-4" style={{ background: 'var(--f-bg-card)' }}>
                   <p className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Correo electrónico</p>
                   <p className="text-[15px] font-bold" style={{ color: 'var(--f-text-3)' }}>{profile?.email}</p>
                   <p className="text-[11px] mt-1" style={{ color: 'var(--f-text-4)' }}>El correo no se puede cambiar desde aquí</p>
@@ -416,8 +414,8 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
           {section === 'apariencia' && (
             <div className="space-y-3">
               {([
-                { key: 'dark'  as const, icon: 'fa-solid fa-moon',               label: 'Oscuro', desc: 'Fondo oscuro — ideal para usar de noche' },
-                { key: 'light' as const, icon: 'fa-solid fa-sun',                label: 'Claro',  desc: 'Fondo claro — más fácil con mucha luz' },
+                { key: 'dark' as const, icon: 'fa-solid fa-moon', label: 'Oscuro', desc: 'Fondo oscuro — ideal para usar de noche' },
+                { key: 'light' as const, icon: 'fa-solid fa-sun', label: 'Claro', desc: 'Fondo claro — más fácil con mucha luz' },
               ]).map(opt => {
                 const active = theme === opt.key
                 return (
@@ -482,9 +480,9 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
           <h1 className="text-xl font-black text-white">Ajustes</h1>
         </div>
 
-        {/* Profile card — tap to go to Perfil section */}
+        {/* Profile card — tap to edit in Perfil section */}
         <button
-          onClick={() => setSection('perfil')}
+          onClick={() => { setSection('perfil'); window.scrollTo({ top: 0 }) }}
           className="flex items-center gap-3 w-full text-left transition-all active:scale-[0.98]"
         >
           <div
@@ -526,20 +524,20 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
         )}
 
         {/* Options list */}
-        <div className="rounded-[20px] overflow-hidden" style={{ border: '1px solid var(--f-accent-bg)' }}>
+        <div className="rounded-[20px] overflow-hidden" style={{ border: '1px solid var(--f-line)' }}>
           {SECTIONS.map((s, i) => {
             const isLast = i === SECTIONS.length - 1
             const isPlan = s.key === 'suscripcion'
             return (
               <button
                 key={s.key}
-                onClick={() => setSection(s.key)}
+                onClick={() => { setSection(s.key); window.scrollTo({ top: 0 }) }}
                 className="w-full flex items-center gap-4 px-4 py-4 text-left transition-all active:scale-[0.99]"
                 style={{
                   background: isPlan && profile?.subscription_status === 'active'
                     ? 'var(--f-income-bg)'
-                    : 'var(--f-bg-elevated)',
-                  borderBottom: isLast ? 'none' : '1px solid var(--f-bg-card)',
+                    : 'var(--f-bg-card)',
+                  borderBottom: isLast ? 'none' : '1px solid var(--f-line)',
                 }}
               >
                 <div
