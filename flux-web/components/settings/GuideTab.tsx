@@ -2,12 +2,31 @@
 
 import { useState } from 'react'
 import { GUIDE_SECTIONS } from '@/lib/guide'
+import OnboardingModal from '@/components/onboarding/OnboardingModal'
 
 export default function GuideTab() {
   const [openItem, setOpenItem] = useState<string | null>(null)
+  const [showTour, setShowTour] = useState(false)
 
   return (
     <div className="space-y-5">
+      {/* Tour button */}
+      <button
+        onClick={() => setShowTour(true)}
+        className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all active:scale-95"
+        style={{ background: 'var(--f-accent-bg)', border: '1px solid var(--f-accent-border)' }}
+      >
+        <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'var(--f-blue)' }}>
+          <i className="fa-solid fa-play text-[11px] text-white" />
+        </div>
+        <div className="flex-1 text-left">
+          <p className="text-[14px] font-black" style={{ color: 'var(--f-blue)' }}>Ver tour de Flux</p>
+          <p className="text-[11px] font-semibold mt-0.5" style={{ color: 'var(--f-text-4)' }}>Repasa las funciones principales</p>
+        </div>
+        <i className="fa-solid fa-chevron-right text-[11px]" style={{ color: 'var(--f-blue)' }} />
+      </button>
+
+      {showTour && <OnboardingModal onDone={() => setShowTour(false)} />}
       {GUIDE_SECTIONS.map(section => (
         <div key={section.id}>
           <p className="text-[10px] font-black tracking-[2.5px] uppercase mb-2 px-1" style={{ color: 'var(--f-text-4)' }}>

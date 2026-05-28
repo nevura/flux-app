@@ -8,6 +8,7 @@ import ReadOnlyOverlay from '@/components/subscription/ReadOnlyOverlay'
 import ThemeSync from '@/components/layout/ThemeSync'
 import WakeOnFocus from '@/components/layout/WakeOnFocus'
 import UsernameSetupModal from '@/components/onboarding/UsernameSetupModal'
+import OnboardingWrapper from '@/components/onboarding/OnboardingWrapper'
 import { getSubscriptionInfo } from '@/lib/subscription'
 
 function suggestUsername(fullName: string | null, email: string | null): string {
@@ -24,10 +25,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const [sub, { data: profile }] = await Promise.all([
     getSubscriptionInfo(),
-    supabase.from('profiles').select('theme_preference, username, full_name, email').eq('id', user.id).single(),
+    supabase.from('profiles').select('theme_preference, username, full_name, email, onboarding_completed').eq('id', user.id).single(),
   ])
 
   const needsUsername = !profile?.username
+  const needsOnboarding = !needsUsername && !profile?.onboarding_completed
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -40,6 +42,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           suggestedUsername={suggestUsername(profile?.full_name ?? null, profile?.email ?? null)}
         />
       )}
+      {needsOnboarding && <OnboardingWrapper />}
       <PullToRefresh>
         <main className="flex-1 pb-[calc(5rem+var(--safe-bottom))]">
           <div className="animate-fade-in">

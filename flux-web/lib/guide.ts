@@ -1,3 +1,137 @@
+export interface OnboardingSlide {
+  id: string
+  icon: string
+  iconBg: string
+  iconColor: string
+  title: string
+  subtitle: string
+  bullets: string[]
+  tip?: string
+}
+
+export const ONBOARDING_SLIDES: OnboardingSlide[] = [
+  {
+    id: 'welcome',
+    icon: 'fa-solid fa-bolt',
+    iconBg: 'var(--f-blue)',
+    iconColor: '#fff',
+    title: '¡Bienvenido a Flux!',
+    subtitle: 'Tu app de finanzas personales',
+    bullets: [
+      'Registra gastos e ingresos en segundos',
+      'Lleva el control de todas tus cuentas en un solo lugar',
+      'Comparte gastos con amigos directo desde la app',
+    ],
+  },
+  {
+    id: 'saldo',
+    icon: 'fa-solid fa-wallet',
+    iconBg: 'rgba(0,122,255,0.12)',
+    iconColor: 'var(--f-blue)',
+    title: 'Tu saldo en tiempo real',
+    subtitle: 'El número grande en Inicio',
+    bullets: [
+      'Suma automática de todas tus cuentas activas',
+      'Incluye efectivo, débito y crédito disponible',
+      'Se actualiza cada vez que registras un movimiento',
+    ],
+    tip: 'El saldo de tarjetas de crédito resta de tu total para ver lo que realmente tienes',
+  },
+  {
+    id: 'agregar',
+    icon: 'fa-solid fa-plus',
+    iconBg: 'rgba(0,122,255,0.12)',
+    iconColor: 'var(--f-blue)',
+    title: 'Agregar movimientos',
+    subtitle: 'El botón azul + en la esquina inferior',
+    bullets: [
+      'Toca + para registrar un gasto, ingreso o transferencia',
+      'Elige categoría, cuenta y monto',
+      'Las transferencias mueven dinero entre tus propias cuentas',
+    ],
+  },
+  {
+    id: 'cuentas',
+    icon: 'fa-solid fa-credit-card',
+    iconBg: 'rgba(100,210,255,0.12)',
+    iconColor: 'var(--f-transfer)',
+    title: 'Organiza tus cuentas',
+    subtitle: 'Efectivo, débito y crédito',
+    bullets: [
+      'Crea una cuenta por cada tarjeta o fuente de dinero',
+      'Débito = dinero que ya tienes, Crédito = deuda que pagarás',
+      'Agrégalas en Configuración → Cuentas',
+    ],
+    tip: 'Entre más cuentas tengas registradas, más preciso será tu saldo total',
+  },
+  {
+    id: 'presupuesto',
+    icon: 'fa-solid fa-chart-pie',
+    iconBg: 'rgba(255,69,58,0.12)',
+    iconColor: 'var(--f-expense)',
+    title: 'Presupuesto mensual',
+    subtitle: 'Pon un límite a tus gastos',
+    bullets: [
+      'Define cuánto quieres gastar al mes en Configuración',
+      'La barra en Inicio muestra cuánto llevas vs tu límite',
+      'Puedes excluir gastos extraordinarios del conteo',
+    ],
+  },
+  {
+    id: 'recurrentes',
+    icon: 'fa-solid fa-rotate',
+    iconBg: 'rgba(0,122,255,0.12)',
+    iconColor: 'var(--f-blue)',
+    title: 'Recurrentes',
+    subtitle: 'Suscripciones y cobros fijos',
+    bullets: [
+      'Configura Netflix, renta, nómina — lo que se repite',
+      'Flux los genera automáticamente en la fecha que defines',
+      'Aparecen como "Por confirmar" para que los valides',
+    ],
+    tip: 'Configúralos en Configuración → Recurrentes',
+  },
+  {
+    id: 'compartidos',
+    icon: 'fa-solid fa-users',
+    iconBg: 'rgba(100,210,255,0.12)',
+    iconColor: 'var(--f-transfer)',
+    title: 'Gastos compartidos',
+    subtitle: 'Divide con amigos sin rollos',
+    bullets: [
+      'Agrega amigos buscando su @usuario en Compartidos',
+      'Al crear un gasto activa "Compartir" y asigna a cada quien su parte',
+      'Tu amigo recibe una notificación y puede registrarlo en su app',
+    ],
+  },
+  {
+    id: 'atajos',
+    icon: 'fa-solid fa-bolt',
+    iconBg: 'rgba(191,90,242,0.12)',
+    iconColor: '#bf5af2',
+    title: 'Atajos de iPhone',
+    subtitle: 'Registra sin abrir la app',
+    bullets: [
+      'Actívalos con Siri o desde el menú compartir de tu banco',
+      'Instálalos desde Configuración → Atajos',
+      'Ideales para registrar en el momento exacto del gasto',
+    ],
+  },
+  {
+    id: 'listo',
+    icon: 'fa-solid fa-check',
+    iconBg: 'rgba(52,199,89,0.12)',
+    iconColor: 'var(--f-income)',
+    title: '¡Todo listo!',
+    subtitle: 'Ya puedes usar Flux',
+    bullets: [
+      'Puedes volver a ver esta guía en Configuración → Guía',
+      'Empieza configurando tus cuentas y tu presupuesto',
+      '¿Dudas? La guía tiene explicación de cada función',
+    ],
+  },
+]
+
 export interface GuideItem {
   id: string
   icon: string

@@ -105,6 +105,14 @@ export async function saveBudget(amount: number, year: number, month: number) {
 
 // ── Profile ───────────────────────────────────────────────────────────────────
 
+export async function completeOnboarding() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+  await supabase.from('profiles').update({ onboarding_completed: true }).eq('id', user.id)
+  return { error: null }
+}
+
 export async function updateProfile(fullName: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
