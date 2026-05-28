@@ -27,6 +27,7 @@ export default function GlobalFAB() {
     <>
       <button
         onClick={handleClick}
+        data-coach="global-fab"
         className="fixed z-[55] flex items-center justify-center rounded-full active:scale-90 transition-transform"
         style={{
           width: 56,

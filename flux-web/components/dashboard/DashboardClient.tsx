@@ -10,6 +10,7 @@ import type { AccountWithBalance, Transaction, Category, ScheduledTransaction, B
 import AuditModal from './AuditModal'
 import { useCountUp, useAnimatedWidth } from '@/lib/hooks'
 import NotificationBell from '@/components/notifications/NotificationBell'
+import CoachMarkTour from '@/components/onboarding/CoachMarkTour'
 
 function AnimatedCurrency({ value }: { value: number }) {
   const animated = useCountUp(value)
@@ -235,6 +236,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
 
         {/* Balance card */}
         <div
+          data-coach="home-balance"
           className="rounded-[28px] p-6 animate-fade-up"
           style={{ background: 'var(--f-blue)', boxShadow: 'var(--f-shadow-accent)' }}
         >
@@ -248,6 +250,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
 
         {/* Budget — always visible, editable inline */}
         <div
+          data-coach="home-budget"
           className="rounded-[20px] p-4 animate-fade-up overflow-hidden relative"
           style={{
             background: budgetAmount > 0
@@ -421,6 +424,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
 
           return (
             <div
+              data-coach="home-recurring"
               className="rounded-[20px] p-4 animate-fade-up"
               style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', animationDelay: '0.08s' }}
             >
@@ -844,6 +848,8 @@ export default function DashboardClient({ user, accounts, transactions, categori
         <AuditModal accounts={accounts} onClose={() => setAuditOpen(false)} />,
         document.body
       )}
+
+      <CoachMarkTour pageKey="home" />
     </div>
   )
 }

@@ -11,6 +11,7 @@ function AnimatedCurrency({ value }: { value: number }) {
 }
 import { settleParticipant, partialSettle, settleAndRecord, settleAllForPerson, abonoGlobalForPerson } from '@/actions/transactions'
 import { linkPersonToUser } from '@/actions/friends'
+import CoachMarkTour from '@/components/onboarding/CoachMarkTour'
 import type { Transaction, Person, SplitParticipant, Account, Category, AccountWithBalance, Friendship } from '@/lib/types'
 import TransactionModal from '@/components/transactions/TransactionModal'
 import FriendSearchModal from '@/components/friends/FriendSearchModal'
@@ -214,6 +215,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
             <h1 className="text-[22px] font-black leading-tight mt-0.5" style={{ color: 'var(--f-text)' }}>Compartidos</h1>
           </div>
           <button
+            data-coach="shared-add-friends"
             onClick={() => setShowFriendSearch(true)}
             className="flex items-center gap-1.5 px-3 py-2 rounded-[12px] text-[12px] font-black transition-all active:scale-95"
             style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)', border: '1px solid var(--f-accent-border)' }}
@@ -228,7 +230,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
 
         {/* Summary strip */}
         {balances.length > 0 && (
-          <div className="grid grid-cols-2 gap-3">
+          <div data-coach="shared-summary" className="grid grid-cols-2 gap-3">
             <div className="rounded-[20px] p-4 animate-spring-in" style={{ background: 'var(--f-income-bg)', border: '1px solid var(--f-income-border)' }}>
               <p className="text-[9px] font-black tracking-[2px] uppercase mb-1" style={{ color: 'var(--f-income)' }}>Me deben</p>
               <p className="text-[22px] font-black tabular-nums leading-none" style={{ color: 'var(--f-income)' }}>
@@ -659,6 +661,8 @@ export default function SharedClient({ transactions, people, accounts, categorie
           onClose={() => setLinkingPerson(null)}
         />
       )}
+
+      <CoachMarkTour pageKey="shared" />
     </div>
   )
 }

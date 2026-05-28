@@ -12,6 +12,7 @@ function AnimatedCurrency({ value }: { value: number }) {
 }
 import { MONTHS_ES } from '@/lib/constants'
 import { searchAllTransactions, fetchSharedTransactions } from '@/actions/transactions'
+import CoachMarkTour from '@/components/onboarding/CoachMarkTour'
 import type { Transaction, Category, AccountWithBalance, Person } from '@/lib/types'
 import TransactionModal from './TransactionModal'
 
@@ -261,7 +262,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
         </div>
 
         {/* Filters row — two multi-select dropdowns */}
-        <div className="flex gap-2 mt-1">
+        <div data-coach="tx-filter-bar" className="flex gap-2 mt-1">
           {/* Type dropdown */}
           <div className="relative flex-1">
             <button
@@ -426,6 +427,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                 {showShared && !isLoadingShared && <i className="fa-solid fa-xmark text-[9px] ml-1" />}
               </button>
               <button
+                data-coach="tx-search"
                 onClick={() => setSearchOpen(true)}
                 className="flex-shrink-0 ml-auto w-9 h-9 rounded-[12px] flex items-center justify-center transition-all"
                 style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
@@ -534,6 +536,8 @@ export default function TransactionsClient({ initialTransactions, categories, ac
         />,
         document.body
       )}
+
+      <CoachMarkTour pageKey="transactions" />
     </div>
   )
 }

@@ -2,7 +2,17 @@
 
 import { useState } from 'react'
 import { GUIDE_SECTIONS } from '@/lib/guide'
+import { toast } from 'sonner'
 import OnboardingModal from '@/components/onboarding/OnboardingModal'
+import { resetCoachMark } from '@/components/onboarding/CoachMarkTour'
+import { COACH_MARKS } from '@/lib/coach-marks'
+
+const PAGE_LABELS: Record<string, string> = {
+  home: 'Inicio',
+  transactions: 'Movimientos',
+  shared: 'Compartidos',
+  settings: 'Configuración',
+}
 
 export default function GuideTab() {
   const [openItem, setOpenItem] = useState<string | null>(null)
@@ -27,6 +37,36 @@ export default function GuideTab() {
       </button>
 
       {showTour && <OnboardingModal onDone={() => setShowTour(false)} />}
+
+      {/* Reset page tours */}
+      <div>
+        <p className="text-[10px] font-black tracking-[2.5px] uppercase mb-2 px-1" style={{ color: 'var(--f-text-4)' }}>
+          Repetir tutorial por página
+        </p>
+        <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--f-line)' }}>
+          {Object.keys(COACH_MARKS).map((pageKey, i) => (
+            <button
+              key={pageKey}
+              onClick={() => {
+                resetCoachMark(pageKey)
+                toast.success(`Tour de ${PAGE_LABELS[pageKey] ?? pageKey} listo — ve a esa página para verlo`)
+              }}
+              className="w-full flex items-center justify-between px-4 py-3 text-left transition-all active:opacity-70"
+              style={{
+                background: 'var(--f-bg-card)',
+                borderTop: i > 0 ? '1px solid var(--f-line)' : undefined,
+              }}
+            >
+              <span className="text-[13px] font-semibold" style={{ color: 'var(--f-text)' }}>
+                {PAGE_LABELS[pageKey] ?? pageKey}
+              </span>
+              <span className="text-[11px] font-black px-2 py-0.5 rounded-full" style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)' }}>
+                Repetir
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
       {GUIDE_SECTIONS.map(section => (
         <div key={section.id}>
           <p className="text-[10px] font-black tracking-[2.5px] uppercase mb-2 px-1" style={{ color: 'var(--f-text-4)' }}>
