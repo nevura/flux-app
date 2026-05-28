@@ -461,10 +461,10 @@ export default function DashboardClient({ user, accounts, transactions, categori
                     </p>
                   </div>
                   <div className="h-1.5 rounded-full overflow-hidden mb-2" style={{ background: 'var(--f-bg-input)' }}>
-                    <AnimatedBar pct={expensePct} color={expensePct >= 100 ? 'var(--f-income)' : 'var(--f-expense)'} />
+                    <AnimatedBar pct={expensePct} color="var(--f-expense)" />
                   </div>
                   <div className="flex justify-between">
-                    <p className="text-[12px] font-bold tabular-nums" style={{ color: expensePct >= 100 ? 'var(--f-income)' : 'var(--f-expense)' }}>
+                    <p className="text-[12px] font-bold tabular-nums" style={{ color: 'var(--f-expense)' }}>
                       {formatCurrency(paidExpenses)} pagado
                     </p>
                     {totalExpenses - paidExpenses > 0 && (

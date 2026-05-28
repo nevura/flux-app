@@ -210,7 +210,7 @@ export async function chargeScheduled(id: string, skip: boolean) {
       account_id: sched.account_id,
       destination_account_id: sched.destination_account_id ?? null,
       transaction_date: today,
-      is_validated: true,
+      is_validated: false,
       scheduled_id: id,
     })
     if (txErr) return { error: txErr.message }

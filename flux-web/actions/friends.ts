@@ -123,32 +123,33 @@ export async function sendFriendRequest(addresseeId: string) {
     await supabase.from('friendships').delete().eq('id', existing.id)
   }
 
-  const { error } = await supabase.from('friendships').insert({
+  const { data: newFriendship, error } = await supabase.from('friendships').insert({
     requester_id: user.id,
     addressee_id: addresseeId,
     status: 'pending',
-  })
+  }).select('id').single()
   if (error) return { error: error.message }
 
-  // Create in-app notification for addressee
+  // Create in-app notification for addressee (admin client bypasses RLS)
   const { data: myProfile } = await supabase
     .from('profiles')
     .select('username, full_name')
     .eq('id', user.id)
     .single()
 
-  await supabase.from('notifications').insert({
+  const admin = createAdminClient()
+  await (admin.from('notifications') as any).insert({
     user_id: addresseeId,
     type: 'friend_request',
     data: {
       from_user_id: user.id,
       from_username: myProfile?.username ?? '',
       from_name: myProfile?.full_name ?? '',
+      friendship_id: newFriendship?.id ?? '',
     },
   })
 
   // Send email notification (best-effort)
-  const admin = createAdminClient()
   const { data: addresseeProfile } = await (admin.from('profiles') as any)
     .select('email, full_name')
     .eq('id', addresseeId)
@@ -198,7 +199,8 @@ export async function respondFriendRequest(friendshipId: string, accept: boolean
     .single()
 
   const notifType = accept ? 'friend_accepted' : 'friend_declined'
-  await supabase.from('notifications').insert({
+  const adminResp = createAdminClient()
+  await (adminResp.from('notifications') as any).insert({
     user_id: friendship.requester_id,
     type: notifType,
     data: {
