@@ -10,6 +10,7 @@ import type { AccountWithBalance, Transaction, Category, ScheduledTransaction, B
 import TransactionModal from '@/components/transactions/TransactionModal'
 import AuditModal from './AuditModal'
 import { useCountUp, useAnimatedWidth } from '@/lib/hooks'
+import NotificationBell from '@/components/notifications/NotificationBell'
 
 function AnimatedCurrency({ value }: { value: number }) {
   const animated = useCountUp(value)
@@ -223,12 +224,17 @@ export default function DashboardClient({ user, accounts, transactions, categori
           WebkitBackdropFilter: 'blur(20px)',
         }}
       >
-        <p className="text-[10px] font-black tracking-[3px] uppercase" style={{ color: 'var(--f-text-3)' }}>
-          {MONTHS_ES[month - 1].toUpperCase()} {year}
-        </p>
-        <h1 className="text-[22px] font-black leading-tight mt-0.5" style={{ color: 'var(--f-text)' }}>
-          Hola, {userName}
-        </h1>
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-[10px] font-black tracking-[3px] uppercase" style={{ color: 'var(--f-text-3)' }}>
+              {MONTHS_ES[month - 1].toUpperCase()} {year}
+            </p>
+            <h1 className="text-[22px] font-black leading-tight mt-0.5" style={{ color: 'var(--f-text)' }}>
+              Hola, {userName}
+            </h1>
+          </div>
+          <NotificationBell />
+        </div>
       </header>
 
       <div className="px-4 pt-4 space-y-7 max-w-lg mx-auto pb-32">
@@ -850,7 +856,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
               width: 56,
               height: 56,
               right: '1.25rem',
-              bottom: 'calc(5rem + var(--safe-bottom))',
+              bottom: 'calc(5.5rem + var(--safe-bottom))',
               background: 'var(--f-blue)',
               boxShadow: 'var(--f-shadow-accent)',
             }}

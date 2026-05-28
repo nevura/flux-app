@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import NotificationBell from '@/components/notifications/NotificationBell'
 
 const TABS = [
   { href: '/home',         icon: 'fa-solid fa-wallet',       label: 'Inicio' },
@@ -59,10 +58,6 @@ export default function AppNav() {
             )
           })}
 
-          {/* Notification bell */}
-          <div className="flex flex-1 items-center justify-center py-2">
-            <NotificationBell />
-          </div>
         </div>
       </div>
     </nav>

@@ -87,7 +87,8 @@ function BottomSheet({ onClose, children, title }: { onClose: () => void; childr
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
-const SECTIONS: { key: Tab; icon: string; label: string; description: string }[] = [
+const SECTIONS: { key: Tab; icon: string; label: string; description: string; hidden?: boolean }[] = [
+  { key: 'perfil' as Tab, icon: 'fa-solid fa-user', label: 'Perfil', description: 'Nombre, usuario y contacto', hidden: true },
   { key: 'apariencia' as Tab, icon: 'fa-solid fa-circle-half-stroke', label: 'Apariencia', description: 'Modo claro u oscuro' },
   { key: 'shortcuts' as Tab, icon: 'fa-solid fa-mobile-screen', label: 'Atajos', description: 'iPhone Shortcuts y presupuesto' },
   { key: 'categorias' as Tab, icon: 'fa-solid fa-tags', label: 'Categorías', description: 'Categorías personalizadas' },
@@ -96,6 +97,8 @@ const SECTIONS: { key: Tab; icon: string; label: string; description: string }[]
   { key: 'planificados' as Tab, icon: 'fa-solid fa-calendar', label: 'Recurrentes', description: 'Suscripciones y cobros fijos' },
   { key: 'suscripcion' as Tab, icon: 'fa-solid fa-crown', label: 'Plan', description: 'Suscripción y facturación' },
 ].sort((a, b) => {
+  if (a.hidden) return -1
+  if (b.hidden) return 1
   if (a.key === 'suscripcion') return 1
   if (b.key === 'suscripcion') return -1
   return a.label.localeCompare(b.label, 'es')
@@ -528,8 +531,8 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
 
         {/* Options list */}
         <div className="rounded-[20px] overflow-hidden" style={{ border: '1px solid var(--f-line)' }}>
-          {SECTIONS.map((s, i) => {
-            const isLast = i === SECTIONS.length - 1
+          {SECTIONS.filter(s => !s.hidden).map((s, i, arr) => {
+            const isLast = i === arr.length - 1
             const isPlan = s.key === 'suscripcion'
             return (
               <button

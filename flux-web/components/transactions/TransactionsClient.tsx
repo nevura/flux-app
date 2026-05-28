@@ -535,7 +535,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
               width: 56,
               height: 56,
               right: '1.25rem',
-              bottom: 'calc(5rem + var(--safe-bottom))',
+              bottom: 'calc(5.5rem + var(--safe-bottom))',
               background: 'var(--f-blue)',
               boxShadow: 'var(--f-shadow-accent)',
             }}
