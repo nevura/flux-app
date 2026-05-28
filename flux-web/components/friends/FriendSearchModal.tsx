@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useTransition, useRef } from 'react'
+import { useState, useTransition, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
 import { searchUsers, sendFriendRequest, sendAppInvite } from '@/actions/friends'
 import type { PublicProfile, Friendship } from '@/lib/types'
@@ -12,6 +13,9 @@ interface Props {
 }
 
 export default function FriendSearchModal({ onClose, existingFriendships, myUserId }: Props) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<PublicProfile[]>([])
   const [searching, setSearching] = useState(false)
@@ -65,9 +69,10 @@ export default function FriendSearchModal({ onClose, existingFriendships, myUser
     })
   }
 
-  return (
+  if (!mounted) return null
+  return createPortal(
     <div
-      className="fixed inset-0 z-[150] flex items-end justify-center"
+      className="fixed inset-0 z-[200] flex items-end justify-center"
       style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
       onClick={onClose}
     >
@@ -189,6 +194,7 @@ export default function FriendSearchModal({ onClose, existingFriendships, myUser
 
         <div className="h-4" />
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

@@ -14,8 +14,8 @@ export async function setUsername(username: string) {
   if (!user) return { error: 'No autorizado' }
 
   const clean = username.toLowerCase().trim()
-  if (!/^[a-z0-9_]{3,20}$/.test(clean)) {
-    return { error: 'Solo letras minúsculas, números y guion bajo. Entre 3 y 20 caracteres.' }
+  if (!/^[a-z0-9_.]{3,20}$/.test(clean)) {
+    return { error: 'Solo letras minúsculas, números, guion bajo y punto. Entre 3 y 20 caracteres.' }
   }
 
   const { error } = await supabase
@@ -50,7 +50,7 @@ export async function updatePhone(phone: string) {
 export async function checkUsernameAvailable(username: string): Promise<{ available: boolean }> {
   const supabase = await createClient()
   const clean = username.toLowerCase().trim()
-  if (!/^[a-z0-9_]{3,20}$/.test(clean)) return { available: false }
+  if (!/^[a-z0-9_.]{3,20}$/.test(clean)) return { available: false }
 
   const { data } = await supabase
     .from('profiles')

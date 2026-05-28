@@ -17,8 +17,8 @@ export default function UsernameSetupModal({ suggestedUsername }: Props) {
   // Debounced availability check
   useEffect(() => {
     if (!value || value === suggestedUsername) { setAvailable(null); return }
-    const clean = value.toLowerCase().replace(/[^a-z0-9_]/g, '')
-    if (!/^[a-z0-9_]{3,20}$/.test(clean)) { setAvailable(null); return }
+    const clean = value.toLowerCase().replace(/[^a-z0-9_.]/g, '')
+    if (!/^[a-z0-9_.]{3,20}$/.test(clean)) { setAvailable(null); return }
 
     setChecking(true)
     const t = setTimeout(async () => {
@@ -30,7 +30,7 @@ export default function UsernameSetupModal({ suggestedUsername }: Props) {
   }, [value, suggestedUsername])
 
   function handleInput(v: string) {
-    setValue(v.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20))
+    setValue(v.toLowerCase().replace(/[^a-z0-9_.]/g, '').slice(0, 20))
   }
 
   function handleSave() {
@@ -43,7 +43,7 @@ export default function UsernameSetupModal({ suggestedUsername }: Props) {
     })
   }
 
-  const isValid = /^[a-z0-9_]{3,20}$/.test(value)
+  const isValid = /^[a-z0-9_.]{3,20}$/.test(value)
   const canSave = isValid && available !== false && !checking && !isPending
 
   return (
@@ -99,7 +99,7 @@ export default function UsernameSetupModal({ suggestedUsername }: Props) {
             ? 'Ese nombre ya está en uso, prueba otro'
             : available === true
             ? '¡Disponible!'
-            : '3-20 caracteres · letras minúsculas, números y _'}
+            : '3-20 caracteres · letras, números, _ y .'}
         </p>
 
         {/* Save button */}

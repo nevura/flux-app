@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useRef, useTransition } from 'react'
+import { useState, useRef, useTransition, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
 import { searchUsers, linkPersonToUser } from '@/actions/friends'
 import type { PublicProfile } from '@/lib/types'
@@ -12,6 +13,9 @@ interface Props {
 }
 
 export default function LinkPersonModal({ personId, personName, onClose }: Props) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<PublicProfile[]>([])
   const [searching, setSearching] = useState(false)
@@ -44,9 +48,10 @@ export default function LinkPersonModal({ personId, personName, onClose }: Props
     })
   }
 
-  return (
+  if (!mounted) return null
+  return createPortal(
     <div
-      className="fixed inset-0 z-[160] flex items-end justify-center"
+      className="fixed inset-0 z-[200] flex items-end justify-center"
       style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
       onClick={onClose}
     >
@@ -121,6 +126,7 @@ export default function LinkPersonModal({ personId, personName, onClose }: Props
         </div>
         <div className="h-4" />
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

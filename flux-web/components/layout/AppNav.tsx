@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import NotificationBell from '@/components/notifications/NotificationBell'
 
 const TABS = [
   { href: '/home',         icon: 'fa-solid fa-wallet',       label: 'Inicio' },
@@ -16,7 +17,6 @@ export default function AppNav() {
   const pathname = usePathname()
   const [pendingHref, setPendingHref] = useState<string | null>(null)
 
-  // Clear optimistic state once real navigation completes
   useEffect(() => {
     setPendingHref(null)
   }, [pathname])
@@ -28,7 +28,7 @@ export default function AppNav() {
     >
       <div className="mx-auto max-w-lg">
         <div
-          className="mx-3 mb-3 flex items-center justify-around rounded-[26px] px-1 py-2"
+          className="mx-3 mb-3 flex items-center rounded-[26px] px-1 py-2"
           style={{
             background: 'var(--f-bg-nav)',
             backdropFilter: 'blur(24px)',
@@ -45,21 +45,29 @@ export default function AppNav() {
                 key={tab.href}
                 href={tab.href}
                 onClick={() => { if (!isCurrentPath) setPendingHref(tab.href) }}
-                className="flex items-center gap-2 rounded-2xl transition-all duration-150 select-none active:scale-95 px-4 py-3"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl transition-all duration-150 select-none active:scale-95 py-3"
                 style={active ? { background: 'var(--f-bg-input)' } : undefined}
               >
-                <i className={`${tab.icon} transition-all duration-150${active ? ' nav-icon-active' : ''}`} style={{
-                  color: active ? 'var(--f-text)' : 'var(--f-text-3)',
-                  fontSize: active ? '17px' : '19px',
-                }} />
+                <i
+                  className={`${tab.icon} transition-all duration-150${active ? ' nav-icon-active' : ''}`}
+                  style={{
+                    color: active ? 'var(--f-text)' : 'var(--f-text-3)',
+                    fontSize: active ? '16px' : '18px',
+                  }}
+                />
                 {active && (
-                  <span className="text-[13px] font-black tracking-tight whitespace-nowrap" style={{ color: 'var(--f-text)' }}>
+                  <span className="text-[12px] font-black tracking-tight whitespace-nowrap" style={{ color: 'var(--f-text)' }}>
                     {tab.label}
                   </span>
                 )}
               </Link>
             )
           })}
+
+          {/* Notification bell — right side of nav bar */}
+          <div className="flex items-center justify-center px-2">
+            <NotificationBell />
+          </div>
         </div>
       </div>
     </nav>

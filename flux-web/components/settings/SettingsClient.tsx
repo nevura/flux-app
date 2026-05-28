@@ -20,7 +20,7 @@ interface Props {
   people: Person[]
 }
 
-type Tab = 'shortcuts' | 'categorias' | 'cuentas' | 'planificados' | 'personas' | 'suscripcion' | 'apariencia'
+type Tab = 'shortcuts' | 'categorias' | 'cuentas' | 'planificados' | 'personas' | 'suscripcion' | 'apariencia' | 'perfil'
 
 // ── Bottom Sheet ──────────────────────────────────────────────────────────────
 
@@ -88,6 +88,7 @@ function BottomSheet({ onClose, children, title }: { onClose: () => void; childr
 // ── Main Component ────────────────────────────────────────────────────────────
 
 const SECTIONS: { key: Tab; icon: string; label: string; description: string }[] = [
+  { key: 'perfil'       as Tab, icon: 'fa-solid fa-user',              label: 'Perfil',      description: 'Nombre, usuario y contacto' },
   { key: 'apariencia'  as Tab, icon: 'fa-solid fa-circle-half-stroke', label: 'Apariencia',  description: 'Modo claro u oscuro' },
   { key: 'shortcuts'   as Tab, icon: 'fa-solid fa-mobile-screen',      label: 'Atajos',      description: 'iPhone Shortcuts y presupuesto' },
   { key: 'categorias'  as Tab, icon: 'fa-solid fa-tags',               label: 'Categorías',  description: 'Categorías personalizadas' },
@@ -130,11 +131,11 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
   const [isPhonePending, startPhoneTx] = useTransition()
 
   function handleUsernameInput(v: string) {
-    const clean = v.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20)
+    const clean = v.toLowerCase().replace(/[^a-z0-9_.]/g, '').slice(0, 20)
     setUsernameInput(clean)
     setUsernameAvailable(null)
     if (clean === profile?.username) return
-    if (!/^[a-z0-9_]{3,20}$/.test(clean)) return
+    if (!/^[a-z0-9_.]{3,20}$/.test(clean)) return
     setUsernameChecking(true)
     // debounced check happens in useEffect
   }
@@ -142,7 +143,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
   useEffect(() => {
     if (!editingUsername) return
     const clean = usernameInput.toLowerCase()
-    if (clean === profile?.username || !/^[a-z0-9_]{3,20}$/.test(clean)) return
+    if (clean === profile?.username || !/^[a-z0-9_.]{3,20}$/.test(clean)) return
     const t = setTimeout(async () => {
       const res = await checkUsernameAvailable(clean)
       setUsernameAvailable(res.available)
@@ -240,6 +241,134 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
         </header>
 
         <div key={section} className="px-4 py-4 max-w-lg mx-auto animate-fade-up">
+          {section === 'perfil' && (
+            <div className="space-y-3">
+              {/* Avatar */}
+              <div className="flex justify-center mb-2">
+                <div className="w-20 h-20 rounded-[24px] flex items-center justify-center text-3xl font-black"
+                  style={{ background: 'linear-gradient(135deg, #007AFF, #0056CC)', color: '#fff' }}>
+                  {(displayName || profile?.email || 'U')[0].toUpperCase()}
+                </div>
+              </div>
+
+              {/* Rows */}
+              <div className="rounded-[20px] overflow-hidden" style={{ border: '1px solid var(--f-accent-bg)' }}>
+
+                {/* Nombre */}
+                <div className="px-4 py-4" style={{ background: 'var(--f-bg-elevated)', borderBottom: '1px solid var(--f-bg-card)' }}>
+                  <p className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Nombre</p>
+                  {editingName ? (
+                    <div className="flex gap-2 items-center">
+                      <input autoFocus value={nameInput}
+                        onChange={e => setNameInput(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') handleSaveName(); if (e.key === 'Escape') setEditingName(false) }}
+                        placeholder="Tu nombre completo"
+                        className="flex-1 rounded-[12px] px-3 py-2.5 text-[15px] font-semibold text-white outline-none"
+                        style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-glow)' }}
+                      />
+                      <button onClick={handleSaveName} disabled={isNamePending} className="px-3 py-2 rounded-[10px] text-[13px] font-black text-white disabled:opacity-50" style={{ background: 'var(--f-blue)' }}>
+                        {isNamePending ? <i className="fa-solid fa-spinner fa-spin" /> : 'OK'}
+                      </button>
+                      <button onClick={() => setEditingName(false)} className="px-2 py-2 rounded-[10px] text-[13px]" style={{ background: 'var(--f-line)', color: 'var(--f-text-3)' }}>✕</button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <p className="text-[15px] font-bold text-white">{displayName || 'Sin nombre'}</p>
+                      <button onClick={() => setEditingName(true)} className="text-sm font-semibold flex items-center gap-1" style={{ color: 'var(--f-blue)' }}>
+                        <i className="fa-solid fa-pencil text-[12px]" /> Editar
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* @username */}
+                <div className="px-4 py-4" style={{ background: 'var(--f-bg-elevated)', borderBottom: '1px solid var(--f-bg-card)' }}>
+                  <p className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Usuario</p>
+                  {editingUsername ? (
+                    <div className="space-y-2">
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[15px] font-black select-none" style={{ color: 'var(--f-blue)' }}>@</span>
+                        <input autoFocus value={usernameInput}
+                          onChange={e => handleUsernameInput(e.target.value)}
+                          onKeyDown={e => { if (e.key === 'Enter') handleSaveUsername(); if (e.key === 'Escape') setEditingUsername(false) }}
+                          placeholder="tunombre"
+                          className="w-full rounded-[12px] pl-8 pr-10 py-2.5 text-[15px] font-semibold text-white outline-none"
+                          style={{ background: 'var(--f-bg-input)', border: `1px solid ${usernameAvailable === false ? 'var(--f-expense)' : usernameAvailable === true ? 'var(--f-income)' : 'var(--f-accent-glow)'}` }}
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm">
+                          {usernameChecking && <i className="fa-solid fa-spinner fa-spin" style={{ color: 'var(--f-text-4)' }} />}
+                          {!usernameChecking && usernameAvailable === true && <i className="fa-solid fa-check" style={{ color: 'var(--f-income)' }} />}
+                          {!usernameChecking && usernameAvailable === false && <i className="fa-solid fa-xmark" style={{ color: 'var(--f-expense)' }} />}
+                        </span>
+                      </div>
+                      <p className="text-[11px] font-medium" style={{ color: usernameAvailable === false ? 'var(--f-expense)' : 'var(--f-text-4)' }}>
+                        {usernameAvailable === false ? 'Ese usuario ya está en uso'
+                          : usernameAvailable === true ? '¡Disponible!'
+                          : '3-20 caracteres · letras, números, _ y .'}
+                      </p>
+                      <div className="flex gap-2">
+                        <button onClick={() => { setEditingUsername(false); setUsernameInput(profile?.username ?? '') }}
+                          className="flex-1 py-2 rounded-[10px] text-[13px] font-black" style={{ background: 'var(--f-line)', color: 'var(--f-text-3)' }}>
+                          Cancelar
+                        </button>
+                        <button onClick={handleSaveUsername}
+                          disabled={isUsernamePending || usernameAvailable === false || usernameChecking}
+                          className="flex-[2] py-2 rounded-[10px] text-[13px] font-black text-white disabled:opacity-40" style={{ background: 'var(--f-blue)' }}>
+                          {isUsernamePending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Guardar'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <p className="text-[15px] font-bold" style={{ color: profile?.username ? 'var(--f-blue)' : 'var(--f-text-4)' }}>
+                        {profile?.username ? `@${profile.username}` : 'Sin @username'}
+                      </p>
+                      <button onClick={() => setEditingUsername(true)} className="text-sm font-semibold flex items-center gap-1" style={{ color: 'var(--f-blue)' }}>
+                        <i className="fa-solid fa-pencil text-[12px]" /> Editar
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Teléfono */}
+                <div className="px-4 py-4" style={{ background: 'var(--f-bg-elevated)', borderBottom: '1px solid var(--f-bg-card)' }}>
+                  <p className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Teléfono</p>
+                  {editingPhone ? (
+                    <div className="flex gap-2 items-center">
+                      <input autoFocus type="tel" value={phoneInput}
+                        onChange={e => setPhoneInput(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') handleSavePhone(); if (e.key === 'Escape') setEditingPhone(false) }}
+                        placeholder="+52 55 0000 0000"
+                        className="flex-1 rounded-[12px] px-3 py-2.5 text-[15px] font-semibold text-white outline-none"
+                        style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-glow)' }}
+                      />
+                      <button onClick={handleSavePhone} disabled={isPhonePending} className="px-3 py-2 rounded-[10px] text-[13px] font-black text-white disabled:opacity-50" style={{ background: 'var(--f-blue)' }}>
+                        {isPhonePending ? <i className="fa-solid fa-spinner fa-spin" /> : 'OK'}
+                      </button>
+                      <button onClick={() => setEditingPhone(false)} className="px-2 py-2 rounded-[10px] text-[13px]" style={{ background: 'var(--f-line)', color: 'var(--f-text-3)' }}>✕</button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <p className="text-[15px] font-bold" style={{ color: profile?.phone ? 'var(--f-text)' : 'var(--f-text-4)' }}>
+                        {profile?.phone || 'Sin teléfono'}
+                      </p>
+                      <button onClick={() => setEditingPhone(true)} className="text-sm font-semibold flex items-center gap-1" style={{ color: 'var(--f-blue)' }}>
+                        <i className="fa-solid fa-pencil text-[12px]" /> Editar
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Correo (read-only) */}
+                <div className="px-4 py-4" style={{ background: 'var(--f-bg-elevated)' }}>
+                  <p className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Correo electrónico</p>
+                  <p className="text-[15px] font-bold" style={{ color: 'var(--f-text-3)' }}>{profile?.email}</p>
+                  <p className="text-[11px] mt-1" style={{ color: 'var(--f-text-4)' }}>El correo no se puede cambiar desde aquí</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {section === 'shortcuts' && (
             <div className="space-y-4">
               <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-accent-border)' }}>
@@ -353,8 +482,11 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
           <h1 className="text-xl font-black text-white">Ajustes</h1>
         </div>
 
-        {/* Profile card */}
-        <div className="flex items-center gap-3">
+        {/* Profile card — tap to go to Perfil section */}
+        <button
+          onClick={() => setSection('perfil')}
+          className="flex items-center gap-3 w-full text-left transition-all active:scale-[0.98]"
+        >
           <div
             className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-black flex-shrink-0"
             style={{ background: 'linear-gradient(135deg, #007AFF, #0056CC)', color: '#fff' }}
@@ -362,95 +494,13 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
             {(displayName || profile?.email || 'U')[0].toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            {editingName ? (
-              <div className="flex gap-2 items-center">
-                <input
-                  autoFocus
-                  value={nameInput}
-                  onChange={e => setNameInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') handleSaveName(); if (e.key === 'Escape') setEditingName(false) }}
-                  placeholder="Tu nombre"
-                  className="flex-1 rounded-lg px-2.5 py-1.5 text-base font-semibold text-white outline-none min-w-0"
-                  style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-glow)' }}
-                />
-                <button onClick={handleSaveName} disabled={isNamePending} className="text-xs font-bold flex-shrink-0" style={{ color: 'var(--f-blue)' }}>
-                  {isNamePending ? <i className="fa-solid fa-spinner fa-spin" /> : 'OK'}
-                </button>
-                <button onClick={() => setEditingName(false)} className="text-xs flex-shrink-0" style={{ color: 'var(--f-text-3)' }}>✕</button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5">
-                <p className="text-base font-bold text-white truncate">{displayName || 'Sin nombre'}</p>
-                <button onClick={() => setEditingName(true)} className="transition-colors flex-shrink-0" style={{ color: 'var(--f-text-4)' }}>
-                  <i className="fa-solid fa-pencil text-[10px]" />
-                </button>
-              </div>
-            )}
-            <p className="text-xs truncate" style={{ color: 'var(--f-text-4)' }}>{profile?.email}</p>
-
-            {/* @username row */}
-            {editingUsername ? (
-              <div className="flex gap-2 items-center mt-1">
-                <span className="text-xs font-black flex-shrink-0" style={{ color: 'var(--f-blue)' }}>@</span>
-                <input
-                  autoFocus
-                  value={usernameInput}
-                  onChange={e => handleUsernameInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') handleSaveUsername(); if (e.key === 'Escape') setEditingUsername(false) }}
-                  placeholder="tunombre"
-                  className="flex-1 rounded-lg px-2 py-1 text-sm font-semibold text-white outline-none min-w-0"
-                  style={{ background: 'var(--f-bg-input)', border: `1px solid ${usernameAvailable === false ? 'var(--f-expense)' : usernameAvailable === true ? 'var(--f-income)' : 'var(--f-accent-glow)'}` }}
-                />
-                {usernameChecking && <i className="fa-solid fa-spinner fa-spin text-xs flex-shrink-0" style={{ color: 'var(--f-text-4)' }} />}
-                {!usernameChecking && usernameAvailable === true && <i className="fa-solid fa-check text-xs flex-shrink-0" style={{ color: 'var(--f-income)' }} />}
-                {!usernameChecking && usernameAvailable === false && <i className="fa-solid fa-xmark text-xs flex-shrink-0" style={{ color: 'var(--f-expense)' }} />}
-                <button onClick={handleSaveUsername} disabled={isUsernamePending || usernameAvailable === false || usernameChecking} className="text-xs font-bold flex-shrink-0" style={{ color: 'var(--f-blue)' }}>
-                  {isUsernamePending ? <i className="fa-solid fa-spinner fa-spin" /> : 'OK'}
-                </button>
-                <button onClick={() => { setEditingUsername(false); setUsernameInput(profile?.username ?? '') }} className="text-xs flex-shrink-0" style={{ color: 'var(--f-text-3)' }}>✕</button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5 mt-1">
-                <p className="text-xs font-semibold truncate" style={{ color: profile?.username ? 'var(--f-blue)' : 'var(--f-text-4)' }}>
-                  {profile?.username ? `@${profile.username}` : 'Sin @username'}
-                </p>
-                <button onClick={() => setEditingUsername(true)} className="flex-shrink-0" style={{ color: 'var(--f-text-4)' }}>
-                  <i className="fa-solid fa-pencil text-[9px]" />
-                </button>
-              </div>
-            )}
-
-            {/* Phone row */}
-            {editingPhone ? (
-              <div className="flex gap-2 items-center mt-1">
-                <i className="fa-solid fa-phone text-[10px] flex-shrink-0" style={{ color: 'var(--f-text-4)' }} />
-                <input
-                  autoFocus
-                  type="tel"
-                  value={phoneInput}
-                  onChange={e => setPhoneInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') handleSavePhone(); if (e.key === 'Escape') setEditingPhone(false) }}
-                  placeholder="+52 55 0000 0000"
-                  className="flex-1 rounded-lg px-2 py-1 text-sm font-semibold text-white outline-none min-w-0"
-                  style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-glow)' }}
-                />
-                <button onClick={handleSavePhone} disabled={isPhonePending} className="text-xs font-bold flex-shrink-0" style={{ color: 'var(--f-blue)' }}>
-                  {isPhonePending ? <i className="fa-solid fa-spinner fa-spin" /> : 'OK'}
-                </button>
-                <button onClick={() => { setEditingPhone(false); setPhoneInput(profile?.phone ?? '') }} className="text-xs flex-shrink-0" style={{ color: 'var(--f-text-3)' }}>✕</button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5 mt-1">
-                <p className="text-xs truncate" style={{ color: 'var(--f-text-4)' }}>
-                  {profile?.phone || 'Sin teléfono'}
-                </p>
-                <button onClick={() => setEditingPhone(true)} className="flex-shrink-0" style={{ color: 'var(--f-text-4)' }}>
-                  <i className="fa-solid fa-pencil text-[9px]" />
-                </button>
-              </div>
-            )}
+            <p className="text-base font-bold text-white truncate">{displayName || 'Sin nombre'}</p>
+            <p className="text-xs font-semibold truncate" style={{ color: profile?.username ? 'var(--f-blue)' : 'var(--f-text-4)' }}>
+              {profile?.username ? `@${profile.username}` : 'Sin @username · toca para configurar'}
+            </p>
           </div>
-        </div>
+          <i className="fa-solid fa-chevron-right text-xs flex-shrink-0" style={{ color: 'var(--f-line-strong)' }} />
+        </button>
       </header>
 
       <div className="px-4 py-5 max-w-lg mx-auto space-y-3 animate-fade-up">

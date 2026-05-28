@@ -7,7 +7,6 @@ import ReadOnlyOverlay from '@/components/subscription/ReadOnlyOverlay'
 import ThemeSync from '@/components/layout/ThemeSync'
 import WakeOnFocus from '@/components/layout/WakeOnFocus'
 import UsernameSetupModal from '@/components/onboarding/UsernameSetupModal'
-import NotificationBellWrapper from '@/components/notifications/NotificationBellWrapper'
 import { getSubscriptionInfo } from '@/lib/subscription'
 
 function suggestUsername(fullName: string | null, email: string | null): string {
@@ -40,13 +39,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           suggestedUsername={suggestUsername(profile?.full_name ?? null, profile?.email ?? null)}
         />
       )}
-      {/* Bell — fixed top-right, above all page headers */}
-      <div
-        className="fixed right-4 z-50"
-        style={{ top: 'calc(var(--safe-top) + 10px)' }}
-      >
-        <NotificationBellWrapper />
-      </div>
       <PullToRefresh>
         <main className="flex-1 pb-[calc(5rem+var(--safe-bottom))]">
           <div className="animate-fade-in">
