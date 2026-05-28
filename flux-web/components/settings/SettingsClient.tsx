@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { getCategoryDisplay, getPaymentMethod, formatCurrency } from '@/lib/utils'
 import { STATIC_ICONS, STATIC_COLORS, PAYMENT_METHODS, SHORTCUT_LINKS } from '@/lib/constants'
 import { saveCategory, deleteCategory, saveAccount, deleteAccount, saveScheduled, deleteScheduled, updateProfile, saveDefaultBudget, updateThemePreference, addPerson, updatePerson, deletePerson } from '@/actions/config'
+import { setUsername, updatePhone, checkUsernameAvailable } from '@/actions/friends'
 import type { Profile, Category, Account, ScheduledTransaction, Person } from '@/lib/types'
 import ShortcutInstall from './ShortcutInstall'
 
@@ -117,6 +118,54 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
   const [editingDefBudget, setEditingDefBudget] = useState(false)
   const [defBudgetInput, setDefBudgetInput] = useState(profile?.default_monthly_budget ? String(profile.default_monthly_budget) : '')
   const [isDefBudgetPending, startDefBudgetTx] = useTransition()
+
+  const [editingUsername, setEditingUsername] = useState(false)
+  const [usernameInput, setUsernameInput] = useState(profile?.username ?? '')
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null)
+  const [usernameChecking, setUsernameChecking] = useState(false)
+  const [isUsernamePending, startUsernameTx] = useTransition()
+
+  const [editingPhone, setEditingPhone] = useState(false)
+  const [phoneInput, setPhoneInput] = useState(profile?.phone ?? '')
+  const [isPhonePending, startPhoneTx] = useTransition()
+
+  function handleUsernameInput(v: string) {
+    const clean = v.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20)
+    setUsernameInput(clean)
+    setUsernameAvailable(null)
+    if (clean === profile?.username) return
+    if (!/^[a-z0-9_]{3,20}$/.test(clean)) return
+    setUsernameChecking(true)
+    // debounced check happens in useEffect
+  }
+
+  useEffect(() => {
+    if (!editingUsername) return
+    const clean = usernameInput.toLowerCase()
+    if (clean === profile?.username || !/^[a-z0-9_]{3,20}$/.test(clean)) return
+    const t = setTimeout(async () => {
+      const res = await checkUsernameAvailable(clean)
+      setUsernameAvailable(res.available)
+      setUsernameChecking(false)
+    }, 400)
+    return () => clearTimeout(t)
+  }, [usernameInput, editingUsername, profile?.username])
+
+  function handleSaveUsername() {
+    startUsernameTx(async () => {
+      const res = await setUsername(usernameInput)
+      if (res.error) toast.error(res.error)
+      else { toast.success('@' + usernameInput + ' guardado'); setEditingUsername(false) }
+    })
+  }
+
+  function handleSavePhone() {
+    startPhoneTx(async () => {
+      const res = await updatePhone(phoneInput)
+      if (res.error) toast.error(res.error)
+      else { toast.success('Teléfono actualizado'); setEditingPhone(false) }
+    })
+  }
 
   function handleSaveName() {
     startNameTx(async () => {
@@ -338,6 +387,68 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
               </div>
             )}
             <p className="text-xs truncate" style={{ color: 'var(--f-text-4)' }}>{profile?.email}</p>
+
+            {/* @username row */}
+            {editingUsername ? (
+              <div className="flex gap-2 items-center mt-1">
+                <span className="text-xs font-black flex-shrink-0" style={{ color: 'var(--f-blue)' }}>@</span>
+                <input
+                  autoFocus
+                  value={usernameInput}
+                  onChange={e => handleUsernameInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') handleSaveUsername(); if (e.key === 'Escape') setEditingUsername(false) }}
+                  placeholder="tunombre"
+                  className="flex-1 rounded-lg px-2 py-1 text-sm font-semibold text-white outline-none min-w-0"
+                  style={{ background: 'var(--f-bg-input)', border: `1px solid ${usernameAvailable === false ? 'var(--f-expense)' : usernameAvailable === true ? 'var(--f-income)' : 'var(--f-accent-glow)'}` }}
+                />
+                {usernameChecking && <i className="fa-solid fa-spinner fa-spin text-xs flex-shrink-0" style={{ color: 'var(--f-text-4)' }} />}
+                {!usernameChecking && usernameAvailable === true && <i className="fa-solid fa-check text-xs flex-shrink-0" style={{ color: 'var(--f-income)' }} />}
+                {!usernameChecking && usernameAvailable === false && <i className="fa-solid fa-xmark text-xs flex-shrink-0" style={{ color: 'var(--f-expense)' }} />}
+                <button onClick={handleSaveUsername} disabled={isUsernamePending || usernameAvailable === false || usernameChecking} className="text-xs font-bold flex-shrink-0" style={{ color: 'var(--f-blue)' }}>
+                  {isUsernamePending ? <i className="fa-solid fa-spinner fa-spin" /> : 'OK'}
+                </button>
+                <button onClick={() => { setEditingUsername(false); setUsernameInput(profile?.username ?? '') }} className="text-xs flex-shrink-0" style={{ color: 'var(--f-text-3)' }}>✕</button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 mt-1">
+                <p className="text-xs font-semibold truncate" style={{ color: profile?.username ? 'var(--f-blue)' : 'var(--f-text-4)' }}>
+                  {profile?.username ? `@${profile.username}` : 'Sin @username'}
+                </p>
+                <button onClick={() => setEditingUsername(true)} className="flex-shrink-0" style={{ color: 'var(--f-text-4)' }}>
+                  <i className="fa-solid fa-pencil text-[9px]" />
+                </button>
+              </div>
+            )}
+
+            {/* Phone row */}
+            {editingPhone ? (
+              <div className="flex gap-2 items-center mt-1">
+                <i className="fa-solid fa-phone text-[10px] flex-shrink-0" style={{ color: 'var(--f-text-4)' }} />
+                <input
+                  autoFocus
+                  type="tel"
+                  value={phoneInput}
+                  onChange={e => setPhoneInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') handleSavePhone(); if (e.key === 'Escape') setEditingPhone(false) }}
+                  placeholder="+52 55 0000 0000"
+                  className="flex-1 rounded-lg px-2 py-1 text-sm font-semibold text-white outline-none min-w-0"
+                  style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-glow)' }}
+                />
+                <button onClick={handleSavePhone} disabled={isPhonePending} className="text-xs font-bold flex-shrink-0" style={{ color: 'var(--f-blue)' }}>
+                  {isPhonePending ? <i className="fa-solid fa-spinner fa-spin" /> : 'OK'}
+                </button>
+                <button onClick={() => { setEditingPhone(false); setPhoneInput(profile?.phone ?? '') }} className="text-xs flex-shrink-0" style={{ color: 'var(--f-text-3)' }}>✕</button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 mt-1">
+                <p className="text-xs truncate" style={{ color: 'var(--f-text-4)' }}>
+                  {profile?.phone || 'Sin teléfono'}
+                </p>
+                <button onClick={() => setEditingPhone(true)} className="flex-shrink-0" style={{ color: 'var(--f-text-4)' }}>
+                  <i className="fa-solid fa-pencil text-[9px]" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>

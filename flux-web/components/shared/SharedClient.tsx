@@ -10,14 +10,18 @@ function AnimatedCurrency({ value }: { value: number }) {
   return <>{formatCurrency(animated)}</>
 }
 import { settleParticipant, partialSettle, settleAndRecord, settleAllForPerson, abonoGlobalForPerson } from '@/actions/transactions'
-import type { Transaction, Person, SplitParticipant, Account, Category, AccountWithBalance } from '@/lib/types'
+import type { Transaction, Person, SplitParticipant, Account, Category, AccountWithBalance, Friendship } from '@/lib/types'
 import TransactionModal from '@/components/transactions/TransactionModal'
+import FriendSearchModal from '@/components/friends/FriendSearchModal'
+import LinkPersonModal from '@/components/friends/LinkPersonModal'
 
 interface Props {
   transactions: Transaction[]
   people: Person[]
   accounts: Account[]
   categories: Category[]
+  friendships: Friendship[]
+  myUserId: string
 }
 
 interface PersonBalance {
@@ -30,7 +34,7 @@ interface PersonBalance {
 
 type ConfirmAction = 'settle' | 'forget' | 'partial'
 
-export default function SharedClient({ transactions, people, accounts, categories }: Props) {
+export default function SharedClient({ transactions, people, accounts, categories, friendships, myUserId }: Props) {
   const [expanded, setExpanded] = useState<string | null>(null)
   const [settling, setSettling] = useState<string | null>(null)
   const [partialMode, setPartialMode] = useState<string | null>(null)
@@ -54,6 +58,8 @@ export default function SharedClient({ transactions, people, accounts, categorie
   const [isAbonoPending, startAbono] = useTransition()
 
   const [editingTx, setEditingTx] = useState<Transaction | null>(null)
+  const [showFriendSearch, setShowFriendSearch] = useState(false)
+  const [linkingPerson, setLinkingPerson] = useState<{ id: string; name: string } | null>(null)
 
   function requestConfirm(key: string, action: ConfirmAction) {
     setConfirmKey(key)
@@ -191,8 +197,20 @@ export default function SharedClient({ transactions, people, accounts, categorie
           borderBottom: '1px solid var(--f-line)',
         }}
       >
-        <p className="text-[10px] font-black tracking-[3px] uppercase" style={{ color: 'var(--f-text-4)' }}>Gastos</p>
-        <h1 className="text-[22px] font-black leading-tight mt-0.5" style={{ color: 'var(--f-text)' }}>Compartidos</h1>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-black tracking-[3px] uppercase" style={{ color: 'var(--f-text-4)' }}>Gastos</p>
+            <h1 className="text-[22px] font-black leading-tight mt-0.5" style={{ color: 'var(--f-text)' }}>Compartidos</h1>
+          </div>
+          <button
+            onClick={() => setShowFriendSearch(true)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-[12px] text-[12px] font-black transition-all active:scale-95"
+            style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)', border: '1px solid var(--f-accent-border)' }}
+          >
+            <i className="fa-solid fa-user-plus text-[11px]" />
+            Amigos
+          </button>
+        </div>
       </header>
 
       <div className="px-4 py-4 max-w-lg mx-auto space-y-4">
@@ -394,6 +412,18 @@ export default function SharedClient({ transactions, people, accounts, categorie
                   {isOpen && (
                     <div className="px-4 pb-4 space-y-2 animate-fade-up" style={{ borderTop: '1px solid var(--f-line)' }}>
                       <div className="pt-1" />
+                      {/* Link to registered user — shown only when not linked */}
+                      {!b.person.linked_user_id && (
+                        <button
+                          onClick={() => setLinkingPerson({ id: b.person.id, name: b.person.name })}
+                          className="w-full flex items-center gap-2 py-2 text-left"
+                        >
+                          <i className="fa-solid fa-link text-[11px]" style={{ color: 'var(--f-blue)' }} />
+                          <p className="text-[12px] font-bold" style={{ color: 'var(--f-blue)' }}>
+                            Vincular con usuario de Flux
+                          </p>
+                        </button>
+                      )}
                       {b.pending.map(({ tx, participant }) => {
                         const unpaid = participant.value - (participant.paidAmount ?? 0)
                         const isTheyOwe = tx.split_data?.splitMode === 'THEY' || tx.split_data?.splitMode === 'DIV'
@@ -567,6 +597,22 @@ export default function SharedClient({ transactions, people, accounts, categorie
           categories={categories}
           people={people}
           onClose={() => setEditingTx(null)}
+        />
+      )}
+
+      {showFriendSearch && (
+        <FriendSearchModal
+          onClose={() => setShowFriendSearch(false)}
+          existingFriendships={friendships}
+          myUserId={myUserId}
+        />
+      )}
+
+      {linkingPerson && (
+        <LinkPersonModal
+          personId={linkingPerson.id}
+          personName={linkingPerson.name}
+          onClose={() => setLinkingPerson(null)}
         />
       )}
     </div>

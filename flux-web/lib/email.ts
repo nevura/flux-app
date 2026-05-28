@@ -75,3 +75,47 @@ export async function sendMonthlyAdjustmentEmail(opts: { to: string }) {
 
   return send(opts.to, 'Cierre de mes — revisa tus saldos en Flux', html)
 }
+
+export async function sendFriendRequestEmail(opts: {
+  to: string
+  toName: string
+  fromName: string
+  fromUsername: string
+}) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://flux.nevura.app'
+  const html = loadTemplate('friend-request')
+    .replace(/\{\{TO_NAME\}\}/g, opts.toName || opts.to)
+    .replace(/\{\{FROM_NAME\}\}/g, opts.fromName)
+    .replace(/\{\{FROM_USERNAME\}\}/g, opts.fromUsername)
+    .replace(/\{\{APP_URL\}\}/g, appUrl)
+
+  return send(opts.to, `${opts.fromName} quiere ser tu amigo en Flux`, html)
+}
+
+export async function sendFriendAcceptedEmail(opts: {
+  to: string
+  toName: string
+  acceptedByName: string
+  acceptedByUsername: string
+}) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://flux.nevura.app'
+  const html = loadTemplate('friend-accepted')
+    .replace(/\{\{TO_NAME\}\}/g, opts.toName || opts.to)
+    .replace(/\{\{ACCEPTED_BY_NAME\}\}/g, opts.acceptedByName)
+    .replace(/\{\{ACCEPTED_BY_USERNAME\}\}/g, opts.acceptedByUsername)
+    .replace(/\{\{APP_URL\}\}/g, appUrl)
+
+  return send(opts.to, `${opts.acceptedByName} aceptó tu solicitud de amistad`, html)
+}
+
+export async function sendAppInviteEmail(opts: {
+  to: string
+  fromName: string
+  signupUrl: string
+}) {
+  const html = loadTemplate('app-invite')
+    .replace(/\{\{FROM_NAME\}\}/g, opts.fromName)
+    .replace(/\{\{SIGNUP_URL\}\}/g, opts.signupUrl)
+
+  return send(opts.to, `${opts.fromName} te invita a Flux`, html)
+}

@@ -6,7 +6,16 @@ import SubscriptionBanner from '@/components/subscription/SubscriptionBanner'
 import ReadOnlyOverlay from '@/components/subscription/ReadOnlyOverlay'
 import ThemeSync from '@/components/layout/ThemeSync'
 import WakeOnFocus from '@/components/layout/WakeOnFocus'
+import UsernameSetupModal from '@/components/onboarding/UsernameSetupModal'
+import NotificationBellWrapper from '@/components/notifications/NotificationBellWrapper'
 import { getSubscriptionInfo } from '@/lib/subscription'
+
+function suggestUsername(fullName: string | null, email: string | null): string {
+  const base = fullName
+    ? fullName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')
+    : (email ?? '').split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '')
+  return base.slice(0, 20) || 'usuario'
+}
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -15,8 +24,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const [sub, { data: profile }] = await Promise.all([
     getSubscriptionInfo(),
-    supabase.from('profiles').select('theme_preference').eq('id', user.id).single(),
+    supabase.from('profiles').select('theme_preference, username, full_name, email').eq('id', user.id).single(),
   ])
+
+  const needsUsername = !profile?.username
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -24,6 +35,18 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <WakeOnFocus />
       <SubscriptionBanner status={sub.status} daysLeft={sub.daysLeft} />
       {sub.isReadOnly && <ReadOnlyOverlay />}
+      {needsUsername && (
+        <UsernameSetupModal
+          suggestedUsername={suggestUsername(profile?.full_name ?? null, profile?.email ?? null)}
+        />
+      )}
+      {/* Bell — fixed top-right, above all page headers */}
+      <div
+        className="fixed right-4 z-50"
+        style={{ top: 'calc(var(--safe-top) + 10px)' }}
+      >
+        <NotificationBellWrapper />
+      </div>
       <PullToRefresh>
         <main className="flex-1 pb-[calc(5rem+var(--safe-bottom))]">
           <div className="animate-fade-in">

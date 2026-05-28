@@ -5,6 +5,8 @@ export interface Profile {
   email: string | null
   full_name: string | null
   avatar_url: string | null
+  username: string | null
+  phone: string | null
   timezone: string
   currency: string
   default_monthly_budget: number | null
@@ -63,8 +65,40 @@ export interface Person {
   name: string
   phone: string | null
   is_me: boolean
+  linked_user_id: string | null
   created_at: string
   updated_at: string
+}
+
+export interface Friendship {
+  id: string
+  requester_id: string
+  addressee_id: string
+  status: 'pending' | 'accepted' | 'declined'
+  created_at: string
+  updated_at: string
+}
+
+export type NotificationType =
+  | 'friend_request'
+  | 'friend_accepted'
+  | 'friend_declined'
+  | 'shared_expense_invite'
+  | 'expense_settled'
+
+export interface Notification {
+  id: string
+  user_id: string
+  type: NotificationType
+  data: Record<string, unknown>
+  read: boolean
+  created_at: string
+}
+
+export interface PublicProfile {
+  id: string
+  username: string
+  full_name: string | null
 }
 
 export interface SplitParticipant {
