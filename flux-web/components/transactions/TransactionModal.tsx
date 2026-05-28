@@ -378,7 +378,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                 type="datetime-local"
                 value={date}
                 onChange={e => setDate(e.target.value)}
-                className="rounded-[14px] px-2 py-3 text-[11px] font-bold outline-none"
+                className="rounded-[14px] px-2 py-2 text-[11px] font-bold outline-none"
                 style={{
                   background: 'var(--f-bg-input)',
                   border: '1px solid var(--f-line)',
