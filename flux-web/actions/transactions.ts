@@ -3,7 +3,27 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { adjustmentFor, parseAmount, getMexicoNow } from '@/lib/utils'
-import type { TransactionForm, SplitParticipant } from '@/lib/types'
+import type { TransactionForm, SplitParticipant, AccountWithBalance, Category, Person } from '@/lib/types'
+
+export async function getTransactionModalData(): Promise<{ accounts: AccountWithBalance[]; categories: Category[]; people: Person[] }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { accounts: [], categories: [], people: [] }
+
+  const [{ data: accounts }, { data: allCategories }, { data: people }, { data: transactions }] = await Promise.all([
+    supabase.from('accounts').select('*').eq('user_id', user.id).eq('is_active', true).order('sort_order'),
+    supabase.from('categories').select('*').or(`user_id.eq.${user.id},user_id.is.null`).order('sort_order'),
+    supabase.from('people').select('*').eq('user_id', user.id),
+    supabase.from('transactions').select('account_id, amount').eq('user_id', user.id),
+  ])
+
+  const accountsWithBalance = (accounts ?? []).map(a => ({
+    ...a,
+    balance: (transactions ?? []).filter(t => t.account_id === a.id).reduce((s, t) => s + (t.amount ?? 0), 0),
+  })) as AccountWithBalance[]
+
+  return { accounts: accountsWithBalance, categories: (allCategories ?? []) as Category[], people: (people ?? []) as Person[] }
+}
 
 export async function addTransaction(form: TransactionForm) {
   const supabase = await createClient()

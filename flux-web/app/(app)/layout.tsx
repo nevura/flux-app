@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import AppNav from '@/components/layout/AppNav'
+import GlobalFAB from '@/components/layout/GlobalFAB'
 import PullToRefresh from '@/components/layout/PullToRefresh'
 import SubscriptionBanner from '@/components/subscription/SubscriptionBanner'
 import ReadOnlyOverlay from '@/components/subscription/ReadOnlyOverlay'
@@ -47,6 +48,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </main>
       </PullToRefresh>
       <AppNav />
+      {!sub.isReadOnly && <GlobalFAB />}
     </div>
   )
 }

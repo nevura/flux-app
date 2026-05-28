@@ -61,6 +61,31 @@ export async function checkUsernameAvailable(username: string): Promise<{ availa
   return { available: !data }
 }
 
+// ── My accepted friends ────────────────────────────────────────────────────────
+
+export async function getMyFriends(): Promise<{ friends: PublicProfile[] }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { friends: [] }
+
+  const { data: friendships } = await supabase
+    .from('friendships')
+    .select('requester_id, addressee_id')
+    .eq('status', 'accepted')
+    .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
+
+  if (!friendships?.length) return { friends: [] }
+
+  const friendIds = friendships.map(f => f.requester_id === user.id ? f.addressee_id : f.requester_id)
+
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, username, full_name')
+    .in('id', friendIds)
+
+  return { friends: (profiles ?? []) as PublicProfile[] }
+}
+
 // ── Friend search ─────────────────────────────────────────────────────────────
 
 export async function searchUsers(query: string): Promise<{ results: PublicProfile[]; error: string | null }> {

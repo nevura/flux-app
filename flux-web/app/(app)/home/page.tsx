@@ -19,7 +19,6 @@ export default async function HomePage() {
     { data: categories },
     { data: scheduled },
     { data: budgets },
-    { data: people },
     { data: creditPayments },
   ] = await Promise.all([
     supabase.from('profiles').select('full_name, default_monthly_budget').eq('id', user.id).single(),
@@ -30,7 +29,6 @@ export default async function HomePage() {
     supabase.from('categories').select('*').or(`user_id.eq.${user.id},user_id.is.null`).order('sort_order'),
     supabase.from('scheduled_transactions').select('*').eq('user_id', user.id).eq('status', 'ACTIVO'),
     supabase.from('budgets').select('*').eq('user_id', user.id).eq('year', year).eq('month', month),
-    supabase.from('people').select('*').eq('user_id', user.id),
     supabase.from('credit_payments').select('*').eq('user_id', user.id).eq('year', year).eq('month', month),
   ])
 
@@ -67,7 +65,6 @@ export default async function HomePage() {
       categories={categories ?? []}
       scheduled={scheduled ?? []}
       budget={monthlyBudget}
-      people={people ?? []}
       creditPayments={creditPayments ?? []}
       year={year}
       month={month}

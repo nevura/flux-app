@@ -135,7 +135,6 @@ export default function TransactionsClient({ initialTransactions, categories, ac
   }, [filtered])
 
   function openEdit(tx: Transaction) { setEditing(tx); setModalOpen(true) }
-  function openAdd() { setEditing(null); setModalOpen(true) }
 
 
   const now = new Date()
@@ -525,34 +524,14 @@ export default function TransactionsClient({ initialTransactions, categories, ac
         <div className="h-4" />
       </div>
 
-      {createPortal(
-        <>
-          {/* FAB — above nav bar */}
-          <button
-            onClick={openAdd}
-            className="fixed z-[55] flex items-center justify-center rounded-full active:scale-90 transition-transform"
-            style={{
-              width: 56,
-              height: 56,
-              right: '0.75rem',
-              bottom: 'calc(1rem + var(--safe-bottom))',
-              background: 'var(--f-blue)',
-              boxShadow: 'var(--f-shadow-accent)',
-            }}
-          >
-            <i className="fa-solid fa-plus text-white text-lg" />
-          </button>
-
-          {modalOpen && (
-            <TransactionModal
-              transaction={editing}
-              accounts={accounts}
-              categories={categories}
-              people={people}
-              onClose={() => setModalOpen(false)}
-            />
-          )}
-        </>,
+      {modalOpen && createPortal(
+        <TransactionModal
+          transaction={editing}
+          accounts={accounts}
+          categories={categories}
+          people={people}
+          onClose={() => setModalOpen(false)}
+        />,
         document.body
       )}
     </div>

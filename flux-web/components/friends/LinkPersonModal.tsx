@@ -3,7 +3,7 @@
 import { useState, useRef, useTransition, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
-import { searchUsers, linkPersonToUser } from '@/actions/friends'
+import { getMyFriends, linkPersonToUser } from '@/actions/friends'
 import type { PublicProfile } from '@/lib/types'
 
 interface Props {
@@ -14,30 +14,34 @@ interface Props {
 
 export default function LinkPersonModal({ personId, personName, onClose }: Props) {
   const [mounted, setMounted] = useState(false)
-  useEffect(() => { setMounted(true) }, [])
-
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState<PublicProfile[]>([])
-  const [searching, setSearching] = useState(false)
-  const [notFound, setNotFound] = useState(false)
+  const [friends, setFriends] = useState<PublicProfile[]>([])
+  const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState('')
   const [isPending, startTransition] = useTransition()
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  function handleInput(v: string) {
-    setQuery(v)
-    setNotFound(false)
-    setResults([])
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    const clean = v.replace(/^@/, '').trim()
-    if (clean.length < 2) { setSearching(false); return }
-    setSearching(true)
-    debounceRef.current = setTimeout(async () => {
-      const res = await searchUsers(clean)
-      setResults(res.results)
-      setNotFound(res.results.length === 0)
-      setSearching(false)
-    }, 400)
-  }
+  useEffect(() => {
+    setMounted(true)
+    getMyFriends().then(({ friends }) => {
+      setFriends(friends)
+      setLoading(false)
+    })
+  }, [])
+
+  // Delayed focus to prevent iOS Keychain autofill popup
+  useEffect(() => {
+    if (!loading) {
+      const t = setTimeout(() => inputRef.current?.focus(), 150)
+      return () => clearTimeout(t)
+    }
+  }, [loading])
+
+  const filtered = filter.trim().length < 1
+    ? friends
+    : friends.filter(f =>
+        (f.username ?? '').toLowerCase().includes(filter.toLowerCase()) ||
+        (f.full_name ?? '').toLowerCase().includes(filter.toLowerCase())
+      )
 
   function handleLink(user: PublicProfile) {
     startTransition(async () => {
@@ -65,7 +69,7 @@ export default function LinkPersonModal({ personId, personName, onClose }: Props
           <div>
             <h2 className="text-[18px] font-black" style={{ color: 'var(--f-text)' }}>Vincular contacto</h2>
             <p className="text-[12px] font-semibold mt-0.5" style={{ color: 'var(--f-text-4)' }}>
-              Busca el usuario de Flux para <span style={{ color: 'var(--f-text)' }}>{personName}</span>
+              Elige el amigo de Flux para <span style={{ color: 'var(--f-text)' }}>{personName}</span>
             </p>
           </div>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full" style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}>
@@ -73,34 +77,49 @@ export default function LinkPersonModal({ personId, personName, onClose }: Props
           </button>
         </div>
 
-        {/* Search input */}
-        <div className="px-5 pb-3">
-          <div className="relative">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[15px] font-black select-none" style={{ color: 'var(--f-blue)' }}>@</span>
-            <input
-              autoFocus
-              type="text"
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="none"
-              spellCheck={false}
-              value={query}
-              onChange={e => handleInput(e.target.value)}
-              placeholder="Buscar por @username"
-              className="w-full rounded-[14px] pl-8 pr-10 py-3 text-[15px] font-semibold outline-none"
-              style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)' }}
-            />
-            <span className="absolute right-3.5 top-1/2 -translate-y-1/2">
-              {searching
-                ? <i className="fa-solid fa-spinner fa-spin text-sm" style={{ color: 'var(--f-text-4)' }} />
-                : <i className="fa-solid fa-magnifying-glass text-sm" style={{ color: 'var(--f-text-4)' }} />}
-            </span>
+        {/* Filter input — only shown when there are friends */}
+        {!loading && friends.length > 3 && (
+          <div className="px-5 pb-3">
+            <div className="relative">
+              <i className="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-sm" style={{ color: 'var(--f-text-4)' }} />
+              <input
+                ref={inputRef}
+                type="text"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                value={filter}
+                onChange={e => setFilter(e.target.value)}
+                placeholder="Filtrar amigos..."
+                className="w-full rounded-[14px] pl-9 pr-4 py-3 text-[15px] font-semibold outline-none"
+                style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)' }}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Results */}
-        <div className="px-5 space-y-2 min-h-[80px]">
-          {results.map(user => (
+        {/* Friends list */}
+        <div className="px-5 space-y-2 min-h-[80px] max-h-[50dvh] overflow-y-auto">
+          {loading ? (
+            <div className="py-10 flex justify-center">
+              <i className="fa-solid fa-spinner fa-spin text-xl" style={{ color: 'var(--f-text-4)' }} />
+            </div>
+          ) : friends.length === 0 ? (
+            <div className="py-10 text-center">
+              <i className="fa-solid fa-user-group text-2xl mb-3 block" style={{ color: 'var(--f-text-4)' }} />
+              <p className="text-[13px] font-semibold" style={{ color: 'var(--f-text-4)' }}>
+                Sin amigos en Flux todavía
+              </p>
+              <p className="text-[11px] mt-1 font-medium" style={{ color: 'var(--f-text-4)' }}>
+                Agrega un amigo primero desde Compartidos
+              </p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <p className="text-[13px] font-semibold text-center py-6" style={{ color: 'var(--f-text-4)' }}>
+              No hay amigos que coincidan
+            </p>
+          ) : filtered.map(user => (
             <div key={user.id} className="flex items-center gap-3 py-2.5 px-3 rounded-[14px]"
               style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-line)' }}>
               <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-black"
@@ -121,12 +140,6 @@ export default function LinkPersonModal({ personId, personName, onClose }: Props
               </button>
             </div>
           ))}
-
-          {notFound && (
-            <p className="text-[13px] font-semibold text-center py-4" style={{ color: 'var(--f-text-4)' }}>
-              No se encontró <span style={{ color: 'var(--f-text)' }}>@{query.replace(/^@/, '')}</span> en Flux
-            </p>
-          )}
         </div>
         <div className="h-4" />
       </div>

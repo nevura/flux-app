@@ -14,7 +14,13 @@ interface Props {
 
 export default function FriendSearchModal({ onClose, existingFriendships, myUserId }: Props) {
   const [mounted, setMounted] = useState(false)
-  useEffect(() => { setMounted(true) }, [])
+  const inputRef = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    setMounted(true)
+    // Delayed focus prevents iOS Keychain autofill popup
+    const t = setTimeout(() => inputRef.current?.focus(), 150)
+    return () => clearTimeout(t)
+  }, [])
 
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<PublicProfile[]>([])
@@ -94,7 +100,7 @@ export default function FriendSearchModal({ onClose, existingFriendships, myUser
           <div className="relative">
             <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[15px] font-black select-none" style={{ color: 'var(--f-blue)' }}>@</span>
             <input
-              autoFocus
+              ref={inputRef}
               type="text"
               autoComplete="off"
               autoCorrect="off"

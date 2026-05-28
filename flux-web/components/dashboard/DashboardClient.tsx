@@ -6,8 +6,7 @@ import { toast } from 'sonner'
 import { formatCurrency, getCategoryDisplay, getPaymentMethod } from '@/lib/utils'
 import { MONTHS_ES } from '@/lib/constants'
 import { saveBudget, chargeScheduled, saveCreditPayment, deleteCreditPayment } from '@/actions/config'
-import type { AccountWithBalance, Transaction, Category, ScheduledTransaction, Budget, Person, CreditPayment } from '@/lib/types'
-import TransactionModal from '@/components/transactions/TransactionModal'
+import type { AccountWithBalance, Transaction, Category, ScheduledTransaction, Budget, CreditPayment } from '@/lib/types'
 import AuditModal from './AuditModal'
 import { useCountUp, useAnimatedWidth } from '@/lib/hooks'
 import NotificationBell from '@/components/notifications/NotificationBell'
@@ -41,15 +40,12 @@ interface Props {
   categories: Category[]
   scheduled: ScheduledTransaction[]
   budget: Budget | null
-  people: Person[]
   creditPayments: CreditPayment[]
   year: number
   month: number
 }
 
-export default function DashboardClient({ user, accounts, transactions, categories, scheduled, budget, people, creditPayments, year, month }: Props) {
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editingTx, setEditingTx] = useState<Transaction | null>(null)
+export default function DashboardClient({ user, accounts, transactions, categories, scheduled, budget, creditPayments, year, month }: Props) {
   const [spendView, setSpendView] = useState<'daily' | 'weekly'>('daily')
   const [dayOffset, setDayOffset] = useState(0)
   const [weekOffset, setWeekOffset] = useState(0)
@@ -143,8 +139,6 @@ export default function DashboardClient({ user, accounts, transactions, categori
       setScheduledAction(null)
     })
   }
-
-  function openAdd() { setEditingTx(null); setModalOpen(true) }
 
   function handleSaveBudget() {
     const amount = parseFloat(budgetInput)
@@ -846,41 +840,8 @@ export default function DashboardClient({ user, accounts, transactions, categori
         document.body,
       )}
 
-      {createPortal(
-        <>
-          {/* FAB — above the navigation bar */}
-          <button
-            onClick={openAdd}
-            className="fixed z-[55] flex items-center justify-center rounded-full active:scale-90 transition-transform"
-            style={{
-              width: 56,
-              height: 56,
-              right: '0.75rem',
-              bottom: 'calc(1rem + var(--safe-bottom))',
-              background: 'var(--f-blue)',
-              boxShadow: 'var(--f-shadow-accent)',
-            }}
-          >
-            <i className="fa-solid fa-plus text-white text-lg" />
-          </button>
-
-          {modalOpen && (
-            <TransactionModal
-              transaction={editingTx}
-              accounts={accounts}
-              categories={categories}
-              people={people}
-              onClose={() => setModalOpen(false)}
-            />
-          )}
-
-          {auditOpen && (
-            <AuditModal
-              accounts={accounts}
-              onClose={() => setAuditOpen(false)}
-            />
-          )}
-        </>,
+      {auditOpen && createPortal(
+        <AuditModal accounts={accounts} onClose={() => setAuditOpen(false)} />,
         document.body
       )}
     </div>
