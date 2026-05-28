@@ -369,27 +369,26 @@ export default function TransactionModal({ transaction, accounts, categories, pe
               </div>
             )}
 
-            {/* Date */}
+            {/* Date — overflow-hidden on wrapper forces the native datetime-local to stay within bounds on iOS */}
             <div>
               <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>
                 Fecha
               </p>
-              <input
-                type="datetime-local"
-                value={date}
-                onChange={e => setDate(e.target.value)}
-                className="rounded-[14px] px-2 py-2 text-[11px] font-bold outline-none"
-                style={{
-                  background: 'var(--f-bg-input)',
-                  border: '1px solid var(--f-line)',
-                  color: 'var(--f-text)',
-                  colorScheme: 'dark',
-                  display: 'block',
-                  width: '100%',
-                  boxSizing: 'border-box',
-                  minWidth: 0,
-                }}
-              />
+              <div className="overflow-hidden rounded-[14px]">
+                <input
+                  type="datetime-local"
+                  value={date}
+                  onChange={e => setDate(e.target.value)}
+                  className="block w-full min-w-0 rounded-[14px] px-2 py-2 text-[11px] font-bold outline-none"
+                  style={{
+                    background: 'var(--f-bg-input)',
+                    border: '1px solid var(--f-line)',
+                    color: 'var(--f-text)',
+                    colorScheme: 'dark',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
             </div>
 
             {/* Notes */}

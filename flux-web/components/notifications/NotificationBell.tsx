@@ -201,7 +201,7 @@ export default function NotificationBell() {
                         <button
                           onClick={() => handleFriendResponse(d.friendship_id, false)}
                           disabled={isPending}
-                          className="flex-1 py-2 rounded-[10px] text-[12px] font-black transition-all active:scale-95 disabled:opacity-50"
+                          className="flex-1 py-3 rounded-[12px] text-[13px] font-black transition-all active:scale-95 disabled:opacity-50"
                           style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
                         >
                           Rechazar
@@ -209,7 +209,7 @@ export default function NotificationBell() {
                         <button
                           onClick={() => handleFriendResponse(d.friendship_id, true)}
                           disabled={isPending}
-                          className="flex-[2] py-2 rounded-[10px] text-[12px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
+                          className="flex-[2] py-3 rounded-[12px] text-[13px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
                           style={{ background: 'var(--f-blue)' }}
                         >
                           {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Aceptar'}
@@ -224,7 +224,7 @@ export default function NotificationBell() {
                         <button
                           onClick={() => handleConfirmSettle(n.id)}
                           disabled={isPending}
-                          className="w-full py-2 rounded-[10px] text-[12px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
+                          className="w-full py-3 rounded-[12px] text-[13px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
                           style={{ background: 'var(--f-income)' }}
                         >
                           {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Confirmar'}
@@ -250,7 +250,7 @@ export default function NotificationBell() {
                             <div className="flex gap-2">
                               <button
                                 onClick={() => { setAcceptingId(null); setAcceptAccountId('') }}
-                                className="flex-1 py-2 rounded-[10px] text-[12px] font-black"
+                                className="flex-1 py-3 rounded-[12px] text-[13px] font-black"
                                 style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
                               >
                                 Cancelar
@@ -258,7 +258,7 @@ export default function NotificationBell() {
                               <button
                                 onClick={() => handleAcceptExpense(n.id)}
                                 disabled={!acceptAccountId || isPending}
-                                className="flex-[2] py-2 rounded-[10px] text-[12px] font-black text-white disabled:opacity-50 active:scale-95"
+                                className="flex-[2] py-3 rounded-[12px] text-[13px] font-black text-white disabled:opacity-50 active:scale-95"
                                 style={{ background: 'var(--f-transfer)' }}
                               >
                                 {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Confirmar'}
@@ -270,7 +270,7 @@ export default function NotificationBell() {
                             <button
                               onClick={() => handleDeclineExpense(n.id)}
                               disabled={isPending}
-                              className="flex-1 py-2 rounded-[10px] text-[12px] font-black transition-all active:scale-95 disabled:opacity-50"
+                              className="flex-1 py-3 rounded-[12px] text-[13px] font-black transition-all active:scale-95 disabled:opacity-50"
                               style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
                             >
                               Ignorar
@@ -278,7 +278,7 @@ export default function NotificationBell() {
                             <button
                               onClick={() => { setAcceptingId(n.id); setAcceptAccountId('') }}
                               disabled={isPending}
-                              className="flex-[2] py-2 rounded-[10px] text-[12px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
+                              className="flex-[2] py-3 rounded-[12px] text-[13px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
                               style={{ background: 'var(--f-transfer)' }}
                             >
                               Registrar

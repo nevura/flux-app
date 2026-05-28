@@ -563,7 +563,7 @@ export async function acceptSharedExpense(notificationId: string, accountId: str
     type: 'TR-GASTO',
     amount: participantAmount,
     adjustment: adjustmentFor('TR-GASTO', participantAmount),
-    category_id: d.category_id ? String(d.category_id) : null,
+    category_id: null,
     account_id: accountId,
     transaction_date: today,
     is_validated: true,
