@@ -10,6 +10,7 @@ import { saveCategory, deleteCategory, saveAccount, deleteAccount, saveScheduled
 import { setUsername, updatePhone, checkUsernameAvailable, linkPersonToUser } from '@/actions/friends'
 import type { Profile, Category, Account, ScheduledTransaction, Person, PublicProfile } from '@/lib/types'
 import ShortcutInstall from './ShortcutInstall'
+import GuideTab from './GuideTab'
 import LinkPersonModal from '@/components/friends/LinkPersonModal'
 
 interface Props {
@@ -21,7 +22,7 @@ interface Props {
   people: Person[]
 }
 
-type Tab = 'shortcuts' | 'categorias' | 'cuentas' | 'planificados' | 'personas' | 'suscripcion' | 'apariencia' | 'perfil'
+type Tab = 'shortcuts' | 'categorias' | 'cuentas' | 'planificados' | 'personas' | 'suscripcion' | 'apariencia' | 'perfil' | 'guia'
 
 // ── Bottom Sheet ──────────────────────────────────────────────────────────────
 
@@ -97,6 +98,7 @@ const SECTIONS: { key: Tab; icon: string; label: string; description: string; hi
   { key: 'personas' as Tab, icon: 'fa-solid fa-users', label: 'Personas', description: 'Contactos para dividir gastos' },
   { key: 'planificados' as Tab, icon: 'fa-solid fa-calendar', label: 'Recurrentes', description: 'Suscripciones y cobros fijos' },
   { key: 'suscripcion' as Tab, icon: 'fa-solid fa-crown', label: 'Plan', description: 'Suscripción y facturación' },
+  { key: 'guia' as Tab, icon: 'fa-solid fa-book-open', label: 'Guía', description: 'Aprende a usar Flux' },
 ].sort((a, b) => {
   if (a.hidden) return -1
   if (b.hidden) return 1
@@ -464,6 +466,9 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
           )}
           {section === 'suscripcion' && (
             <SubscriptionTab profile={profile} />
+          )}
+          {section === 'guia' && (
+            <GuideTab />
           )}
         </div>
       </div>
