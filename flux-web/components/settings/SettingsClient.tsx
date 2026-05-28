@@ -1762,6 +1762,7 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
   const [editing, setEditing] = useState<{ id?: string; name: string } | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [linkingPerson, setLinkingPerson] = useState<{ id: string; name: string } | null>(null)
+  const [managingLink, setManagingLink] = useState<{ id: string; confirming: boolean } | null>(null)
   const [isUnlinkPending, startUnlink] = useTransition()
 
   function handleSave() {
@@ -1834,9 +1835,15 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
               )}
             </div>
             <button
-              onClick={() => person.linked_user_id ? handleUnlinkPerson(person.id) : setLinkingPerson({ id: person.id, name: person.name })}
-              disabled={isUnlinkPending}
-              className="w-8 h-8 flex items-center justify-center rounded-lg transition-all active:scale-90 disabled:opacity-50"
+              onClick={() => {
+                if (person.linked_user_id) {
+                  setManagingLink(managingLink?.id === person.id ? null : { id: person.id, confirming: false })
+                  setDeleteConfirm(null)
+                } else {
+                  setLinkingPerson({ id: person.id, name: person.name })
+                }
+              }}
+              className="w-8 h-8 flex items-center justify-center rounded-lg transition-all active:scale-90"
               style={{ background: person.linked_user_id ? 'var(--f-accent-bg)' : 'var(--f-bg-input)' }}
             >
               <i className={`fa-solid ${person.linked_user_id ? 'fa-link' : 'fa-link-slash'} text-xs`}
@@ -1851,11 +1858,60 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
                 <button onClick={() => handleDelete(person.id)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold text-white" style={{ background: 'var(--f-expense)' }}>Sí</button>
               </div>
             ) : (
-              <button onClick={() => setDeleteConfirm(person.id)} className="w-8 h-8 flex items-center justify-center rounded-lg" style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}>
+              <button onClick={() => { setDeleteConfirm(person.id); setManagingLink(null) }} className="w-8 h-8 flex items-center justify-center rounded-lg" style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}>
                 <i className="fa-solid fa-trash text-xs" />
               </button>
             )}
           </div>
+
+          {/* Link management panel */}
+          {managingLink?.id === person.id && (
+            <div className="mt-3 pt-3 animate-fade-up" style={{ borderTop: '1px solid var(--f-line)' }}>
+              {managingLink.confirming ? (
+                <div className="space-y-2">
+                  <p className="text-[12px] font-bold text-center" style={{ color: 'var(--f-text-2)' }}>
+                    ¿Desvincular de @{person.linked_profile?.username}?
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setManagingLink({ id: person.id, confirming: false })}
+                      className="flex-1 py-2 rounded-[10px] text-[12px] font-black"
+                      style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
+                    >
+                      No
+                    </button>
+                    <button
+                      onClick={() => { handleUnlinkPerson(person.id); setManagingLink(null) }}
+                      disabled={isUnlinkPending}
+                      className="flex-1 py-2 rounded-[10px] text-[12px] font-black text-white disabled:opacity-50"
+                      style={{ background: 'var(--f-expense)' }}
+                    >
+                      {isUnlinkPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Sí, quitar'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { setManagingLink(null); setLinkingPerson({ id: person.id, name: person.name }) }}
+                    className="flex-1 py-2 rounded-[10px] text-[12px] font-black transition-all active:scale-95"
+                    style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)', border: '1px solid var(--f-accent-border)' }}
+                  >
+                    <i className="fa-solid fa-arrow-right-arrow-left mr-1 text-[10px]" />
+                    Cambiar
+                  </button>
+                  <button
+                    onClick={() => setManagingLink({ id: person.id, confirming: true })}
+                    className="flex-1 py-2 rounded-[10px] text-[12px] font-black transition-all active:scale-95"
+                    style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)', border: '1px solid var(--f-line)' }}
+                  >
+                    <i className="fa-solid fa-link-slash mr-1 text-[10px]" />
+                    Quitar
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       ))}
 

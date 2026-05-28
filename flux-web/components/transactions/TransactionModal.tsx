@@ -370,7 +370,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
             )}
 
             {/* Date */}
-            <div style={{ overflow: 'hidden' }}>
+            <div>
               <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>
                 Fecha
               </p>
@@ -378,7 +378,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                 type="datetime-local"
                 value={date}
                 onChange={e => setDate(e.target.value)}
-                className="w-full rounded-[14px] px-4 py-3 text-[13px] font-bold outline-none"
+                className="w-full rounded-[14px] px-3 py-3 text-[12px] font-bold outline-none"
                 style={{
                   background: 'var(--f-bg-input)',
                   border: '1px solid var(--f-line)',

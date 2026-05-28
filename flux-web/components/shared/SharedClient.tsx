@@ -46,6 +46,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
   const [isPending, startTransition] = useTransition()
   const [isPartialPending, startPartial] = useTransition()
   const [isUnlinking, startUnlink] = useTransition()
+  const [unlinkConfirmId, setUnlinkConfirmId] = useState<string | null>(null)
   const [settleAccountId, setSettleAccountId] = useState('')
 
   // Global settle state — keyed by person id
@@ -427,16 +428,35 @@ export default function SharedClient({ transactions, people, accounts, categorie
                       <div className="pt-1" />
                       {/* Link / unlink Flux user */}
                       {b.person.linked_user_id ? (
-                        <button
-                          onClick={() => handleUnlink(b.person.id)}
-                          disabled={isUnlinking}
-                          className="w-full flex items-center gap-2 py-2 text-left disabled:opacity-50"
-                        >
-                          <i className="fa-solid fa-link-slash text-[11px]" style={{ color: 'var(--f-text-4)' }} />
-                          <p className="text-[12px] font-bold" style={{ color: 'var(--f-text-4)' }}>
-                            Desvincular de @{b.person.linked_profile?.username ?? '...'}
-                          </p>
-                        </button>
+                        unlinkConfirmId === b.person.id ? (
+                          <div className="flex gap-2 py-1">
+                            <button
+                              onClick={() => setUnlinkConfirmId(null)}
+                              className="flex-1 py-1.5 rounded-[8px] text-[12px] font-black"
+                              style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
+                            >
+                              No
+                            </button>
+                            <button
+                              onClick={() => { handleUnlink(b.person.id); setUnlinkConfirmId(null) }}
+                              disabled={isUnlinking}
+                              className="flex-[2] py-1.5 rounded-[8px] text-[12px] font-black text-white disabled:opacity-50"
+                              style={{ background: 'var(--f-expense)' }}
+                            >
+                              {isUnlinking ? <i className="fa-solid fa-spinner fa-spin" /> : 'Sí, desvincular'}
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setUnlinkConfirmId(b.person.id)}
+                            className="w-full flex items-center gap-2 py-2 text-left"
+                          >
+                            <i className="fa-solid fa-link-slash text-[11px]" style={{ color: 'var(--f-text-4)' }} />
+                            <p className="text-[12px] font-bold" style={{ color: 'var(--f-text-4)' }}>
+                              Desvincular de @{b.person.linked_profile?.username ?? '...'}
+                            </p>
+                          </button>
+                        )
                       ) : (
                         <button
                           onClick={() => setLinkingPerson({ id: b.person.id, name: b.person.name })}
