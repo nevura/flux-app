@@ -825,6 +825,17 @@ function AccountsTab({ accounts, isPending, startTransition }: {
               className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder:opacity-30 focus:outline-none"
               style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
             />
+            {(editing.payment_method_id === 'MP-TDD' || editing.payment_method_id === 'MP-TDC') && (
+              <div className="flex items-start gap-2.5 rounded-xl px-3 py-2.5" style={{ background: 'rgba(255,159,10,0.12)', border: '1px solid rgba(255,159,10,0.3)' }}>
+                <i className="fa-solid fa-triangle-exclamation text-[12px] mt-0.5 flex-shrink-0" style={{ color: '#ff9f0a' }} />
+                <div>
+                  <p className="text-[12px] font-black leading-snug" style={{ color: '#ff9f0a' }}>El nombre debe coincidir con Wallet</p>
+                  <p className="text-[11px] font-semibold mt-0.5 leading-snug" style={{ color: 'var(--f-text-3)' }}>
+                    Verifica el nombre exacto en: Configuración → Wallet y Apple Pay → Tarjetas de pago
+                  </p>
+                </div>
+              </div>
+            )}
             <div className="flex gap-2">
               {PAYMENT_METHODS.map(m => (
                 <button
