@@ -102,7 +102,8 @@ export default function FriendSearchModal({ onClose, existingFriendships, myUser
             <input
               ref={inputRef}
               type="text"
-              autoComplete="off"
+              name="user_search_query"
+              autoComplete="one-time-code"
               autoCorrect="off"
               autoCapitalize="none"
               spellCheck={false}
