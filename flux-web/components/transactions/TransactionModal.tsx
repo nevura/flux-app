@@ -370,7 +370,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
             )}
 
             {/* Date */}
-            <div>
+            <div style={{ overflowX: 'hidden' }}>
               <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>
                 Fecha
               </p>
@@ -384,8 +384,8 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                   border: '1px solid var(--f-line)',
                   color: 'var(--f-text)',
                   colorScheme: 'dark',
+                  boxSizing: 'border-box',
                   minWidth: 0,
-                  maxWidth: '100%',
                 }}
               />
             </div>

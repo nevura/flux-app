@@ -1761,7 +1761,7 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
   const [contacts, setContacts] = useState(initialPeople.filter(p => !p.is_me))
   const [editing, setEditing] = useState<{ id?: string; name: string } | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
-  const [linkingPerson, setLinkingPerson] = useState<{ id: string; name: string } | null>(null)
+  const [linkingPerson, setLinkingPerson] = useState<{ id: string; name: string; currentLinkedUserId?: string | null } | null>(null)
   const [managingLink, setManagingLink] = useState<{ id: string; confirming: boolean } | null>(null)
   const [isUnlinkPending, startUnlink] = useTransition()
 
@@ -1893,7 +1893,7 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
               ) : (
                 <div className="flex gap-2">
                   <button
-                    onClick={() => { setManagingLink(null); setLinkingPerson({ id: person.id, name: person.name }) }}
+                    onClick={() => { setManagingLink(null); setLinkingPerson({ id: person.id, name: person.name, currentLinkedUserId: person.linked_user_id }) }}
                     className="flex-1 py-2 rounded-[10px] text-[12px] font-black transition-all active:scale-95"
                     style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)', border: '1px solid var(--f-accent-border)' }}
                   >
@@ -1939,6 +1939,7 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
         <LinkPersonModal
           personId={linkingPerson.id}
           personName={linkingPerson.name}
+          currentLinkedUserId={linkingPerson.currentLinkedUserId}
           onClose={() => setLinkingPerson(null)}
           onLinked={(profile) => { handlePersonLinked(linkingPerson.id, profile); setLinkingPerson(null) }}
         />

@@ -73,9 +73,12 @@ export async function addTransaction(form: TransactionForm) {
           const { data: myProfile } = await supabase
             .from('profiles').select('username, full_name').eq('id', user.id).single()
           const admin = createAdminClient()
+          const invitedNames: string[] = []
+
           for (const lp of linkedPeople) {
             const participant = form.split_data!.data.find(p => p.id === lp.id)
             if (!participant) continue
+            invitedNames.push(participant.nombre)
             await (admin.from('notifications') as any).insert({
               user_id: lp.linked_user_id,
               type: 'shared_expense_invite',
@@ -89,6 +92,19 @@ export async function addTransaction(form: TransactionForm) {
                 participant_amount: participant.value,
                 participant_person_id: lp.id,
                 category_id: form.category_id || null,
+              },
+            })
+          }
+
+          // Notify creator that invites were sent
+          if (invitedNames.length > 0) {
+            await supabase.from('notifications').insert({
+              user_id: user.id,
+              type: 'shared_expense_sent',
+              data: {
+                concept: form.concept,
+                total_amount: amount,
+                invited_names: invitedNames,
               },
             })
           }

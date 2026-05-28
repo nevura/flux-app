@@ -9,11 +9,12 @@ import type { PublicProfile } from '@/lib/types'
 interface Props {
   personId: string
   personName: string
+  currentLinkedUserId?: string | null
   onClose: () => void
   onLinked?: (profile: PublicProfile) => void
 }
 
-export default function LinkPersonModal({ personId, personName, onClose, onLinked }: Props) {
+export default function LinkPersonModal({ personId, personName, currentLinkedUserId, onClose, onLinked }: Props) {
   const [mounted, setMounted] = useState(false)
   const [friends, setFriends] = useState<PublicProfile[]>([])
   const [loading, setLoading] = useState(true)
@@ -132,14 +133,20 @@ export default function LinkPersonModal({ personId, personName, onClose, onLinke
                 <p className="text-[14px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{user.full_name || user.username}</p>
                 <p className="text-[12px] font-semibold" style={{ color: 'var(--f-blue)' }}>@{user.username}</p>
               </div>
-              <button
-                onClick={() => handleLink(user)}
-                disabled={isPending}
-                className="text-[12px] font-black px-3 py-1.5 rounded-[10px] text-white disabled:opacity-50 transition-all active:scale-95"
-                style={{ background: 'var(--f-blue)' }}
-              >
-                {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Vincular'}
-              </button>
+              {currentLinkedUserId === user.id ? (
+                <span className="text-[11px] font-black px-2 py-1 rounded-lg" style={{ background: 'var(--f-income-bg)', color: 'var(--f-income)' }}>
+                  Vinculado
+                </span>
+              ) : (
+                <button
+                  onClick={() => handleLink(user)}
+                  disabled={isPending}
+                  className="text-[12px] font-black px-3 py-1.5 rounded-[10px] text-white disabled:opacity-50 transition-all active:scale-95"
+                  style={{ background: 'var(--f-blue)' }}
+                >
+                  {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Vincular'}
+                </button>
+              )}
             </div>
           ))}
         </div>

@@ -85,6 +85,7 @@ export type NotificationType =
   | 'friend_accepted'
   | 'friend_declined'
   | 'shared_expense_invite'
+  | 'shared_expense_sent'
   | 'expense_settled'
 
 export interface Notification {
