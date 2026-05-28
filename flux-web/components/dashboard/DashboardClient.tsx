@@ -228,7 +228,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
               Hola, {userName}
             </h1>
           </div>
-          <NotificationBell />
+          <div data-coach="home-bell"><NotificationBell /></div>
         </div>
       </header>
 
@@ -340,6 +340,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
 
         {/* Daily / Weekly spend — arrows beside the amount */}
         <div
+          data-coach="home-daily"
           className="rounded-[20px] overflow-hidden animate-fade-up"
           style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', animationDelay: '0.06s' }}
         >
@@ -522,7 +523,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
         })()}
 
         {/* Accounts grid — gradient tinted cards */}
-        <div className="animate-fade-up" style={{ animationDelay: '0.12s' }}>
+        <div data-coach="home-accounts" className="animate-fade-up" style={{ animationDelay: '0.12s' }}>
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] font-black tracking-[3px] uppercase" style={{ color: 'var(--f-text-3)' }}>
               Estado de cuentas
@@ -659,17 +660,17 @@ export default function DashboardClient({ user, accounts, transactions, categori
 
       </div>
 
-      {scheduledAction && (
+      {scheduledAction && createPortal(
         <>
-          <div className="fixed inset-0 z-[60] bg-black/50 animate-fade-in" onClick={() => setScheduledAction(null)} />
+          <div className="fixed inset-0 z-[200] bg-black/60 animate-fade-in" onClick={() => setScheduledAction(null)} />
           <div
-            className="fixed bottom-0 left-0 right-0 z-[60] rounded-t-[28px] px-5 pt-5 animate-slide-up"
+            className="fixed bottom-0 left-0 right-0 z-[200] rounded-t-[28px] px-5 pt-5 animate-slide-up"
             style={{ background: 'var(--f-bg-elevated)', paddingBottom: 'calc(2rem + var(--safe-bottom))' }}
           >
             <div className="flex items-center gap-3 mb-5">
               <div className="flex-1 min-w-0">
-                <p className="text-[16px] font-black truncate" style={{ color: 'var(--f-text)' }}>{scheduledAction.name}</p>
-                <p className="text-[12px] mt-0.5" style={{ color: 'var(--f-text-3)' }}>
+                <p className="text-[17px] font-black truncate" style={{ color: 'var(--f-text)' }}>{scheduledAction.name}</p>
+                <p className="text-[13px] mt-0.5" style={{ color: 'var(--f-text-3)' }}>
                   Recurrente · {formatCurrency(scheduledAction.amount)}
                 </p>
               </div>
@@ -685,7 +686,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
               <button
                 onClick={() => handleChargeScheduled(scheduledAction.id, false)}
                 disabled={isChargePending}
-                className="py-4 rounded-[16px] text-white text-[13px] font-black disabled:opacity-50 active:scale-[0.98] transition-all"
+                className="py-4 rounded-[16px] text-white text-[14px] font-black disabled:opacity-50 active:scale-[0.98] transition-all"
                 style={{ background: 'var(--f-blue)', boxShadow: 'var(--f-shadow-accent)' }}
               >
                 {isChargePending ? <i className="fa-solid fa-spinner fa-spin" /> : '✓ Registrar pago'}
@@ -693,14 +694,15 @@ export default function DashboardClient({ user, accounts, transactions, categori
               <button
                 onClick={() => handleChargeScheduled(scheduledAction.id, true)}
                 disabled={isChargePending}
-                className="py-4 rounded-[16px] text-[13px] font-black disabled:opacity-50 active:scale-[0.98] transition-all"
+                className="py-4 rounded-[16px] text-[14px] font-black disabled:opacity-50 active:scale-[0.98] transition-all"
                 style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-2)' }}
               >
                 Omitir ciclo
               </button>
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
 
       {/* TDC payment modal — portal to escape stacking context */}

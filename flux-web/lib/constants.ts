@@ -28,6 +28,7 @@ export const STATIC_ICONS: StaticIcon[] = [
   { id_icon: 'IC-025',  icon_base: 'fa-solid fa-droplet' },
   { id_icon: 'IC-026',  icon_base: 'fa-solid fa-wrench' },
   { id_icon: 'IC-027',  icon_base: 'fa-solid fa-music' },
+  { id_icon: 'IC-APPLE', icon_base: 'fa-brands fa-apple' },
   { id_icon: 'IC-028',  icon_base: 'fa-brands fa-xbox' },
   { id_icon: 'IC-029',  icon_base: 'fa-solid fa-tv' },
   { id_icon: 'IC-030',  icon_base: 'fa-solid fa-chess-knight' },
@@ -110,6 +111,7 @@ export const DEFAULT_CATEGORIES: Omit<Category, 'created_at' | 'updated_at'>[] =
   { id: 'CAT-DEF-EST',   user_id: null, name: 'Estacionamiento',     icon_id: 'IC-004', color_id: 'COL-05', is_default: true, sort_order: 14 },
   { id: 'CAT-DEF-OTHER', user_id: null, name: 'Otro',                icon_id: 'IC-009', color_id: 'COL-21', is_default: true, sort_order: 15 },
   { id: 'CAT-AUDIT',     user_id: null, name: 'Ajuste',              icon_id: 'IC-AUDIT', color_id: 'COL-30', is_default: true, sort_order: 99 },
+  { id: 'CAT-APPLE',    user_id: null, name: 'Apple Pay',           icon_id: 'IC-APPLE', color_id: 'COL-01', is_default: true, sort_order: 98 },
 ]
 
 export const TRANSACTION_TYPES = {

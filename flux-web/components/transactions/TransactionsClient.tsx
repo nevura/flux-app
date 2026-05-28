@@ -155,7 +155,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
         }}
       >
         {/* Month navigation row */}
-        <div className="flex items-center justify-between mb-4 relative">
+        <div data-coach="tx-month-nav" className="flex items-center justify-between mb-4 relative">
           <button
             onClick={() => navigate(-1)}
             className="w-9 h-9 rounded-2xl flex items-center justify-center active:scale-90 transition-transform"

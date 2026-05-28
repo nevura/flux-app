@@ -12,6 +12,7 @@ import type { Profile, Category, Account, ScheduledTransaction, Person, PublicPr
 import ShortcutInstall from './ShortcutInstall'
 import GuideTab from './GuideTab'
 import LinkPersonModal from '@/components/friends/LinkPersonModal'
+import CoachMarkTour from '@/components/onboarding/CoachMarkTour'
 
 interface Props {
   profile: Profile | null
@@ -22,7 +23,7 @@ interface Props {
   people: Person[]
 }
 
-type Tab = 'shortcuts' | 'categorias' | 'cuentas' | 'planificados' | 'personas' | 'suscripcion' | 'apariencia' | 'perfil' | 'guia'
+type Tab = 'shortcuts' | 'categorias' | 'cuentas' | 'planificados' | 'personas' | 'suscripcion' | 'apariencia' | 'perfil' | 'guia' | 'presupuesto'
 
 // ── Bottom Sheet ──────────────────────────────────────────────────────────────
 
@@ -92,7 +93,8 @@ function BottomSheet({ onClose, children, title }: { onClose: () => void; childr
 const SECTIONS: { key: Tab; icon: string; label: string; description: string; hidden?: boolean }[] = [
   { key: 'perfil' as Tab, icon: 'fa-solid fa-user', label: 'Perfil', description: 'Nombre, usuario y contacto', hidden: true },
   { key: 'apariencia' as Tab, icon: 'fa-solid fa-circle-half-stroke', label: 'Apariencia', description: 'Modo claro u oscuro' },
-  { key: 'shortcuts' as Tab, icon: 'fa-solid fa-mobile-screen', label: 'Atajos', description: 'iPhone Shortcuts y presupuesto' },
+  { key: 'shortcuts' as Tab, icon: 'fa-solid fa-mobile-screen', label: 'Atajos', description: 'iPhone Shortcuts para registrar movimientos' },
+  { key: 'presupuesto' as Tab, icon: 'fa-solid fa-chart-bar', label: 'Presupuesto', description: 'Límite mensual de gastos' },
   { key: 'categorias' as Tab, icon: 'fa-solid fa-tags', label: 'Categorías', description: 'Categorías personalizadas' },
   { key: 'cuentas' as Tab, icon: 'fa-solid fa-wallet', label: 'Cuentas', description: 'Efectivo, débito y crédito' },
   { key: 'personas' as Tab, icon: 'fa-solid fa-users', label: 'Personas', description: 'Contactos para dividir gastos' },
@@ -377,46 +379,47 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
           )}
 
           {section === 'shortcuts' && (
-            <div className="space-y-4">
-              <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-accent-border)' }}>
-                <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid var(--f-accent-bg)' }}>
-                  <i className="fa-solid fa-chart-line text-xl" style={{ color: 'var(--f-blue)' }} />
-                  <p className="text-sm font-bold text-white">Presupuesto predeterminado</p>
-                </div>
-                <div className="px-4 py-3">
-                  {editingDefBudget ? (
-                    <div className="flex gap-2">
-                      <input
-                        type="number" min="0" step="0.01" autoFocus
-                        value={defBudgetInput}
-                        onChange={e => setDefBudgetInput(e.target.value)}
-                        onKeyDown={e => { if (e.key === 'Enter') handleSaveDefBudget(); if (e.key === 'Escape') setEditingDefBudget(false) }}
-                        placeholder="0.00 (vacío para quitar)"
-                        className="flex-1 rounded-lg px-3 py-2 text-sm font-bold text-white outline-none tabular-nums"
-                        style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-glow)' }}
-                        inputMode="decimal"
-                      />
-                      <button onClick={handleSaveDefBudget} disabled={isDefBudgetPending} className="px-3 py-2 rounded-lg text-xs font-bold text-white disabled:opacity-50" style={{ background: 'var(--f-blue)' }}>
-                        {isDefBudgetPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'OK'}
-                      </button>
-                      <button onClick={() => setEditingDefBudget(false)} className="px-2 rounded-lg" style={{ background: 'var(--f-line)', color: 'var(--f-text-3)' }}>✕</button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between">
-                      <p className="text-base font-bold" style={{ color: profile?.default_monthly_budget ? 'white' : 'var(--f-text-4)' }}>
-                        {profile?.default_monthly_budget ? `${formatCurrency(profile.default_monthly_budget)} / mes` : 'Sin presupuesto predeterminado'}
-                      </p>
-                      <button onClick={() => setEditingDefBudget(true)} className="text-sm font-semibold flex items-center gap-1" style={{ color: 'var(--f-blue)' }}>
-                        <i className="fa-solid fa-pencil text-[14px]" /> Editar
-                      </button>
-                    </div>
-                  )}
-                  <p className="text-sm mt-1.5" style={{ color: 'var(--f-text-4)' }}>
-                    Se aplica cuando no hay presupuesto configurado para el mes actual.
-                  </p>
-                </div>
+            <ShortcutInstall token={shortcutToken} />
+          )}
+
+          {section === 'presupuesto' && (
+            <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-accent-border)' }}>
+              <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid var(--f-accent-bg)' }}>
+                <i className="fa-solid fa-chart-bar text-xl" style={{ color: 'var(--f-blue)' }} />
+                <p className="text-sm font-bold text-white">Presupuesto predeterminado</p>
               </div>
-              <ShortcutInstall token={shortcutToken} />
+              <div className="px-4 py-3">
+                {editingDefBudget ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="number" min="0" step="0.01" autoFocus
+                      value={defBudgetInput}
+                      onChange={e => setDefBudgetInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') handleSaveDefBudget(); if (e.key === 'Escape') setEditingDefBudget(false) }}
+                      placeholder="0.00 (vacío para quitar)"
+                      className="flex-1 rounded-lg px-3 py-2 text-sm font-bold text-white outline-none tabular-nums"
+                      style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-glow)' }}
+                      inputMode="decimal"
+                    />
+                    <button onClick={handleSaveDefBudget} disabled={isDefBudgetPending} className="px-3 py-2 rounded-lg text-xs font-bold text-white disabled:opacity-50" style={{ background: 'var(--f-blue)' }}>
+                      {isDefBudgetPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'OK'}
+                    </button>
+                    <button onClick={() => setEditingDefBudget(false)} className="px-2 rounded-lg" style={{ background: 'var(--f-line)', color: 'var(--f-text-3)' }}>✕</button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <p className="text-base font-bold" style={{ color: profile?.default_monthly_budget ? 'white' : 'var(--f-text-4)' }}>
+                      {profile?.default_monthly_budget ? `${formatCurrency(profile.default_monthly_budget)} / mes` : 'Sin presupuesto predeterminado'}
+                    </p>
+                    <button onClick={() => setEditingDefBudget(true)} className="text-sm font-semibold flex items-center gap-1" style={{ color: 'var(--f-blue)' }}>
+                      <i className="fa-solid fa-pencil text-[14px]" /> Editar
+                    </button>
+                  </div>
+                )}
+                <p className="text-sm mt-1.5" style={{ color: 'var(--f-text-4)' }}>
+                  Se aplica cuando no hay presupuesto configurado para el mes actual. También puedes editarlo directamente desde Inicio tocando el lápiz en la tarjeta de presupuesto.
+                </p>
+              </div>
             </div>
           )}
 
@@ -494,6 +497,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
 
         {/* Profile card — tap to edit in Perfil section */}
         <button
+          data-coach="settings-profile-header"
           onClick={() => { setSection('perfil'); window.scrollTo({ top: 0 }) }}
           className="flex items-center gap-3 w-full text-left transition-all active:scale-[0.98]"
         >
@@ -536,7 +540,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
         )}
 
         {/* Options list */}
-        <div className="rounded-[20px] overflow-hidden" style={{ border: '1px solid var(--f-line)' }}>
+        <div data-coach="settings-list" className="rounded-[20px] overflow-hidden" style={{ border: '1px solid var(--f-line)' }}>
           {SECTIONS.filter(s => !s.hidden).map((s, i, arr) => {
             const isLast = i === arr.length - 1
             const isPlan = s.key === 'suscripcion'
@@ -600,6 +604,8 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
           Flux · Powered by Nevura
         </p>
       </div>
+
+      <CoachMarkTour pageKey="settings" />
     </div>
   )
 }
