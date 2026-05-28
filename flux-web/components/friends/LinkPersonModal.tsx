@@ -10,9 +10,10 @@ interface Props {
   personId: string
   personName: string
   onClose: () => void
+  onLinked?: (profile: PublicProfile) => void
 }
 
-export default function LinkPersonModal({ personId, personName, onClose }: Props) {
+export default function LinkPersonModal({ personId, personName, onClose, onLinked }: Props) {
   const [mounted, setMounted] = useState(false)
   const [friends, setFriends] = useState<PublicProfile[]>([])
   const [loading, setLoading] = useState(true)
@@ -48,6 +49,7 @@ export default function LinkPersonModal({ personId, personName, onClose }: Props
       const res = await linkPersonToUser(personId, user.id)
       if (res.error) { toast.error(res.error); return }
       toast.success(`${personName} vinculado con @${user.username}`)
+      onLinked?.(user)
       onClose()
     })
   }

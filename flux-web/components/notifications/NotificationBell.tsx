@@ -7,6 +7,8 @@ import { es } from 'date-fns/locale'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { markNotificationsRead, respondFriendRequest } from '@/actions/friends'
+import { acceptSharedExpense, declineSharedExpense } from '@/actions/transactions'
+import { formatCurrency } from '@/lib/utils'
 import type { Notification } from '@/lib/types'
 
 function notifLabel(n: Notification): { icon: string; iconColor: string; text: string } {
@@ -19,7 +21,7 @@ function notifLabel(n: Notification): { icon: string; iconColor: string; text: s
     case 'friend_declined':
       return { icon: 'fa-solid fa-user-xmark', iconColor: 'var(--f-expense)', text: `@${d.from_username || d.from_name} rechazó tu solicitud` }
     case 'shared_expense_invite':
-      return { icon: 'fa-solid fa-receipt', iconColor: 'var(--f-transfer)', text: `@${d.from_username} compartió un gasto contigo` }
+      return { icon: 'fa-solid fa-receipt', iconColor: 'var(--f-transfer)', text: `@${d.from_username} te invita a dividir: ${d.concept}` }
     case 'expense_settled':
       return { icon: 'fa-solid fa-circle-check', iconColor: 'var(--f-income)', text: `@${d.from_username} saldó una deuda` }
     default:
@@ -34,6 +36,9 @@ export default function NotificationBell() {
   const [loading, setLoading] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const [accounts, setAccounts] = useState<{ id: string; name: string }[]>([])
+  const [acceptingId, setAcceptingId] = useState<string | null>(null)
+  const [acceptAccountId, setAcceptAccountId] = useState('')
 
   useEffect(() => {
     setMounted(true)
@@ -49,17 +54,37 @@ export default function NotificationBell() {
     setOpen(true)
     setLoading(true)
     const supabase = createClient()
-    const { data } = await supabase
-      .from('notifications')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(30)
-    setList(data ?? [])
+    const [{ data: notifs }, { data: accs }] = await Promise.all([
+      supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(30),
+      supabase.from('accounts').select('id, name').eq('is_active', true).order('sort_order'),
+    ])
+    setList(notifs ?? [])
+    setAccounts(accs ?? [])
     setLoading(false)
     if (unread > 0) {
       setUnread(0)
       startTransition(async () => { await markNotificationsRead() })
     }
+  }
+
+  function handleAcceptExpense(notifId: string) {
+    if (!acceptAccountId) return
+    startTransition(async () => {
+      const res = await acceptSharedExpense(notifId, acceptAccountId)
+      if (res.error) { toast.error(res.error); return }
+      toast.success('Gasto registrado')
+      setList(prev => prev.map(n => n.id === notifId ? { ...n, read: true } : n))
+      setAcceptingId(null)
+      setAcceptAccountId('')
+    })
+  }
+
+  function handleDeclineExpense(notifId: string) {
+    startTransition(async () => {
+      const res = await declineSharedExpense(notifId)
+      if (res.error) { toast.error(res.error); return }
+      setList(prev => prev.map(n => n.id === notifId ? { ...n, read: true } : n))
+    })
   }
 
   function handleFriendResponse(friendshipId: string, accept: boolean) {
@@ -175,6 +200,62 @@ export default function NotificationBell() {
                           {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Aceptar'}
                         </button>
                       </div>
+                    )}
+                    {n.type === 'shared_expense_invite' && !n.read && (
+                      <>
+                        <p className="text-[12px] mt-1 font-bold tabular-nums" style={{ color: 'var(--f-transfer)' }}>
+                          Tu parte: {formatCurrency(Number(d.participant_amount))}
+                        </p>
+                        {acceptingId === n.id ? (
+                          <div className="mt-3 space-y-2">
+                            <select
+                              value={acceptAccountId}
+                              onChange={e => setAcceptAccountId(e.target.value)}
+                              className="w-full rounded-[10px] px-3 py-2 text-[13px] font-semibold outline-none"
+                              style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)', colorScheme: 'dark' }}
+                            >
+                              <option value="">¿En qué cuenta?</option>
+                              {accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name}</option>)}
+                            </select>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => { setAcceptingId(null); setAcceptAccountId('') }}
+                                className="flex-1 py-2 rounded-[10px] text-[12px] font-black"
+                                style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
+                              >
+                                Cancelar
+                              </button>
+                              <button
+                                onClick={() => handleAcceptExpense(n.id)}
+                                disabled={!acceptAccountId || isPending}
+                                className="flex-[2] py-2 rounded-[10px] text-[12px] font-black text-white disabled:opacity-50 active:scale-95"
+                                style={{ background: 'var(--f-transfer)' }}
+                              >
+                                {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Confirmar'}
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2 mt-3">
+                            <button
+                              onClick={() => handleDeclineExpense(n.id)}
+                              disabled={isPending}
+                              className="flex-1 py-2 rounded-[10px] text-[12px] font-black transition-all active:scale-95 disabled:opacity-50"
+                              style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
+                            >
+                              Ignorar
+                            </button>
+                            <button
+                              onClick={() => { setAcceptingId(n.id); setAcceptAccountId('') }}
+                              disabled={isPending}
+                              className="flex-[2] py-2 rounded-[10px] text-[12px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
+                              style={{ background: 'var(--f-transfer)' }}
+                            >
+                              Registrar
+                            </button>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>

@@ -66,6 +66,7 @@ export interface Person {
   phone: string | null
   is_me: boolean
   linked_user_id: string | null
+  linked_profile?: { id: string; username: string | null; full_name: string | null } | null
   created_at: string
   updated_at: string
 }

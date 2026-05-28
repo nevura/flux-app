@@ -7,9 +7,10 @@ import { createClient } from '@/lib/supabase/client'
 import { getCategoryDisplay, getPaymentMethod, formatCurrency } from '@/lib/utils'
 import { STATIC_ICONS, STATIC_COLORS, PAYMENT_METHODS, SHORTCUT_LINKS } from '@/lib/constants'
 import { saveCategory, deleteCategory, saveAccount, deleteAccount, saveScheduled, deleteScheduled, updateProfile, saveDefaultBudget, updateThemePreference, addPerson, updatePerson, deletePerson } from '@/actions/config'
-import { setUsername, updatePhone, checkUsernameAvailable } from '@/actions/friends'
-import type { Profile, Category, Account, ScheduledTransaction, Person } from '@/lib/types'
+import { setUsername, updatePhone, checkUsernameAvailable, linkPersonToUser } from '@/actions/friends'
+import type { Profile, Category, Account, ScheduledTransaction, Person, PublicProfile } from '@/lib/types'
 import ShortcutInstall from './ShortcutInstall'
+import LinkPersonModal from '@/components/friends/LinkPersonModal'
 
 interface Props {
   profile: Profile | null
@@ -1760,6 +1761,8 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
   const [contacts, setContacts] = useState(initialPeople.filter(p => !p.is_me))
   const [editing, setEditing] = useState<{ id?: string; name: string } | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [linkingPerson, setLinkingPerson] = useState<{ id: string; name: string } | null>(null)
+  const [isUnlinkPending, startUnlink] = useTransition()
 
   function handleSave() {
     if (!editing || !editing.name.trim()) return
@@ -1790,6 +1793,19 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
     })
   }
 
+  function handleUnlinkPerson(id: string) {
+    startUnlink(async () => {
+      const res = await linkPersonToUser(id, null)
+      if (res.error) { toast.error(res.error); return }
+      setContacts(prev => prev.map(p => p.id === id ? { ...p, linked_user_id: null, linked_profile: null } : p))
+      toast.success('Desvinculado')
+    })
+  }
+
+  function handlePersonLinked(personId: string, profile: PublicProfile) {
+    setContacts(prev => prev.map(p => p.id === personId ? { ...p, linked_user_id: profile.id, linked_profile: profile } : p))
+  }
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -1804,24 +1820,42 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
       )}
 
       {contacts.map((person, i) => (
-        <div key={person.id} className="rounded-2xl px-4 py-4 flex items-center gap-4 animate-fade-up" style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-accent-bg)', animationDelay: `${i * 0.04}s` }}>
-          <div className="w-11 h-11 rounded-xl flex items-center justify-center font-black text-[15px]" style={{ background: 'rgba(100,210,255,0.12)', color: 'var(--f-transfer)' }}>
-            {person.name[0]?.toUpperCase() ?? '?'}
-          </div>
-          <span className="flex-1 text-sm font-semibold text-white truncate">{person.name}</span>
-          <button onClick={() => setEditing({ id: person.id, name: person.name })} className="px-2" style={{ color: 'var(--f-text-3)' }}>
-            <i className="fa-solid fa-pen text-xs" />
-          </button>
-          {deleteConfirm === person.id ? (
-            <div className="flex items-center gap-1.5">
-              <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold" style={{ color: 'var(--f-text-2)', background: 'var(--f-bg-input)' }}>No</button>
-              <button onClick={() => handleDelete(person.id)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold text-white" style={{ background: 'var(--f-expense)' }}>Sí</button>
+        <div key={person.id} className="rounded-2xl px-4 py-3.5 animate-fade-up" style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-accent-bg)', animationDelay: `${i * 0.04}s` }}>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-[14px] flex-shrink-0" style={{ background: 'rgba(100,210,255,0.12)', color: 'var(--f-transfer)' }}>
+              {person.name[0]?.toUpperCase() ?? '?'}
             </div>
-          ) : (
-            <button onClick={() => setDeleteConfirm(person.id)} className="px-2" style={{ color: 'var(--f-text-3)' }}>
-              <i className="fa-solid fa-trash text-xs" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-white truncate">{person.name}</p>
+              {person.linked_profile?.username ? (
+                <p className="text-[11px] font-semibold" style={{ color: 'var(--f-blue)' }}>@{person.linked_profile.username}</p>
+              ) : (
+                <p className="text-[11px] font-semibold" style={{ color: 'var(--f-text-4)' }}>Sin vincular a Flux</p>
+              )}
+            </div>
+            <button
+              onClick={() => person.linked_user_id ? handleUnlinkPerson(person.id) : setLinkingPerson({ id: person.id, name: person.name })}
+              disabled={isUnlinkPending}
+              className="w-8 h-8 flex items-center justify-center rounded-lg transition-all active:scale-90 disabled:opacity-50"
+              style={{ background: person.linked_user_id ? 'var(--f-accent-bg)' : 'var(--f-bg-input)' }}
+            >
+              <i className={`fa-solid ${person.linked_user_id ? 'fa-link' : 'fa-link-slash'} text-xs`}
+                style={{ color: person.linked_user_id ? 'var(--f-blue)' : 'var(--f-text-4)' }} />
             </button>
-          )}
+            <button onClick={() => setEditing({ id: person.id, name: person.name })} className="w-8 h-8 flex items-center justify-center rounded-lg" style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}>
+              <i className="fa-solid fa-pen text-xs" />
+            </button>
+            {deleteConfirm === person.id ? (
+              <div className="flex items-center gap-1.5">
+                <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold" style={{ color: 'var(--f-text-2)', background: 'var(--f-bg-input)' }}>No</button>
+                <button onClick={() => handleDelete(person.id)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold text-white" style={{ background: 'var(--f-expense)' }}>Sí</button>
+              </div>
+            ) : (
+              <button onClick={() => setDeleteConfirm(person.id)} className="w-8 h-8 flex items-center justify-center rounded-lg" style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}>
+                <i className="fa-solid fa-trash text-xs" />
+              </button>
+            )}
+          </div>
         </div>
       ))}
 
@@ -1843,6 +1877,15 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
             </div>
           </div>
         </BottomSheet>
+      )}
+
+      {linkingPerson && (
+        <LinkPersonModal
+          personId={linkingPerson.id}
+          personName={linkingPerson.name}
+          onClose={() => setLinkingPerson(null)}
+          onLinked={(profile) => { handlePersonLinked(linkingPerson.id, profile); setLinkingPerson(null) }}
+        />
       )}
     </div>
   )

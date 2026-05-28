@@ -10,7 +10,7 @@ export default async function SharedPage() {
 
   const [{ data: transactions }, { data: people }, { data: accounts }, { data: categories }, { data: friendships }] = await Promise.all([
     supabase.from('transactions').select('*').eq('user_id', user.id).not('split_data', 'is', null),
-    supabase.from('people').select('*').eq('user_id', user.id),
+    supabase.from('people').select('*, linked_profile:profiles!linked_user_id(id, username, full_name)').eq('user_id', user.id),
     supabase.from('accounts').select('*').eq('user_id', user.id).eq('is_active', true).order('sort_order'),
     supabase.from('categories').select('*').or(`user_id.eq.${user.id},user_id.is.null`).order('sort_order'),
     supabase.from('friendships').select('*').or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`),

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { adjustmentFor, parseAmount, getMexicoNow } from '@/lib/utils'
 import type { TransactionForm, SplitParticipant, AccountWithBalance, Category, Person } from '@/lib/types'
 
@@ -44,7 +45,7 @@ export async function addTransaction(form: TransactionForm) {
     })
     if (error) return { error: error.message }
   } else {
-    const { error } = await supabase.from('transactions').insert({
+    const { data: newTx, error } = await supabase.from('transactions').insert({
       user_id: user.id,
       concept: form.concept,
       type: form.type,
@@ -58,8 +59,42 @@ export async function addTransaction(form: TransactionForm) {
       split_data: form.split_data || null,
       exclude_from_budget: form.exclude_from_budget ?? false,
       notes: form.notes || null,
-    })
+    }).select('id').single()
     if (error) return { error: error.message }
+
+    // Send shared expense invites to linked friends
+    if (newTx && form.split_data?.data && (form.split_data.splitMode === 'THEY' || form.split_data.splitMode === 'DIV')) {
+      const participantIds = form.split_data.data.filter(p => p.id !== 'PER-YO').map(p => p.id)
+      if (participantIds.length > 0) {
+        const { data: linkedPeople } = await supabase
+          .from('people').select('id, linked_user_id')
+          .in('id', participantIds).not('linked_user_id', 'is', null)
+        if (linkedPeople?.length) {
+          const { data: myProfile } = await supabase
+            .from('profiles').select('username, full_name').eq('id', user.id).single()
+          const admin = createAdminClient()
+          for (const lp of linkedPeople) {
+            const participant = form.split_data!.data.find(p => p.id === lp.id)
+            if (!participant) continue
+            await (admin.from('notifications') as any).insert({
+              user_id: lp.linked_user_id,
+              type: 'shared_expense_invite',
+              data: {
+                transaction_id: newTx.id,
+                from_user_id: user.id,
+                from_username: myProfile?.username ?? '',
+                from_name: myProfile?.full_name ?? '',
+                concept: form.concept,
+                total_amount: amount,
+                participant_amount: participant.value,
+                participant_person_id: lp.id,
+                category_id: form.category_id || null,
+              },
+            })
+          }
+        }
+      }
+    }
   }
 
   revalidatePath('/home')
@@ -422,6 +457,63 @@ export async function searchAllTransactions(query: string) {
     .limit(300)
 
   return { data: data ?? [] }
+}
+
+export async function acceptSharedExpense(notificationId: string, accountId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+
+  const { data: notif } = await supabase
+    .from('notifications').select('*').eq('id', notificationId).eq('user_id', user.id).single()
+  if (!notif) return { error: 'Notificación no encontrada' }
+
+  const d = notif.data as Record<string, unknown>
+  const participantAmount = Number(d.participant_amount)
+  const today = getMexicoNow().slice(0, 10)
+
+  const { error: txError } = await supabase.from('transactions').insert({
+    user_id: user.id,
+    concept: String(d.concept),
+    type: 'TR-GASTO',
+    amount: participantAmount,
+    adjustment: adjustmentFor('TR-GASTO', participantAmount),
+    category_id: d.category_id ? String(d.category_id) : null,
+    account_id: accountId,
+    transaction_date: today,
+    is_validated: true,
+  })
+  if (txError) return { error: txError.message }
+
+  await supabase.from('notifications').update({ read: true }).eq('id', notificationId)
+
+  // Notify the creator that the expense was accepted
+  const { data: myProfile } = await supabase
+    .from('profiles').select('username, full_name').eq('id', user.id).single()
+  const admin = createAdminClient()
+  await (admin.from('notifications') as any).insert({
+    user_id: String(d.from_user_id),
+    type: 'expense_settled',
+    data: {
+      from_user_id: user.id,
+      from_username: myProfile?.username ?? '',
+      from_name: myProfile?.full_name ?? '',
+      concept: String(d.concept),
+      amount: participantAmount,
+    },
+  }).catch(() => {})
+
+  revalidatePath('/home')
+  revalidatePath('/transactions')
+  return { error: null }
+}
+
+export async function declineSharedExpense(notificationId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+  await supabase.from('notifications').update({ read: true }).eq('id', notificationId).eq('user_id', user.id)
+  return { error: null }
 }
 
 export async function saveBudget(month: number, year: number, amount: number) {

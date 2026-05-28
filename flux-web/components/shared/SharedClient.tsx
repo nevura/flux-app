@@ -10,6 +10,7 @@ function AnimatedCurrency({ value }: { value: number }) {
   return <>{formatCurrency(animated)}</>
 }
 import { settleParticipant, partialSettle, settleAndRecord, settleAllForPerson, abonoGlobalForPerson } from '@/actions/transactions'
+import { linkPersonToUser } from '@/actions/friends'
 import type { Transaction, Person, SplitParticipant, Account, Category, AccountWithBalance, Friendship } from '@/lib/types'
 import TransactionModal from '@/components/transactions/TransactionModal'
 import FriendSearchModal from '@/components/friends/FriendSearchModal'
@@ -44,6 +45,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null)
   const [isPending, startTransition] = useTransition()
   const [isPartialPending, startPartial] = useTransition()
+  const [isUnlinking, startUnlink] = useTransition()
   const [settleAccountId, setSettleAccountId] = useState('')
 
   // Global settle state — keyed by person id
@@ -135,6 +137,14 @@ export default function SharedClient({ transactions, people, accounts, categorie
       setGlobalAbonoId(null)
       setGlobalAbonoAmount('')
       setGlobalAbonoAccountId('')
+    })
+  }
+
+  function handleUnlink(personId: string) {
+    startUnlink(async () => {
+      const res = await linkPersonToUser(personId, null)
+      if (res.error) { toast.error(res.error); return }
+      toast.success('Desvinculado')
     })
   }
 
@@ -269,6 +279,9 @@ export default function SharedClient({ transactions, people, accounts, categorie
                       <p className="text-[16px] font-black" style={{ color: 'var(--f-text)' }}>{b.person.name}</p>
                       <p className="text-[12px] mt-0.5 font-bold" style={{ color: 'var(--f-text-4)' }}>
                         {b.pending.length} gasto{b.pending.length !== 1 ? 's' : ''} pendiente{b.pending.length !== 1 ? 's' : ''}
+                        {b.person.linked_profile?.username && (
+                          <> · <span style={{ color: 'var(--f-blue)' }}>@{b.person.linked_profile.username}</span></>
+                        )}
                       </p>
                     </div>
                     <div className="text-right flex-shrink-0">
@@ -412,8 +425,19 @@ export default function SharedClient({ transactions, people, accounts, categorie
                   {isOpen && (
                     <div className="px-4 pb-4 space-y-2 animate-fade-up" style={{ borderTop: '1px solid var(--f-line)' }}>
                       <div className="pt-1" />
-                      {/* Link to registered user — shown only when not linked */}
-                      {!b.person.linked_user_id && (
+                      {/* Link / unlink Flux user */}
+                      {b.person.linked_user_id ? (
+                        <button
+                          onClick={() => handleUnlink(b.person.id)}
+                          disabled={isUnlinking}
+                          className="w-full flex items-center gap-2 py-2 text-left disabled:opacity-50"
+                        >
+                          <i className="fa-solid fa-link-slash text-[11px]" style={{ color: 'var(--f-text-4)' }} />
+                          <p className="text-[12px] font-bold" style={{ color: 'var(--f-text-4)' }}>
+                            Desvincular de @{b.person.linked_profile?.username ?? '...'}
+                          </p>
+                        </button>
+                      ) : (
                         <button
                           onClick={() => setLinkingPerson({ id: b.person.id, name: b.person.name })}
                           className="w-full flex items-center gap-2 py-2 text-left"

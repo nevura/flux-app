@@ -22,7 +22,7 @@ export default async function SettingsPage() {
     supabase.from('categories').select('*').or(`user_id.eq.${user.id},user_id.is.null`).order('sort_order'),
     supabase.from('accounts').select('*').eq('user_id', user.id).order('sort_order'),
     supabase.from('scheduled_transactions').select('*').eq('user_id', user.id).order('created_at'),
-    supabase.from('people').select('*').eq('user_id', user.id).order('created_at'),
+    supabase.from('people').select('*, linked_profile:profiles!linked_user_id(id, username, full_name)').eq('user_id', user.id).order('created_at'),
   ])
 
   return (
