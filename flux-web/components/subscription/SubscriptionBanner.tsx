@@ -37,7 +37,7 @@ export default function SubscriptionBanner({ status, daysLeft }: Props) {
   if (status === 'grace') {
     return (
       <div className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-medium"
-        style={{ background: 'rgba(255,69,58,0.12)', borderBottom: '1px solid rgba(255,69,58,0.2)', color: '#FF453A' }}>
+        style={{ background: 'var(--f-expense-bg)', borderBottom: '1px solid var(--f-expense-border)', color: 'var(--f-expense)' }}>
         <span>
           <i className="fa-solid fa-triangle-exclamation mr-2" />
           {daysLeft !== null && daysLeft > 0
@@ -46,7 +46,7 @@ export default function SubscriptionBanner({ status, daysLeft }: Props) {
         </span>
         <a href="/settings?tab=subscription"
           className="shrink-0 px-3 py-1 rounded-lg text-white text-xs font-semibold"
-          style={{ background: '#FF453A' }}>
+          style={{ background: 'var(--f-expense)' }}>
           Suscribirse
         </a>
       </div>

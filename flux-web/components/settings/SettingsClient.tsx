@@ -61,7 +61,7 @@ function BottomSheet({ onClose, children, title }: { onClose: () => void; childr
         ref={sheetRef}
         className="fixed bottom-0 left-0 right-0 z-[200] rounded-t-[28px] animate-slide-up mx-auto max-w-lg"
         style={{
-          background: '#0F172A',
+          background: 'var(--f-bg-elevated)',
           paddingBottom: 'calc(1.5rem + var(--safe-bottom))',
           maxHeight: '90dvh',
           overflowY: 'auto',
@@ -72,7 +72,7 @@ function BottomSheet({ onClose, children, title }: { onClose: () => void; childr
         {title && (
           <div className="flex items-center justify-between px-5 pt-5 pb-3">
             <p className="text-[15px] font-black text-white">{title}</p>
-            <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)' }}>
+            <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'var(--f-bg-input)' }}>
               <i className="fa-solid fa-xmark text-white text-xs" />
             </button>
           </div>
@@ -164,22 +164,22 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
   if (section !== null) {
     const current = SECTIONS.find(s => s.key === section)!
     return (
-      <div className="min-h-screen" style={{ background: '#020617' }}>
+      <div className="min-h-screen" style={{ background: 'var(--f-bg)' }}>
         <header
           className="sticky top-0 z-40 px-5 pb-4"
           style={{
             paddingTop: 'calc(1rem + var(--safe-top))',
-            background: 'rgba(2,6,23,0.95)',
+            background: 'var(--f-bg-glass)',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
-            borderBottom: '1px solid rgba(0,122,255,0.12)',
+            borderBottom: '1px solid var(--f-accent-bg)',
           }}
         >
           <div className="relative flex items-center">
             <button
               onClick={() => setSection(null)}
               className="flex items-center gap-1.5 text-sm font-semibold transition-colors z-10"
-              style={{ color: '#007AFF' }}
+              style={{ color: 'var(--f-blue)' }}
             >
               <i className="fa-solid fa-chevron-left text-xs" />
               Ajustes
@@ -193,9 +193,9 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
         <div key={section} className="px-4 py-4 max-w-lg mx-auto animate-fade-up">
           {section === 'shortcuts' && (
             <div className="space-y-4">
-              <div className="rounded-2xl overflow-hidden" style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.15)' }}>
-                <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(0,122,255,0.08)' }}>
-                  <i className="fa-solid fa-chart-line text-xl" style={{ color: '#007AFF' }} />
+              <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-accent-border)' }}>
+                <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid var(--f-accent-bg)' }}>
+                  <i className="fa-solid fa-chart-line text-xl" style={{ color: 'var(--f-blue)' }} />
                   <p className="text-sm font-bold text-white">Presupuesto predeterminado</p>
                 </div>
                 <div className="px-4 py-3">
@@ -208,25 +208,25 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                         onKeyDown={e => { if (e.key === 'Enter') handleSaveDefBudget(); if (e.key === 'Escape') setEditingDefBudget(false) }}
                         placeholder="0.00 (vacío para quitar)"
                         className="flex-1 rounded-lg px-3 py-2 text-sm font-bold text-white outline-none tabular-nums"
-                        style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(0,122,255,0.4)' }}
+                        style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-glow)' }}
                         inputMode="decimal"
                       />
-                      <button onClick={handleSaveDefBudget} disabled={isDefBudgetPending} className="px-3 py-2 rounded-lg text-xs font-bold text-white disabled:opacity-50" style={{ background: '#007AFF' }}>
+                      <button onClick={handleSaveDefBudget} disabled={isDefBudgetPending} className="px-3 py-2 rounded-lg text-xs font-bold text-white disabled:opacity-50" style={{ background: 'var(--f-blue)' }}>
                         {isDefBudgetPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'OK'}
                       </button>
-                      <button onClick={() => setEditingDefBudget(false)} className="px-2 rounded-lg" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }}>✕</button>
+                      <button onClick={() => setEditingDefBudget(false)} className="px-2 rounded-lg" style={{ background: 'var(--f-line)', color: 'var(--f-text-3)' }}>✕</button>
                     </div>
                   ) : (
                     <div className="flex items-center justify-between">
-                      <p className="text-base font-bold" style={{ color: profile?.default_monthly_budget ? 'white' : 'rgba(255,255,255,0.3)' }}>
+                      <p className="text-base font-bold" style={{ color: profile?.default_monthly_budget ? 'white' : 'var(--f-text-4)' }}>
                         {profile?.default_monthly_budget ? `${formatCurrency(profile.default_monthly_budget)} / mes` : 'Sin presupuesto predeterminado'}
                       </p>
-                      <button onClick={() => setEditingDefBudget(true)} className="text-sm font-semibold flex items-center gap-1" style={{ color: '#007AFF' }}>
+                      <button onClick={() => setEditingDefBudget(true)} className="text-sm font-semibold flex items-center gap-1" style={{ color: 'var(--f-blue)' }}>
                         <i className="fa-solid fa-pencil text-[14px]" /> Editar
                       </button>
                     </div>
                   )}
-                  <p className="text-sm mt-1.5" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                  <p className="text-sm mt-1.5" style={{ color: 'var(--f-text-4)' }}>
                     Se aplica cuando no hay presupuesto configurado para el mes actual.
                   </p>
                 </div>
@@ -289,15 +289,15 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
 
   // ── List view ─────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen" style={{ background: '#020617' }}>
+    <div className="min-h-screen" style={{ background: 'var(--f-bg)' }}>
       <header
         className="sticky top-0 z-40 px-5 pb-4"
         style={{
           paddingTop: 'calc(1rem + var(--safe-top))',
-          background: 'rgba(2,6,23,0.95)',
+          background: 'var(--f-bg-glass)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(0,122,255,0.12)',
+          borderBottom: '1px solid var(--f-accent-bg)',
         }}
       >
         <div className="flex items-center mb-4">
@@ -322,22 +322,22 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                   onKeyDown={e => { if (e.key === 'Enter') handleSaveName(); if (e.key === 'Escape') setEditingName(false) }}
                   placeholder="Tu nombre"
                   className="flex-1 rounded-lg px-2.5 py-1.5 text-base font-semibold text-white outline-none min-w-0"
-                  style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(0,122,255,0.4)' }}
+                  style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-glow)' }}
                 />
-                <button onClick={handleSaveName} disabled={isNamePending} className="text-xs font-bold flex-shrink-0" style={{ color: '#007AFF' }}>
+                <button onClick={handleSaveName} disabled={isNamePending} className="text-xs font-bold flex-shrink-0" style={{ color: 'var(--f-blue)' }}>
                   {isNamePending ? <i className="fa-solid fa-spinner fa-spin" /> : 'OK'}
                 </button>
-                <button onClick={() => setEditingName(false)} className="text-xs flex-shrink-0" style={{ color: 'rgba(255,255,255,0.4)' }}>✕</button>
+                <button onClick={() => setEditingName(false)} className="text-xs flex-shrink-0" style={{ color: 'var(--f-text-3)' }}>✕</button>
               </div>
             ) : (
               <div className="flex items-center gap-1.5">
                 <p className="text-base font-bold text-white truncate">{displayName || 'Sin nombre'}</p>
-                <button onClick={() => setEditingName(true)} className="transition-colors flex-shrink-0" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                <button onClick={() => setEditingName(true)} className="transition-colors flex-shrink-0" style={{ color: 'var(--f-text-4)' }}>
                   <i className="fa-solid fa-pencil text-[10px]" />
                 </button>
               </div>
             )}
-            <p className="text-xs truncate" style={{ color: 'rgba(255,255,255,0.35)' }}>{profile?.email}</p>
+            <p className="text-xs truncate" style={{ color: 'var(--f-text-4)' }}>{profile?.email}</p>
           </div>
         </div>
       </header>
@@ -365,7 +365,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
         )}
 
         {/* Options list */}
-        <div className="rounded-[20px] overflow-hidden" style={{ border: '1px solid rgba(0,122,255,0.1)' }}>
+        <div className="rounded-[20px] overflow-hidden" style={{ border: '1px solid var(--f-accent-bg)' }}>
           {SECTIONS.map((s, i) => {
             const isLast = i === SECTIONS.length - 1
             const isPlan = s.key === 'suscripcion'
@@ -376,33 +376,33 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                 className="w-full flex items-center gap-4 px-4 py-4 text-left transition-all active:scale-[0.99]"
                 style={{
                   background: isPlan && profile?.subscription_status === 'active'
-                    ? 'rgba(48,209,88,0.05)'
-                    : '#0F172A',
-                  borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.05)',
+                    ? 'var(--f-income-bg)'
+                    : 'var(--f-bg-elevated)',
+                  borderBottom: isLast ? 'none' : '1px solid var(--f-bg-card)',
                 }}
               >
                 <div
                   className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0"
                   style={{
                     background: isPlan && profile?.subscription_status === 'active'
-                      ? 'rgba(48,209,88,0.15)'
-                      : 'rgba(0,122,255,0.12)',
+                      ? 'var(--f-income-border)'
+                      : 'var(--f-accent-bg)',
                   }}
                 >
                   <i
                     className={`${s.icon} text-sm`}
                     style={{
                       color: isPlan && profile?.subscription_status === 'active'
-                        ? '#30D158'
+                        ? 'var(--f-income)'
                         : isPlan && trialDaysLeft !== null
                           ? '#FF9F0A'
-                          : '#007AFF',
+                          : 'var(--f-blue)',
                     }}
                   />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[14px] font-bold text-white">{s.label}</p>
-                  <p className="text-[12px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                  <p className="text-[12px]" style={{ color: 'var(--f-text-4)' }}>
                     {isPlan && profile?.subscription_status === 'active'
                       ? 'Flux Pro · Activo'
                       : isPlan && trialDaysLeft !== null
@@ -410,7 +410,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                         : s.description}
                   </p>
                 </div>
-                <i className="fa-solid fa-chevron-right text-xs" style={{ color: 'rgba(255,255,255,0.2)' }} />
+                <i className="fa-solid fa-chevron-right text-xs" style={{ color: 'var(--f-line-strong)' }} />
               </button>
             )
           })}
@@ -419,13 +419,13 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
         <button
           onClick={handleSignOut}
           className="w-full py-3.5 rounded-[16px] text-[13px] font-bold transition-all active:scale-[0.98]"
-          style={{ background: 'rgba(255,69,58,0.08)', color: '#FF453A', border: '1px solid rgba(255,69,58,0.15)' }}
+          style={{ background: 'var(--f-expense-bg)', color: 'var(--f-expense)', border: '1px solid var(--f-expense-border)' }}
         >
           <i className="fa-solid fa-right-from-bracket mr-2" />
           Cerrar sesión
         </button>
 
-        <p className="text-center text-[11px] pb-8" style={{ color: 'rgba(255,255,255,0.15)' }}>
+        <p className="text-center text-[11px] pb-8" style={{ color: 'var(--f-line-strong)' }}>
           Flux · Powered by Nevura
         </p>
       </div>
@@ -465,34 +465,34 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-white">Mis categorías</p>
-        <button onClick={() => setEditing({})} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95" style={{ background: 'rgba(0,122,255,0.12)', color: '#007AFF' }}>
+        <button onClick={() => setEditing({})} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95" style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)' }}>
           <i className="fa-solid fa-plus" /> Nueva
         </button>
       </div>
 
       {customCategories.length === 0 && !editing && (
-        <p className="text-sm text-center py-6" style={{ color: 'rgba(255,255,255,0.25)' }}>Sin categorías personalizadas</p>
+        <p className="text-sm text-center py-6" style={{ color: 'var(--f-text-4)' }}>Sin categorías personalizadas</p>
       )}
 
       <div className="space-y-2">
         {customCategories.map((cat, i) => {
           const d = getCategoryDisplay(cat)
           return (
-            <div key={cat.id} className="rounded-2xl px-4 py-4 flex items-center gap-4 animate-fade-up" style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.12)', animationDelay: `${i * 0.04}s` }}>
+            <div key={cat.id} className="rounded-2xl px-4 py-4 flex items-center gap-4 animate-fade-up" style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-accent-bg)', animationDelay: `${i * 0.04}s` }}>
               <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${d.bg}`}>
                 <i className={`${d.icon} ${d.color} text-sm`} />
               </div>
               <span className="flex-1 text-[15px] font-semibold text-white">{cat.name}</span>
-              <button onClick={() => setEditing(cat)} className="px-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
+              <button onClick={() => setEditing(cat)} className="px-2" style={{ color: 'var(--f-text-3)' }}>
                 <i className="fa-solid fa-pen text-xs" />
               </button>
               {deleteConfirm === cat.id ? (
                 <div className="flex items-center gap-1.5">
-                  <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold" style={{ color: 'rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.08)' }}>No</button>
-                  <button onClick={() => handleDelete(cat.id)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold text-white" style={{ background: '#FF453A' }}>Sí</button>
+                  <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold" style={{ color: 'var(--f-text-2)', background: 'var(--f-bg-input)' }}>No</button>
+                  <button onClick={() => handleDelete(cat.id)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold text-white" style={{ background: 'var(--f-expense)' }}>Sí</button>
                 </div>
               ) : (
-                <button onClick={() => setDeleteConfirm(cat.id)} className="px-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                <button onClick={() => setDeleteConfirm(cat.id)} className="px-2" style={{ color: 'var(--f-text-3)' }}>
                   <i className="fa-solid fa-trash text-xs" />
                 </button>
               )}
@@ -501,7 +501,7 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
         })}
       </div>
 
-      <p className="text-[10px] font-black uppercase tracking-[2px] mt-4" style={{ color: 'rgba(255,255,255,0.35)' }}>Predeterminadas</p>
+      <p className="text-[10px] font-black uppercase tracking-[2px] mt-4" style={{ color: 'var(--f-text-4)' }}>Predeterminadas</p>
       <div className="grid grid-cols-4 gap-2">
         {defaultCategories.map(cat => {
           const d = getCategoryDisplay(cat)
@@ -524,10 +524,10 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
               onChange={e => setEditing({ ...editing, name: e.target.value })}
               placeholder="Nombre de la categoría"
               className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder:opacity-30 focus:outline-none"
-              style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
+              style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
             />
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[1.5px]" style={{ color: 'rgba(255,255,255,0.35)' }}>Icono</p>
+              <p className="text-[10px] font-black uppercase tracking-[1.5px]" style={{ color: 'var(--f-text-4)' }}>Icono</p>
               <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
                 {STATIC_ICONS.slice(0, 20).map(ic => (
                   <button
@@ -536,16 +536,16 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
                     onClick={() => setEditing({ ...editing, icon_id: ic.id_icon })}
                     className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all"
                     style={editing.icon_id === ic.id_icon
-                      ? { background: '#007AFF' }
-                      : { background: 'rgba(255,255,255,0.07)' }}
+                      ? { background: 'var(--f-blue)' }
+                      : { background: 'var(--f-bg-input)' }}
                   >
-                    <i className={`${ic.icon_base} text-sm`} style={{ color: editing.icon_id === ic.id_icon ? 'white' : 'rgba(255,255,255,0.5)' }} />
+                    <i className={`${ic.icon_base} text-sm`} style={{ color: editing.icon_id === ic.id_icon ? 'white' : 'var(--f-text-3)' }} />
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[1.5px]" style={{ color: 'rgba(255,255,255,0.35)' }}>Color</p>
+              <p className="text-[10px] font-black uppercase tracking-[1.5px]" style={{ color: 'var(--f-text-4)' }}>Color</p>
               <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
                 {STATIC_COLORS.map(col => (
                   <button
@@ -563,10 +563,10 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
               </div>
             </div>
             <div className="flex gap-2 pt-1">
-              <button onClick={() => setEditing(null)} className="flex-1 py-3 rounded-xl text-sm font-semibold" style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.5)' }}>
+              <button onClick={() => setEditing(null)} className="flex-1 py-3 rounded-xl text-sm font-semibold" style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}>
                 Cancelar
               </button>
-              <button onClick={handleSave} disabled={isPending || !editing.name} className="flex-1 py-3 rounded-xl text-sm font-bold text-white disabled:opacity-50" style={{ background: '#007AFF' }}>
+              <button onClick={handleSave} disabled={isPending || !editing.name} className="flex-1 py-3 rounded-xl text-sm font-bold text-white disabled:opacity-50" style={{ background: 'var(--f-blue)' }}>
                 Guardar
               </button>
             </div>
@@ -608,7 +608,7 @@ function AccountsTab({ accounts, isPending, startTransition }: {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-white">Cuentas</p>
-        <button onClick={() => setEditing({})} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95" style={{ background: 'rgba(0,122,255,0.12)', color: '#007AFF' }}>
+        <button onClick={() => setEditing({})} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95" style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)' }}>
           <i className="fa-solid fa-plus" /> Nueva
         </button>
       </div>
@@ -617,24 +617,24 @@ function AccountsTab({ accounts, isPending, startTransition }: {
         {accounts.map((acc, i) => {
           const method = getPaymentMethod(acc.payment_method_id)
           return (
-            <div key={acc.id} className="rounded-2xl px-4 py-4 flex items-center gap-4 animate-fade-up" style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.12)', animationDelay: `${i * 0.04}s` }}>
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: 'rgba(0,122,255,0.12)' }}>
-                <i className={`${method.icon} text-sm`} style={{ color: '#007AFF' }} />
+            <div key={acc.id} className="rounded-2xl px-4 py-4 flex items-center gap-4 animate-fade-up" style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-accent-bg)', animationDelay: `${i * 0.04}s` }}>
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: 'var(--f-accent-bg)' }}>
+                <i className={`${method.icon} text-sm`} style={{ color: 'var(--f-blue)' }} />
               </div>
               <div className="flex-1">
                 <p className="text-sm font-semibold text-white">{acc.name}</p>
-                <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{method.nombre}</p>
+                <p className="text-xs" style={{ color: 'var(--f-text-3)' }}>{method.nombre}</p>
               </div>
-              <button onClick={() => setEditing(acc)} className="px-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
+              <button onClick={() => setEditing(acc)} className="px-2" style={{ color: 'var(--f-text-3)' }}>
                 <i className="fa-solid fa-pen text-xs" />
               </button>
               {deleteConfirm === acc.id ? (
                 <div className="flex items-center gap-1.5">
-                  <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold" style={{ color: 'rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.08)' }}>No</button>
-                  <button onClick={() => handleDelete(acc.id)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold text-white" style={{ background: '#FF453A' }}>Sí</button>
+                  <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold" style={{ color: 'var(--f-text-2)', background: 'var(--f-bg-input)' }}>No</button>
+                  <button onClick={() => handleDelete(acc.id)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold text-white" style={{ background: 'var(--f-expense)' }}>Sí</button>
                 </div>
               ) : (
-                <button onClick={() => setDeleteConfirm(acc.id)} className="px-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                <button onClick={() => setDeleteConfirm(acc.id)} className="px-2" style={{ color: 'var(--f-text-3)' }}>
                   <i className="fa-solid fa-trash text-xs" />
                 </button>
               )}
@@ -652,7 +652,7 @@ function AccountsTab({ accounts, isPending, startTransition }: {
               onChange={e => setEditing({ ...editing, name: e.target.value })}
               placeholder="Nombre de la cuenta"
               className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder:opacity-30 focus:outline-none"
-              style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
+              style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
             />
             <div className="flex gap-2">
               {PAYMENT_METHODS.map(m => (
@@ -662,8 +662,8 @@ function AccountsTab({ accounts, isPending, startTransition }: {
                   onClick={() => setEditing({ ...editing, payment_method_id: m.id_metodo_pago })}
                   className="flex-1 py-2.5 rounded-xl text-xs font-bold border transition-all"
                   style={editing.payment_method_id === m.id_metodo_pago
-                    ? { background: 'rgba(0,122,255,0.15)', borderColor: 'rgba(0,122,255,0.5)', color: '#007AFF' }
-                    : { background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' }}
+                    ? { background: 'var(--f-accent-bg)', borderColor: 'var(--f-accent-border)', color: 'var(--f-blue)' }
+                    : { background: 'var(--f-bg-card)', borderColor: 'var(--f-line)', color: 'var(--f-text-3)' }}
                 >
                   {m.nombre}
                 </button>
@@ -671,7 +671,7 @@ function AccountsTab({ accounts, isPending, startTransition }: {
             </div>
             {editing.payment_method_id === 'MP-TDC' && (
               <div>
-                <label className="text-[10px] font-black uppercase tracking-[1.5px] mb-1.5 block" style={{ color: 'rgba(255,255,255,0.35)' }}>Día de pago</label>
+                <label className="text-[10px] font-black uppercase tracking-[1.5px] mb-1.5 block" style={{ color: 'var(--f-text-4)' }}>Día de pago</label>
                 <input
                   type="number"
                   min={1} max={31}
@@ -679,13 +679,13 @@ function AccountsTab({ accounts, isPending, startTransition }: {
                   onChange={e => setEditing({ ...editing, payment_day: Number(e.target.value) })}
                   placeholder="Ej: 15"
                   className="w-full rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
-                  style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
+                  style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
                 />
               </div>
             )}
             <div className="flex gap-2 pt-1">
-              <button onClick={() => setEditing(null)} className="flex-1 py-3 rounded-xl text-sm font-semibold" style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.5)' }}>Cancelar</button>
-              <button onClick={handleSave} disabled={isPending || !editing.name} className="flex-1 py-3 rounded-xl text-sm font-bold text-white disabled:opacity-50" style={{ background: '#007AFF' }}>Guardar</button>
+              <button onClick={() => setEditing(null)} className="flex-1 py-3 rounded-xl text-sm font-semibold" style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}>Cancelar</button>
+              <button onClick={handleSave} disabled={isPending || !editing.name} className="flex-1 py-3 rounded-xl text-sm font-bold text-white disabled:opacity-50" style={{ background: 'var(--f-blue)' }}>Guardar</button>
             </div>
           </div>
         </BottomSheet>
@@ -869,7 +869,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-white">Transacciones recurrentes</p>
-        <button onClick={openNew} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95" style={{ background: 'rgba(0,122,255,0.12)', color: '#007AFF' }}>
+        <button onClick={openNew} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95" style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)' }}>
           <i className="fa-solid fa-plus" /> Nueva
         </button>
       </div>
@@ -878,20 +878,20 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
       {scheduled.filter(s => s.status === 'ACTIVO' && s.type === 'TR-GASTO').length > 0 && (
         <div
           className="rounded-[16px] px-4 py-3 flex items-center justify-between"
-          style={{ background: 'rgba(255,69,58,0.08)', border: '1px solid rgba(255,69,58,0.15)' }}
+          style={{ background: 'var(--f-expense-bg)', border: '1px solid var(--f-expense-border)' }}
         >
           <div className="flex items-center gap-2">
-            <i className="fa-solid fa-repeat text-xs" style={{ color: '#FF453A' }} />
-            <p className="text-[12px] font-bold" style={{ color: 'rgba(255,255,255,0.6)' }}>Gastos recurrentes / mes</p>
+            <i className="fa-solid fa-repeat text-xs" style={{ color: 'var(--f-expense)' }} />
+            <p className="text-[12px] font-bold" style={{ color: 'var(--f-text-2)' }}>Gastos recurrentes / mes</p>
           </div>
-          <p className="text-[15px] font-black tabular-nums" style={{ color: '#FF453A' }}>
+          <p className="text-[15px] font-black tabular-nums" style={{ color: 'var(--f-expense)' }}>
             −{formatCurrency(monthlyExpenses)}
           </p>
         </div>
       )}
 
       {scheduled.length === 0 && (
-        <p className="text-sm text-center py-8" style={{ color: 'rgba(255,255,255,0.25)' }}>Sin recurrentes configurados</p>
+        <p className="text-sm text-center py-8" style={{ color: 'var(--f-text-4)' }}>Sin recurrentes configurados</p>
       )}
 
       {scheduled.map((s, i) => {
@@ -899,33 +899,33 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
         const d = getCategoryDisplay(cat)
         const isActive = s.status === 'ACTIVO'
         return (
-          <div key={s.id} className="rounded-2xl px-4 py-4 flex items-center gap-4 animate-fade-up" style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.12)', animationDelay: `${i * 0.04}s` }}>
+          <div key={s.id} className="rounded-2xl px-4 py-4 flex items-center gap-4 animate-fade-up" style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-accent-bg)', animationDelay: `${i * 0.04}s` }}>
             <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${d.bg}`}>
               <i className={`${d.icon} ${d.color} text-sm`} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-white truncate">{s.name}</p>
-              <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+              <p className="text-xs" style={{ color: 'var(--f-text-3)' }}>
                 Cada {s.frequency_num} {s.frequency_unit} · {formatCurrency(Number(s.amount))}
               </p>
             </div>
-            <button onClick={() => openEdit(s)} className="px-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <button onClick={() => openEdit(s)} className="px-1" style={{ color: 'var(--f-text-3)' }}>
               <i className="fa-solid fa-pen text-xs" />
             </button>
             <div
               onClick={() => handleToggle(s)}
               className="w-9 h-5 rounded-full relative cursor-pointer transition-colors flex-shrink-0"
-              style={{ background: isActive ? '#007AFF' : 'rgba(255,255,255,0.15)' }}
+              style={{ background: isActive ? 'var(--f-blue)' : 'var(--f-line-strong)' }}
             >
               <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${isActive ? 'translate-x-4' : 'translate-x-0.5'}`} />
             </div>
             {deleteConfirm === s.id ? (
               <div className="flex items-center gap-1.5">
-                <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold" style={{ color: 'rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.08)' }}>No</button>
-                <button onClick={() => handleDelete(s.id)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold text-white" style={{ background: '#FF453A' }}>Sí</button>
+                <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold" style={{ color: 'var(--f-text-2)', background: 'var(--f-bg-input)' }}>No</button>
+                <button onClick={() => handleDelete(s.id)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold text-white" style={{ background: 'var(--f-expense)' }}>Sí</button>
               </div>
             ) : (
-              <button onClick={() => setDeleteConfirm(s.id)} className="px-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+              <button onClick={() => setDeleteConfirm(s.id)} className="px-1" style={{ color: 'var(--f-text-3)' }}>
                 <i className="fa-solid fa-trash text-xs" />
               </button>
             )}
@@ -960,9 +960,9 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                       border: `1px solid ${c.color}50`,
                       color: c.color,
                     } : {
-                      background: 'rgba(255,255,255,0.06)',
-                      border: '1px solid rgba(255,255,255,0.08)',
-                      color: 'rgba(255,255,255,0.4)',
+                      background: 'var(--f-line)',
+                      border: '1px solid var(--f-bg-input)',
+                      color: 'var(--f-text-3)',
                     }}
                   >
                     <i className={c.icon} />
@@ -973,9 +973,9 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
 
               {/* Amount — big centered display */}
               <div className="text-center">
-                <p className="text-[10px] font-black tracking-[3px] uppercase mb-3" style={{ color: 'rgba(255,255,255,0.35)' }}>Monto</p>
+                <p className="text-[10px] font-black tracking-[3px] uppercase mb-3" style={{ color: 'var(--f-text-4)' }}>Monto</p>
                 <div className="flex items-center justify-center gap-1">
-                  <span className="text-[28px] font-black" style={{ color: 'rgba(255,255,255,0.4)' }}>$</span>
+                  <span className="text-[28px] font-black" style={{ color: 'var(--f-text-3)' }}>$</span>
                   <input
                     type="number"
                     min="0.01"
@@ -984,7 +984,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                     onChange={e => setEditing({ ...editing, amount: e.target.value })}
                     placeholder="0.00"
                     className="bg-transparent border-none outline-none text-[44px] font-black tabular-nums text-center w-full max-w-[220px]"
-                    style={{ color: editing.amount ? cfg.color : 'rgba(255,255,255,0.2)' }}
+                    style={{ color: editing.amount ? cfg.color : 'var(--f-line-strong)' }}
                     inputMode="decimal"
                   />
                 </div>
@@ -996,7 +996,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
 
               {/* Name / Concept */}
               <div>
-                <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.35)' }}>Nombre</p>
+                <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Nombre</p>
                 <input
                   autoFocus
                   type="text"
@@ -1005,18 +1005,18 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                   placeholder="Ej: Spotify, Netflix, Renta…"
                   className="w-full rounded-[14px] px-4 py-3.5 text-[14px] font-bold text-white placeholder:font-medium outline-none transition-all"
                   style={{
-                    background: 'rgba(255,255,255,0.07)',
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    background: 'var(--f-bg-input)',
+                    border: '1px solid var(--f-bg-input)',
                   }}
                   onFocus={e => { e.currentTarget.style.borderColor = cfg.color + '80' }}
-                  onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}
+                  onBlur={e => { e.currentTarget.style.borderColor = 'var(--f-bg-input)' }}
                 />
               </div>
 
               {/* Category (only for non-transfer) */}
               {editing.type !== 'TR-TRANSFER' && (
                 <div>
-                  <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.35)' }}>Categoría</p>
+                  <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Categoría</p>
                   <div className="grid grid-cols-4 gap-1">
                     {filteredCats.map(cat => {
                       const d = getCategoryDisplay(cat)
@@ -1037,11 +1037,11 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                         >
                           <i
                             className={`${d.icon} text-[18px]`}
-                            style={{ color: sel ? cfg.color : 'rgba(255,255,255,0.5)' }}
+                            style={{ color: sel ? cfg.color : 'var(--f-text-3)' }}
                           />
                           <span
                             className="text-[8px] font-bold uppercase tracking-wide text-center leading-tight px-0.5"
-                            style={{ color: sel ? cfg.color : 'rgba(255,255,255,0.4)' }}
+                            style={{ color: sel ? cfg.color : 'var(--f-text-3)' }}
                           >
                             {cat.name.split(' ')[0]}
                           </span>
@@ -1054,14 +1054,14 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
 
               {/* Account */}
               <div>
-                <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>
                   {editing.type === 'TR-TRANSFER' ? 'Cuenta origen' : 'Cuenta'}
                 </p>
                 <select
                   value={editing.account_id}
                   onChange={e => setEditing({ ...editing, account_id: e.target.value })}
                   className="w-full rounded-[14px] px-4 py-3 text-[14px] font-bold text-white focus:outline-none"
-                  style={{ background: 'rgba(255,255,255,0.07)', border: `1px solid ${cfg.color}40`, colorScheme: 'dark' }}
+                  style={{ background: 'var(--f-bg-input)', border: `1px solid ${cfg.color}40`, colorScheme: 'dark' }}
                 >
                   <option value="">Seleccionar cuenta</option>
                   {accounts.map(acc => (
@@ -1073,12 +1073,12 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
               {/* Destination account (transfer) */}
               {editing.type === 'TR-TRANSFER' && (
                 <div>
-                  <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.35)' }}>Cuenta destino</p>
+                  <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Cuenta destino</p>
                   <select
                     value={editing.destination_account_id}
                     onChange={e => setEditing({ ...editing, destination_account_id: e.target.value })}
                     className="w-full rounded-[14px] px-4 py-3 text-[14px] font-bold text-white focus:outline-none"
-                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(100,210,255,0.4)', colorScheme: 'dark' }}
+                    style={{ background: 'var(--f-bg-input)', border: '1px solid rgba(100,210,255,0.4)', colorScheme: 'dark' }}
                   >
                     <option value="">Seleccionar cuenta destino</option>
                     {accounts.filter(a => a.id !== editing.account_id).map(acc => (
@@ -1090,7 +1090,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
 
               {/* Frequency */}
               <div>
-                <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.35)' }}>Frecuencia</p>
+                <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Frecuencia</p>
                 <div className="flex gap-2">
                   <input
                     type="number"
@@ -1099,7 +1099,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                     value={editing.frequency_num}
                     onChange={e => setEditing({ ...editing, frequency_num: Math.max(1, Number(e.target.value)) })}
                     className="w-16 rounded-[14px] px-3 py-2.5 text-[13px] font-bold text-white text-center focus:outline-none"
-                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
+                    style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
                   />
                   <div className="flex gap-1.5 flex-1">
                     {(['dia', 'semana', 'mes', 'año'] as const).map(u => (
@@ -1110,7 +1110,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                         className="flex-1 py-2.5 rounded-[14px] text-[11px] font-bold border transition-all"
                         style={editing.frequency_unit === u
                           ? { background: `${cfg.color}15`, borderColor: `${cfg.color}50`, color: cfg.color }
-                          : { background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' }}
+                          : { background: 'var(--f-bg-card)', borderColor: 'var(--f-line)', color: 'var(--f-text-3)' }}
                       >
                         {u}
                       </button>
@@ -1122,7 +1122,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
               {/* Payment day + notification days */}
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.35)' }}>Día de cobro</p>
+                  <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Día de cobro</p>
                   <input
                     type="number"
                     min="1" max="31"
@@ -1130,18 +1130,18 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                     onChange={e => setEditing({ ...editing, payment_day: e.target.value })}
                     placeholder="—"
                     className="w-full rounded-[14px] px-3 py-2.5 text-[13px] font-bold text-white text-center focus:outline-none"
-                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
+                    style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
                   />
                 </div>
                 <div className="flex-1">
-                  <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.35)' }}>Aviso (días antes)</p>
+                  <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Aviso (días antes)</p>
                   <input
                     type="number"
                     min="0" max="30"
                     value={editing.notification_days}
                     onChange={e => setEditing({ ...editing, notification_days: Number(e.target.value) })}
                     className="w-full rounded-[14px] px-3 py-2.5 text-[13px] font-bold text-white text-center focus:outline-none"
-                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
+                    style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
                   />
                 </div>
               </div>
@@ -1154,17 +1154,17 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                     onClick={() => setEditing({ ...editing, splitEnabled: !editing.splitEnabled })}
                     className="w-full flex items-center justify-between px-4 py-3.5 rounded-[14px] transition-all"
                     style={{
-                      background: editing.splitEnabled ? 'rgba(100,210,255,0.1)' : 'rgba(255,255,255,0.05)',
-                      border: `1px solid ${editing.splitEnabled ? 'rgba(100,210,255,0.3)' : 'rgba(255,255,255,0.07)'}`,
+                      background: editing.splitEnabled ? 'rgba(100,210,255,0.1)' : 'var(--f-bg-card)',
+                      border: `1px solid ${editing.splitEnabled ? 'rgba(100,210,255,0.3)' : 'var(--f-bg-input)'}`,
                     }}
                   >
                     <div>
                       <p className="text-[13px] font-bold text-white text-left">Compartir al cargar</p>
-                      <p className="text-[11px] text-left mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      <p className="text-[11px] text-left mt-0.5" style={{ color: 'var(--f-text-3)' }}>
                         Asignar deuda al registrarse
                       </p>
                     </div>
-                    <div className="w-10 h-6 rounded-full relative flex-shrink-0 transition-colors" style={{ background: editing.splitEnabled ? '#64D2FF' : 'rgba(255,255,255,0.15)' }}>
+                    <div className="w-10 h-6 rounded-full relative flex-shrink-0 transition-colors" style={{ background: editing.splitEnabled ? 'var(--f-transfer)' : 'var(--f-line-strong)' }}>
                       <div className="absolute top-1 w-4 h-4 rounded-full bg-white transition-transform" style={{ transform: editing.splitEnabled ? 'translateX(20px)' : 'translateX(4px)' }} />
                     </div>
                   </button>
@@ -1181,8 +1181,8 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                             onClick={() => setEditing({ ...editing, quickMode: opt.id })}
                             className="flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-[12px] transition-all"
                             style={editing.quickMode === opt.id
-                              ? { background: 'rgba(100,210,255,0.15)', border: '1px solid rgba(100,210,255,0.35)', color: '#64D2FF' }
-                              : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.35)' }}
+                              ? { background: 'rgba(100,210,255,0.15)', border: '1px solid rgba(100,210,255,0.35)', color: 'var(--f-transfer)' }
+                              : { background: 'var(--f-bg-card)', border: '1px solid var(--f-bg-input)', color: 'var(--f-text-4)' }}
                           >
                             <i className={`${opt.icon} text-[15px]`} />
                             <span className="text-[10px] font-black text-center leading-tight mt-0.5">{opt.label}</span>
@@ -1194,11 +1194,11 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                       {/* My share pill — equal mode */}
                       {editing.quickMode === 'equal' && splitCount > 0 && (
                         <div className="flex items-center justify-between px-3 py-2 rounded-[10px]"
-                          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                          <span className="text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                          style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-bg-input)' }}>
+                          <span className="text-[11px] font-bold" style={{ color: 'var(--f-text-3)' }}>
                             <i className="fa-solid fa-user text-[9px] mr-1.5" />Tu parte
                           </span>
-                          <span className="text-[13px] font-black tabular-nums" style={{ color: '#64D2FF' }}>
+                          <span className="text-[13px] font-black tabular-nums" style={{ color: 'var(--f-transfer)' }}>
                             {formatCurrency(splitAmt)}
                           </span>
                         </div>
@@ -1210,13 +1210,13 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                           return (
                             <div key={person.id}
                               className="flex items-center gap-3 px-3 py-2.5 rounded-[12px] transition-all"
-                              style={{ background: sel ? 'rgba(100,210,255,0.08)' : 'rgba(255,255,255,0.04)', border: `1px solid ${sel ? 'rgba(100,210,255,0.25)' : 'rgba(255,255,255,0.06)'}` }}
+                              style={{ background: sel ? 'rgba(100,210,255,0.08)' : 'var(--f-bg-card)', border: `1px solid ${sel ? 'rgba(100,210,255,0.25)' : 'var(--f-line)'}` }}
                             >
                               <button type="button"
                                 className="flex items-center gap-2.5 flex-1 min-w-0"
                                 onClick={() => setEditing({ ...editing, splitSelected: sel ? editing.splitSelected.filter(id => id !== person.id) : [...editing.splitSelected, person.id] })}
                               >
-                                <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all" style={{ background: sel ? '#64D2FF' : 'rgba(255,255,255,0.15)' }}>
+                                <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all" style={{ background: sel ? 'var(--f-transfer)' : 'var(--f-line-strong)' }}>
                                   {sel && <i className="fa-solid fa-check text-[9px] text-black" />}
                                 </div>
                                 <span className="text-[13px] font-bold text-white truncate">{person.name}</span>
@@ -1233,11 +1233,11 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                                   }}
                                   placeholder="0 ó 40+20"
                                   className="w-24 rounded-[8px] px-2 py-1 text-[12px] font-black text-white text-right outline-none"
-                                  style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(100,210,255,0.3)' }}
+                                  style={{ background: 'var(--f-bg-input)', border: '1px solid rgba(100,210,255,0.3)' }}
                                   onClick={e => e.stopPropagation()}
                                 />
                               ) : sel && splitAmt > 0 ? (
-                                <span className="text-[12px] font-black tabular-nums flex-shrink-0" style={{ color: '#64D2FF' }}>
+                                <span className="text-[12px] font-black tabular-nums flex-shrink-0" style={{ color: 'var(--f-transfer)' }}>
                                   {formatCurrency(splitAmt)}
                                 </span>
                               ) : null}
@@ -1250,22 +1250,22 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                               onKeyDown={e => { if (e.key === 'Enter') handleAddPerson(); if (e.key === 'Escape') setAddingPerson(false) }}
                               placeholder="Nombre"
                               className="flex-1 rounded-[10px] px-3 py-2 text-[13px] font-bold text-white outline-none"
-                              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(100,210,255,0.4)' }} />
+                              style={{ background: 'var(--f-bg-input)', border: '1px solid rgba(100,210,255,0.4)' }} />
                             <button type="button" onClick={handleAddPerson} disabled={isAddingPerson || !newPersonName.trim()}
                               className="px-3 rounded-[10px] text-[12px] font-black disabled:opacity-50"
-                              style={{ background: 'rgba(100,210,255,0.15)', border: '1px solid rgba(100,210,255,0.4)', color: '#64D2FF' }}>
+                              style={{ background: 'rgba(100,210,255,0.15)', border: '1px solid rgba(100,210,255,0.4)', color: 'var(--f-transfer)' }}>
                               {isAddingPerson ? <i className="fa-solid fa-spinner fa-spin" /> : 'OK'}
                             </button>
-                            <button type="button" onClick={() => setAddingPerson(false)} className="w-9 rounded-[10px] flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                            <button type="button" onClick={() => setAddingPerson(false)} className="w-9 rounded-[10px] flex items-center justify-center" style={{ background: 'var(--f-line)' }}>
                               <i className="fa-solid fa-xmark text-xs text-white" />
                             </button>
                           </div>
                         ) : (
                           <button type="button" onClick={() => setAddingPerson(true)}
                             className="w-full flex items-center gap-2 px-3 py-2 rounded-[12px]"
-                            style={{ background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(255,255,255,0.12)' }}>
-                            <i className="fa-solid fa-plus text-[10px]" style={{ color: 'rgba(255,255,255,0.35)' }} />
-                            <span className="text-[12px] font-bold" style={{ color: 'rgba(255,255,255,0.35)' }}>Agregar persona</span>
+                            style={{ background: 'var(--f-bg-card)', border: '1px dashed var(--f-line-strong)' }}>
+                            <i className="fa-solid fa-plus text-[10px]" style={{ color: 'var(--f-text-4)' }} />
+                            <span className="text-[12px] font-bold" style={{ color: 'var(--f-text-4)' }}>Agregar persona</span>
                           </button>
                         )}
                       </div>
@@ -1275,17 +1275,17 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
               )}
 
               {/* Status / Active toggle */}
-              <div className="flex items-center justify-between px-4 py-3.5 rounded-[14px]" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <div className="flex items-center justify-between px-4 py-3.5 rounded-[14px]" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-bg-input)' }}>
                 <div>
                   <p className="text-[13px] font-bold text-white">Activo</p>
-                  <p className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  <p className="text-[11px] mt-0.5" style={{ color: 'var(--f-text-3)' }}>
                     {editing.status === 'ACTIVO' ? 'Se ejecutará automáticamente' : 'Pausado — no se ejecutará'}
                   </p>
                 </div>
                 <div
                   onClick={() => setEditing({ ...editing, status: editing.status === 'ACTIVO' ? 'PAUSADO' : 'ACTIVO' })}
                   className="w-10 h-6 rounded-full relative cursor-pointer transition-colors flex-shrink-0"
-                  style={{ background: editing.status === 'ACTIVO' ? '#007AFF' : 'rgba(255,255,255,0.15)' }}
+                  style={{ background: editing.status === 'ACTIVO' ? 'var(--f-blue)' : 'var(--f-line-strong)' }}
                 >
                   <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${editing.status === 'ACTIVO' ? 'translate-x-5' : 'translate-x-1'}`} />
                 </div>
@@ -1298,7 +1298,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                   onClick={handleSave}
                   disabled={isPending}
                   className="w-full py-4 rounded-[16px] text-white text-[15px] font-black transition-all active:scale-[0.98] disabled:opacity-50"
-                  style={{ background: '#007AFF', boxShadow: '0 4px 20px rgba(0,122,255,0.35)' }}
+                  style={{ background: 'var(--f-blue)', boxShadow: '0 4px 20px var(--f-accent-glow)' }}
                 >
                   {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : editing.id ? 'Guardar cambios' : 'Crear recurrente'}
                 </button>
@@ -1306,7 +1306,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                   type="button"
                   onClick={() => setEditing(null)}
                   className="w-full py-3 rounded-[14px] text-[13px] font-black transition-all"
-                  style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.5)' }}
+                  style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
                 >
                   Cancelar
                 </button>
@@ -1315,7 +1315,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                     type="button"
                     onClick={() => { handleDelete(editing.id!); setEditing(null) }}
                     className="w-full py-3 rounded-[14px] text-[13px] font-black transition-all"
-                    style={{ color: '#FF453A', background: 'rgba(255,69,58,0.08)' }}
+                    style={{ color: 'var(--f-expense)', background: 'var(--f-expense-bg)' }}
                   >
                     Eliminar recurrente
                   </button>
@@ -1388,33 +1388,33 @@ function SubscriptionTab({ profile }: { profile: Profile | null }) {
         <div
           className="rounded-[20px] p-5"
           style={{
-            background: isTrialing ? 'rgba(255,159,10,0.08)' : 'rgba(48,209,88,0.08)',
-            border: `1px solid ${isTrialing ? 'rgba(255,159,10,0.3)' : 'rgba(48,209,88,0.3)'}`,
-            boxShadow: `0 0 32px ${isTrialing ? 'rgba(255,159,10,0.1)' : 'rgba(48,209,88,0.1)'}`,
+            background: isTrialing ? 'rgba(255,159,10,0.08)' : 'var(--f-income-bg)',
+            border: `1px solid ${isTrialing ? 'rgba(255,159,10,0.3)' : 'var(--f-income-border)'}`,
+            boxShadow: `0 0 32px ${isTrialing ? 'rgba(255,159,10,0.1)' : 'var(--f-income-bg)'}`,
           }}
         >
           <div className="flex items-center gap-3 mb-3">
             <div
               className="w-11 h-11 rounded-[14px] flex items-center justify-center"
-              style={{ background: isTrialing ? 'rgba(255,159,10,0.15)' : 'rgba(48,209,88,0.15)' }}
+              style={{ background: isTrialing ? 'rgba(255,159,10,0.15)' : 'var(--f-income-border)' }}
             >
               <i
                 className={`fa-solid ${isTrialing ? 'fa-clock' : 'fa-crown'} text-lg`}
-                style={{ color: isTrialing ? '#FF9F0A' : '#30D158' }}
+                style={{ color: isTrialing ? '#FF9F0A' : 'var(--f-income)' }}
               />
             </div>
             <div>
               <p className="text-[15px] font-black text-white">
                 {isTrialing ? 'Período de prueba' : 'Flux Pro · Activo'}
               </p>
-              <p className="text-[12px] font-semibold" style={{ color: isTrialing ? '#FF9F0A' : '#30D158' }}>
+              <p className="text-[12px] font-semibold" style={{ color: isTrialing ? '#FF9F0A' : 'var(--f-income)' }}>
                 {isTrialing
                   ? `Prueba hasta ${formatDate(profile?.trial_ends_at)}`
                   : `Activo hasta ${formatDate(profile?.subscription_ends_at)}`}
               </p>
             </div>
           </div>
-          <p className="text-[12px] mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <p className="text-[12px] mb-4" style={{ color: 'var(--f-text-3)' }}>
             {isTrialing
               ? 'Suscríbete antes de que expire tu período de prueba para no perder acceso.'
               : 'Gracias por suscribirte. Tienes acceso completo a todas las funciones.'}
@@ -1423,7 +1423,7 @@ function SubscriptionTab({ profile }: { profile: Profile | null }) {
             onClick={handlePortal}
             disabled={loadingPortal}
             className="w-full py-3.5 rounded-[14px] text-[14px] font-black text-white transition-all active:scale-[0.98] disabled:opacity-50"
-            style={{ background: isTrialing ? '#FF9F0A' : '#30D158', color: '#000' }}
+            style={{ background: isTrialing ? '#FF9F0A' : 'var(--f-income)', color: '#000' }}
           >
             {loadingPortal
               ? <i className="fa-solid fa-spinner fa-spin" />
@@ -1433,7 +1433,7 @@ function SubscriptionTab({ profile }: { profile: Profile | null }) {
 
         {isTrialing && (
           <div className="space-y-3">
-            <p className="text-[11px] font-black uppercase tracking-[2px]" style={{ color: 'rgba(255,255,255,0.35)' }}>Planes</p>
+            <p className="text-[11px] font-black uppercase tracking-[2px]" style={{ color: 'var(--f-text-4)' }}>Planes</p>
             <PriceCard
               label="Mensual"
               price="$89"
@@ -1461,18 +1461,18 @@ function SubscriptionTab({ profile }: { profile: Profile | null }) {
       <div className="space-y-4">
         <div
           className="rounded-[20px] p-5"
-          style={{ background: 'rgba(255,69,58,0.08)', border: '1px solid rgba(255,69,58,0.3)', boxShadow: '0 0 32px rgba(255,69,58,0.1)' }}
+          style={{ background: 'var(--f-expense-bg)', border: '1px solid var(--f-expense-border)', boxShadow: '0 0 32px var(--f-expense-bg)' }}
         >
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-11 h-11 rounded-[14px] flex items-center justify-center" style={{ background: 'rgba(255,69,58,0.15)' }}>
-              <i className="fa-solid fa-triangle-exclamation text-lg" style={{ color: '#FF453A' }} />
+            <div className="w-11 h-11 rounded-[14px] flex items-center justify-center" style={{ background: 'var(--f-expense-border)' }}>
+              <i className="fa-solid fa-triangle-exclamation text-lg" style={{ color: 'var(--f-expense)' }} />
             </div>
             <div>
               <p className="text-[15px] font-black text-white">Pago pendiente</p>
-              <p className="text-[12px] font-semibold" style={{ color: '#FF453A' }}>Actualiza tu método de pago</p>
+              <p className="text-[12px] font-semibold" style={{ color: 'var(--f-expense)' }}>Actualiza tu método de pago</p>
             </div>
           </div>
-          <p className="text-[12px] mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <p className="text-[12px] mb-4" style={{ color: 'var(--f-text-3)' }}>
             No pudimos procesar tu pago. Actualiza tu tarjeta para continuar usando Flux Pro.
           </p>
           {hasCustomer && (
@@ -1480,7 +1480,7 @@ function SubscriptionTab({ profile }: { profile: Profile | null }) {
               onClick={handlePortal}
               disabled={loadingPortal}
               className="w-full py-3.5 rounded-[14px] text-[14px] font-black text-white transition-all active:scale-[0.98] disabled:opacity-50"
-              style={{ background: '#FF453A' }}
+              style={{ background: 'var(--f-expense)' }}
             >
               {loadingPortal ? <i className="fa-solid fa-spinner fa-spin" /> : 'Actualizar método de pago'}
             </button>
@@ -1494,36 +1494,36 @@ function SubscriptionTab({ profile }: { profile: Profile | null }) {
   return (
     <div className="space-y-4">
       {status === 'canceled' && (
-        <div className="rounded-[16px] px-4 py-3 flex items-center gap-2" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <i className="fa-solid fa-circle-xmark text-sm" style={{ color: 'rgba(255,255,255,0.3)' }} />
-          <p className="text-[13px] font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>Tu suscripción fue cancelada</p>
+        <div className="rounded-[16px] px-4 py-3 flex items-center gap-2" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-bg-input)' }}>
+          <i className="fa-solid fa-circle-xmark text-sm" style={{ color: 'var(--f-text-4)' }} />
+          <p className="text-[13px] font-bold" style={{ color: 'var(--f-text-3)' }}>Tu suscripción fue cancelada</p>
         </div>
       )}
 
       <div
         className="rounded-[20px] p-5"
-        style={{ background: 'rgba(0,122,255,0.07)', border: '1px solid rgba(0,122,255,0.2)', boxShadow: '0 0 40px rgba(0,122,255,0.08)' }}
+        style={{ background: 'var(--f-accent-bg)', border: '1px solid var(--f-accent-border)', boxShadow: '0 0 40px var(--f-accent-bg)' }}
       >
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 rounded-[14px] flex items-center justify-center" style={{ background: 'rgba(0,122,255,0.15)' }}>
-            <i className="fa-solid fa-crown text-xl" style={{ color: '#007AFF' }} />
+          <div className="w-12 h-12 rounded-[14px] flex items-center justify-center" style={{ background: 'var(--f-accent-bg)' }}>
+            <i className="fa-solid fa-crown text-xl" style={{ color: 'var(--f-blue)' }} />
           </div>
           <div>
             <p className="text-[17px] font-black text-white">Flux Pro</p>
-            <p className="text-[12px]" style={{ color: 'rgba(255,255,255,0.45)' }}>Desbloquea todas las funciones</p>
+            <p className="text-[12px]" style={{ color: 'var(--f-text-3)' }}>Desbloquea todas las funciones</p>
           </div>
         </div>
         <div className="space-y-2 mb-4">
           {['Transacciones ilimitadas', 'Atajos de iPhone', 'Auditoría de cuentas', 'Recordatorios automáticos', 'Soporte prioritario'].map(f => (
             <div key={f} className="flex items-center gap-2">
-              <i className="fa-solid fa-check text-[11px]" style={{ color: '#30D158' }} />
+              <i className="fa-solid fa-check text-[11px]" style={{ color: 'var(--f-income)' }} />
               <span className="text-[13px] font-semibold text-white">{f}</span>
             </div>
           ))}
         </div>
       </div>
 
-      <p className="text-[11px] font-black uppercase tracking-[2px]" style={{ color: 'rgba(255,255,255,0.35)' }}>Elige tu plan</p>
+      <p className="text-[11px] font-black uppercase tracking-[2px]" style={{ color: 'var(--f-text-4)' }}>Elige tu plan</p>
 
       <PriceCard
         label="Anual"
@@ -1542,7 +1542,7 @@ function SubscriptionTab({ profile }: { profile: Profile | null }) {
         onSelect={() => handleCheckout(PRICE_MONTHLY, setLoadingMonthly)}
       />
 
-      <p className="text-[11px] text-center" style={{ color: 'rgba(255,255,255,0.25)' }}>
+      <p className="text-[11px] text-center" style={{ color: 'var(--f-text-4)' }}>
         Cancela cuando quieras · Pago seguro con Stripe
       </p>
     </div>
@@ -1562,12 +1562,12 @@ function PriceCard({ label, price, period, badge, loading, onSelect }: {
       onClick={onSelect}
       disabled={loading}
       className="w-full rounded-[18px] px-5 py-4 flex items-center justify-between transition-all active:scale-[0.98] disabled:opacity-50"
-      style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.2)' }}
+      style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-accent-border)' }}
     >
       <div className="flex flex-col items-start gap-0.5">
         <p className="text-[14px] font-black text-white">{label}</p>
         {badge && (
-          <span className="text-[10px] font-black px-2 py-0.5 rounded-full" style={{ background: 'rgba(48,209,88,0.15)', color: '#30D158' }}>
+          <span className="text-[10px] font-black px-2 py-0.5 rounded-full" style={{ background: 'var(--f-income-border)', color: 'var(--f-income)' }}>
             {badge}
           </span>
         )}
@@ -1575,11 +1575,11 @@ function PriceCard({ label, price, period, badge, loading, onSelect }: {
       <div className="flex items-center gap-3">
         <div className="text-right">
           <span className="text-[22px] font-black text-white tabular-nums">{price}</span>
-          <span className="text-[12px] font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>{period}</span>
+          <span className="text-[12px] font-bold" style={{ color: 'var(--f-text-3)' }}>{period}</span>
         </div>
         {loading
-          ? <i className="fa-solid fa-spinner fa-spin text-sm" style={{ color: '#007AFF' }} />
-          : <i className="fa-solid fa-chevron-right text-xs" style={{ color: 'rgba(0,122,255,0.7)' }} />}
+          ? <i className="fa-solid fa-spinner fa-spin text-sm" style={{ color: 'var(--f-blue)' }} />
+          : <i className="fa-solid fa-chevron-right text-xs" style={{ color: 'var(--f-accent-border)' }} />}
       </div>
     </button>
   )
@@ -1629,31 +1629,31 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-white">Contactos</p>
-        <button onClick={() => setEditing({ name: '' })} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95" style={{ background: 'rgba(0,122,255,0.12)', color: '#007AFF' }}>
+        <button onClick={() => setEditing({ name: '' })} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95" style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)' }}>
           <i className="fa-solid fa-plus" /> Nuevo
         </button>
       </div>
 
       {contacts.length === 0 && !editing && (
-        <p className="text-sm text-center py-8" style={{ color: 'rgba(255,255,255,0.25)' }}>Sin contactos configurados</p>
+        <p className="text-sm text-center py-8" style={{ color: 'var(--f-text-4)' }}>Sin contactos configurados</p>
       )}
 
       {contacts.map((person, i) => (
-        <div key={person.id} className="rounded-2xl px-4 py-4 flex items-center gap-4 animate-fade-up" style={{ background: '#0F172A', border: '1px solid rgba(0,122,255,0.12)', animationDelay: `${i * 0.04}s` }}>
-          <div className="w-11 h-11 rounded-xl flex items-center justify-center font-black text-[15px]" style={{ background: 'rgba(100,210,255,0.12)', color: '#64D2FF' }}>
+        <div key={person.id} className="rounded-2xl px-4 py-4 flex items-center gap-4 animate-fade-up" style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-accent-bg)', animationDelay: `${i * 0.04}s` }}>
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center font-black text-[15px]" style={{ background: 'rgba(100,210,255,0.12)', color: 'var(--f-transfer)' }}>
             {person.name[0]?.toUpperCase() ?? '?'}
           </div>
           <span className="flex-1 text-sm font-semibold text-white truncate">{person.name}</span>
-          <button onClick={() => setEditing({ id: person.id, name: person.name })} className="px-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <button onClick={() => setEditing({ id: person.id, name: person.name })} className="px-2" style={{ color: 'var(--f-text-3)' }}>
             <i className="fa-solid fa-pen text-xs" />
           </button>
           {deleteConfirm === person.id ? (
             <div className="flex items-center gap-1.5">
-              <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold" style={{ color: 'rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.08)' }}>No</button>
-              <button onClick={() => handleDelete(person.id)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold text-white" style={{ background: '#FF453A' }}>Sí</button>
+              <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold" style={{ color: 'var(--f-text-2)', background: 'var(--f-bg-input)' }}>No</button>
+              <button onClick={() => handleDelete(person.id)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold text-white" style={{ background: 'var(--f-expense)' }}>Sí</button>
             </div>
           ) : (
-            <button onClick={() => setDeleteConfirm(person.id)} className="px-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <button onClick={() => setDeleteConfirm(person.id)} className="px-2" style={{ color: 'var(--f-text-3)' }}>
               <i className="fa-solid fa-trash text-xs" />
             </button>
           )}
@@ -1670,11 +1670,11 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
               onKeyDown={e => { if (e.key === 'Enter') handleSave() }}
               placeholder="Nombre del contacto"
               className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder:opacity-30 focus:outline-none"
-              style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
+              style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
             />
             <div className="flex gap-2 pt-1">
-              <button onClick={() => setEditing(null)} className="flex-1 py-3 rounded-xl text-sm font-semibold" style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.5)' }}>Cancelar</button>
-              <button onClick={handleSave} disabled={isPending || !editing.name.trim()} className="flex-1 py-3 rounded-xl text-sm font-bold text-white disabled:opacity-50" style={{ background: '#007AFF' }}>Guardar</button>
+              <button onClick={() => setEditing(null)} className="flex-1 py-3 rounded-xl text-sm font-semibold" style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}>Cancelar</button>
+              <button onClick={handleSave} disabled={isPending || !editing.name.trim()} className="flex-1 py-3 rounded-xl text-sm font-bold text-white disabled:opacity-50" style={{ background: 'var(--f-blue)' }}>Guardar</button>
             </div>
           </div>
         </BottomSheet>

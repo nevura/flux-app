@@ -219,6 +219,70 @@ export async function settleAndRecord(txId: string, participantId: string, accou
   return { error: null }
 }
 
+export async function abonoGlobalForPerson(personId: string, personName: string, amount: number, accountId?: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+  if (amount <= 0) return { error: 'Monto inválido' }
+
+  const { data: txs, error: fetchErr } = await supabase
+    .from('transactions').select('*').eq('user_id', user.id).not('split_data', 'is', null)
+    .order('transaction_date', { ascending: true })
+  if (fetchErr) return { error: fetchErr.message }
+
+  // Collect pending items for this person (THEY-owe-me direction only — they're paying me)
+  // Also handle IOWE direction (I'm paying them)
+  const pending: Array<{ txId: string; participantId: string; unpaid: number; sd: object }> = []
+  for (const tx of txs ?? []) {
+    const sd = tx.split_data
+    if (!sd || !Array.isArray(sd.data)) continue
+    const p = (sd.data as SplitParticipant[]).find(p => p.id === personId)
+    if (!p || p.paidStatus) continue
+    const unpaid = p.value - (p.paidAmount ?? 0)
+    if (unpaid <= 0.005) continue
+    pending.push({ txId: tx.id, participantId: personId, unpaid, sd })
+  }
+
+  if (pending.length === 0) return { error: 'Sin saldos pendientes' }
+
+  // FIFO: apply amount across transactions from oldest to newest
+  let remaining = amount
+  for (const item of pending) {
+    if (remaining <= 0.005) break
+    const apply = Math.min(remaining, item.unpaid)
+    remaining -= apply
+    const newPaid = (item.unpaid - apply <= 0.005)
+    const sd = item.sd as { data: SplitParticipant[]; splitMode: string; mode: string }
+    const newData = sd.data.map(p =>
+      p.id === personId
+        ? { ...p, paidAmount: (p.paidAmount ?? 0) + apply, paidStatus: newPaid }
+        : p
+    )
+    const { error } = await supabase
+      .from('transactions').update({ split_data: { ...sd, data: newData } })
+      .eq('id', item.txId).eq('user_id', user.id)
+    if (error) return { error: error.message }
+  }
+
+  if (accountId) {
+    await supabase.from('transactions').insert({
+      user_id: user.id,
+      concept: `Abono global: ${personName}`,
+      type: 'TR-INGRESO',
+      amount,
+      adjustment: adjustmentFor('TR-INGRESO', amount),
+      account_id: accountId,
+      transaction_date: getMexicoNow().slice(0, 10),
+      is_validated: true,
+    })
+  }
+
+  revalidatePath('/shared')
+  revalidatePath('/home')
+  revalidatePath('/transactions')
+  return { error: null }
+}
+
 export async function settleAllForPerson(personId: string, personName: string, accountId?: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

@@ -9,7 +9,7 @@ function AnimatedCurrency({ value }: { value: number }) {
   const animated = useCountUp(value)
   return <>{formatCurrency(animated)}</>
 }
-import { settleParticipant, partialSettle, settleAndRecord, settleAllForPerson } from '@/actions/transactions'
+import { settleParticipant, partialSettle, settleAndRecord, settleAllForPerson, abonoGlobalForPerson } from '@/actions/transactions'
 import type { Transaction, Person, SplitParticipant, Account, Category, AccountWithBalance } from '@/lib/types'
 import TransactionModal from '@/components/transactions/TransactionModal'
 
@@ -45,6 +45,12 @@ export default function SharedClient({ transactions, people, accounts, categorie
   const [globalSettleId, setGlobalSettleId] = useState<string | null>(null)
   const [globalAccountId, setGlobalAccountId] = useState('')
   const [isGlobalPending, startGlobal] = useTransition()
+
+  // Global abono state
+  const [globalAbonoId, setGlobalAbonoId] = useState<string | null>(null)
+  const [globalAbonoAmount, setGlobalAbonoAmount] = useState('')
+  const [globalAbonoAccountId, setGlobalAbonoAccountId] = useState('')
+  const [isAbonoPending, startAbono] = useTransition()
 
   const [editingTx, setEditingTx] = useState<Transaction | null>(null)
 
@@ -108,6 +114,19 @@ export default function SharedClient({ transactions, people, accounts, categorie
       toast.success(withRecord ? 'Saldo liquidado y registrado' : 'Saldo liquidado')
       setGlobalSettleId(null)
       setGlobalAccountId('')
+    })
+  }
+
+  function executeAbonoGlobal(personId: string, personName: string) {
+    const amt = parseFloat(globalAbonoAmount.replace(',', '.'))
+    if (isNaN(amt) || amt <= 0) { toast.error('Monto inválido'); return }
+    startAbono(async () => {
+      const res = await abonoGlobalForPerson(personId, personName, amt, globalAbonoAccountId || undefined)
+      if (res.error) { toast.error(res.error); return }
+      toast.success(globalAbonoAccountId ? 'Abono registrado' : 'Abono aplicado')
+      setGlobalAbonoId(null)
+      setGlobalAbonoAmount('')
+      setGlobalAbonoAccountId('')
     })
   }
 
@@ -212,6 +231,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
               const isOpen = expanded === b.person.id
               const netPositive = b.net >= 0
               const isGlobalOpen = globalSettleId === b.person.id
+              const isAbonoOpen = globalAbonoId === b.person.id
               return (
                 <div key={b.person.id} className="rounded-[20px] overflow-hidden animate-spring-in"
                   style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', animationDelay: `${bi * 0.07}s` }}>
@@ -239,25 +259,88 @@ export default function SharedClient({ transactions, people, accounts, categorie
                   </div>
 
                   {/* Action buttons row */}
-                  <div className="flex gap-2 px-4 pb-3">
+                  <div className="flex gap-1.5 px-4 pb-3">
                     <button
-                      onClick={() => setExpanded(isOpen ? null : b.person.id)}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-[10px] text-[12px] font-black transition-all active:scale-95"
+                      onClick={() => { setExpanded(isOpen ? null : b.person.id); setGlobalSettleId(null); setGlobalAbonoId(null) }}
+                      className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-[10px] text-[11px] font-black transition-all active:scale-95"
                       style={{ background: isOpen ? 'var(--f-accent-bg)' : 'var(--f-bg-input)', color: isOpen ? 'var(--f-blue)' : 'var(--f-text-3)', border: `1px solid ${isOpen ? 'var(--f-accent-border)' : 'var(--f-line)'}` }}
                     >
-                      <i className={`fa-solid fa-list text-[10px]`} />
-                      Ver desglose
-                      <i className={`fa-solid fa-chevron-${isOpen ? 'up' : 'down'} text-[9px] ml-0.5`} />
+                      <i className="fa-solid fa-list text-[9px]" />
+                      Desglose
                     </button>
                     <button
-                      onClick={() => { setGlobalSettleId(isGlobalOpen ? null : b.person.id); setGlobalAccountId('') }}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-[10px] text-[12px] font-black transition-all active:scale-95"
+                      onClick={() => { setGlobalAbonoId(isAbonoOpen ? null : b.person.id); setGlobalSettleId(null); setGlobalAbonoAmount(''); setGlobalAbonoAccountId('') }}
+                      className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-[10px] text-[11px] font-black transition-all active:scale-95"
+                      style={{ background: isAbonoOpen ? 'var(--f-accent-bg)' : 'var(--f-bg-input)', color: isAbonoOpen ? 'var(--f-blue)' : 'var(--f-text-3)', border: `1px solid ${isAbonoOpen ? 'var(--f-accent-border)' : 'var(--f-line)'}` }}
+                    >
+                      <i className="fa-solid fa-coins text-[9px]" />
+                      Abonar
+                    </button>
+                    <button
+                      onClick={() => { setGlobalSettleId(isGlobalOpen ? null : b.person.id); setGlobalAbonoId(null); setGlobalAccountId('') }}
+                      className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-[10px] text-[11px] font-black transition-all active:scale-95"
                       style={{ background: isGlobalOpen ? 'var(--f-income-bg)' : 'var(--f-bg-input)', color: isGlobalOpen ? 'var(--f-income)' : 'var(--f-text-3)', border: `1px solid ${isGlobalOpen ? 'var(--f-income-border)' : 'var(--f-line)'}` }}
                     >
-                      <i className="fa-solid fa-check-double text-[10px]" />
+                      <i className="fa-solid fa-check-double text-[9px]" />
                       Saldar todo
                     </button>
                   </div>
+
+                  {/* Global abono panel */}
+                  {isAbonoOpen && (
+                    <div className="mx-4 mb-4 rounded-[14px] p-4 space-y-3 animate-fade-up"
+                      style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-line-strong)' }}>
+                      <div>
+                        <p className="text-[13px] font-black mb-0.5" style={{ color: 'var(--f-text)' }}>
+                          Abonar a {b.person.name}
+                        </p>
+                        <p className="text-[11px] font-bold" style={{ color: 'var(--f-text-4)' }}>
+                          Saldo pendiente: {formatCurrency(Math.abs(b.net))} — se aplica FIFO (más antiguo primero)
+                        </p>
+                      </div>
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        step="0.01"
+                        value={globalAbonoAmount}
+                        onChange={e => setGlobalAbonoAmount(e.target.value)}
+                        placeholder="Monto del abono"
+                        className="w-full rounded-[10px] px-3 py-2.5 text-[14px] font-bold outline-none tabular-nums"
+                        style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-border)', color: 'var(--f-text)' }}
+                      />
+                      <select
+                        value={globalAbonoAccountId}
+                        onChange={e => setGlobalAbonoAccountId(e.target.value)}
+                        className="w-full rounded-[10px] px-3 py-2.5 text-[14px] font-bold outline-none"
+                        style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)', colorScheme: 'dark' }}
+                      >
+                        <option value="">Sin registrar en cuenta</option>
+                        {accounts.map(acc => (
+                          <option key={acc.id} value={acc.id}>{acc.name}</option>
+                        ))}
+                      </select>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => { setGlobalAbonoId(null); setGlobalAbonoAmount(''); setGlobalAbonoAccountId('') }}
+                          className="flex-1 py-2 rounded-[10px] text-[13px] font-black transition-all active:scale-95"
+                          style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={() => executeAbonoGlobal(b.person.id, b.person.name)}
+                          disabled={isAbonoPending || !globalAbonoAmount}
+                          className="px-5 py-2 rounded-[10px] text-[13px] font-black text-white disabled:opacity-50 transition-all active:scale-95"
+                          style={{ background: 'var(--f-blue)', flex: 2 }}
+                        >
+                          {isAbonoPending
+                            ? <i className="fa-solid fa-spinner fa-spin" />
+                            : globalAbonoAccountId ? 'Abonar y registrar' : 'Abonar'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Global settle panel */}
                   {isGlobalOpen && (

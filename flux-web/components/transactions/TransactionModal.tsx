@@ -21,9 +21,9 @@ interface Props {
 type TxType = 'TR-GASTO' | 'TR-INGRESO' | 'TR-TRANSFER'
 
 const TYPE_CONFIG = {
-  'TR-GASTO': { label: 'Gasto', color: '#FF453A', icon: 'fa-solid fa-arrow-up-right' },
-  'TR-INGRESO': { label: 'Ingreso', color: '#30D158', icon: 'fa-solid fa-arrow-down-left' },
-  'TR-TRANSFER': { label: 'Transferencia', color: '#64D2FF', icon: 'fa-solid fa-shuffle' },
+  'TR-GASTO':    { label: 'Gasto',          color: 'var(--f-expense)',  rawColor: '#FF453A', icon: 'fa-solid fa-arrow-up-right' },
+  'TR-INGRESO':  { label: 'Ingreso',         color: 'var(--f-income)',   rawColor: '#30D158', icon: 'fa-solid fa-arrow-down-left' },
+  'TR-TRANSFER': { label: 'Transferencia',   color: 'var(--f-transfer)', rawColor: '#64D2FF', icon: 'fa-solid fa-shuffle' },
 }
 
 export default function TransactionModal({ transaction, accounts, categories, people, onClose, presetType }: Props) {
@@ -175,26 +175,29 @@ export default function TransactionModal({ transaction, accounts, categories, pe
         className="fixed bottom-0 left-0 right-0 z-[60] animate-slide-up flex flex-col mx-auto max-w-lg"
         style={{
           maxHeight: '94dvh',
-          background: '#0F172A',
+          background: 'var(--f-bg-elevated)',
           borderRadius: '28px 28px 0 0',
-          border: '1px solid rgba(255,255,255,0.1)',
+          border: '1px solid var(--f-line-strong)',
           borderBottom: 'none',
         }}
       >
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
-          <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.2)' }} />
+          <div className="w-10 h-1 rounded-full" style={{ background: 'var(--f-line-strong)' }} />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-          <h2 className="text-[16px] font-black text-white">{isEdit ? 'Editar movimiento' : 'Nuevo movimiento'}</h2>
+        <div className="flex items-center justify-between px-5 py-3 flex-shrink-0"
+          style={{ borderBottom: '1px solid var(--f-line)' }}>
+          <h2 className="text-[16px] font-black" style={{ color: 'var(--f-text)' }}>
+            {isEdit ? 'Editar movimiento' : 'Nuevo movimiento'}
+          </h2>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-full flex items-center justify-center"
-            style={{ background: 'rgba(255,255,255,0.1)' }}
+            style={{ background: 'var(--f-bg-input)' }}
           >
-            <i className="fa-solid fa-xmark text-sm text-white" />
+            <i className="fa-solid fa-xmark text-sm" style={{ color: 'var(--f-text)' }} />
           </button>
         </div>
 
@@ -211,13 +214,13 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                   onClick={() => setType(t)}
                   className="flex-1 py-2.5 rounded-[14px] text-[11px] font-black flex items-center justify-center gap-1.5 transition-all"
                   style={type === t ? {
-                    background: `${c.color}20`,
-                    border: `1px solid ${c.color}50`,
+                    background: `color-mix(in srgb, ${c.rawColor} 13%, transparent)`,
+                    border: `1px solid color-mix(in srgb, ${c.rawColor} 35%, transparent)`,
                     color: c.color,
                   } : {
-                    background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    color: 'rgba(255,255,255,0.4)',
+                    background: 'var(--f-bg-input)',
+                    border: '1px solid var(--f-line)',
+                    color: 'var(--f-text-3)',
                   }}
                 >
                   <i className={c.icon} />
@@ -228,11 +231,11 @@ export default function TransactionModal({ transaction, accounts, categories, pe
 
             {/* Amount — big centered display */}
             <div className="text-center">
-              <p className="text-[10px] font-black tracking-[3px] uppercase mb-3" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              <p className="text-[10px] font-black tracking-[3px] uppercase mb-3" style={{ color: 'var(--f-text-4)' }}>
                 Monto
               </p>
               <div className="flex items-center justify-center gap-1">
-                <span className="text-[28px] font-black" style={{ color: 'rgba(255,255,255,0.4)' }}>$</span>
+                <span className="text-[28px] font-black" style={{ color: 'var(--f-text-3)' }}>$</span>
                 <input
                   type="text"
                   inputMode="decimal"
@@ -244,7 +247,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                   }}
                   placeholder="0.00"
                   className="bg-transparent border-none outline-none text-[44px] font-black tabular-nums text-center w-full max-w-[220px]"
-                  style={{ color: amount ? cfg.color : 'rgba(255,255,255,0.2)' }}
+                  style={{ color: amount ? cfg.color : 'var(--f-text-4)' }}
                 />
               </div>
               <div
@@ -254,21 +257,11 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                   background: `linear-gradient(to right, transparent, ${cfg.color})`,
                 }}
               />
-              <div className="flex justify-center mt-3">
-                <button
-                  type="button"
-                  onClick={() => setAmount(prev => prev + '+')}
-                  className="w-10 h-8 rounded-[10px] text-[16px] font-black transition-all active:scale-90"
-                  style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.1)' }}
-                >
-                  +
-                </button>
-              </div>
             </div>
 
             {/* Concept */}
             <div>
-              <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>
                 Concepto
               </p>
               <input
@@ -277,20 +270,21 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                 value={concept}
                 onChange={e => setConcept(e.target.value)}
                 placeholder={type === 'TR-GASTO' ? 'Ej: Súper, Uber…' : type === 'TR-INGRESO' ? 'Ej: Sueldo, Venta…' : 'Ej: Ahorro mensual…'}
-                className="w-full rounded-[14px] px-4 py-3.5 text-[14px] font-bold text-white placeholder:font-medium outline-none transition-all"
+                className="w-full rounded-[14px] px-4 py-3.5 text-[14px] font-bold placeholder:font-medium outline-none transition-all"
                 style={{
-                  background: 'rgba(255,255,255,0.07)',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  background: 'var(--f-bg-input)',
+                  border: '1px solid var(--f-line)',
+                  color: 'var(--f-text)',
                 }}
-                onFocus={e => { e.currentTarget.style.borderColor = cfg.color + '80' }}
-                onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}
+                onFocus={e => { e.currentTarget.style.borderColor = cfg.rawColor + '80' }}
+                onBlur={e => { e.currentTarget.style.borderColor = 'var(--f-line)' }}
               />
             </div>
 
             {/* Category */}
             {type !== 'TR-TRANSFER' && (
               <div>
-                <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>
                   Categoría
                 </p>
                 <div className="grid grid-cols-4 gap-1">
@@ -304,8 +298,8 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                         onClick={() => setCatId(selected ? '' : cat.id)}
                         className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-[12px] transition-all"
                         style={selected ? {
-                          background: `${cfg.color}15`,
-                          border: `1px solid ${cfg.color}40`,
+                          background: `color-mix(in srgb, ${cfg.rawColor} 10%, transparent)`,
+                          border: `1px solid color-mix(in srgb, ${cfg.rawColor} 30%, transparent)`,
                         } : {
                           background: 'transparent',
                           border: '1px solid transparent',
@@ -313,11 +307,11 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                       >
                         <i
                           className={`${d.icon} text-[18px]`}
-                          style={{ color: selected ? cfg.color : 'rgba(255,255,255,0.5)' }}
+                          style={{ color: selected ? cfg.color : 'var(--f-text-3)' }}
                         />
                         <span
                           className="text-[8px] font-bold uppercase tracking-wide text-center leading-tight px-0.5"
-                          style={{ color: selected ? cfg.color : 'rgba(255,255,255,0.4)' }}
+                          style={{ color: selected ? cfg.color : 'var(--f-text-4)' }}
                         >
                           {cat.name.split(' ')[0]}
                         </span>
@@ -330,22 +324,22 @@ export default function TransactionModal({ transaction, accounts, categories, pe
 
             {/* Account */}
             <div>
-              <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>
                 {type === 'TR-TRANSFER' ? 'Cuenta origen' : 'Cuenta'}
               </p>
               <select
                 value={accId}
                 onChange={e => setAccId(e.target.value)}
-                className="w-full rounded-[14px] px-4 py-3 text-[14px] font-bold text-white outline-none appearance-none"
+                className="w-full rounded-[14px] px-4 py-3 text-[14px] font-bold outline-none appearance-none"
                 style={{
-                  background: 'rgba(255,255,255,0.07)',
-                  border: `1px solid ${cfg.color}50`,
+                  background: 'var(--f-bg-input)',
+                  border: `1px solid color-mix(in srgb, ${cfg.rawColor} 35%, transparent)`,
+                  color: 'var(--f-text)',
+                  colorScheme: 'dark',
                 }}
               >
                 {accounts.map(acc => (
-                  <option key={acc.id} value={acc.id} style={{ background: '#1C1C1E' }}>
-                    {acc.name}
-                  </option>
+                  <option key={acc.id} value={acc.id}>{acc.name}</option>
                 ))}
               </select>
             </div>
@@ -353,23 +347,23 @@ export default function TransactionModal({ transaction, accounts, categories, pe
             {/* Destination */}
             {type === 'TR-TRANSFER' && (
               <div>
-                <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>
                   Cuenta destino
                 </p>
                 <select
                   value={destId}
                   onChange={e => setDestId(e.target.value)}
-                  className="w-full rounded-[14px] px-4 py-3 text-[14px] font-bold text-white outline-none appearance-none"
+                  className="w-full rounded-[14px] px-4 py-3 text-[14px] font-bold outline-none appearance-none"
                   style={{
-                    background: 'rgba(255,255,255,0.07)',
-                    border: '1px solid rgba(100,210,255,0.4)',
+                    background: 'var(--f-bg-input)',
+                    border: '1px solid var(--f-transfer)',
+                    color: 'var(--f-text)',
+                    colorScheme: 'dark',
                   }}
                 >
-                  <option value="" style={{ background: '#1C1C1E' }}>Selecciona cuenta destino</option>
+                  <option value="">Selecciona cuenta destino</option>
                   {accounts.filter(a => a.id !== accId).map(acc => (
-                    <option key={acc.id} value={acc.id} style={{ background: '#1C1C1E' }}>
-                      {acc.name}
-                    </option>
+                    <option key={acc.id} value={acc.id}>{acc.name}</option>
                   ))}
                 </select>
               </div>
@@ -377,17 +371,18 @@ export default function TransactionModal({ transaction, accounts, categories, pe
 
             {/* Date */}
             <div style={{ overflow: 'hidden' }}>
-              <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>
                 Fecha
               </p>
               <input
                 type="datetime-local"
                 value={date}
                 onChange={e => setDate(e.target.value)}
-                className="w-full rounded-[14px] px-4 py-3 text-[13px] font-bold text-white outline-none"
+                className="w-full rounded-[14px] px-4 py-3 text-[13px] font-bold outline-none"
                 style={{
-                  background: 'rgba(255,255,255,0.07)',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  background: 'var(--f-bg-input)',
+                  border: '1px solid var(--f-line)',
+                  color: 'var(--f-text)',
                   colorScheme: 'dark',
                   minWidth: 0,
                   maxWidth: '100%',
@@ -397,7 +392,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
 
             {/* Notes */}
             <div>
-              <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>
                 Notas (opcional)
               </p>
               <input
@@ -405,10 +400,11 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                 value={notes}
                 onChange={e => setNotes(e.target.value)}
                 placeholder="Referencia, nota adicional…"
-                className="w-full rounded-[14px] px-4 py-3 text-[13px] font-medium text-white outline-none"
+                className="w-full rounded-[14px] px-4 py-3 text-[13px] font-medium outline-none"
                 style={{
-                  background: 'rgba(255,255,255,0.07)',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  background: 'var(--f-bg-input)',
+                  border: '1px solid var(--f-line)',
+                  color: 'var(--f-text)',
                 }}
               />
             </div>
@@ -420,19 +416,19 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                 onClick={() => setExclude(!exclude)}
                 className="w-full flex items-center justify-between px-4 py-3.5 rounded-[14px] transition-all"
                 style={{
-                  background: exclude ? 'rgba(255,159,10,0.1)' : 'rgba(255,255,255,0.05)',
-                  border: `1px solid ${exclude ? 'rgba(255,159,10,0.3)' : 'rgba(255,255,255,0.07)'}`,
+                  background: exclude ? 'rgba(255,159,10,0.1)' : 'var(--f-bg-input)',
+                  border: `1px solid ${exclude ? 'rgba(255,159,10,0.3)' : 'var(--f-line)'}`,
                 }}
               >
                 <div>
-                  <p className="text-[13px] font-bold text-white text-left">Excluir del presupuesto</p>
-                  <p className="text-[11px] text-left mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  <p className="text-[13px] font-bold text-left" style={{ color: 'var(--f-text)' }}>Excluir del presupuesto</p>
+                  <p className="text-[11px] text-left mt-0.5" style={{ color: 'var(--f-text-3)' }}>
                     No contar en el límite mensual
                   </p>
                 </div>
                 <div
                   className="w-10 h-6 rounded-full relative flex-shrink-0 transition-colors"
-                  style={{ background: exclude ? '#FF9F0A' : 'rgba(255,255,255,0.15)' }}
+                  style={{ background: exclude ? '#FF9F0A' : 'var(--f-line-strong)' }}
                 >
                   <div
                     className="absolute top-1 w-4 h-4 rounded-full bg-white transition-transform"
@@ -450,18 +446,20 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                   onClick={() => setSplitEnabled(v => !v)}
                   className="w-full flex items-center justify-between px-4 py-3.5 rounded-[14px] transition-all"
                   style={{
-                    background: splitEnabled ? 'rgba(100,210,255,0.1)' : 'rgba(255,255,255,0.05)',
-                    border: `1px solid ${splitEnabled ? 'rgba(100,210,255,0.3)' : 'rgba(255,255,255,0.07)'}`,
+                    background: splitEnabled ? 'var(--f-transfer-bg)' : 'var(--f-bg-input)',
+                    border: `1px solid ${splitEnabled ? 'var(--f-transfer-border)' : 'var(--f-line)'}`,
                   }}
                 >
                   <div>
-                    <p className="text-[13px] font-bold text-white text-left">Compartir gasto</p>
-                    <p className="text-[11px] text-left mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                    <p className="text-[13px] font-bold text-left" style={{ color: 'var(--f-text)' }}>Compartir gasto</p>
+                    <p className="text-[11px] text-left mt-0.5" style={{ color: 'var(--f-text-3)' }}>
                       Asignar a personas
                     </p>
                   </div>
-                  <div className="w-10 h-6 rounded-full relative flex-shrink-0 transition-colors" style={{ background: splitEnabled ? '#64D2FF' : 'rgba(255,255,255,0.15)' }}>
-                    <div className="absolute top-1 w-4 h-4 rounded-full bg-white transition-transform" style={{ transform: splitEnabled ? 'translateX(20px)' : 'translateX(4px)' }} />
+                  <div className="w-10 h-6 rounded-full relative flex-shrink-0 transition-colors"
+                    style={{ background: splitEnabled ? 'var(--f-transfer)' : 'var(--f-line-strong)' }}>
+                    <div className="absolute top-1 w-4 h-4 rounded-full bg-white transition-transform"
+                      style={{ transform: splitEnabled ? 'translateX(20px)' : 'translateX(4px)' }} />
                   </div>
                 </button>
 
@@ -480,8 +478,8 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                           onClick={() => setQuickMode(opt.id)}
                           className="flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-[12px] transition-all"
                           style={quickMode === opt.id
-                            ? { background: 'rgba(100,210,255,0.15)', border: '1px solid rgba(100,210,255,0.35)', color: '#64D2FF' }
-                            : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.35)' }}
+                            ? { background: 'var(--f-transfer-bg)', border: '1px solid var(--f-transfer-border)', color: 'var(--f-transfer)' }
+                            : { background: 'var(--f-bg-input)', border: '1px solid var(--f-line)', color: 'var(--f-text-3)' }}
                         >
                           <i className={`${opt.icon} text-[15px]`} />
                           <span className="text-[10px] font-black text-center leading-tight mt-0.5">{opt.label}</span>
@@ -493,11 +491,11 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                     {/* My share pill — equal mode */}
                     {quickMode === 'equal' && splitSelected.size > 0 && (
                       <div className="flex items-center justify-between px-3 py-2 rounded-[10px]"
-                        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                        <span className="text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                        style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}>
+                        <span className="text-[11px] font-bold" style={{ color: 'var(--f-text-3)' }}>
                           <i className="fa-solid fa-user text-[9px] mr-1.5" />Tu parte
                         </span>
-                        <span className="text-[13px] font-black tabular-nums" style={{ color: '#64D2FF' }}>
+                        <span className="text-[13px] font-black tabular-nums" style={{ color: 'var(--f-transfer)' }}>
                           ${((parseFloat(amount) || 0) / (splitSelected.size + 1)).toFixed(2)}
                         </span>
                       </div>
@@ -506,7 +504,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                     {/* People list */}
                     <div className="space-y-1.5">
                       {otherPeople.length === 0 && !addingPerson && (
-                        <p className="text-[12px] font-bold text-center py-2" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                        <p className="text-[12px] font-bold text-center py-2" style={{ color: 'var(--f-text-3)' }}>
                           No hay personas — agrega una abajo
                         </p>
                       )}
@@ -520,16 +518,16 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                             key={person.id}
                             className="flex items-center gap-3 px-3 py-2.5 rounded-[12px] transition-all"
                             style={{
-                              background: selected ? 'rgba(100,210,255,0.08)' : 'rgba(255,255,255,0.04)',
-                              border: `1px solid ${selected ? 'rgba(100,210,255,0.25)' : 'rgba(255,255,255,0.06)'}`,
+                              background: selected ? 'var(--f-transfer-bg)' : 'var(--f-bg-input)',
+                              border: `1px solid ${selected ? 'var(--f-transfer-border)' : 'var(--f-line)'}`,
                             }}
                           >
                             <button type="button" onClick={() => togglePerson(person.id)} className="flex items-center gap-2.5 flex-1 min-w-0">
                               <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all"
-                                style={{ background: selected ? '#64D2FF' : 'rgba(255,255,255,0.15)' }}>
+                                style={{ background: selected ? 'var(--f-transfer)' : 'var(--f-line-strong)' }}>
                                 {selected && <i className="fa-solid fa-check text-[9px] text-black" />}
                               </div>
-                              <span className="text-[13px] font-bold text-white truncate">{person.name}</span>
+                              <span className="text-[13px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{person.name}</span>
                             </button>
                             {selected && quickMode === 'manual' ? (
                               <input
@@ -541,12 +539,12 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                                   setManualAmounts(prev => ({ ...prev, [person.id]: val > 0 ? String(val) : '' }))
                                 }}
                                 placeholder="0 ó 40+20"
-                                className="w-24 rounded-[8px] px-2 py-1 text-[12px] font-black text-white text-right outline-none"
-                                style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(100,210,255,0.3)' }}
+                                className="w-24 rounded-[8px] px-2 py-1 text-[12px] font-black text-right outline-none"
+                                style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-transfer-border)', color: 'var(--f-text)' }}
                                 onClick={e => e.stopPropagation()}
                               />
                             ) : selected ? (
-                              <span className="text-[12px] font-black tabular-nums flex-shrink-0" style={{ color: '#64D2FF' }}>
+                              <span className="text-[12px] font-black tabular-nums flex-shrink-0" style={{ color: 'var(--f-transfer)' }}>
                                 ${perPerson.toFixed(2)}
                               </span>
                             ) : null}
@@ -563,20 +561,22 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                             onChange={e => setNewPersonName(e.target.value)}
                             onKeyDown={e => { if (e.key === 'Enter') handleAddPerson(); if (e.key === 'Escape') setAddingPerson(false) }}
                             placeholder="Nombre de la persona"
-                            className="flex-1 rounded-[10px] px-3 py-2 text-[13px] font-bold text-white outline-none"
-                            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(100,210,255,0.4)' }}
+                            className="flex-1 rounded-[10px] px-3 py-2 text-[13px] font-bold outline-none"
+                            style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-transfer-border)', color: 'var(--f-text)' }}
                           />
                           <button
                             type="button"
                             onClick={handleAddPerson}
                             disabled={isAddingPerson || !newPersonName.trim()}
                             className="px-3 rounded-[10px] text-[12px] font-black disabled:opacity-50"
-                            style={{ background: 'rgba(100,210,255,0.15)', border: '1px solid rgba(100,210,255,0.4)', color: '#64D2FF' }}
+                            style={{ background: 'var(--f-transfer-bg)', border: '1px solid var(--f-transfer-border)', color: 'var(--f-transfer)' }}
                           >
                             {isAddingPerson ? <i className="fa-solid fa-spinner fa-spin" /> : 'OK'}
                           </button>
-                          <button type="button" onClick={() => setAddingPerson(false)} className="w-9 rounded-[10px] flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                            <i className="fa-solid fa-xmark text-xs text-white" />
+                          <button type="button" onClick={() => setAddingPerson(false)}
+                            className="w-9 rounded-[10px] flex items-center justify-center"
+                            style={{ background: 'var(--f-bg-input)' }}>
+                            <i className="fa-solid fa-xmark text-xs" style={{ color: 'var(--f-text)' }} />
                           </button>
                         </div>
                       ) : (
@@ -584,10 +584,10 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                           type="button"
                           onClick={() => setAddingPerson(true)}
                           className="w-full flex items-center gap-2 px-3 py-2 rounded-[12px] transition-all"
-                          style={{ background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(255,255,255,0.12)' }}
+                          style={{ background: 'var(--f-bg-input)', border: '1px dashed var(--f-line-strong)' }}
                         >
-                          <i className="fa-solid fa-plus text-[10px]" style={{ color: 'rgba(255,255,255,0.35)' }} />
-                          <span className="text-[12px] font-bold" style={{ color: 'rgba(255,255,255,0.35)' }}>Agregar persona</span>
+                          <i className="fa-solid fa-plus text-[10px]" style={{ color: 'var(--f-text-3)' }} />
+                          <span className="text-[12px] font-bold" style={{ color: 'var(--f-text-3)' }}>Agregar persona</span>
                         </button>
                       )}
                     </div>
@@ -604,9 +604,9 @@ export default function TransactionModal({ transaction, accounts, categories, pe
         <div
           className="px-5 pt-4 flex-shrink-0 space-y-2.5"
           style={{
-            borderTop: '1px solid rgba(255,255,255,0.07)',
+            borderTop: '1px solid var(--f-line)',
             paddingBottom: 'calc(1rem + var(--safe-bottom))',
-            background: '#0F172A',
+            background: 'var(--f-bg-elevated)',
           }}
         >
           <button
@@ -616,7 +616,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
             className="w-full py-4 rounded-[16px] text-white text-[15px] font-black transition-all active:scale-[0.98] disabled:opacity-50"
             style={{
               background: cfg.color,
-              boxShadow: `0 4px 20px ${cfg.color}40`,
+              boxShadow: `0 4px 20px color-mix(in srgb, ${cfg.rawColor} 30%, transparent)`,
             }}
           >
             {isPending
@@ -642,7 +642,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
               type="button"
               onClick={() => setConfirmDelete(true)}
               className="w-full py-3 rounded-[14px] text-[13px] font-black transition-all"
-              style={{ color: '#FF453A', background: 'rgba(255,69,58,0.08)' }}
+              style={{ color: 'var(--f-expense)', background: 'var(--f-expense-bg)' }}
             >
               Eliminar movimiento
             </button>
@@ -653,7 +653,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                 type="button"
                 onClick={() => setConfirmDelete(false)}
                 className="flex-1 py-3 rounded-[14px] text-[13px] font-black"
-                style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)' }}
+                style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-2)' }}
               >
                 Cancelar
               </button>
@@ -662,7 +662,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                 onClick={handleDelete}
                 disabled={isPending}
                 className="flex-1 py-3 rounded-[14px] text-white text-[13px] font-black disabled:opacity-50"
-                style={{ background: '#FF453A' }}
+                style={{ background: 'var(--f-expense)' }}
               >
                 Confirmar
               </button>

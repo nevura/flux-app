@@ -84,17 +84,18 @@ export default function PullToRefresh({ children }: { children: React.ReactNode 
         <div
           className="flex items-center justify-center w-9 h-9 rounded-full"
           style={{
-            background: 'rgba(44,44,46,0.95)',
+            background: 'var(--f-bg-card)',
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+            border: '1px solid var(--f-line-strong)',
+            boxShadow: 'var(--f-shadow-card)',
           }}
         >
           <i
-            className={`fa-solid fa-arrow-rotate-right text-white ${refreshing ? 'animate-spin' : ''}`}
+            className={`fa-solid fa-arrow-rotate-right ${refreshing ? 'animate-spin' : ''}`}
             style={{
               fontSize: 13,
+              color: 'var(--f-text)',
               transform: refreshing ? undefined : `rotate(${progress * 300}deg)`,
             }}
           />

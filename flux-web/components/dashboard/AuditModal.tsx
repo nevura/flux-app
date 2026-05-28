@@ -73,24 +73,25 @@ export default function AuditModal({ accounts, onClose }: Props) {
         className="fixed bottom-0 left-0 right-0 z-[60] animate-slide-up flex flex-col mx-auto max-w-lg"
         style={{
           maxHeight: '92dvh',
-          background: '#0F172A',
+          background: 'var(--f-bg-elevated)',
           borderRadius: '28px 28px 0 0',
-          border: '1px solid rgba(255,255,255,0.1)',
+          border: '1px solid var(--f-line-strong)',
           borderBottom: 'none',
         }}
       >
         <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
-          <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.2)' }} />
+          <div className="w-10 h-1 rounded-full" style={{ background: 'var(--f-line-strong)' }} />
         </div>
-        <div className="flex items-start justify-between px-5 py-3 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+        <div className="flex items-start justify-between px-5 py-3 flex-shrink-0" style={{ borderBottom: '1px solid var(--f-line)' }}>
           <div>
-            <h2 className="text-[16px] font-black text-white">Auditoría de cuentas</h2>
-            <p className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <h2 className="text-[16px] font-black" style={{ color: 'var(--f-text)' }}>Auditoría de cuentas</h2>
+            <p className="text-[11px] mt-0.5" style={{ color: 'var(--f-text-3)' }}>
               Ingresa el saldo real — soporta sumas: 500+200+800
             </p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.1)' }}>
-            <i className="fa-solid fa-xmark text-sm text-white" />
+          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ background: 'var(--f-bg-input)' }}>
+            <i className="fa-solid fa-xmark text-sm" style={{ color: 'var(--f-text)' }} />
           </button>
         </div>
 
@@ -107,19 +108,21 @@ export default function AuditModal({ accounts, onClose }: Props) {
                 <div
                   key={acc.id}
                   className="rounded-[16px] p-4"
-                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}
+                  style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <i className={`${method.icon} text-xs`} style={{ color: 'rgba(255,255,255,0.4)' }} />
-                      <p className="text-[13px] font-bold text-white">{acc.name}</p>
+                      <i className={`${method.icon} text-xs`} style={{ color: 'var(--f-text-3)' }} />
+                      <p className="text-[13px] font-bold" style={{ color: 'var(--f-text)' }}>{acc.name}</p>
                       {isTDC && (
-                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(255,69,58,0.15)', color: '#FF453A' }}>
+                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full"
+                          style={{ background: 'var(--f-expense-bg)', color: 'var(--f-expense)' }}>
                           Crédito
                         </span>
                       )}
                     </div>
-                    <p className="text-[13px] font-black tabular-nums" style={{ color: isTDC ? '#FF453A' : (acc.balance < 0 ? '#FF453A' : 'rgba(255,255,255,0.5)') }}>
+                    <p className="text-[13px] font-black tabular-nums"
+                      style={{ color: isTDC ? 'var(--f-expense)' : (acc.balance < 0 ? 'var(--f-expense)' : 'var(--f-text-3)') }}>
                       {isTDC ? `-${formatCurrency(Math.abs(acc.balance))}` : formatCurrency(acc.balance)}
                     </p>
                   </div>
@@ -128,7 +131,7 @@ export default function AuditModal({ accounts, onClose }: Props) {
                     {isTDC && (
                       <span
                         className="absolute left-3 top-1/2 -translate-y-1/2 text-[15px] font-black pointer-events-none select-none z-10"
-                        style={{ color: '#FF453A' }}
+                        style={{ color: 'var(--f-expense)' }}
                       >
                         −
                       </span>
@@ -137,21 +140,23 @@ export default function AuditModal({ accounts, onClose }: Props) {
                       value={inputs[acc.id] ?? ''}
                       onChange={e => setInputs(prev => ({ ...prev, [acc.id]: e.target.value }))}
                       placeholder={isTDC ? 'Deuda actual, ej: 5000+320' : 'Saldo real, ej: 1500+800'}
-                      className="w-full rounded-[12px] py-2.5 pr-10 text-[14px] font-bold text-white outline-none"
+                      className="w-full rounded-[12px] py-2.5 pr-10 text-[14px] font-bold outline-none"
                       style={{
                         paddingLeft: isTDC ? '1.5rem' : '0.75rem',
-                        background: isTDC ? 'rgba(255,69,58,0.07)' : 'rgba(255,255,255,0.07)',
+                        background: isTDC ? 'var(--f-expense-bg)' : 'var(--f-bg-card)',
                         border: `1px solid ${hasChange
-                          ? (delta! > 0 ? 'rgba(48,209,88,0.5)' : 'rgba(255,69,58,0.5)')
-                          : isTDC ? 'rgba(255,69,58,0.25)' : 'rgba(255,255,255,0.1)'}`,
+                          ? (delta! > 0 ? 'var(--f-income-border)' : 'var(--f-expense-border)')
+                          : isTDC ? 'var(--f-expense-border)' : 'var(--f-line)'}`,
+                        color: 'var(--f-text)',
                       }}
                       inputMode="decimal"
                     />
+                    {/* "+" button kept here intentionally — audit-only feature */}
                     <button
                       type="button"
                       onClick={() => setInputs(prev => ({ ...prev, [acc.id]: (prev[acc.id] ?? '') + '+' }))}
                       className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-[8px] flex items-center justify-center text-[13px] font-black transition-all active:scale-90"
-                      style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }}
+                      style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)', border: '1px solid var(--f-line)' }}
                     >
                       +
                     </button>
@@ -159,17 +164,17 @@ export default function AuditModal({ accounts, onClose }: Props) {
 
                   {computed !== null && (
                     <div className="flex items-center justify-between mt-2.5">
-                      <p className="text-[12px] font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      <p className="text-[12px] font-bold" style={{ color: 'var(--f-text-3)' }}>
                         {isTDC ? 'Deuda real:' : 'Saldo real:'}{' '}
-                        <span className="text-white">{formatCurrency(Math.abs(computed))}</span>
+                        <span style={{ color: 'var(--f-text)' }}>{formatCurrency(Math.abs(computed))}</span>
                       </p>
                       {hasChange && (
-                        <p className="text-[12px] font-black tabular-nums" style={{ color: delta! > 0 ? '#30D158' : '#FF453A' }}>
+                        <p className="text-[12px] font-black tabular-nums" style={{ color: delta! > 0 ? 'var(--f-income)' : 'var(--f-expense)' }}>
                           {delta! > 0 ? '+' : ''}{formatCurrency(delta!)}
                         </p>
                       )}
                       {!hasChange && (
-                        <p className="text-[11px] font-bold" style={{ color: 'rgba(48,209,88,0.7)' }}>
+                        <p className="text-[11px] font-bold" style={{ color: 'var(--f-income)' }}>
                           <i className="fa-solid fa-check mr-1" />Sin diferencia
                         </p>
                       )}
@@ -184,16 +189,16 @@ export default function AuditModal({ accounts, onClose }: Props) {
         <div
           className="px-5 py-4 flex-shrink-0"
           style={{
-            borderTop: '1px solid rgba(255,255,255,0.07)',
+            borderTop: '1px solid var(--f-line)',
             paddingBottom: 'calc(4.5rem + var(--safe-bottom))',
-            background: '#0F172A',
+            background: 'var(--f-bg-elevated)',
           }}
         >
           <button
             onClick={handleSubmit}
             disabled={isPending}
             className="w-full py-4 rounded-[16px] text-white text-[15px] font-black transition-all active:scale-[0.98] disabled:opacity-50"
-            style={{ background: '#007AFF', boxShadow: '0 4px 20px rgba(0,122,255,0.4)' }}
+            style={{ background: 'var(--f-blue)', boxShadow: 'var(--f-shadow-accent)' }}
           >
             {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Aplicar ajustes'}
           </button>
