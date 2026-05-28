@@ -88,15 +88,18 @@ function BottomSheet({ onClose, children, title }: { onClose: () => void; childr
 // ── Main Component ────────────────────────────────────────────────────────────
 
 const SECTIONS: { key: Tab; icon: string; label: string; description: string }[] = [
-  { key: 'perfil' as Tab, icon: 'fa-solid fa-user', label: 'Perfil', description: 'Nombre, usuario y contacto' },
   { key: 'apariencia' as Tab, icon: 'fa-solid fa-circle-half-stroke', label: 'Apariencia', description: 'Modo claro u oscuro' },
   { key: 'shortcuts' as Tab, icon: 'fa-solid fa-mobile-screen', label: 'Atajos', description: 'iPhone Shortcuts y presupuesto' },
   { key: 'categorias' as Tab, icon: 'fa-solid fa-tags', label: 'Categorías', description: 'Categorías personalizadas' },
   { key: 'cuentas' as Tab, icon: 'fa-solid fa-wallet', label: 'Cuentas', description: 'Efectivo, débito y crédito' },
   { key: 'personas' as Tab, icon: 'fa-solid fa-users', label: 'Personas', description: 'Contactos para dividir gastos' },
-  { key: 'suscripcion' as Tab, icon: 'fa-solid fa-crown', label: 'Plan', description: 'Suscripción y facturación' },
   { key: 'planificados' as Tab, icon: 'fa-solid fa-calendar', label: 'Recurrentes', description: 'Suscripciones y cobros fijos' },
-].sort((a, b) => a.label.localeCompare(b.label, 'es'))
+  { key: 'suscripcion' as Tab, icon: 'fa-solid fa-crown', label: 'Plan', description: 'Suscripción y facturación' },
+].sort((a, b) => {
+  if (a.key === 'suscripcion') return 1
+  if (b.key === 'suscripcion') return -1
+  return a.label.localeCompare(b.label, 'es')
+})
 
 export default function SettingsClient({ profile, shortcutToken, categories, accounts, scheduled, people }: Props) {
   const [section, setSection] = useState<Tab | null>(null)
@@ -497,7 +500,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
               {profile?.username ? `@${profile.username}` : 'Sin @username · toca para configurar'}
             </p>
           </div>
-          <i className="fa-solid fa-chevron-right text-xs flex-shrink-0" style={{ color: 'var(--f-line-strong)' }} />
+          <i className="fa-solid fa-chevron-right text-sm flex-shrink-0" style={{ color: 'var(--f-text-3)' }} />
         </button>
       </header>
 
