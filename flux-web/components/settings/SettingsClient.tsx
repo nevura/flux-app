@@ -164,7 +164,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
   if (section !== null) {
     const current = SECTIONS.find(s => s.key === section)!
     return (
-      <div className="min-h-screen" style={{ background: 'var(--f-bg)' }}>
+      <div className="min-h-screen" data-settings style={{ background: 'var(--f-bg)' }}>
         <header
           className="sticky top-0 z-40 px-5 pb-4"
           style={{
@@ -289,7 +289,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
 
   // ── List view ─────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen" style={{ background: 'var(--f-bg)' }}>
+    <div className="min-h-screen" data-settings style={{ background: 'var(--f-bg)' }}>
       <header
         className="sticky top-0 z-40 px-5 pb-4"
         style={{

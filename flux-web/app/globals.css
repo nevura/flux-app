@@ -269,11 +269,16 @@ html, body {
 }
 
 /* ── Light mode fixes ─────────────────────────────────────────────────────────
-   text-white adapts to dark text in light mode.
-   Inline style={{ color }} always wins (higher specificity), so colored-bg
-   buttons that set color explicitly are not affected.
+   Scope text-white override to Settings only (scoped by [data-settings]).
+   Targets only p/h1/h2/span/input/label — NOT button, i, or FAB icons —
+   so balance card, FAB "+", and any colored-bg button text stay white.
 ────────────────────────────────────────────────────────────────────────────── */
-[data-theme="light"] .text-white {
+[data-theme="light"] [data-settings] p.text-white,
+[data-theme="light"] [data-settings] h1.text-white,
+[data-theme="light"] [data-settings] h2.text-white,
+[data-theme="light"] [data-settings] span.text-white,
+[data-theme="light"] [data-settings] input.text-white,
+[data-theme="light"] [data-settings] label.text-white {
   color: var(--f-text);
 }
 /* Active nav tab icon uses accent blue in light mode */
