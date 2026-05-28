@@ -185,7 +185,7 @@ export default function NotificationBell() {
                     <p className="text-[12px] mt-0.5 font-medium" style={{ color: 'var(--f-text-4)' }}>
                       {formatDistanceToNow(new Date(n.created_at), { locale: es, addSuffix: true })}
                     </p>
-                    {n.type === 'friend_request' && d.friendship_id && (
+                    {n.type === 'friend_request' && !n.read && d.friendship_id && (
                       <div className="flex gap-2 mt-3">
                         <button
                           onClick={() => handleFriendResponse(d.friendship_id, false)}
