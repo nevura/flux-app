@@ -102,7 +102,7 @@ export default function FriendSearchModal({ onClose, existingFriendships, myUser
             <input
               ref={inputRef}
               type="text"
-              autoComplete="new-password"
+              autoComplete="off"
               autoCorrect="off"
               autoCapitalize="none"
               spellCheck={false}
