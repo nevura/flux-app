@@ -86,7 +86,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
     const key = `${txId}-${participantId}`
     setSettling(key); cancelConfirm()
     startTransition(async () => {
-      const res = await settleParticipant(txId, participantId)
+      const res = await settleParticipant(txId, participantId, false)
       if (res.error) { toast.error(res.error); setSettling(null); return }
       toast.success('Deuda olvidada')
       setSettling(null)

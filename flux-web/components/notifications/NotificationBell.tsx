@@ -7,7 +7,7 @@ import { es } from 'date-fns/locale'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { markNotificationsRead, respondFriendRequest } from '@/actions/friends'
-import { acceptSharedExpense, declineSharedExpense } from '@/actions/transactions'
+import { acceptSharedExpense, declineSharedExpense, confirmSettledExpense } from '@/actions/transactions'
 import { formatCurrency } from '@/lib/utils'
 import type { Notification } from '@/lib/types'
 
@@ -26,8 +26,10 @@ function notifLabel(n: Notification): { icon: string; iconColor: string; text: s
       const names = Array.isArray(d.invited_names) ? (d.invited_names as string[]).join(', ') : ''
       return { icon: 'fa-solid fa-paper-plane', iconColor: 'var(--f-blue)', text: `Invitaste a ${names} a dividir: ${d.concept}` }
     }
+    case 'expense_settled_confirm':
+      return { icon: 'fa-solid fa-hand-holding-dollar', iconColor: 'var(--f-income)', text: `@${d.from_username} marcó como saldada tu parte de: ${d.concept}` }
     case 'expense_settled':
-      return { icon: 'fa-solid fa-circle-check', iconColor: 'var(--f-income)', text: `@${d.from_username} saldó una deuda` }
+      return { icon: 'fa-solid fa-circle-check', iconColor: 'var(--f-income)', text: `@${d.from_username} confirmó el pago de: ${d.concept}` }
     default:
       return { icon: 'fa-solid fa-bell', iconColor: 'var(--f-text-3)', text: 'Notificación' }
   }
@@ -80,6 +82,15 @@ export default function NotificationBell() {
       setList(prev => prev.map(n => n.id === notifId ? { ...n, read: true } : n))
       setAcceptingId(null)
       setAcceptAccountId('')
+    })
+  }
+
+  function handleConfirmSettle(notifId: string) {
+    startTransition(async () => {
+      const res = await confirmSettledExpense(notifId)
+      if (res.error) { toast.error(res.error); return }
+      toast.success('Confirmado')
+      setList(prev => prev.map(n => n.id === notifId ? { ...n, read: true } : n))
     })
   }
 
@@ -202,6 +213,21 @@ export default function NotificationBell() {
                           style={{ background: 'var(--f-blue)' }}
                         >
                           {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Aceptar'}
+                        </button>
+                      </div>
+                    )}
+                    {n.type === 'expense_settled_confirm' && !n.read && (
+                      <div className="mt-3">
+                        <p className="text-[12px] font-bold tabular-nums mb-2" style={{ color: 'var(--f-income)' }}>
+                          Monto: {formatCurrency(Number(d.amount))}
+                        </p>
+                        <button
+                          onClick={() => handleConfirmSettle(n.id)}
+                          disabled={isPending}
+                          className="w-full py-2 rounded-[10px] text-[12px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
+                          style={{ background: 'var(--f-income)' }}
+                        >
+                          {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Confirmar'}
                         </button>
                       </div>
                     )}

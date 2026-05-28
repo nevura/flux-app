@@ -6,6 +6,28 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { adjustmentFor, parseAmount, getMexicoNow } from '@/lib/utils'
 import type { TransactionForm, SplitParticipant, AccountWithBalance, Category, Person } from '@/lib/types'
 
+// Sends expense_settled_confirm notification to a person if they have a linked Flux user
+async function notifyLinkedPersonSettled(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  personId: string,
+  myUserId: string,
+  concept: string,
+  amount: number,
+  isTheyOwe: boolean
+) {
+  const { data: person } = await supabase
+    .from('people').select('linked_user_id').eq('id', personId).eq('user_id', myUserId).maybeSingle()
+  if (!person?.linked_user_id) return
+  const { data: myProfile } = await supabase
+    .from('profiles').select('username, full_name').eq('id', myUserId).single()
+  const admin = createAdminClient()
+  await (admin.from('notifications') as any).insert({
+    user_id: person.linked_user_id,
+    type: 'expense_settled_confirm',
+    data: { from_user_id: myUserId, from_username: myProfile?.username ?? '', from_name: myProfile?.full_name ?? '', concept, amount, is_they_owe: isTheyOwe },
+  }).catch(() => {})
+}
+
 export async function getTransactionModalData(): Promise<{ accounts: AccountWithBalance[]; categories: Category[]; people: Person[] }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -181,14 +203,14 @@ export async function deleteTransaction(id: string) {
   return { error: null }
 }
 
-export async function settleParticipant(txId: string, participantId: string) {
+export async function settleParticipant(txId: string, participantId: string, notify = true) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autorizado' }
 
   const { data: tx, error: fetchErr } = await supabase
     .from('transactions')
-    .select('split_data')
+    .select('*')
     .eq('id', txId)
     .eq('user_id', user.id)
     .single()
@@ -198,6 +220,7 @@ export async function settleParticipant(txId: string, participantId: string) {
   const sd = tx.split_data
   if (!sd || !Array.isArray(sd.data)) return { error: 'Datos de desglose inválidos' }
 
+  const participant = (sd.data as SplitParticipant[]).find(p => p.id === participantId)
   const newData = (sd.data as SplitParticipant[]).map(p =>
     p.id === participantId ? { ...p, paidStatus: true, paidAmount: p.value } : p
   )
@@ -209,6 +232,12 @@ export async function settleParticipant(txId: string, participantId: string) {
     .eq('user_id', user.id)
 
   if (error) return { error: error.message }
+
+  if (notify && participant) {
+    const isTheyOwe = sd.splitMode === 'THEY' || sd.splitMode === 'DIV'
+    await notifyLinkedPersonSettled(supabase, participantId, user.id, tx.concept, participant.value, isTheyOwe)
+  }
+
   revalidatePath('/shared')
   revalidatePath('/home')
   return { error: null }
@@ -238,8 +267,11 @@ export async function partialSettle(txId: string, participantId: string, amount:
     .eq('id', txId).eq('user_id', user.id)
   if (error) return { error: error.message }
 
+  const isTheyOwePartial = sd.splitMode === 'THEY' || sd.splitMode === 'DIV'
+  await notifyLinkedPersonSettled(supabase, participantId, user.id, tx.concept, amount, isTheyOwePartial)
+
   if (accountId) {
-    const isTheyOwe = sd.splitMode === 'THEY' || sd.splitMode === 'DIV'
+    const isTheyOwe = isTheyOwePartial
     const txType = isTheyOwe ? 'TR-INGRESO' : 'TR-GASTO'
     await supabase.from('transactions').insert({
       user_id: user.id,
@@ -300,6 +332,8 @@ export async function settleAndRecord(txId: string, participantId: string, accou
     .from('transactions').update({ split_data: { ...sd, data: newData } })
     .eq('id', txId).eq('user_id', user.id)
   if (error) return { error: error.message }
+
+  await notifyLinkedPersonSettled(supabase, participantId, user.id, tx.concept, unpaid, isTheyOwe)
 
   revalidatePath('/shared')
   revalidatePath('/home')
@@ -438,9 +472,44 @@ export async function settleAllForPerson(personId: string, personName: string, a
     }
   }
 
+  const totalSettled = totalTheyOwe + totalIOwe
+  if (totalSettled > 0.005) {
+    await notifyLinkedPersonSettled(supabase, personId, user.id, `Saldo total con ${personName}`, totalSettled, totalTheyOwe >= totalIOwe)
+  }
+
   revalidatePath('/shared')
   revalidatePath('/home')
   revalidatePath('/transactions')
+  return { error: null }
+}
+
+export async function confirmSettledExpense(notificationId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+
+  const { data: notif } = await supabase
+    .from('notifications').select('*').eq('id', notificationId).eq('user_id', user.id).single()
+
+  await supabase.from('notifications').update({ read: true }).eq('id', notificationId)
+
+  if (notif) {
+    const d = notif.data as Record<string, unknown>
+    const { data: myProfile } = await supabase.from('profiles').select('username, full_name').eq('id', user.id).single()
+    const admin = createAdminClient()
+    await (admin.from('notifications') as any).insert({
+      user_id: String(d.from_user_id),
+      type: 'expense_settled',
+      data: {
+        from_user_id: user.id,
+        from_username: myProfile?.username ?? '',
+        from_name: myProfile?.full_name ?? '',
+        concept: String(d.concept),
+        amount: Number(d.amount),
+      },
+    }).catch(() => {})
+  }
+
   return { error: null }
 }
 
