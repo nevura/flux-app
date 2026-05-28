@@ -28,7 +28,7 @@ export default function AppNav() {
     >
       <div className="mx-auto max-w-lg">
         <div
-          className="mx-3 mb-3 flex items-center rounded-[26px] px-1 py-2"
+          className="mx-3 mb-3 flex items-center rounded-[26px] px-1.5 py-1.5"
           style={{
             background: 'var(--f-bg-nav)',
             backdropFilter: 'blur(24px)',
@@ -45,27 +45,22 @@ export default function AppNav() {
                 key={tab.href}
                 href={tab.href}
                 onClick={() => { if (!isCurrentPath) setPendingHref(tab.href) }}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-2xl transition-all duration-150 select-none active:scale-95 py-3"
+                className="flex flex-1 items-center justify-center rounded-[18px] transition-all duration-150 select-none active:scale-90 py-4"
                 style={active ? { background: 'var(--f-bg-input)' } : undefined}
               >
                 <i
-                  className={`${tab.icon} transition-all duration-150${active ? ' nav-icon-active' : ''}`}
+                  className={`${tab.icon} transition-all duration-150`}
                   style={{
                     color: active ? 'var(--f-text)' : 'var(--f-text-3)',
-                    fontSize: active ? '16px' : '18px',
+                    fontSize: '20px',
                   }}
                 />
-                {active && (
-                  <span className="text-[12px] font-black tracking-tight whitespace-nowrap" style={{ color: 'var(--f-text)' }}>
-                    {tab.label}
-                  </span>
-                )}
               </Link>
             )
           })}
 
-          {/* Notification bell — right side of nav bar */}
-          <div className="flex items-center justify-center px-2">
+          {/* Notification bell */}
+          <div className="flex flex-1 items-center justify-center py-2">
             <NotificationBell />
           </div>
         </div>

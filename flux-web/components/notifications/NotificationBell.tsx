@@ -78,10 +78,10 @@ export default function NotificationBell() {
   const bellButton = (
     <button
       onClick={handleOpen}
-      className="relative flex items-center justify-center rounded-[11px] transition-all active:scale-90"
-      style={{ width: 36, height: 36, background: unread > 0 ? 'var(--f-accent-bg)' : 'transparent' }}
+      className="relative flex items-center justify-center rounded-[14px] transition-all active:scale-90"
+      style={{ width: 44, height: 44, background: unread > 0 ? 'var(--f-accent-bg)' : 'transparent' }}
     >
-      <i className="fa-solid fa-bell text-[17px]" style={{ color: unread > 0 ? 'var(--f-blue)' : 'var(--f-text-3)' }} />
+      <i className="fa-solid fa-bell text-[20px]" style={{ color: unread > 0 ? 'var(--f-blue)' : 'var(--f-text-3)' }} />
       {unread > 0 && (
         <span
           className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 rounded-full flex items-center justify-center text-[10px] font-black text-white px-1"
