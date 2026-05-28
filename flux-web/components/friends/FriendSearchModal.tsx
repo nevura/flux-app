@@ -96,6 +96,10 @@ export default function FriendSearchModal({ onClose, existingFriendships, myUser
             <input
               autoFocus
               type="text"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="none"
+              spellCheck={false}
               value={query}
               onChange={e => handleInput(e.target.value)}
               placeholder="Buscar por @username"

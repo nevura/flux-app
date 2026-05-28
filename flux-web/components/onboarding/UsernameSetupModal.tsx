@@ -79,6 +79,10 @@ export default function UsernameSetupModal({ suggestedUsername }: Props) {
           <input
             autoFocus
             type="text"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="none"
+            spellCheck={false}
             value={value}
             onChange={e => handleInput(e.target.value)}
             placeholder="tunombre"

@@ -27,7 +27,7 @@ export default function AppNav() {
     >
       <div className="mx-auto max-w-lg">
         <div
-          className="mx-3 mb-3 flex items-center rounded-[26px] px-1.5 py-1.5"
+          className="ml-3 mr-[76px] mb-3 flex items-center rounded-[26px] px-1.5 py-1.5"
           style={{
             background: 'var(--f-bg-nav)',
             backdropFilter: 'blur(24px)',
