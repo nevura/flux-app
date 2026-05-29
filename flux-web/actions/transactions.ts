@@ -91,9 +91,26 @@ export async function addTransaction(form: TransactionForm) {
   const amount = parseAmount(form.amount)
   const date   = form.transaction_date || getMexicoNow()
 
+  // Concept validation / auto-fill
+  let concept = (form.concept ?? '').trim()
+  if (!concept) {
+    if (form.type !== 'TR-TRANSFER') return { error: 'El concepto es obligatorio' }
+    // For transfers: auto-name using account IDs (names resolved below if needed)
+    concept = 'Transferencia'
+  }
+
   if (form.type === 'TR-TRANSFER') {
+    // Auto-fill transfer concept with account names if still generic
+    if (!concept || concept === 'Transferencia') {
+      const { data: accs } = await supabase
+        .from('accounts').select('id, name')
+        .in('id', [form.account_id, form.destination_account_id].filter(Boolean))
+      const src = accs?.find(a => a.id === form.account_id)?.name ?? 'cuenta'
+      const dst = accs?.find(a => a.id === form.destination_account_id)?.name ?? 'cuenta'
+      concept = `Transferencia de ${src} a ${dst}`
+    }
     const { error } = await supabase.from('transactions').insert({
-      user_id: user.id, concept: form.concept,
+      user_id: user.id, concept,
       type: 'TR-TRANSFER', amount, adjustment: -amount,
       category_id: null, account_id: form.account_id,
       destination_account_id: form.destination_account_id!,
@@ -104,7 +121,7 @@ export async function addTransaction(form: TransactionForm) {
   } else {
     const { data: newTx, error } = await supabase.from('transactions').insert({
       user_id: user.id,
-      concept: form.concept,
+      concept,
       type: form.type,
       amount,
       adjustment: adjustmentFor(form.type, amount),

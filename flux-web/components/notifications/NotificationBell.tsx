@@ -55,11 +55,34 @@ export default function NotificationBell() {
   useEffect(() => {
     setMounted(true)
     const supabase = createClient()
-    supabase
-      .from('notifications')
-      .select('id', { count: 'exact', head: true })
-      .eq('read', false)
-      .then(({ count }) => setUnread(count ?? 0))
+    let realtimeChannel: ReturnType<typeof supabase.channel> | null = null
+
+    // Initial unread count + subscribe to realtime
+    ;(async () => {
+      const [{ count }, { data: { user } }] = await Promise.all([
+        supabase.from('notifications').select('id', { count: 'exact', head: true }).eq('read', false),
+        supabase.auth.getUser(),
+      ])
+      setUnread(count ?? 0)
+      if (!user) return
+
+      realtimeChannel = supabase
+        .channel(`notif:${user.id}`)
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
+          (payload) => {
+            setUnread(prev => prev + 1)
+            setList(prev => {
+              if (prev.length === 0) return prev // panel closed — update on open
+              return [payload.new as import('@/lib/types').Notification, ...prev]
+            })
+          }
+        )
+        .subscribe()
+    })()
+
+    return () => { if (realtimeChannel) supabase.removeChannel(realtimeChannel) }
   }, [])
 
   async function handleOpen() {

@@ -149,11 +149,11 @@ export async function sendFriendRequest(addresseeId: string) {
     },
   })
 
-  // Send email notification (best-effort)
+  // Fetch addressee profile (for email + auto-link)
   const { data: addresseeProfile } = await (admin.from('profiles') as any)
-    .select('email, full_name')
+    .select('email, full_name, username')
     .eq('id', addresseeId)
-    .single() as { data: { email: string | null; full_name: string | null } | null }
+    .single() as { data: { email: string | null; full_name: string | null; username: string | null } | null }
 
   if (addresseeProfile?.email) {
     await sendFriendRequestEmail({
@@ -164,7 +164,27 @@ export async function sendFriendRequest(addresseeId: string) {
     }).catch(console.error)
   }
 
+  // Auto-link: ensure addressee (B) exists in sender's (A) people table on send
+  const bName = addresseeProfile?.full_name ?? `@${addresseeProfile?.username ?? 'amigo'}`
+  const { data: linkedInA } = await supabase
+    .from('people').select('id').eq('user_id', user.id).eq('linked_user_id', addresseeId).maybeSingle()
+  if (!linkedInA) {
+    const { data: unlinkedInA } = await supabase
+      .from('people').select('id').eq('user_id', user.id).is('linked_user_id', null).ilike('name', bName).maybeSingle()
+    if (unlinkedInA) {
+      try { await supabase.from('people').update({ linked_user_id: addresseeId }).eq('id', unlinkedInA.id) } catch { /* ignore */ }
+    } else {
+      try {
+        await supabase.from('people').insert({
+          id: `PER-FRD-${Date.now()}-${addresseeId.slice(0, 6)}`,
+          user_id: user.id, name: bName, linked_user_id: addresseeId, is_me: false,
+        })
+      } catch { /* ignore */ }
+    }
+  }
+
   revalidatePath('/friends')
+  revalidatePath('/settings')
   return { error: null }
 }
 
