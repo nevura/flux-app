@@ -226,40 +226,43 @@ export async function respondFriendRequest(friendshipId: string, accept: boolean
       }).catch(console.error)
     }
 
-    // Auto-link: ensure requester (A) exists as a person in accepter's (B) people table
-    const { data: existingInB } = await supabase
-      .from('people').select('id')
-      .eq('user_id', user.id)
-      .eq('linked_user_id', friendship.requester_id)
-      .maybeSingle()
-    if (!existingInB) {
-      try {
-        await supabase.from('people').insert({
-          id: `PER-FRD-${Date.now()}-${friendship.requester_id.slice(0, 6)}`,
-          user_id: user.id,
-          name: requesterProfile?.full_name ?? `@${requesterProfile?.username ?? 'amigo'}`,
-          linked_user_id: friendship.requester_id,
-          is_me: false,
-        })
-      } catch { /* ignore */ }
+    // Auto-link: ensure requester (A) exists in accepter's (B) people table.
+    // First try to link an existing unlinked contact with matching name.
+    const aName = requesterProfile?.full_name ?? `@${requesterProfile?.username ?? 'amigo'}`
+    const { data: linkedInB } = await supabase
+      .from('people').select('id').eq('user_id', user.id).eq('linked_user_id', friendship.requester_id).maybeSingle()
+    if (!linkedInB) {
+      const { data: unlinkedInB } = await supabase
+        .from('people').select('id').eq('user_id', user.id).is('linked_user_id', null).ilike('name', aName).maybeSingle()
+      if (unlinkedInB) {
+        await supabase.from('people').update({ linked_user_id: friendship.requester_id }).eq('id', unlinkedInB.id).catch(() => {})
+      } else {
+        try {
+          await supabase.from('people').insert({
+            id: `PER-FRD-${Date.now()}-${friendship.requester_id.slice(0, 6)}`,
+            user_id: user.id, name: aName, linked_user_id: friendship.requester_id, is_me: false,
+          })
+        } catch { /* ignore */ }
+      }
     }
 
-    // Auto-link: ensure accepter (B) exists as a person in requester's (A) people table
-    const { data: existingInA } = await (admin.from('people') as any)
-      .select('id')
-      .eq('user_id', friendship.requester_id)
-      .eq('linked_user_id', user.id)
-      .maybeSingle()
-    if (!existingInA) {
-      try {
-        await (admin.from('people') as any).insert({
-          id: `PER-FRD-${Date.now() + 1}-${user.id.slice(0, 6)}`,
-          user_id: friendship.requester_id,
-          name: myProfile?.full_name ?? `@${myProfile?.username ?? 'amigo'}`,
-          linked_user_id: user.id,
-          is_me: false,
-        })
-      } catch { /* ignore */ }
+    // Auto-link: ensure accepter (B) exists in requester's (A) people table.
+    const bName = myProfile?.full_name ?? `@${myProfile?.username ?? 'amigo'}`
+    const { data: linkedInA } = await (admin.from('people') as any)
+      .select('id').eq('user_id', friendship.requester_id).eq('linked_user_id', user.id).maybeSingle()
+    if (!linkedInA) {
+      const { data: unlinkedInA } = await (admin.from('people') as any)
+        .select('id').eq('user_id', friendship.requester_id).is('linked_user_id', null).ilike('name', bName).maybeSingle()
+      if (unlinkedInA) {
+        await (admin.from('people') as any).update({ linked_user_id: user.id }).eq('id', unlinkedInA.id).catch(() => {})
+      } else {
+        try {
+          await (admin.from('people') as any).insert({
+            id: `PER-FRD-${Date.now() + 1}-${user.id.slice(0, 6)}`,
+            user_id: friendship.requester_id, name: bName, linked_user_id: user.id, is_me: false,
+          })
+        } catch { /* ignore */ }
+      }
     }
   }
 

@@ -529,10 +529,14 @@ export async function settleAllForPerson(personId: string, personName: string, a
 
   let totalTheyOwe = 0
   let totalIOwe = 0
-  const updates: Array<{ id: string; split_data: object }> = []
+  type UpdateItem = {
+    id: string; split_data: object; isIowe: boolean; unpaid: number
+    linked_tx_id?: string; linked_participant_id?: string
+  }
+  const updates: UpdateItem[] = []
 
   for (const tx of txs ?? []) {
-    const sd = tx.split_data
+    const sd = tx.split_data as import('@/lib/types').SplitData
     if (!sd || !Array.isArray(sd.data)) continue
     const participant = (sd.data as SplitParticipant[]).find(p => p.id === personId)
     if (!participant || participant.paidStatus) continue
@@ -540,49 +544,66 @@ export async function settleAllForPerson(personId: string, personName: string, a
     if (unpaid <= 0.005) continue
 
     const isTheyOwe = sd.splitMode === 'THEY' || sd.splitMode === 'DIV'
+    const isIowe = sd.splitMode === 'IOWE'
     if (isTheyOwe) totalTheyOwe += unpaid
     else totalIOwe += unpaid
 
     const newData = (sd.data as SplitParticipant[]).map(p =>
       p.id === personId ? { ...p, paidStatus: true, paidAmount: p.value } : p
     )
-    updates.push({ id: tx.id, split_data: { ...sd, data: newData } })
+    updates.push({
+      id: tx.id, split_data: { ...sd, data: newData }, isIowe, unpaid,
+      linked_tx_id: sd.linked_tx_id, linked_participant_id: sd.linked_participant_id,
+    })
   }
 
   if (updates.length === 0) return { error: 'Sin saldos pendientes' }
 
+  const admin = createAdminClient()
   for (const u of updates) {
+    // IOWE: update in-place (activate the debt-tracking tx), no new tx created
+    const payload: Record<string, unknown> = { split_data: u.split_data }
+    if (u.isIowe) {
+      payload.is_validated = true
+      if (accountId) {
+        payload.account_id = accountId
+        payload.adjustment = adjustmentFor('TR-GASTO', u.unpaid)
+      }
+    }
     const { error } = await supabase
-      .from('transactions').update({ split_data: u.split_data }).eq('id', u.id).eq('user_id', user.id)
+      .from('transactions').update(payload).eq('id', u.id).eq('user_id', user.id)
     if (error) return { error: error.message }
+
+    // Update creator's linked tx (A sees B as paid)
+    if (u.isIowe && u.linked_tx_id && u.linked_participant_id) {
+      const { data: origTx } = await (admin.from('transactions') as any).select('*').eq('id', u.linked_tx_id).maybeSingle()
+      if (origTx?.split_data) {
+        const origSd = origTx.split_data as import('@/lib/types').SplitData
+        if (Array.isArray(origSd.data)) {
+          const updatedData = origSd.data.map((p: SplitParticipant) =>
+            p.id === u.linked_participant_id ? { ...p, paidStatus: true, paidAmount: p.value } : p
+          )
+          await (admin.from('transactions') as any)
+            .update({ split_data: { ...origSd, data: updatedData } })
+            .eq('id', u.linked_tx_id)
+        }
+      }
+    }
   }
 
-  if (accountId) {
-    const today = getMexicoNow().slice(0, 10)
-    if (totalTheyOwe > 0.005) {
-      await supabase.from('transactions').insert({
-        user_id: user.id,
-        concept: `Cobro global: ${personName}`,
-        type: 'TR-INGRESO',
-        amount: totalTheyOwe,
-        adjustment: adjustmentFor('TR-INGRESO', totalTheyOwe),
-        account_id: accountId,
-        transaction_date: today,
-        is_validated: true,
-      })
-    }
-    if (totalIOwe > 0.005) {
-      await supabase.from('transactions').insert({
-        user_id: user.id,
-        concept: `Pago global: ${personName}`,
-        type: 'TR-GASTO',
-        amount: totalIOwe,
-        adjustment: adjustmentFor('TR-GASTO', totalIOwe),
-        account_id: accountId,
-        transaction_date: today,
-        is_validated: true,
-      })
-    }
+  // Only create a summary income tx for THEY/DIV amounts (money coming in)
+  // IOWE amounts are already handled in-place above — no "Pago global" created
+  if (accountId && totalTheyOwe > 0.005) {
+    await supabase.from('transactions').insert({
+      user_id: user.id,
+      concept: `Cobro global: ${personName}`,
+      type: 'TR-INGRESO',
+      amount: totalTheyOwe,
+      adjustment: adjustmentFor('TR-INGRESO', totalTheyOwe),
+      account_id: accountId,
+      transaction_date: getMexicoNow().slice(0, 10),
+      is_validated: true,
+    })
   }
 
   const totalSettled = totalTheyOwe + totalIOwe
@@ -811,7 +832,7 @@ export async function acceptSharedExpense(notificationId: string) {
 
   const { error: txError } = await supabase.from('transactions').insert({
     user_id: user.id,
-    concept: String(d.concept),
+    concept: String(d.concept) || `Gasto con ${String(d.from_name ?? d.from_username ?? 'contacto')}`,
     type: 'TR-GASTO',
     amount: participantAmount,
     adjustment: 0,       // no real money movement until settled
