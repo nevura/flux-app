@@ -23,21 +23,22 @@ async function notifyLinkedPersonSettled(
   const { data: myProfile } = await supabase
     .from('profiles').select('username, full_name').eq('id', myUserId).single()
   const admin = createAdminClient()
-  await (admin.from('notifications') as any).insert({
-    user_id: person.linked_user_id,
-    type: 'expense_settled_confirm',
-    data: {
-      from_user_id: myUserId,
-      from_username: myProfile?.username ?? '',
-      from_name: myProfile?.full_name ?? '',
-      concept,
-      amount,
-      is_they_owe: isTheyOwe,
-      // For the receiver to update the creator's original transaction on confirmation
-      linked_tx_id: extra?.linked_tx_id ?? null,
-      linked_participant_id: extra?.linked_participant_id ?? null,
-    },
-  }).catch(() => {})
+  try {
+    await (admin.from('notifications') as any).insert({
+      user_id: person.linked_user_id,
+      type: 'expense_settled_confirm',
+      data: {
+        from_user_id: myUserId,
+        from_username: myProfile?.username ?? '',
+        from_name: myProfile?.full_name ?? '',
+        concept,
+        amount,
+        is_they_owe: isTheyOwe,
+        linked_tx_id: extra?.linked_tx_id ?? null,
+        linked_participant_id: extra?.linked_participant_id ?? null,
+      },
+    })
+  } catch { /* ignore — notification is best-effort */ }
 }
 
 export async function getTransactionModalData(): Promise<{ accounts: AccountWithBalance[]; categories: Category[]; people: Person[] }> {
@@ -566,17 +567,19 @@ export async function confirmSettledExpense(notificationId: string) {
     }
 
     // Notify the person who settled that their payment was confirmed
-    await (admin.from('notifications') as any).insert({
-      user_id: String(d.from_user_id),
-      type: 'expense_settled',
-      data: {
-        from_user_id: user.id,
-        from_username: myProfile?.username ?? '',
-        from_name: myProfile?.full_name ?? '',
-        concept: String(d.concept),
-        amount: Number(d.amount),
-      },
-    }).catch(() => {})
+    try {
+      await (admin.from('notifications') as any).insert({
+        user_id: String(d.from_user_id),
+        type: 'expense_settled',
+        data: {
+          from_user_id: user.id,
+          from_username: myProfile?.username ?? '',
+          from_name: myProfile?.full_name ?? '',
+          concept: String(d.concept),
+          amount: Number(d.amount),
+        },
+      })
+    } catch { /* ignore */ }
   }
 
   revalidatePath('/shared')
@@ -598,17 +601,19 @@ export async function rejectSettledExpense(notificationId: string) {
     const d = notif.data as Record<string, unknown>
     const { data: myProfile } = await supabase.from('profiles').select('username, full_name').eq('id', user.id).single()
     const admin = createAdminClient()
-    await (admin.from('notifications') as any).insert({
-      user_id: String(d.from_user_id),
-      type: 'expense_settle_rejected',
-      data: {
-        from_user_id: user.id,
-        from_username: myProfile?.username ?? '',
-        from_name: myProfile?.full_name ?? '',
-        concept: String(d.concept),
-        amount: Number(d.amount),
-      },
-    }).catch(() => {})
+    try {
+      await (admin.from('notifications') as any).insert({
+        user_id: String(d.from_user_id),
+        type: 'expense_settle_rejected',
+        data: {
+          from_user_id: user.id,
+          from_username: myProfile?.username ?? '',
+          from_name: myProfile?.full_name ?? '',
+          concept: String(d.concept),
+          amount: Number(d.amount),
+        },
+      })
+    } catch { /* ignore */ }
   }
 
   return { error: null }
@@ -709,7 +714,7 @@ export async function acceptSharedExpense(notificationId: string) {
     type: 'TR-GASTO',
     amount: participantAmount,
     adjustment: 0,       // no real money movement until settled
-    category_id: d.category_id ? String(d.category_id) : null,
+    category_id: d.category_id && String(d.category_id).startsWith('CAT-DEF-') ? String(d.category_id) : null,
     account_id: null,    // no account until payment is confirmed
     transaction_date: today,
     is_validated: false, // pending — will be validated when settled
@@ -722,17 +727,19 @@ export async function acceptSharedExpense(notificationId: string) {
   // Notify creator that B accepted (acknowledged the debt)
   const { data: myProfile } = await supabase
     .from('profiles').select('username, full_name').eq('id', user.id).single()
-  await (admin.from('notifications') as any).insert({
-    user_id: fromUserId,
-    type: 'shared_expense_accepted',
-    data: {
-      from_user_id: user.id,
-      from_username: myProfile?.username ?? '',
-      from_name: myProfile?.full_name ?? '',
-      concept: String(d.concept),
-      amount: participantAmount,
-    },
-  }).catch(() => {})
+  try {
+    await (admin.from('notifications') as any).insert({
+      user_id: fromUserId,
+      type: 'shared_expense_accepted',
+      data: {
+        from_user_id: user.id,
+        from_username: myProfile?.username ?? '',
+        from_name: myProfile?.full_name ?? '',
+        concept: String(d.concept),
+        amount: participantAmount,
+      },
+    })
+  } catch { /* ignore */ }
 
   revalidatePath('/home')
   revalidatePath('/transactions')
