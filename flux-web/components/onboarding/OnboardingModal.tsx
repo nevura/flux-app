@@ -59,7 +59,7 @@ export default function OnboardingModal({ onDone }: Props) {
         {!isLast && (
           <button
             onClick={finish}
-            className="text-[13px] font-bold px-3 py-1.5 rounded-full"
+            className="text-[15px] font-bold px-3 py-1.5 rounded-full"
             style={{ color: 'var(--f-text-4)', background: 'var(--f-bg-input)' }}
           >
             Saltar
@@ -82,7 +82,7 @@ export default function OnboardingModal({ onDone }: Props) {
         <h1 className="text-[28px] font-black leading-tight mb-2" style={{ color: 'var(--f-text)' }}>
           {slide.title}
         </h1>
-        <p className="text-[15px] font-semibold mb-6" style={{ color: 'var(--f-text-3)' }}>
+        <p className="text-[17px] font-semibold mb-6" style={{ color: 'var(--f-text-3)' }}>
           {slide.subtitle}
         </p>
 
@@ -92,9 +92,9 @@ export default function OnboardingModal({ onDone }: Props) {
             <div key={i} className="flex items-start gap-3">
               <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
                 style={{ background: slide.iconBg }}>
-                <i className="fa-solid fa-check text-[9px]" style={{ color: slide.iconColor }} />
+                <i className="fa-solid fa-check text-[11px]" style={{ color: slide.iconColor }} />
               </div>
-              <p className="text-[14px] font-semibold leading-snug" style={{ color: 'var(--f-text-2)' }}>{bullet}</p>
+              <p className="text-[16px] font-semibold leading-snug" style={{ color: 'var(--f-text-2)' }}>{bullet}</p>
             </div>
           ))}
         </div>
@@ -103,8 +103,8 @@ export default function OnboardingModal({ onDone }: Props) {
         {slide.tip && (
           <div className="w-full max-w-xs rounded-[12px] px-3 py-2.5 flex items-start gap-2 mt-1"
             style={{ background: 'var(--f-accent-bg)', border: '1px solid var(--f-accent-border)' }}>
-            <i className="fa-solid fa-lightbulb text-[11px] mt-0.5 flex-shrink-0" style={{ color: 'var(--f-blue)' }} />
-            <p className="text-[12px] font-semibold leading-snug" style={{ color: 'var(--f-text-2)' }}>{slide.tip}</p>
+            <i className="fa-solid fa-lightbulb text-[13px] mt-0.5 flex-shrink-0" style={{ color: 'var(--f-blue)' }} />
+            <p className="text-[14px] font-semibold leading-snug" style={{ color: 'var(--f-text-2)' }}>{slide.tip}</p>
           </div>
         )}
       </div>
@@ -132,16 +132,16 @@ export default function OnboardingModal({ onDone }: Props) {
           {current > 0 && (
             <button
               onClick={prev}
-              className="h-12 px-5 rounded-[14px] text-[15px] font-black transition-all active:scale-95"
+              className="h-12 px-5 rounded-[14px] text-[17px] font-black transition-all active:scale-95"
               style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
             >
-              <i className="fa-solid fa-chevron-left text-[12px]" />
+              <i className="fa-solid fa-chevron-left text-[14px]" />
             </button>
           )}
           <button
             onClick={next}
             disabled={isPending}
-            className="flex-1 h-12 rounded-[14px] text-[15px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
+            className="flex-1 h-12 rounded-[14px] text-[17px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
             style={{ background: isLast ? 'var(--f-income)' : 'var(--f-blue)' }}
           >
             {isPending

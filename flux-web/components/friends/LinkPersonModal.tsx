@@ -70,8 +70,8 @@ export default function LinkPersonModal({ personId, personName, currentLinkedUse
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-5 pb-4">
           <div>
-            <h2 className="text-[18px] font-black" style={{ color: 'var(--f-text)' }}>Vincular contacto</h2>
-            <p className="text-[12px] font-semibold mt-0.5" style={{ color: 'var(--f-text-4)' }}>
+            <h2 className="text-[20px] font-black" style={{ color: 'var(--f-text)' }}>Vincular contacto</h2>
+            <p className="text-[14px] font-semibold mt-0.5" style={{ color: 'var(--f-text-4)' }}>
               Elige el amigo de Flux para <span style={{ color: 'var(--f-text)' }}>{personName}</span>
             </p>
           </div>
@@ -95,7 +95,7 @@ export default function LinkPersonModal({ personId, personName, currentLinkedUse
                 value={filter}
                 onChange={e => setFilter(e.target.value)}
                 placeholder="Filtrar amigos..."
-                className="w-full rounded-[14px] pl-9 pr-4 py-3 text-[15px] font-semibold outline-none"
+                className="w-full rounded-[14px] pl-9 pr-4 py-3 text-[17px] font-semibold outline-none"
                 style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)' }}
               />
             </div>
@@ -111,15 +111,15 @@ export default function LinkPersonModal({ personId, personName, currentLinkedUse
           ) : friends.length === 0 ? (
             <div className="py-10 text-center">
               <i className="fa-solid fa-user-group text-2xl mb-3 block" style={{ color: 'var(--f-text-4)' }} />
-              <p className="text-[13px] font-semibold" style={{ color: 'var(--f-text-4)' }}>
+              <p className="text-[15px] font-semibold" style={{ color: 'var(--f-text-4)' }}>
                 Sin amigos en Flux todavía
               </p>
-              <p className="text-[11px] mt-1 font-medium" style={{ color: 'var(--f-text-4)' }}>
+              <p className="text-[13px] mt-1 font-medium" style={{ color: 'var(--f-text-4)' }}>
                 Agrega un amigo primero desde Compartidos
               </p>
             </div>
           ) : filtered.length === 0 ? (
-            <p className="text-[13px] font-semibold text-center py-6" style={{ color: 'var(--f-text-4)' }}>
+            <p className="text-[15px] font-semibold text-center py-6" style={{ color: 'var(--f-text-4)' }}>
               No hay amigos que coincidan
             </p>
           ) : filtered.map(user => (
@@ -130,18 +130,18 @@ export default function LinkPersonModal({ personId, personName, currentLinkedUse
                 {(user.full_name || user.username)[0].toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[14px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{user.full_name || user.username}</p>
-                <p className="text-[12px] font-semibold" style={{ color: 'var(--f-blue)' }}>@{user.username}</p>
+                <p className="text-[16px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{user.full_name || user.username}</p>
+                <p className="text-[14px] font-semibold" style={{ color: 'var(--f-blue)' }}>@{user.username}</p>
               </div>
               {currentLinkedUserId === user.id ? (
-                <span className="text-[11px] font-black px-2 py-1 rounded-lg" style={{ background: 'var(--f-income-bg)', color: 'var(--f-income)' }}>
+                <span className="text-[13px] font-black px-2 py-1 rounded-lg" style={{ background: 'var(--f-income-bg)', color: 'var(--f-income)' }}>
                   Vinculado
                 </span>
               ) : (
                 <button
                   onClick={() => handleLink(user)}
                   disabled={isPending}
-                  className="text-[12px] font-black px-3 py-1.5 rounded-[10px] text-white disabled:opacity-50 transition-all active:scale-95"
+                  className="text-[14px] font-black px-3 py-1.5 rounded-[10px] text-white disabled:opacity-50 transition-all active:scale-95"
                   style={{ background: 'var(--f-blue)' }}
                 >
                   {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Vincular'}

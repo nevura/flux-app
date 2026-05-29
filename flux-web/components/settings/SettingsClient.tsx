@@ -75,7 +75,7 @@ function BottomSheet({ onClose, children, title }: { onClose: () => void; childr
       >
         {title && (
           <div className="flex items-center justify-between px-5 pt-5 pb-3">
-            <p className="text-[15px] font-black text-white">{title}</p>
+            <p className="text-[17px] font-black text-white">{title}</p>
             <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'var(--f-bg-input)' }}>
               <i className="fa-solid fa-xmark text-white text-xs" />
             </button>
@@ -245,7 +245,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
               <i className="fa-solid fa-chevron-left text-xs" />
               Ajustes
             </button>
-            <h1 className="absolute inset-0 flex items-center justify-center text-[15px] font-bold text-white pointer-events-none">
+            <h1 className="absolute inset-0 flex items-center justify-center text-[17px] font-bold text-white pointer-events-none">
               {current.label}
             </h1>
           </div>
@@ -265,26 +265,26 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
               <div className="rounded-[20px] overflow-hidden" style={{ border: '1px solid var(--f-line)' }}>
                 {/* Nombre */}
                 <div className="px-4 py-4" style={{ background: 'var(--f-bg-card)', borderBottom: '1px solid var(--f-line)' }}>
-                  <p className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Nombre</p>
+                  <p className="text-[13px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Nombre</p>
                   {editingName ? (
                     <div className="flex gap-2 items-center">
                       <input autoFocus value={nameInput}
                         onChange={e => setNameInput(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') handleSaveName(); if (e.key === 'Escape') setEditingName(false) }}
                         placeholder="Tu nombre completo"
-                        className="flex-1 rounded-[12px] px-3 py-2.5 text-[15px] font-semibold text-white outline-none"
+                        className="flex-1 rounded-[12px] px-3 py-2.5 text-[17px] font-semibold text-white outline-none"
                         style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-glow)' }}
                       />
-                      <button onClick={handleSaveName} disabled={isNamePending} className="px-3 py-2 rounded-[10px] text-[13px] font-black text-white disabled:opacity-50" style={{ background: 'var(--f-blue)' }}>
+                      <button onClick={handleSaveName} disabled={isNamePending} className="px-3 py-2 rounded-[10px] text-[15px] font-black text-white disabled:opacity-50" style={{ background: 'var(--f-blue)' }}>
                         {isNamePending ? <i className="fa-solid fa-spinner fa-spin" /> : 'OK'}
                       </button>
-                      <button onClick={() => setEditingName(false)} className="px-2 py-2 rounded-[10px] text-[13px]" style={{ background: 'var(--f-line)', color: 'var(--f-text-3)' }}>✕</button>
+                      <button onClick={() => setEditingName(false)} className="px-2 py-2 rounded-[10px] text-[15px]" style={{ background: 'var(--f-line)', color: 'var(--f-text-3)' }}>✕</button>
                     </div>
                   ) : (
                     <div className="flex items-center justify-between">
-                      <p className="text-[15px] font-bold" style={{ color: 'var(--f-text)' }}>{displayName || 'Sin nombre'}</p>
+                      <p className="text-[17px] font-bold" style={{ color: 'var(--f-text)' }}>{displayName || 'Sin nombre'}</p>
                       <button onClick={() => setEditingName(true)} className="text-sm font-semibold flex items-center gap-1" style={{ color: 'var(--f-blue)' }}>
-                        <i className="fa-solid fa-pencil text-[12px]" /> Editar
+                        <i className="fa-solid fa-pencil text-[14px]" /> Editar
                       </button>
                     </div>
                   )}
@@ -292,16 +292,16 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
 
                 {/* @username */}
                 <div className="px-4 py-4" style={{ background: 'var(--f-bg-card)', borderBottom: '1px solid var(--f-line)' }}>
-                  <p className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Usuario</p>
+                  <p className="text-[13px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Usuario</p>
                   {editingUsername ? (
                     <div className="space-y-2">
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[15px] font-black select-none" style={{ color: 'var(--f-blue)' }}>@</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[17px] font-black select-none" style={{ color: 'var(--f-blue)' }}>@</span>
                         <input autoFocus value={usernameInput}
                           onChange={e => handleUsernameInput(e.target.value)}
                           onKeyDown={e => { if (e.key === 'Enter') handleSaveUsername(); if (e.key === 'Escape') setEditingUsername(false) }}
                           placeholder="tunombre"
-                          className="w-full rounded-[12px] pl-8 pr-10 py-2.5 text-[15px] font-semibold text-white outline-none"
+                          className="w-full rounded-[12px] pl-8 pr-10 py-2.5 text-[17px] font-semibold text-white outline-none"
                           style={{ background: 'var(--f-bg-input)', border: `1px solid ${usernameAvailable === false ? 'var(--f-expense)' : usernameAvailable === true ? 'var(--f-income)' : 'var(--f-accent-glow)'}` }}
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm">
@@ -310,30 +310,30 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                           {!usernameChecking && usernameAvailable === false && <i className="fa-solid fa-xmark" style={{ color: 'var(--f-expense)' }} />}
                         </span>
                       </div>
-                      <p className="text-[11px] font-medium" style={{ color: usernameAvailable === false ? 'var(--f-expense)' : 'var(--f-text-4)' }}>
+                      <p className="text-[13px] font-medium" style={{ color: usernameAvailable === false ? 'var(--f-expense)' : 'var(--f-text-4)' }}>
                         {usernameAvailable === false ? 'Ese usuario ya está en uso'
                           : usernameAvailable === true ? '¡Disponible!'
                           : '3-20 caracteres · letras, números, _ . -'}
                       </p>
                       <div className="flex gap-2">
                         <button onClick={() => { setEditingUsername(false); setUsernameInput(profile?.username ?? '') }}
-                          className="flex-1 py-2 rounded-[10px] text-[13px] font-black" style={{ background: 'var(--f-line)', color: 'var(--f-text-3)' }}>
+                          className="flex-1 py-2 rounded-[10px] text-[15px] font-black" style={{ background: 'var(--f-line)', color: 'var(--f-text-3)' }}>
                           Cancelar
                         </button>
                         <button onClick={handleSaveUsername}
                           disabled={isUsernamePending || usernameAvailable === false || usernameChecking}
-                          className="flex-[2] py-2 rounded-[10px] text-[13px] font-black text-white disabled:opacity-40" style={{ background: 'var(--f-blue)' }}>
+                          className="flex-[2] py-2 rounded-[10px] text-[15px] font-black text-white disabled:opacity-40" style={{ background: 'var(--f-blue)' }}>
                           {isUsernamePending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Guardar'}
                         </button>
                       </div>
                     </div>
                   ) : (
                     <div className="flex items-center justify-between">
-                      <p className="text-[15px] font-bold" style={{ color: profile?.username ? 'var(--f-blue)' : 'var(--f-text-4)' }}>
+                      <p className="text-[17px] font-bold" style={{ color: profile?.username ? 'var(--f-blue)' : 'var(--f-text-4)' }}>
                         {profile?.username ? `@${profile.username}` : 'Sin @username'}
                       </p>
                       <button onClick={() => setEditingUsername(true)} className="text-sm font-semibold flex items-center gap-1" style={{ color: 'var(--f-blue)' }}>
-                        <i className="fa-solid fa-pencil text-[12px]" /> Editar
+                        <i className="fa-solid fa-pencil text-[14px]" /> Editar
                       </button>
                     </div>
                   )}
@@ -341,28 +341,28 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
 
                 {/* Teléfono */}
                 <div className="px-4 py-4" style={{ background: 'var(--f-bg-card)', borderBottom: '1px solid var(--f-line)' }}>
-                  <p className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Teléfono</p>
+                  <p className="text-[13px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Teléfono</p>
                   {editingPhone ? (
                     <div className="flex gap-2 items-center">
                       <input autoFocus type="tel" value={phoneInput}
                         onChange={e => setPhoneInput(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') handleSavePhone(); if (e.key === 'Escape') setEditingPhone(false) }}
                         placeholder="+52 55 0000 0000"
-                        className="flex-1 rounded-[12px] px-3 py-2.5 text-[15px] font-semibold text-white outline-none"
+                        className="flex-1 rounded-[12px] px-3 py-2.5 text-[17px] font-semibold text-white outline-none"
                         style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-glow)' }}
                       />
-                      <button onClick={handleSavePhone} disabled={isPhonePending} className="px-3 py-2 rounded-[10px] text-[13px] font-black text-white disabled:opacity-50" style={{ background: 'var(--f-blue)' }}>
+                      <button onClick={handleSavePhone} disabled={isPhonePending} className="px-3 py-2 rounded-[10px] text-[15px] font-black text-white disabled:opacity-50" style={{ background: 'var(--f-blue)' }}>
                         {isPhonePending ? <i className="fa-solid fa-spinner fa-spin" /> : 'OK'}
                       </button>
-                      <button onClick={() => setEditingPhone(false)} className="px-2 py-2 rounded-[10px] text-[13px]" style={{ background: 'var(--f-line)', color: 'var(--f-text-3)' }}>✕</button>
+                      <button onClick={() => setEditingPhone(false)} className="px-2 py-2 rounded-[10px] text-[15px]" style={{ background: 'var(--f-line)', color: 'var(--f-text-3)' }}>✕</button>
                     </div>
                   ) : (
                     <div className="flex items-center justify-between">
-                      <p className="text-[15px] font-bold" style={{ color: profile?.phone ? 'var(--f-text)' : 'var(--f-text-4)' }}>
+                      <p className="text-[17px] font-bold" style={{ color: profile?.phone ? 'var(--f-text)' : 'var(--f-text-4)' }}>
                         {profile?.phone || 'Sin teléfono'}
                       </p>
                       <button onClick={() => setEditingPhone(true)} className="text-sm font-semibold flex items-center gap-1" style={{ color: 'var(--f-blue)' }}>
-                        <i className="fa-solid fa-pencil text-[12px]" /> Editar
+                        <i className="fa-solid fa-pencil text-[14px]" /> Editar
                       </button>
                     </div>
                   )}
@@ -370,9 +370,9 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
 
                 {/* Correo (read-only) */}
                 <div className="px-4 py-4" style={{ background: 'var(--f-bg-card)' }}>
-                  <p className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Correo electrónico</p>
-                  <p className="text-[15px] font-bold" style={{ color: 'var(--f-text-3)' }}>{profile?.email}</p>
-                  <p className="text-[11px] mt-1" style={{ color: 'var(--f-text-4)' }}>El correo no se puede cambiar desde aquí</p>
+                  <p className="text-[13px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Correo electrónico</p>
+                  <p className="text-[17px] font-bold" style={{ color: 'var(--f-text-3)' }}>{profile?.email}</p>
+                  <p className="text-[13px] mt-1" style={{ color: 'var(--f-text-4)' }}>El correo no se puede cambiar desde aquí</p>
                 </div>
               </div>
             </div>
@@ -412,7 +412,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                       {profile?.default_monthly_budget ? `${formatCurrency(profile.default_monthly_budget)} / mes` : 'Sin presupuesto predeterminado'}
                     </p>
                     <button onClick={() => setEditingDefBudget(true)} className="text-sm font-semibold flex items-center gap-1" style={{ color: 'var(--f-blue)' }}>
-                      <i className="fa-solid fa-pencil text-[14px]" /> Editar
+                      <i className="fa-solid fa-pencil text-[16px]" /> Editar
                     </button>
                   </div>
                 )}
@@ -445,8 +445,8 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                       <i className={`${opt.icon} text-sm`} style={{ color: active ? 'var(--f-blue)' : 'var(--f-text-3)' }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[14px] font-bold" style={{ color: 'var(--f-text)' }}>{opt.label}</p>
-                      <p className="text-[12px]" style={{ color: 'var(--f-text-3)' }}>{opt.desc}</p>
+                      <p className="text-[16px] font-bold" style={{ color: 'var(--f-text)' }}>{opt.label}</p>
+                      <p className="text-[14px]" style={{ color: 'var(--f-text-3)' }}>{opt.desc}</p>
                     </div>
                     {active && <i className="fa-solid fa-check text-sm" style={{ color: 'var(--f-blue)' }} />}
                   </button>
@@ -530,23 +530,24 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
               <i className="fa-solid fa-clock text-sm" style={{ color: '#FF9F0A' }} />
             </div>
             <div className="flex-1">
-              <p className="text-[13px] font-black" style={{ color: '#FF9F0A' }}>
+              <p className="text-[15px] font-black" style={{ color: '#FF9F0A' }}>
                 {trialDaysLeft === 0 ? 'Tu prueba expira hoy' : `${trialDaysLeft} día${trialDaysLeft === 1 ? '' : 's'} de prueba restantes`}
               </p>
-              <p className="text-[11px] font-semibold" style={{ color: 'rgba(255,159,10,0.7)' }}>Toca para suscribirte y no perder acceso</p>
+              <p className="text-[13px] font-semibold" style={{ color: 'rgba(255,159,10,0.7)' }}>Toca para suscribirte y no perder acceso</p>
             </div>
             <i className="fa-solid fa-chevron-right text-xs" style={{ color: 'rgba(255,159,10,0.5)' }} />
           </button>
         )}
 
         {/* Options list */}
-        <div data-coach="settings-list" className="rounded-[20px] overflow-hidden" style={{ border: '1px solid var(--f-line)' }}>
+        <div className="rounded-[20px] overflow-hidden" style={{ border: '1px solid var(--f-line)' }}>
           {SECTIONS.filter(s => !s.hidden).map((s, i, arr) => {
             const isLast = i === arr.length - 1
             const isPlan = s.key === 'suscripcion'
             return (
               <button
                 key={s.key}
+                {...(i === 0 ? { 'data-coach': 'settings-list' } : {})}
                 onClick={() => { setSection(s.key); window.scrollTo({ top: 0 }) }}
                 className="w-full flex items-center gap-4 px-4 py-4 text-left transition-all active:scale-[0.99]"
                 style={{
@@ -576,8 +577,8 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-bold text-white">{s.label}</p>
-                  <p className="text-[12px]" style={{ color: 'var(--f-text-4)' }}>
+                  <p className="text-[16px] font-bold text-white">{s.label}</p>
+                  <p className="text-[14px]" style={{ color: 'var(--f-text-4)' }}>
                     {isPlan && profile?.subscription_status === 'active'
                       ? 'Flux Pro · Activo'
                       : isPlan && trialDaysLeft !== null
@@ -593,14 +594,14 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
 
         <button
           onClick={handleSignOut}
-          className="w-full py-3.5 rounded-[16px] text-[13px] font-bold transition-all active:scale-[0.98]"
+          className="w-full py-3.5 rounded-[16px] text-[15px] font-bold transition-all active:scale-[0.98]"
           style={{ background: 'var(--f-expense-bg)', color: 'var(--f-expense)', border: '1px solid var(--f-expense-border)' }}
         >
           <i className="fa-solid fa-right-from-bracket mr-2" />
           Cerrar sesión
         </button>
 
-        <p className="text-center text-[11px] pb-8" style={{ color: 'var(--f-line-strong)' }}>
+        <p className="text-center text-[13px] pb-8" style={{ color: 'var(--f-line-strong)' }}>
           Flux · Powered by Nevura
         </p>
       </div>
@@ -642,7 +643,7 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-white">Mis categorías</p>
-        <button onClick={() => setEditing({})} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95" style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)' }}>
+        <button onClick={() => setEditing({})} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[15px] font-bold transition-all active:scale-95" style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)' }}>
           <i className="fa-solid fa-plus" /> Nueva
         </button>
       </div>
@@ -659,14 +660,14 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
               <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${d.bg}`}>
                 <i className={`${d.icon} ${d.color} text-sm`} />
               </div>
-              <span className="flex-1 text-[15px] font-semibold text-white">{cat.name}</span>
+              <span className="flex-1 text-[17px] font-semibold text-white">{cat.name}</span>
               <button onClick={() => setEditing(cat)} className="px-2" style={{ color: 'var(--f-text-3)' }}>
                 <i className="fa-solid fa-pen text-xs" />
               </button>
               {deleteConfirm === cat.id ? (
                 <div className="flex items-center gap-1.5">
-                  <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold" style={{ color: 'var(--f-text-2)', background: 'var(--f-bg-input)' }}>No</button>
-                  <button onClick={() => handleDelete(cat.id)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold text-white" style={{ background: 'var(--f-expense)' }}>Sí</button>
+                  <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-xl text-[15px] font-bold" style={{ color: 'var(--f-text-2)', background: 'var(--f-bg-input)' }}>No</button>
+                  <button onClick={() => handleDelete(cat.id)} className="px-3 py-1.5 rounded-xl text-[15px] font-bold text-white" style={{ background: 'var(--f-expense)' }}>Sí</button>
                 </div>
               ) : (
                 <button onClick={() => setDeleteConfirm(cat.id)} className="px-2" style={{ color: 'var(--f-text-3)' }}>
@@ -678,14 +679,14 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
         })}
       </div>
 
-      <p className="text-[10px] font-black uppercase tracking-[2px] mt-4" style={{ color: 'var(--f-text-4)' }}>Predeterminadas</p>
+      <p className="text-[12px] font-black uppercase tracking-[2px] mt-4" style={{ color: 'var(--f-text-4)' }}>Predeterminadas</p>
       <div className="grid grid-cols-4 gap-2">
         {defaultCategories.map(cat => {
           const d = getCategoryDisplay(cat)
           return (
             <div key={cat.id} className={`flex flex-col items-center gap-1 p-2 rounded-xl ${d.bg} opacity-60`}>
               <i className={`${d.icon} ${d.color} text-base`} />
-              <span className={`text-[9px] font-semibold text-center ${d.color}`}>{cat.name.split(' ')[0]}</span>
+              <span className={`text-[11px] font-semibold text-center ${d.color}`}>{cat.name.split(' ')[0]}</span>
             </div>
           )
         })}
@@ -704,7 +705,7 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
               style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
             />
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[1.5px]" style={{ color: 'var(--f-text-4)' }}>Icono</p>
+              <p className="text-[12px] font-black uppercase tracking-[1.5px]" style={{ color: 'var(--f-text-4)' }}>Icono</p>
               <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
                 {STATIC_ICONS.slice(0, 20).map(ic => (
                   <button
@@ -722,7 +723,7 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
               </div>
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[1.5px]" style={{ color: 'var(--f-text-4)' }}>Color</p>
+              <p className="text-[12px] font-black uppercase tracking-[1.5px]" style={{ color: 'var(--f-text-4)' }}>Color</p>
               <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
                 {STATIC_COLORS.map(col => (
                   <button
@@ -785,7 +786,7 @@ function AccountsTab({ accounts, isPending, startTransition }: {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-white">Cuentas</p>
-        <button onClick={() => setEditing({})} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95" style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)' }}>
+        <button onClick={() => setEditing({})} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[15px] font-bold transition-all active:scale-95" style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)' }}>
           <i className="fa-solid fa-plus" /> Nueva
         </button>
       </div>
@@ -807,8 +808,8 @@ function AccountsTab({ accounts, isPending, startTransition }: {
               </button>
               {deleteConfirm === acc.id ? (
                 <div className="flex items-center gap-1.5">
-                  <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold" style={{ color: 'var(--f-text-2)', background: 'var(--f-bg-input)' }}>No</button>
-                  <button onClick={() => handleDelete(acc.id)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold text-white" style={{ background: 'var(--f-expense)' }}>Sí</button>
+                  <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-xl text-[15px] font-bold" style={{ color: 'var(--f-text-2)', background: 'var(--f-bg-input)' }}>No</button>
+                  <button onClick={() => handleDelete(acc.id)} className="px-3 py-1.5 rounded-xl text-[15px] font-bold text-white" style={{ background: 'var(--f-expense)' }}>Sí</button>
                 </div>
               ) : (
                 <button onClick={() => setDeleteConfirm(acc.id)} className="px-2" style={{ color: 'var(--f-text-3)' }}>
@@ -833,10 +834,10 @@ function AccountsTab({ accounts, isPending, startTransition }: {
             />
             {(editing.payment_method_id === 'MP-TDD' || editing.payment_method_id === 'MP-TDC') && (
               <div className="flex items-start gap-2.5 rounded-xl px-3 py-2.5" style={{ background: 'rgba(255,159,10,0.12)', border: '1px solid rgba(255,159,10,0.3)' }}>
-                <i className="fa-solid fa-triangle-exclamation text-[12px] mt-0.5 flex-shrink-0" style={{ color: '#ff9f0a' }} />
+                <i className="fa-solid fa-triangle-exclamation text-[14px] mt-0.5 flex-shrink-0" style={{ color: '#ff9f0a' }} />
                 <div>
-                  <p className="text-[12px] font-black leading-snug" style={{ color: '#ff9f0a' }}>El nombre debe coincidir con Wallet</p>
-                  <p className="text-[11px] font-semibold mt-0.5 leading-snug" style={{ color: 'var(--f-text-3)' }}>
+                  <p className="text-[14px] font-black leading-snug" style={{ color: '#ff9f0a' }}>El nombre debe coincidir con Wallet</p>
+                  <p className="text-[13px] font-semibold mt-0.5 leading-snug" style={{ color: 'var(--f-text-3)' }}>
                     Verifica el nombre exacto en: Configuración → Wallet y Apple Pay → Tarjetas de pago
                   </p>
                 </div>
@@ -859,7 +860,7 @@ function AccountsTab({ accounts, isPending, startTransition }: {
             </div>
             {editing.payment_method_id === 'MP-TDC' && (
               <div>
-                <label className="text-[10px] font-black uppercase tracking-[1.5px] mb-1.5 block" style={{ color: 'var(--f-text-4)' }}>Día de pago</label>
+                <label className="text-[12px] font-black uppercase tracking-[1.5px] mb-1.5 block" style={{ color: 'var(--f-text-4)' }}>Día de pago</label>
                 <input
                   type="number"
                   min={1} max={31}
@@ -1057,7 +1058,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-white">Transacciones recurrentes</p>
-        <button onClick={openNew} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95" style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)' }}>
+        <button onClick={openNew} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[15px] font-bold transition-all active:scale-95" style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)' }}>
           <i className="fa-solid fa-plus" /> Nueva
         </button>
       </div>
@@ -1070,9 +1071,9 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
         >
           <div className="flex items-center gap-2">
             <i className="fa-solid fa-repeat text-xs" style={{ color: 'var(--f-expense)' }} />
-            <p className="text-[12px] font-bold" style={{ color: 'var(--f-text-2)' }}>Gastos recurrentes / mes</p>
+            <p className="text-[14px] font-bold" style={{ color: 'var(--f-text-2)' }}>Gastos recurrentes / mes</p>
           </div>
-          <p className="text-[15px] font-black tabular-nums" style={{ color: 'var(--f-expense)' }}>
+          <p className="text-[17px] font-black tabular-nums" style={{ color: 'var(--f-expense)' }}>
             −{formatCurrency(monthlyExpenses)}
           </p>
         </div>
@@ -1109,8 +1110,8 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
             </div>
             {deleteConfirm === s.id ? (
               <div className="flex items-center gap-1.5">
-                <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold" style={{ color: 'var(--f-text-2)', background: 'var(--f-bg-input)' }}>No</button>
-                <button onClick={() => handleDelete(s.id)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold text-white" style={{ background: 'var(--f-expense)' }}>Sí</button>
+                <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-xl text-[15px] font-bold" style={{ color: 'var(--f-text-2)', background: 'var(--f-bg-input)' }}>No</button>
+                <button onClick={() => handleDelete(s.id)} className="px-3 py-1.5 rounded-xl text-[15px] font-bold text-white" style={{ background: 'var(--f-expense)' }}>Sí</button>
               </div>
             ) : (
               <button onClick={() => setDeleteConfirm(s.id)} className="px-1" style={{ color: 'var(--f-text-3)' }}>
@@ -1142,7 +1143,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                     key={t}
                     type="button"
                     onClick={() => setEditing({ ...editing, type: t })}
-                    className="flex-1 py-2.5 rounded-[14px] text-[11px] font-black flex items-center justify-center gap-1.5 transition-all"
+                    className="flex-1 py-2.5 rounded-[14px] text-[13px] font-black flex items-center justify-center gap-1.5 transition-all"
                     style={editing.type === t ? {
                       background: `${c.color}20`,
                       border: `1px solid ${c.color}50`,
@@ -1161,7 +1162,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
 
               {/* Amount — big centered display */}
               <div className="text-center">
-                <p className="text-[10px] font-black tracking-[3px] uppercase mb-3" style={{ color: 'var(--f-text-4)' }}>Monto</p>
+                <p className="text-[12px] font-black tracking-[3px] uppercase mb-3" style={{ color: 'var(--f-text-4)' }}>Monto</p>
                 <div className="flex items-center justify-center gap-1">
                   <span className="text-[28px] font-black" style={{ color: 'var(--f-text-3)' }}>$</span>
                   <input
@@ -1184,14 +1185,14 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
 
               {/* Name / Concept */}
               <div>
-                <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Nombre</p>
+                <p className="text-[11px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Nombre</p>
                 <input
                   autoFocus
                   type="text"
                   value={editing.name}
                   onChange={e => setEditing({ ...editing, name: e.target.value })}
                   placeholder="Ej: Spotify, Netflix, Renta…"
-                  className="w-full rounded-[14px] px-4 py-3.5 text-[14px] font-bold text-white placeholder:font-medium outline-none transition-all"
+                  className="w-full rounded-[14px] px-4 py-3.5 text-[16px] font-bold text-white placeholder:font-medium outline-none transition-all"
                   style={{
                     background: 'var(--f-bg-input)',
                     border: '1px solid var(--f-bg-input)',
@@ -1204,7 +1205,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
               {/* Category (only for non-transfer) */}
               {editing.type !== 'TR-TRANSFER' && (
                 <div>
-                  <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Categoría</p>
+                  <p className="text-[11px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Categoría</p>
                   <div className="grid grid-cols-4 gap-1">
                     {filteredCats.map(cat => {
                       const d = getCategoryDisplay(cat)
@@ -1224,11 +1225,11 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                           }}
                         >
                           <i
-                            className={`${d.icon} text-[18px]`}
+                            className={`${d.icon} text-[20px]`}
                             style={{ color: sel ? cfg.color : 'var(--f-text-3)' }}
                           />
                           <span
-                            className="text-[8px] font-bold uppercase tracking-wide text-center leading-tight px-0.5"
+                            className="text-[10px] font-bold uppercase tracking-wide text-center leading-tight px-0.5"
                             style={{ color: sel ? cfg.color : 'var(--f-text-3)' }}
                           >
                             {cat.name.split(' ')[0]}
@@ -1242,13 +1243,13 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
 
               {/* Account */}
               <div>
-                <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>
+                <p className="text-[11px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>
                   {editing.type === 'TR-TRANSFER' ? 'Cuenta origen' : 'Cuenta'}
                 </p>
                 <select
                   value={editing.account_id}
                   onChange={e => setEditing({ ...editing, account_id: e.target.value })}
-                  className="w-full rounded-[14px] px-4 py-3 text-[14px] font-bold text-white focus:outline-none"
+                  className="w-full rounded-[14px] px-4 py-3 text-[16px] font-bold text-white focus:outline-none"
                   style={{ background: 'var(--f-bg-input)', border: `1px solid ${cfg.color}40`, colorScheme: 'dark' }}
                 >
                   <option value="">Seleccionar cuenta</option>
@@ -1261,11 +1262,11 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
               {/* Destination account (transfer) */}
               {editing.type === 'TR-TRANSFER' && (
                 <div>
-                  <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Cuenta destino</p>
+                  <p className="text-[11px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Cuenta destino</p>
                   <select
                     value={editing.destination_account_id}
                     onChange={e => setEditing({ ...editing, destination_account_id: e.target.value })}
-                    className="w-full rounded-[14px] px-4 py-3 text-[14px] font-bold text-white focus:outline-none"
+                    className="w-full rounded-[14px] px-4 py-3 text-[16px] font-bold text-white focus:outline-none"
                     style={{ background: 'var(--f-bg-input)', border: '1px solid rgba(100,210,255,0.4)', colorScheme: 'dark' }}
                   >
                     <option value="">Seleccionar cuenta destino</option>
@@ -1278,7 +1279,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
 
               {/* Frequency */}
               <div>
-                <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Frecuencia</p>
+                <p className="text-[11px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Frecuencia</p>
                 <div className="flex gap-2">
                   <input
                     type="number"
@@ -1286,7 +1287,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                     max="365"
                     value={editing.frequency_num}
                     onChange={e => setEditing({ ...editing, frequency_num: Math.max(1, Number(e.target.value)) })}
-                    className="w-16 rounded-[14px] px-3 py-2.5 text-[13px] font-bold text-white text-center focus:outline-none"
+                    className="w-16 rounded-[14px] px-3 py-2.5 text-[15px] font-bold text-white text-center focus:outline-none"
                     style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
                   />
                   <div className="flex gap-1.5 flex-1">
@@ -1295,7 +1296,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                         key={u}
                         type="button"
                         onClick={() => setEditing({ ...editing, frequency_unit: u })}
-                        className="flex-1 py-2.5 rounded-[14px] text-[11px] font-bold border transition-all"
+                        className="flex-1 py-2.5 rounded-[14px] text-[13px] font-bold border transition-all"
                         style={editing.frequency_unit === u
                           ? { background: `${cfg.color}15`, borderColor: `${cfg.color}50`, color: cfg.color }
                           : { background: 'var(--f-bg-card)', borderColor: 'var(--f-line)', color: 'var(--f-text-3)' }}
@@ -1310,25 +1311,25 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
               {/* Payment day + notification days */}
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Día de cobro</p>
+                  <p className="text-[11px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Día de cobro</p>
                   <input
                     type="number"
                     min="1" max="31"
                     value={editing.payment_day}
                     onChange={e => setEditing({ ...editing, payment_day: e.target.value })}
                     placeholder="—"
-                    className="w-full rounded-[14px] px-3 py-2.5 text-[13px] font-bold text-white text-center focus:outline-none"
+                    className="w-full rounded-[14px] px-3 py-2.5 text-[15px] font-bold text-white text-center focus:outline-none"
                     style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
                   />
                 </div>
                 <div className="flex-1">
-                  <p className="text-[9px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Aviso (días antes)</p>
+                  <p className="text-[11px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Aviso (días antes)</p>
                   <input
                     type="number"
                     min="0" max="30"
                     value={editing.notification_days}
                     onChange={e => setEditing({ ...editing, notification_days: Number(e.target.value) })}
-                    className="w-full rounded-[14px] px-3 py-2.5 text-[13px] font-bold text-white text-center focus:outline-none"
+                    className="w-full rounded-[14px] px-3 py-2.5 text-[15px] font-bold text-white text-center focus:outline-none"
                     style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
                   />
                 </div>
@@ -1347,8 +1348,8 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                     }}
                   >
                     <div>
-                      <p className="text-[13px] font-bold text-white text-left">Compartir al cargar</p>
-                      <p className="text-[11px] text-left mt-0.5" style={{ color: 'var(--f-text-3)' }}>
+                      <p className="text-[15px] font-bold text-white text-left">Compartir al cargar</p>
+                      <p className="text-[13px] text-left mt-0.5" style={{ color: 'var(--f-text-3)' }}>
                         Asignar deuda al registrarse
                       </p>
                     </div>
@@ -1372,9 +1373,9 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                               ? { background: 'rgba(100,210,255,0.15)', border: '1px solid rgba(100,210,255,0.35)', color: 'var(--f-transfer)' }
                               : { background: 'var(--f-bg-card)', border: '1px solid var(--f-bg-input)', color: 'var(--f-text-4)' }}
                           >
-                            <i className={`${opt.icon} text-[15px]`} />
-                            <span className="text-[10px] font-black text-center leading-tight mt-0.5">{opt.label}</span>
-                            <span className="text-[9px] font-medium text-center leading-tight mt-0.5" style={{ opacity: 0.65 }}>{opt.sub}</span>
+                            <i className={`${opt.icon} text-[17px]`} />
+                            <span className="text-[12px] font-black text-center leading-tight mt-0.5">{opt.label}</span>
+                            <span className="text-[11px] font-medium text-center leading-tight mt-0.5" style={{ opacity: 0.65 }}>{opt.sub}</span>
                           </button>
                         ))}
                       </div>
@@ -1383,10 +1384,10 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                       {editing.quickMode === 'equal' && splitCount > 0 && (
                         <div className="flex items-center justify-between px-3 py-2 rounded-[10px]"
                           style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-bg-input)' }}>
-                          <span className="text-[11px] font-bold" style={{ color: 'var(--f-text-3)' }}>
-                            <i className="fa-solid fa-user text-[9px] mr-1.5" />Tu parte
+                          <span className="text-[13px] font-bold" style={{ color: 'var(--f-text-3)' }}>
+                            <i className="fa-solid fa-user text-[11px] mr-1.5" />Tu parte
                           </span>
-                          <span className="text-[13px] font-black tabular-nums" style={{ color: 'var(--f-transfer)' }}>
+                          <span className="text-[15px] font-black tabular-nums" style={{ color: 'var(--f-transfer)' }}>
                             {formatCurrency(splitAmt)}
                           </span>
                         </div>
@@ -1405,9 +1406,9 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                                 onClick={() => setEditing({ ...editing, splitSelected: sel ? editing.splitSelected.filter(id => id !== person.id) : [...editing.splitSelected, person.id] })}
                               >
                                 <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all" style={{ background: sel ? 'var(--f-transfer)' : 'var(--f-line-strong)' }}>
-                                  {sel && <i className="fa-solid fa-check text-[9px] text-black" />}
+                                  {sel && <i className="fa-solid fa-check text-[11px] text-black" />}
                                 </div>
-                                <span className="text-[13px] font-bold text-white truncate">{person.name}</span>
+                                <span className="text-[15px] font-bold text-white truncate">{person.name}</span>
                               </button>
                               {sel && editing.quickMode === 'manual' ? (
                                 <input
@@ -1420,12 +1421,12 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                                     setEditing(prev => prev ? { ...prev, manualAmounts: { ...prev.manualAmounts, [person.id]: val > 0 ? String(val) : '' } } : prev)
                                   }}
                                   placeholder="0 ó 40+20"
-                                  className="w-24 rounded-[8px] px-2 py-1 text-[12px] font-black text-white text-right outline-none"
+                                  className="w-24 rounded-[8px] px-2 py-1 text-[14px] font-black text-white text-right outline-none"
                                   style={{ background: 'var(--f-bg-input)', border: '1px solid rgba(100,210,255,0.3)' }}
                                   onClick={e => e.stopPropagation()}
                                 />
                               ) : sel && splitAmt > 0 ? (
-                                <span className="text-[12px] font-black tabular-nums flex-shrink-0" style={{ color: 'var(--f-transfer)' }}>
+                                <span className="text-[14px] font-black tabular-nums flex-shrink-0" style={{ color: 'var(--f-transfer)' }}>
                                   {formatCurrency(splitAmt)}
                                 </span>
                               ) : null}
@@ -1437,10 +1438,10 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                             <input autoFocus value={newPersonName} onChange={e => setNewPersonName(e.target.value)}
                               onKeyDown={e => { if (e.key === 'Enter') handleAddPerson(); if (e.key === 'Escape') setAddingPerson(false) }}
                               placeholder="Nombre"
-                              className="flex-1 rounded-[10px] px-3 py-2 text-[13px] font-bold text-white outline-none"
+                              className="flex-1 rounded-[10px] px-3 py-2 text-[15px] font-bold text-white outline-none"
                               style={{ background: 'var(--f-bg-input)', border: '1px solid rgba(100,210,255,0.4)' }} />
                             <button type="button" onClick={handleAddPerson} disabled={isAddingPerson || !newPersonName.trim()}
-                              className="px-3 rounded-[10px] text-[12px] font-black disabled:opacity-50"
+                              className="px-3 rounded-[10px] text-[14px] font-black disabled:opacity-50"
                               style={{ background: 'rgba(100,210,255,0.15)', border: '1px solid rgba(100,210,255,0.4)', color: 'var(--f-transfer)' }}>
                               {isAddingPerson ? <i className="fa-solid fa-spinner fa-spin" /> : 'OK'}
                             </button>
@@ -1452,8 +1453,8 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                           <button type="button" onClick={() => setAddingPerson(true)}
                             className="w-full flex items-center gap-2 px-3 py-2 rounded-[12px]"
                             style={{ background: 'var(--f-bg-card)', border: '1px dashed var(--f-line-strong)' }}>
-                            <i className="fa-solid fa-plus text-[10px]" style={{ color: 'var(--f-text-4)' }} />
-                            <span className="text-[12px] font-bold" style={{ color: 'var(--f-text-4)' }}>Agregar persona</span>
+                            <i className="fa-solid fa-plus text-[12px]" style={{ color: 'var(--f-text-4)' }} />
+                            <span className="text-[14px] font-bold" style={{ color: 'var(--f-text-4)' }}>Agregar persona</span>
                           </button>
                         )}
                       </div>
@@ -1465,8 +1466,8 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
               {/* Status / Active toggle */}
               <div className="flex items-center justify-between px-4 py-3.5 rounded-[14px]" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-bg-input)' }}>
                 <div>
-                  <p className="text-[13px] font-bold text-white">Activo</p>
-                  <p className="text-[11px] mt-0.5" style={{ color: 'var(--f-text-3)' }}>
+                  <p className="text-[15px] font-bold text-white">Activo</p>
+                  <p className="text-[13px] mt-0.5" style={{ color: 'var(--f-text-3)' }}>
                     {editing.status === 'ACTIVO' ? 'Se ejecutará automáticamente' : 'Pausado — no se ejecutará'}
                   </p>
                 </div>
@@ -1485,7 +1486,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                   type="button"
                   onClick={handleSave}
                   disabled={isPending}
-                  className="w-full py-4 rounded-[16px] text-white text-[15px] font-black transition-all active:scale-[0.98] disabled:opacity-50"
+                  className="w-full py-4 rounded-[16px] text-white text-[17px] font-black transition-all active:scale-[0.98] disabled:opacity-50"
                   style={{ background: 'var(--f-blue)', boxShadow: '0 4px 20px var(--f-accent-glow)' }}
                 >
                   {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : editing.id ? 'Guardar cambios' : 'Crear recurrente'}
@@ -1493,7 +1494,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                 <button
                   type="button"
                   onClick={() => setEditing(null)}
-                  className="w-full py-3 rounded-[14px] text-[13px] font-black transition-all"
+                  className="w-full py-3 rounded-[14px] text-[15px] font-black transition-all"
                   style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
                 >
                   Cancelar
@@ -1502,7 +1503,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
                   <button
                     type="button"
                     onClick={() => { handleDelete(editing.id!); setEditing(null) }}
-                    className="w-full py-3 rounded-[14px] text-[13px] font-black transition-all"
+                    className="w-full py-3 rounded-[14px] text-[15px] font-black transition-all"
                     style={{ color: 'var(--f-expense)', background: 'var(--f-expense-bg)' }}
                   >
                     Eliminar recurrente
@@ -1592,17 +1593,17 @@ function SubscriptionTab({ profile }: { profile: Profile | null }) {
               />
             </div>
             <div>
-              <p className="text-[15px] font-black text-white">
+              <p className="text-[17px] font-black text-white">
                 {isTrialing ? 'Período de prueba' : 'Flux Pro · Activo'}
               </p>
-              <p className="text-[12px] font-semibold" style={{ color: isTrialing ? '#FF9F0A' : 'var(--f-income)' }}>
+              <p className="text-[14px] font-semibold" style={{ color: isTrialing ? '#FF9F0A' : 'var(--f-income)' }}>
                 {isTrialing
                   ? `Prueba hasta ${formatDate(profile?.trial_ends_at)}`
                   : `Activo hasta ${formatDate(profile?.subscription_ends_at)}`}
               </p>
             </div>
           </div>
-          <p className="text-[12px] mb-4" style={{ color: 'var(--f-text-3)' }}>
+          <p className="text-[14px] mb-4" style={{ color: 'var(--f-text-3)' }}>
             {isTrialing
               ? 'Suscríbete antes de que expire tu período de prueba para no perder acceso.'
               : 'Gracias por suscribirte. Tienes acceso completo a todas las funciones.'}
@@ -1610,7 +1611,7 @@ function SubscriptionTab({ profile }: { profile: Profile | null }) {
           <button
             onClick={handlePortal}
             disabled={loadingPortal}
-            className="w-full py-3.5 rounded-[14px] text-[14px] font-black text-white transition-all active:scale-[0.98] disabled:opacity-50"
+            className="w-full py-3.5 rounded-[14px] text-[16px] font-black text-white transition-all active:scale-[0.98] disabled:opacity-50"
             style={{ background: isTrialing ? '#FF9F0A' : 'var(--f-income)', color: '#000' }}
           >
             {loadingPortal
@@ -1621,7 +1622,7 @@ function SubscriptionTab({ profile }: { profile: Profile | null }) {
 
         {isTrialing && (
           <div className="space-y-3">
-            <p className="text-[11px] font-black uppercase tracking-[2px]" style={{ color: 'var(--f-text-4)' }}>Planes</p>
+            <p className="text-[13px] font-black uppercase tracking-[2px]" style={{ color: 'var(--f-text-4)' }}>Planes</p>
             <PriceCard
               label="Mensual"
               price="$89"
@@ -1656,18 +1657,18 @@ function SubscriptionTab({ profile }: { profile: Profile | null }) {
               <i className="fa-solid fa-triangle-exclamation text-lg" style={{ color: 'var(--f-expense)' }} />
             </div>
             <div>
-              <p className="text-[15px] font-black text-white">Pago pendiente</p>
-              <p className="text-[12px] font-semibold" style={{ color: 'var(--f-expense)' }}>Actualiza tu método de pago</p>
+              <p className="text-[17px] font-black text-white">Pago pendiente</p>
+              <p className="text-[14px] font-semibold" style={{ color: 'var(--f-expense)' }}>Actualiza tu método de pago</p>
             </div>
           </div>
-          <p className="text-[12px] mb-4" style={{ color: 'var(--f-text-3)' }}>
+          <p className="text-[14px] mb-4" style={{ color: 'var(--f-text-3)' }}>
             No pudimos procesar tu pago. Actualiza tu tarjeta para continuar usando Flux Pro.
           </p>
           {hasCustomer && (
             <button
               onClick={handlePortal}
               disabled={loadingPortal}
-              className="w-full py-3.5 rounded-[14px] text-[14px] font-black text-white transition-all active:scale-[0.98] disabled:opacity-50"
+              className="w-full py-3.5 rounded-[14px] text-[16px] font-black text-white transition-all active:scale-[0.98] disabled:opacity-50"
               style={{ background: 'var(--f-expense)' }}
             >
               {loadingPortal ? <i className="fa-solid fa-spinner fa-spin" /> : 'Actualizar método de pago'}
@@ -1684,7 +1685,7 @@ function SubscriptionTab({ profile }: { profile: Profile | null }) {
       {status === 'canceled' && (
         <div className="rounded-[16px] px-4 py-3 flex items-center gap-2" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-bg-input)' }}>
           <i className="fa-solid fa-circle-xmark text-sm" style={{ color: 'var(--f-text-4)' }} />
-          <p className="text-[13px] font-bold" style={{ color: 'var(--f-text-3)' }}>Tu suscripción fue cancelada</p>
+          <p className="text-[15px] font-bold" style={{ color: 'var(--f-text-3)' }}>Tu suscripción fue cancelada</p>
         </div>
       )}
 
@@ -1697,21 +1698,21 @@ function SubscriptionTab({ profile }: { profile: Profile | null }) {
             <i className="fa-solid fa-crown text-xl" style={{ color: 'var(--f-blue)' }} />
           </div>
           <div>
-            <p className="text-[17px] font-black text-white">Flux Pro</p>
-            <p className="text-[12px]" style={{ color: 'var(--f-text-3)' }}>Desbloquea todas las funciones</p>
+            <p className="text-[19px] font-black text-white">Flux Pro</p>
+            <p className="text-[14px]" style={{ color: 'var(--f-text-3)' }}>Desbloquea todas las funciones</p>
           </div>
         </div>
         <div className="space-y-2 mb-4">
           {['Transacciones ilimitadas', 'Atajos de iPhone', 'Auditoría de cuentas', 'Recordatorios automáticos', 'Soporte prioritario'].map(f => (
             <div key={f} className="flex items-center gap-2">
-              <i className="fa-solid fa-check text-[11px]" style={{ color: 'var(--f-income)' }} />
-              <span className="text-[13px] font-semibold text-white">{f}</span>
+              <i className="fa-solid fa-check text-[13px]" style={{ color: 'var(--f-income)' }} />
+              <span className="text-[15px] font-semibold text-white">{f}</span>
             </div>
           ))}
         </div>
       </div>
 
-      <p className="text-[11px] font-black uppercase tracking-[2px]" style={{ color: 'var(--f-text-4)' }}>Elige tu plan</p>
+      <p className="text-[13px] font-black uppercase tracking-[2px]" style={{ color: 'var(--f-text-4)' }}>Elige tu plan</p>
 
       <PriceCard
         label="Anual"
@@ -1730,7 +1731,7 @@ function SubscriptionTab({ profile }: { profile: Profile | null }) {
         onSelect={() => handleCheckout(PRICE_MONTHLY, setLoadingMonthly)}
       />
 
-      <p className="text-[11px] text-center" style={{ color: 'var(--f-text-4)' }}>
+      <p className="text-[13px] text-center" style={{ color: 'var(--f-text-4)' }}>
         Cancela cuando quieras · Pago seguro con Stripe
       </p>
     </div>
@@ -1753,9 +1754,9 @@ function PriceCard({ label, price, period, badge, loading, onSelect }: {
       style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-accent-border)' }}
     >
       <div className="flex flex-col items-start gap-0.5">
-        <p className="text-[14px] font-black text-white">{label}</p>
+        <p className="text-[16px] font-black text-white">{label}</p>
         {badge && (
-          <span className="text-[10px] font-black px-2 py-0.5 rounded-full" style={{ background: 'var(--f-income-border)', color: 'var(--f-income)' }}>
+          <span className="text-[12px] font-black px-2 py-0.5 rounded-full" style={{ background: 'var(--f-income-border)', color: 'var(--f-income)' }}>
             {badge}
           </span>
         )}
@@ -1763,7 +1764,7 @@ function PriceCard({ label, price, period, badge, loading, onSelect }: {
       <div className="flex items-center gap-3">
         <div className="text-right">
           <span className="text-[22px] font-black text-white tabular-nums">{price}</span>
-          <span className="text-[12px] font-bold" style={{ color: 'var(--f-text-3)' }}>{period}</span>
+          <span className="text-[14px] font-bold" style={{ color: 'var(--f-text-3)' }}>{period}</span>
         </div>
         {loading
           ? <i className="fa-solid fa-spinner fa-spin text-sm" style={{ color: 'var(--f-blue)' }} />
@@ -1833,7 +1834,7 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-white">Contactos</p>
-        <button onClick={() => setEditing({ name: '' })} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-bold transition-all active:scale-95" style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)' }}>
+        <button onClick={() => setEditing({ name: '' })} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[15px] font-bold transition-all active:scale-95" style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)' }}>
           <i className="fa-solid fa-plus" /> Nuevo
         </button>
       </div>
@@ -1845,15 +1846,15 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
       {contacts.map((person, i) => (
         <div key={person.id} className="rounded-2xl px-4 py-3.5 animate-fade-up" style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-accent-bg)', animationDelay: `${i * 0.04}s` }}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-[14px] flex-shrink-0" style={{ background: 'rgba(100,210,255,0.12)', color: 'var(--f-transfer)' }}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-[16px] flex-shrink-0" style={{ background: 'rgba(100,210,255,0.12)', color: 'var(--f-transfer)' }}>
               {person.name[0]?.toUpperCase() ?? '?'}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-white truncate">{person.name}</p>
               {person.linked_profile?.username ? (
-                <p className="text-[11px] font-semibold" style={{ color: 'var(--f-blue)' }}>@{person.linked_profile.username}</p>
+                <p className="text-[13px] font-semibold" style={{ color: 'var(--f-blue)' }}>@{person.linked_profile.username}</p>
               ) : (
-                <p className="text-[11px] font-semibold" style={{ color: 'var(--f-text-4)' }}>Sin vincular a Flux</p>
+                <p className="text-[13px] font-semibold" style={{ color: 'var(--f-text-4)' }}>Sin vincular a Flux</p>
               )}
             </div>
             <button
@@ -1876,8 +1877,8 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
             </button>
             {deleteConfirm === person.id ? (
               <div className="flex items-center gap-1.5">
-                <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold" style={{ color: 'var(--f-text-2)', background: 'var(--f-bg-input)' }}>No</button>
-                <button onClick={() => handleDelete(person.id)} className="px-3 py-1.5 rounded-xl text-[13px] font-bold text-white" style={{ background: 'var(--f-expense)' }}>Sí</button>
+                <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-xl text-[15px] font-bold" style={{ color: 'var(--f-text-2)', background: 'var(--f-bg-input)' }}>No</button>
+                <button onClick={() => handleDelete(person.id)} className="px-3 py-1.5 rounded-xl text-[15px] font-bold text-white" style={{ background: 'var(--f-expense)' }}>Sí</button>
               </div>
             ) : (
               <button onClick={() => { setDeleteConfirm(person.id); setManagingLink(null) }} className="w-8 h-8 flex items-center justify-center rounded-lg" style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}>
@@ -1891,13 +1892,13 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
             <div className="mt-3 pt-3 animate-fade-up" style={{ borderTop: '1px solid var(--f-line)' }}>
               {managingLink.confirming ? (
                 <div className="space-y-2">
-                  <p className="text-[12px] font-bold text-center" style={{ color: 'var(--f-text-2)' }}>
+                  <p className="text-[14px] font-bold text-center" style={{ color: 'var(--f-text-2)' }}>
                     ¿Desvincular de @{person.linked_profile?.username}?
                   </p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setManagingLink({ id: person.id, confirming: false })}
-                      className="flex-1 py-2 rounded-[10px] text-[12px] font-black"
+                      className="flex-1 py-2 rounded-[10px] text-[14px] font-black"
                       style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
                     >
                       No
@@ -1905,7 +1906,7 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
                     <button
                       onClick={() => { handleUnlinkPerson(person.id); setManagingLink(null) }}
                       disabled={isUnlinkPending}
-                      className="flex-1 py-2 rounded-[10px] text-[12px] font-black text-white disabled:opacity-50"
+                      className="flex-1 py-2 rounded-[10px] text-[14px] font-black text-white disabled:opacity-50"
                       style={{ background: 'var(--f-expense)' }}
                     >
                       {isUnlinkPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Sí, quitar'}
@@ -1916,18 +1917,18 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
                 <div className="flex gap-2">
                   <button
                     onClick={() => { setManagingLink(null); setLinkingPerson({ id: person.id, name: person.name, currentLinkedUserId: person.linked_user_id }) }}
-                    className="flex-1 py-2 rounded-[10px] text-[12px] font-black transition-all active:scale-95"
+                    className="flex-1 py-2 rounded-[10px] text-[14px] font-black transition-all active:scale-95"
                     style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)', border: '1px solid var(--f-accent-border)' }}
                   >
-                    <i className="fa-solid fa-arrow-right-arrow-left mr-1 text-[10px]" />
+                    <i className="fa-solid fa-arrow-right-arrow-left mr-1 text-[12px]" />
                     Cambiar
                   </button>
                   <button
                     onClick={() => setManagingLink({ id: person.id, confirming: true })}
-                    className="flex-1 py-2 rounded-[10px] text-[12px] font-black transition-all active:scale-95"
+                    className="flex-1 py-2 rounded-[10px] text-[14px] font-black transition-all active:scale-95"
                     style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)', border: '1px solid var(--f-line)' }}
                   >
-                    <i className="fa-solid fa-link-slash mr-1 text-[10px]" />
+                    <i className="fa-solid fa-link-slash mr-1 text-[12px]" />
                     Quitar
                   </button>
                 </div>

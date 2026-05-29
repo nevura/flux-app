@@ -66,14 +66,14 @@ export default function UsernameSetupModal({ suggestedUsername }: Props) {
         <h2 className="text-[22px] font-black text-center mb-1" style={{ color: 'var(--f-text)' }}>
           Elige tu @username
         </h2>
-        <p className="text-[14px] text-center mb-6 font-medium" style={{ color: 'var(--f-text-4)' }}>
+        <p className="text-[16px] text-center mb-6 font-medium" style={{ color: 'var(--f-text-4)' }}>
           Así te encontrarán tus amigos en Flux. Solo letras, números y guion bajo.
         </p>
 
         {/* Input */}
         <div className="relative mb-3">
           <span
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-[16px] font-black select-none"
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-[18px] font-black select-none"
             style={{ color: 'var(--f-blue)' }}
           >@</span>
           <input
@@ -86,11 +86,11 @@ export default function UsernameSetupModal({ suggestedUsername }: Props) {
             value={value}
             onChange={e => handleInput(e.target.value)}
             placeholder="tunombre"
-            className="w-full rounded-[14px] pl-9 pr-10 py-3.5 text-[16px] font-bold outline-none"
+            className="w-full rounded-[14px] pl-9 pr-10 py-3.5 text-[18px] font-bold outline-none"
             style={{ background: 'var(--f-bg-input)', border: `1px solid ${available === false ? 'var(--f-expense)' : available === true ? 'var(--f-income)' : 'var(--f-line-strong)'}`, color: 'var(--f-text)' }}
           />
           {/* Status icon */}
-          <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[14px]">
+          <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[16px]">
             {checking && <i className="fa-solid fa-spinner fa-spin" style={{ color: 'var(--f-text-4)' }} />}
             {!checking && available === true && <i className="fa-solid fa-check" style={{ color: 'var(--f-income)' }} />}
             {!checking && available === false && <i className="fa-solid fa-xmark" style={{ color: 'var(--f-expense)' }} />}
@@ -98,7 +98,7 @@ export default function UsernameSetupModal({ suggestedUsername }: Props) {
         </div>
 
         {/* Hint */}
-        <p className="text-[12px] font-medium mb-6" style={{ color: available === false ? 'var(--f-expense)' : 'var(--f-text-4)' }}>
+        <p className="text-[14px] font-medium mb-6" style={{ color: available === false ? 'var(--f-expense)' : 'var(--f-text-4)' }}>
           {available === false
             ? 'Ese nombre ya está en uso, prueba otro'
             : available === true
@@ -110,7 +110,7 @@ export default function UsernameSetupModal({ suggestedUsername }: Props) {
         <button
           onClick={handleSave}
           disabled={!canSave}
-          className="w-full py-4 rounded-[16px] text-white text-[15px] font-black transition-all active:scale-[0.98] disabled:opacity-40"
+          className="w-full py-4 rounded-[16px] text-white text-[17px] font-black transition-all active:scale-[0.98] disabled:opacity-40"
           style={{ background: 'var(--f-blue)' }}
         >
           {isPending

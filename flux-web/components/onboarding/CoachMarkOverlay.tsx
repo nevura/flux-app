@@ -65,9 +65,10 @@ export default function CoachMarkOverlay({
 
   const tooltipLeft = Math.max(16, Math.min(spotlight.left, window.innerWidth - TOOLTIP_WIDTH - 16))
   const showBelow = spotlight.top + spotlight.height + TOOLTIP_HEIGHT_APPROX + 16 < window.innerHeight
-  const tooltipTop = showBelow
-    ? spotlight.top + spotlight.height + 16
-    : spotlight.top - TOOLTIP_HEIGHT_APPROX - 16
+  const tooltipTop = Math.max(16, Math.min(
+    showBelow ? spotlight.top + spotlight.height + 16 : spotlight.top - TOOLTIP_HEIGHT_APPROX - 16,
+    window.innerHeight - TOOLTIP_HEIGHT_APPROX - 16,
+  ))
 
   return createPortal(
     <div className="fixed inset-0 z-[600]">
@@ -122,24 +123,24 @@ export default function CoachMarkOverlay({
             ))}
           </div>
 
-          <h3 className="text-[15px] font-black mb-1" style={{ color: 'var(--f-text)' }}>
+          <h3 className="text-[17px] font-black mb-1" style={{ color: 'var(--f-text)' }}>
             {current.title}
           </h3>
-          <p className="text-[13px] font-semibold leading-snug" style={{ color: 'var(--f-text-3)' }}>
+          <p className="text-[15px] font-semibold leading-snug" style={{ color: 'var(--f-text-3)' }}>
             {current.description}
           </p>
 
           <div className="flex gap-2 mt-3">
             <button
               onClick={onDone}
-              className="py-2 px-3 rounded-[10px] text-[12px] font-black"
+              className="py-2 px-3 rounded-[10px] text-[14px] font-black"
               style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-4)' }}
             >
               Saltar
             </button>
             <button
               onClick={next}
-              className="flex-1 py-2 rounded-[10px] text-[13px] font-black text-white"
+              className="flex-1 py-2 rounded-[10px] text-[15px] font-black text-white"
               style={{ background: 'var(--f-blue)' }}
             >
               {isLast ? 'Entendido ✓' : 'Siguiente →'}

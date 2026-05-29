@@ -89,7 +89,7 @@ export default function FriendSearchModal({ onClose, existingFriendships, myUser
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-5 pb-4">
-          <h2 className="text-[18px] font-black" style={{ color: 'var(--f-text)' }}>Agregar amigo</h2>
+          <h2 className="text-[20px] font-black" style={{ color: 'var(--f-text)' }}>Agregar amigo</h2>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full" style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}>
             <i className="fa-solid fa-xmark text-sm" />
           </button>
@@ -98,7 +98,7 @@ export default function FriendSearchModal({ onClose, existingFriendships, myUser
         {/* Search input */}
         <div className="px-5 pb-3">
           <div className="relative">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[15px] font-black select-none" style={{ color: 'var(--f-blue)' }}>@</span>
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[17px] font-black select-none" style={{ color: 'var(--f-blue)' }}>@</span>
             <input
               ref={inputRef}
               type="text"
@@ -110,7 +110,7 @@ export default function FriendSearchModal({ onClose, existingFriendships, myUser
               value={query}
               onChange={e => handleInput(e.target.value)}
               placeholder="Buscar por @username"
-              className="w-full rounded-[14px] pl-8 pr-10 py-3 text-[15px] font-semibold outline-none"
+              className="w-full rounded-[14px] pl-8 pr-10 py-3 text-[17px] font-semibold outline-none"
               style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)' }}
             />
             <span className="absolute right-3.5 top-1/2 -translate-y-1/2">
@@ -134,18 +134,18 @@ export default function FriendSearchModal({ onClose, existingFriendships, myUser
                   {(user.full_name || user.username)[0].toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{user.full_name || user.username}</p>
-                  <p className="text-[12px] font-semibold" style={{ color: 'var(--f-blue)' }}>@{user.username}</p>
+                  <p className="text-[16px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{user.full_name || user.username}</p>
+                  <p className="text-[14px] font-semibold" style={{ color: 'var(--f-blue)' }}>@{user.username}</p>
                 </div>
                 {status === 'accepted' ? (
-                  <span className="text-[11px] font-black px-2 py-1 rounded-lg" style={{ background: 'var(--f-income-bg)', color: 'var(--f-income)' }}>Amigos</span>
+                  <span className="text-[13px] font-black px-2 py-1 rounded-lg" style={{ background: 'var(--f-income-bg)', color: 'var(--f-income)' }}>Amigos</span>
                 ) : status === 'pending' || sent ? (
-                  <span className="text-[11px] font-black px-2 py-1 rounded-lg" style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-4)' }}>Pendiente</span>
+                  <span className="text-[13px] font-black px-2 py-1 rounded-lg" style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-4)' }}>Pendiente</span>
                 ) : (
                   <button
                     onClick={() => handleSendRequest(user.id, user.username)}
                     disabled={isPending}
-                    className="text-[12px] font-black px-3 py-1.5 rounded-[10px] text-white disabled:opacity-50 transition-all active:scale-95"
+                    className="text-[14px] font-black px-3 py-1.5 rounded-[10px] text-white disabled:opacity-50 transition-all active:scale-95"
                     style={{ background: 'var(--f-blue)' }}
                   >
                     Agregar
@@ -158,12 +158,12 @@ export default function FriendSearchModal({ onClose, existingFriendships, myUser
           {/* Not found state */}
           {notFound && !showInvite && (
             <div className="text-center py-4 space-y-3">
-              <p className="text-[13px] font-semibold" style={{ color: 'var(--f-text-4)' }}>
+              <p className="text-[15px] font-semibold" style={{ color: 'var(--f-text-4)' }}>
                 No se encontró <span style={{ color: 'var(--f-text)' }}>@{query.replace(/^@/, '')}</span> en Flux
               </p>
               <button
                 onClick={() => setShowInvite(true)}
-                className="text-[13px] font-black px-4 py-2 rounded-[10px] text-white transition-all active:scale-95"
+                className="text-[15px] font-black px-4 py-2 rounded-[10px] text-white transition-all active:scale-95"
                 style={{ background: 'var(--f-blue)' }}
               >
                 <i className="fa-solid fa-envelope mr-1.5" />
@@ -175,7 +175,7 @@ export default function FriendSearchModal({ onClose, existingFriendships, myUser
           {/* Invite form */}
           {showInvite && (
             <div className="rounded-[14px] p-4 space-y-3 animate-fade-up" style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-line-strong)' }}>
-              <p className="text-[13px] font-black" style={{ color: 'var(--f-text)' }}>Invitar a Flux</p>
+              <p className="text-[15px] font-black" style={{ color: 'var(--f-text)' }}>Invitar a Flux</p>
               <input
                 autoFocus
                 type="email"
@@ -183,17 +183,17 @@ export default function FriendSearchModal({ onClose, existingFriendships, myUser
                 onChange={e => setInviteEmail(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') handleSendInvite() }}
                 placeholder="correo@ejemplo.com"
-                className="w-full rounded-[10px] px-3 py-2.5 text-[14px] font-semibold outline-none"
+                className="w-full rounded-[10px] px-3 py-2.5 text-[16px] font-semibold outline-none"
                 style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-border)', color: 'var(--f-text)' }}
               />
               <div className="flex gap-2">
-                <button onClick={() => setShowInvite(false)} className="flex-1 py-2 rounded-[10px] text-[13px] font-black" style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}>
+                <button onClick={() => setShowInvite(false)} className="flex-1 py-2 rounded-[10px] text-[15px] font-black" style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}>
                   Cancelar
                 </button>
                 <button
                   onClick={handleSendInvite}
                   disabled={isPending || !inviteEmail}
-                  className="flex-[2] py-2 rounded-[10px] text-[13px] font-black text-white disabled:opacity-50 active:scale-95"
+                  className="flex-[2] py-2 rounded-[10px] text-[15px] font-black text-white disabled:opacity-50 active:scale-95"
                   style={{ background: 'var(--f-blue)' }}
                 >
                   {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Enviar invitación'}

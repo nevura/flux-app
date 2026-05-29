@@ -127,6 +127,6 @@ export const MONTHS_ES = [
 
 // Shortcut iCloud share links (update once shortcuts are published)
 export const SHORTCUT_LINKS = {
-  applePay: 'https://www.icloud.com/shortcuts/402ad906b25d4bb5ad0ce4b7b50e9e9a',
+  applePay: 'https://www.icloud.com/shortcuts/02c308c935ca4c8585352671f07a58f1',
   quickEntry: 'https://www.icloud.com/shortcuts/bff349263a9b4ee89cb097d6dc658e5b',
 }

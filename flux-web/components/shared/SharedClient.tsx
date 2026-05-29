@@ -211,16 +211,16 @@ export default function SharedClient({ transactions, people, accounts, categorie
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-black tracking-[3px] uppercase" style={{ color: 'var(--f-text-4)' }}>Gastos</p>
+            <p className="text-[12px] font-black tracking-[3px] uppercase" style={{ color: 'var(--f-text-4)' }}>Gastos</p>
             <h1 className="text-[22px] font-black leading-tight mt-0.5" style={{ color: 'var(--f-text)' }}>Compartidos</h1>
           </div>
           <button
             data-coach="shared-add-friends"
             onClick={() => setShowFriendSearch(true)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-[12px] text-[12px] font-black transition-all active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-[12px] text-[14px] font-black transition-all active:scale-95"
             style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)', border: '1px solid var(--f-accent-border)' }}
           >
-            <i className="fa-solid fa-user-plus text-[11px]" />
+            <i className="fa-solid fa-user-plus text-[13px]" />
             Amigos
           </button>
         </div>
@@ -232,13 +232,13 @@ export default function SharedClient({ transactions, people, accounts, categorie
         {balances.length > 0 && (
           <div data-coach="shared-summary" className="grid grid-cols-2 gap-3">
             <div className="rounded-[20px] p-4 animate-spring-in" style={{ background: 'var(--f-income-bg)', border: '1px solid var(--f-income-border)' }}>
-              <p className="text-[9px] font-black tracking-[2px] uppercase mb-1" style={{ color: 'var(--f-income)' }}>Me deben</p>
+              <p className="text-[11px] font-black tracking-[2px] uppercase mb-1" style={{ color: 'var(--f-income)' }}>Me deben</p>
               <p className="text-[22px] font-black tabular-nums leading-none" style={{ color: 'var(--f-income)' }}>
                 +<AnimatedCurrency value={totalOwesMe} />
               </p>
             </div>
             <div className="rounded-[20px] p-4 animate-spring-in" style={{ background: 'var(--f-expense-bg)', border: '1px solid var(--f-expense-border)', animationDelay: '0.07s' }}>
-              <p className="text-[9px] font-black tracking-[2px] uppercase mb-1" style={{ color: 'var(--f-expense)' }}>Debo</p>
+              <p className="text-[11px] font-black tracking-[2px] uppercase mb-1" style={{ color: 'var(--f-expense)' }}>Debo</p>
               <p className="text-[22px] font-black tabular-nums leading-none" style={{ color: 'var(--f-expense)' }}>
                 -<AnimatedCurrency value={totalIOwe} />
               </p>
@@ -253,8 +253,8 @@ export default function SharedClient({ transactions, people, accounts, categorie
               style={{ background: 'var(--f-accent-bg)', border: '1px solid var(--f-accent-border)' }}>
               <i className="fa-solid fa-users text-3xl" style={{ color: 'var(--f-blue)' }} />
             </div>
-            <p className="text-[18px] font-black mb-2" style={{ color: 'var(--f-text)' }}>Sin gastos compartidos</p>
-            <p className="text-[13px] font-bold text-center max-w-xs mx-auto" style={{ color: 'var(--f-text-4)' }}>
+            <p className="text-[20px] font-black mb-2" style={{ color: 'var(--f-text)' }}>Sin gastos compartidos</p>
+            <p className="text-[15px] font-bold text-center max-w-xs mx-auto" style={{ color: 'var(--f-text-4)' }}>
               Al agregar un gasto, activa &quot;Compartir&quot; y asigna personas
             </p>
           </div>
@@ -279,8 +279,8 @@ export default function SharedClient({ transactions, people, accounts, categorie
                       <i className="fa-solid fa-user text-sm" style={{ color: netPositive ? 'var(--f-income)' : 'var(--f-expense)' }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[16px] font-black" style={{ color: 'var(--f-text)' }}>{b.person.name}</p>
-                      <p className="text-[12px] mt-0.5 font-bold" style={{ color: 'var(--f-text-4)' }}>
+                      <p className="text-[18px] font-black" style={{ color: 'var(--f-text)' }}>{b.person.name}</p>
+                      <p className="text-[14px] mt-0.5 font-bold" style={{ color: 'var(--f-text-4)' }}>
                         {b.pending.length} gasto{b.pending.length !== 1 ? 's' : ''} pendiente{b.pending.length !== 1 ? 's' : ''}
                         {b.person.linked_profile?.username && (
                           <> · <span style={{ color: 'var(--f-blue)' }}>@{b.person.linked_profile.username}</span></>
@@ -288,15 +288,15 @@ export default function SharedClient({ transactions, people, accounts, categorie
                       </p>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <p className="text-[16px] font-black tabular-nums" style={{ color: netPositive ? 'var(--f-income)' : 'var(--f-expense)' }}>
+                      <p className="text-[18px] font-black tabular-nums" style={{ color: netPositive ? 'var(--f-income)' : 'var(--f-expense)' }}>
                         {netPositive ? '+' : '-'}<AnimatedCurrency value={Math.abs(b.net)} />
                       </p>
-                      <p className="text-[11px] font-bold mt-0.5" style={{ color: 'var(--f-text-4)' }}>
+                      <p className="text-[13px] font-bold mt-0.5" style={{ color: 'var(--f-text-4)' }}>
                         {netPositive ? 'me debe' : 'les debo'}
                       </p>
                     </div>
                     <i
-                      className="fa-solid fa-chevron-right text-[11px] flex-shrink-0 ml-1 transition-transform duration-200"
+                      className="fa-solid fa-chevron-right text-[13px] flex-shrink-0 ml-1 transition-transform duration-200"
                       style={{ color: 'var(--f-text-4)', transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}
                     />
                   </button>
@@ -305,18 +305,18 @@ export default function SharedClient({ transactions, people, accounts, categorie
                   <div className="flex gap-2 px-4 pb-3">
                     <button
                       onClick={() => { setGlobalAbonoId(isAbonoOpen ? null : b.person.id); setGlobalSettleId(null); setGlobalAbonoAmount(''); setGlobalAbonoAccountId('') }}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[10px] text-[12px] font-black transition-all active:scale-95"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[10px] text-[14px] font-black transition-all active:scale-95"
                       style={{ background: isAbonoOpen ? 'var(--f-accent-bg)' : 'var(--f-bg-input)', color: isAbonoOpen ? 'var(--f-blue)' : 'var(--f-text-3)', border: `1px solid ${isAbonoOpen ? 'var(--f-accent-border)' : 'var(--f-line)'}` }}
                     >
-                      <i className="fa-solid fa-coins text-[10px]" />
+                      <i className="fa-solid fa-coins text-[12px]" />
                       Abonar
                     </button>
                     <button
                       onClick={() => { setGlobalSettleId(isGlobalOpen ? null : b.person.id); setGlobalAbonoId(null); setGlobalAccountId('') }}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[10px] text-[12px] font-black transition-all active:scale-95"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[10px] text-[14px] font-black transition-all active:scale-95"
                       style={{ background: isGlobalOpen ? 'var(--f-income-bg)' : 'var(--f-bg-input)', color: isGlobalOpen ? 'var(--f-income)' : 'var(--f-text-3)', border: `1px solid ${isGlobalOpen ? 'var(--f-income-border)' : 'var(--f-line)'}` }}
                     >
-                      <i className="fa-solid fa-check-double text-[10px]" />
+                      <i className="fa-solid fa-check-double text-[12px]" />
                       Saldar todo
                     </button>
                   </div>
@@ -326,10 +326,10 @@ export default function SharedClient({ transactions, people, accounts, categorie
                     <div className="mx-4 mb-4 rounded-[14px] p-4 space-y-3 animate-fade-up"
                       style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-line-strong)' }}>
                       <div>
-                        <p className="text-[13px] font-black mb-0.5" style={{ color: 'var(--f-text)' }}>
+                        <p className="text-[15px] font-black mb-0.5" style={{ color: 'var(--f-text)' }}>
                           Abonar a {b.person.name}
                         </p>
-                        <p className="text-[11px] font-bold" style={{ color: 'var(--f-text-4)' }}>
+                        <p className="text-[13px] font-bold" style={{ color: 'var(--f-text-4)' }}>
                           Saldo pendiente: {formatCurrency(Math.abs(b.net))} — se aplica FIFO (más antiguo primero)
                         </p>
                       </div>
@@ -341,13 +341,13 @@ export default function SharedClient({ transactions, people, accounts, categorie
                         value={globalAbonoAmount}
                         onChange={e => setGlobalAbonoAmount(e.target.value)}
                         placeholder="Monto del abono"
-                        className="w-full rounded-[10px] px-3 py-2.5 text-[14px] font-bold outline-none tabular-nums"
+                        className="w-full rounded-[10px] px-3 py-2.5 text-[16px] font-bold outline-none tabular-nums"
                         style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-border)', color: 'var(--f-text)' }}
                       />
                       <select
                         value={globalAbonoAccountId}
                         onChange={e => setGlobalAbonoAccountId(e.target.value)}
-                        className="w-full rounded-[10px] px-3 py-2.5 text-[14px] font-bold outline-none"
+                        className="w-full rounded-[10px] px-3 py-2.5 text-[16px] font-bold outline-none"
                         style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)', colorScheme: 'dark' }}
                       >
                         <option value="">Sin registrar en cuenta</option>
@@ -358,7 +358,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                       <div className="flex gap-2">
                         <button
                           onClick={() => { setGlobalAbonoId(null); setGlobalAbonoAmount(''); setGlobalAbonoAccountId('') }}
-                          className="flex-1 py-2 rounded-[10px] text-[13px] font-black transition-all active:scale-95"
+                          className="flex-1 py-2 rounded-[10px] text-[15px] font-black transition-all active:scale-95"
                           style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
                         >
                           Cancelar
@@ -366,7 +366,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                         <button
                           onClick={() => executeAbonoGlobal(b.person.id, b.person.name)}
                           disabled={isAbonoPending || !globalAbonoAmount}
-                          className="px-5 py-2 rounded-[10px] text-[13px] font-black text-white disabled:opacity-50 transition-all active:scale-95"
+                          className="px-5 py-2 rounded-[10px] text-[15px] font-black text-white disabled:opacity-50 transition-all active:scale-95"
                           style={{ background: 'var(--f-blue)', flex: 2 }}
                         >
                           {isAbonoPending
@@ -382,10 +382,10 @@ export default function SharedClient({ transactions, people, accounts, categorie
                     <div className="mx-4 mb-4 rounded-[14px] p-4 space-y-3 animate-fade-up"
                       style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-line-strong)' }}>
                       <div>
-                        <p className="text-[13px] font-black mb-0.5" style={{ color: 'var(--f-text)' }}>
+                        <p className="text-[15px] font-black mb-0.5" style={{ color: 'var(--f-text)' }}>
                           Saldar todo con {b.person.name}
                         </p>
-                        <p className="text-[11px] font-bold" style={{ color: 'var(--f-text-4)' }}>
+                        <p className="text-[13px] font-bold" style={{ color: 'var(--f-text-4)' }}>
                           {b.owesMe > 0 && `Cobrar ${formatCurrency(b.owesMe)}`}
                           {b.owesMe > 0 && b.iOwe > 0 && ' · '}
                           {b.iOwe > 0 && `Pagar ${formatCurrency(b.iOwe)}`}
@@ -394,7 +394,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                       <select
                         value={globalAccountId}
                         onChange={e => setGlobalAccountId(e.target.value)}
-                        className="w-full rounded-[10px] px-3 py-2.5 text-[14px] font-bold outline-none"
+                        className="w-full rounded-[10px] px-3 py-2.5 text-[16px] font-bold outline-none"
                         style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)', colorScheme: 'dark' }}
                       >
                         <option value="">Sin registrar en cuenta</option>
@@ -405,7 +405,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                       <div className="flex gap-2">
                         <button
                           onClick={() => { setGlobalSettleId(null); setGlobalAccountId('') }}
-                          className="flex-1 py-2 rounded-[10px] text-[13px] font-black transition-all active:scale-95"
+                          className="flex-1 py-2 rounded-[10px] text-[15px] font-black transition-all active:scale-95"
                           style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
                         >
                           Cancelar
@@ -413,7 +413,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                         <button
                           onClick={() => executeGlobalSettle(b.person.id, b.person.name, !!globalAccountId)}
                           disabled={isGlobalPending}
-                          className="flex-2 px-5 py-2 rounded-[10px] text-[13px] font-black text-white disabled:opacity-50 transition-all active:scale-95"
+                          className="flex-2 px-5 py-2 rounded-[10px] text-[15px] font-black text-white disabled:opacity-50 transition-all active:scale-95"
                           style={{ background: 'var(--f-income)', flex: 2 }}
                         >
                           {isGlobalPending
@@ -434,7 +434,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                           <div className="flex gap-2 py-1">
                             <button
                               onClick={() => setUnlinkConfirmId(null)}
-                              className="flex-1 py-1.5 rounded-[8px] text-[12px] font-black"
+                              className="flex-1 py-1.5 rounded-[8px] text-[14px] font-black"
                               style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
                             >
                               No
@@ -442,7 +442,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                             <button
                               onClick={() => { handleUnlink(b.person.id); setUnlinkConfirmId(null) }}
                               disabled={isUnlinking}
-                              className="flex-[2] py-1.5 rounded-[8px] text-[12px] font-black text-white disabled:opacity-50"
+                              className="flex-[2] py-1.5 rounded-[8px] text-[14px] font-black text-white disabled:opacity-50"
                               style={{ background: 'var(--f-expense)' }}
                             >
                               {isUnlinking ? <i className="fa-solid fa-spinner fa-spin" /> : 'Sí, desvincular'}
@@ -453,8 +453,8 @@ export default function SharedClient({ transactions, people, accounts, categorie
                             onClick={() => setUnlinkConfirmId(b.person.id)}
                             className="w-full flex items-center gap-2 py-2 text-left"
                           >
-                            <i className="fa-solid fa-link-slash text-[11px]" style={{ color: 'var(--f-text-4)' }} />
-                            <p className="text-[12px] font-bold" style={{ color: 'var(--f-text-4)' }}>
+                            <i className="fa-solid fa-link-slash text-[13px]" style={{ color: 'var(--f-text-4)' }} />
+                            <p className="text-[14px] font-bold" style={{ color: 'var(--f-text-4)' }}>
                               Desvincular de @{b.person.linked_profile?.username ?? '...'}
                             </p>
                           </button>
@@ -464,8 +464,8 @@ export default function SharedClient({ transactions, people, accounts, categorie
                           onClick={() => setLinkingPerson({ id: b.person.id, name: b.person.name })}
                           className="w-full flex items-center gap-2 py-2 text-left"
                         >
-                          <i className="fa-solid fa-link text-[11px]" style={{ color: 'var(--f-blue)' }} />
-                          <p className="text-[12px] font-bold" style={{ color: 'var(--f-blue)' }}>
+                          <i className="fa-solid fa-link text-[13px]" style={{ color: 'var(--f-blue)' }} />
+                          <p className="text-[14px] font-bold" style={{ color: 'var(--f-blue)' }}>
                             Vincular con usuario de Flux
                           </p>
                         </button>
@@ -484,8 +484,8 @@ export default function SharedClient({ transactions, people, accounts, categorie
                               className="w-full flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
                             >
                               <div className="flex-1 min-w-0">
-                                <p className="text-[14px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{tx.concept}</p>
-                                <p className="text-[12px] mt-0.5" style={{ color: 'var(--f-text-4)' }}>
+                                <p className="text-[16px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{tx.concept}</p>
+                                <p className="text-[14px] mt-0.5" style={{ color: 'var(--f-text-4)' }}>
                                   {formatDateShort(tx.transaction_date)}
                                   {' · '}
                                   {isTheyOwe ? 'te debe' : 'les debes'}
@@ -493,7 +493,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                                   <span style={{ color: 'var(--f-blue)' }}>ver</span>
                                 </p>
                               </div>
-                              <p className="text-[14px] font-black tabular-nums flex-shrink-0"
+                              <p className="text-[16px] font-black tabular-nums flex-shrink-0"
                                 style={{ color: isTheyOwe ? 'var(--f-income)' : 'var(--f-expense)' }}>
                                 {isTheyOwe ? '+' : '-'}{formatCurrency(unpaid)}
                               </p>
@@ -505,13 +505,13 @@ export default function SharedClient({ transactions, people, accounts, categorie
                                 style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-line-strong)' }}>
                                 {confirmAction === 'settle' ? (
                                   <>
-                                    <p className="text-[13px] font-bold text-center" style={{ color: 'var(--f-text-2)' }}>
+                                    <p className="text-[15px] font-bold text-center" style={{ color: 'var(--f-text-2)' }}>
                                       {isTheyOwe ? '¿A qué cuenta cayó el cobro?' : '¿De qué cuenta salió el pago?'}
                                     </p>
                                     <select
                                       value={settleAccountId}
                                       onChange={e => setSettleAccountId(e.target.value)}
-                                      className="w-full rounded-[8px] px-3 py-2 text-[14px] font-bold outline-none"
+                                      className="w-full rounded-[8px] px-3 py-2 text-[16px] font-bold outline-none"
                                       style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)', colorScheme: 'dark' }}
                                     >
                                       <option value="">Sin registrar en cuenta</option>
@@ -521,7 +521,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                                     </select>
                                   </>
                                 ) : (
-                                  <p className="text-[13px] font-bold text-center" style={{ color: 'var(--f-text-2)' }}>
+                                  <p className="text-[15px] font-bold text-center" style={{ color: 'var(--f-text-2)' }}>
                                     {confirmAction === 'forget' ? '¿Olvidar esta deuda?' :
                                       `¿Registrar abono de ${formatCurrency(parseFloat(partialInput.replace(',', '.')) || 0)}?`}
                                   </p>
@@ -529,7 +529,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                                 <div className="flex gap-2">
                                   <button
                                     onClick={cancelConfirm}
-                                    className="flex-1 py-1.5 rounded-[8px] text-[13px] font-black"
+                                    className="flex-1 py-1.5 rounded-[8px] text-[15px] font-black"
                                     style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
                                   >
                                     Cancelar
@@ -546,7 +546,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                                       }
                                     }}
                                     disabled={isPending || isPartialPending}
-                                    className="flex-1 py-1.5 rounded-[8px] text-[13px] font-black text-white disabled:opacity-50"
+                                    className="flex-1 py-1.5 rounded-[8px] text-[15px] font-black text-white disabled:opacity-50"
                                     style={{ background: confirmAction === 'forget' ? 'var(--f-expense)' : 'var(--f-income)' }}
                                   >
                                     {isPending || isPartialPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Confirmar'}
@@ -559,7 +559,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                                 <button
                                   onClick={() => requestConfirm(key, 'settle')}
                                   disabled={isPending || isPartialPending}
-                                  className="flex-1 py-1.5 rounded-[8px] text-[12px] font-black disabled:opacity-40 transition-all active:scale-95"
+                                  className="flex-1 py-1.5 rounded-[8px] text-[14px] font-black disabled:opacity-40 transition-all active:scale-95"
                                   style={{ background: 'var(--f-income-bg)', color: 'var(--f-income)', border: '1px solid var(--f-income-border)' }}
                                 >
                                   {isSettling ? <i className="fa-solid fa-spinner fa-spin" /> : isTheyOwe ? '✓ Cobrado' : '✓ Pagado'}
@@ -567,7 +567,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                                 <button
                                   onClick={() => { setPartialMode(isPartialOpen ? null : key); setPartialInput(''); setPartialAccountId(''); cancelConfirm() }}
                                   disabled={isPending || isPartialPending}
-                                  className="flex-1 py-1.5 rounded-[8px] text-[12px] font-black disabled:opacity-40 transition-all active:scale-95"
+                                  className="flex-1 py-1.5 rounded-[8px] text-[14px] font-black disabled:opacity-40 transition-all active:scale-95"
                                   style={{ background: isPartialOpen ? 'var(--f-accent-bg)' : 'var(--f-bg-input)', color: 'var(--f-blue)', border: `1px solid ${isPartialOpen ? 'var(--f-accent-border)' : 'var(--f-line)'}` }}
                                 >
                                   ± Abono
@@ -575,7 +575,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                                 <button
                                   onClick={() => requestConfirm(key, 'forget')}
                                   disabled={isPending || isPartialPending}
-                                  className="flex-1 py-1.5 rounded-[8px] text-[12px] font-black disabled:opacity-40 transition-all active:scale-95"
+                                  className="flex-1 py-1.5 rounded-[8px] text-[14px] font-black disabled:opacity-40 transition-all active:scale-95"
                                   style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)', border: '1px solid var(--f-line)' }}
                                 >
                                   Olvidar
@@ -596,14 +596,14 @@ export default function SharedClient({ transactions, people, accounts, categorie
                                     onChange={e => setPartialInput(e.target.value)}
                                     onKeyDown={e => { if (e.key === 'Enter') requestConfirm(key, 'partial') }}
                                     placeholder={`Máx. ${formatCurrency(unpaid)}`}
-                                    className="flex-1 rounded-[10px] px-3 py-2 text-[14px] font-bold outline-none tabular-nums"
+                                    className="flex-1 rounded-[10px] px-3 py-2 text-[16px] font-bold outline-none tabular-nums"
                                     style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-border)', color: 'var(--f-text)' }}
                                     inputMode="decimal"
                                   />
                                   <button
                                     onClick={() => requestConfirm(key, 'partial')}
                                     disabled={isPartialPending || !partialInput}
-                                    className="px-3 rounded-[10px] text-[14px] font-black text-white disabled:opacity-50"
+                                    className="px-3 rounded-[10px] text-[16px] font-black text-white disabled:opacity-50"
                                     style={{ background: 'var(--f-blue)' }}
                                   >
                                     OK
@@ -612,7 +612,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                                 <select
                                   value={partialAccountId}
                                   onChange={e => setPartialAccountId(e.target.value)}
-                                  className="w-full rounded-[10px] px-3 py-2 text-[13px] font-bold outline-none"
+                                  className="w-full rounded-[10px] px-3 py-2 text-[15px] font-bold outline-none"
                                   style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)', colorScheme: 'dark' }}
                                 >
                                   <option value="">Sin registrar en cuenta</option>

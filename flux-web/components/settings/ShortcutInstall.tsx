@@ -113,17 +113,17 @@ export default function ShortcutInstall({ token }: { token: string }) {
         <div className="px-4 pb-4 space-y-3">
           <p className="text-xs text-slate-500">Puedes crear tus propios atajos usando la API de Flux:</p>
           <div className="bg-slate-800 rounded-xl p-3">
-            <p className="text-[10px] text-slate-500 font-mono mb-1">POST</p>
+            <p className="text-[12px] text-slate-500 font-mono mb-1">POST</p>
             <code className="text-xs font-mono text-emerald-400 break-all">{apiBase}</code>
           </div>
           <div className="bg-slate-800 rounded-xl p-3 space-y-1">
-            <p className="text-[10px] text-slate-500 font-semibold mb-2">HEADERS</p>
-            <code className="text-[11px] font-mono text-slate-300 block">Authorization: Bearer {'<tu-token>'}</code>
-            <code className="text-[11px] font-mono text-slate-300 block">Content-Type: application/json</code>
+            <p className="text-[12px] text-slate-500 font-semibold mb-2">HEADERS</p>
+            <code className="text-[13px] font-mono text-slate-300 block">Authorization: Bearer {'<tu-token>'}</code>
+            <code className="text-[13px] font-mono text-slate-300 block">Content-Type: application/json</code>
           </div>
           <div className="bg-slate-800 rounded-xl p-3">
-            <p className="text-[10px] text-slate-500 font-semibold mb-2">BODY (JSON)</p>
-            <pre className="text-[11px] font-mono text-slate-300 whitespace-pre-wrap">{JSON.stringify({
+            <p className="text-[12px] text-slate-500 font-semibold mb-2">BODY (JSON)</p>
+            <pre className="text-[13px] font-mono text-slate-300 whitespace-pre-wrap">{JSON.stringify({
               concept: 'Starbucks',
               amount: 89.50,
               type: 'Gasto',
@@ -188,7 +188,7 @@ function ShortcutCard({ icon, iconColor, iconBg, title, description, installUrl,
           {steps.map((step, i) => (
             <div key={i} className="flex items-start gap-2.5">
               <div className="w-5 h-5 rounded-full bg-sky-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-[10px] font-bold text-sky-500">{i + 1}</span>
+                <span className="text-[12px] font-bold text-sky-500">{i + 1}</span>
               </div>
               <p className="text-xs text-slate-400 leading-relaxed">{step}</p>
             </div>

@@ -221,7 +221,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
       >
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-[10px] font-black tracking-[3px] uppercase" style={{ color: 'var(--f-text-3)' }}>
+            <p className="text-[12px] font-black tracking-[3px] uppercase" style={{ color: 'var(--f-text-3)' }}>
               {MONTHS_ES[month - 1].toUpperCase()} {year}
             </p>
             <h1 className="text-[22px] font-black leading-tight mt-0.5" style={{ color: 'var(--f-text)' }}>
@@ -240,7 +240,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
           className="rounded-[28px] p-6 animate-fade-up"
           style={{ background: 'var(--f-blue)', boxShadow: 'var(--f-shadow-accent)' }}
         >
-          <p className="text-[10px] font-black tracking-[3px] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.6)' }}>
+          <p className="text-[12px] font-black tracking-[3px] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.6)' }}>
             Saldo actual
           </p>
           <p className="text-[48px] font-black text-white leading-none tracking-tight tabular-nums">
@@ -266,7 +266,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <p className="text-[11px] font-black tracking-[1.5px] uppercase" style={{ color: 'var(--f-text-3)' }}>
+              <p className="text-[13px] font-black tracking-[1.5px] uppercase" style={{ color: 'var(--f-text-3)' }}>
                 Presupuesto del mes
               </p>
             </div>
@@ -277,7 +277,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
                   className="w-7 h-7 rounded-full flex items-center justify-center"
                   style={{ background: 'var(--f-bg-input)' }}
                 >
-                  <i className="fa-solid fa-pencil text-[10px]" style={{ color: 'var(--f-text)' }} />
+                  <i className="fa-solid fa-pencil text-[12px]" style={{ color: 'var(--f-text)' }} />
                 </button>
               )}
             </div>
@@ -293,7 +293,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
                 onChange={e => setBudgetInput(e.target.value)}
                 placeholder="0.00"
                 autoFocus
-                className="flex-1 rounded-[12px] px-3 py-2.5 text-[15px] font-black outline-none tabular-nums"
+                className="flex-1 rounded-[12px] px-3 py-2.5 text-[17px] font-black outline-none tabular-nums"
                 style={{ background: 'var(--f-bg-input)', border: '1px solid rgba(0,122,255,0.4)', color: 'var(--f-text)' }}
                 inputMode="decimal"
                 onKeyDown={e => { if (e.key === 'Enter') handleSaveBudget() }}
@@ -301,7 +301,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
               <button
                 onClick={handleSaveBudget}
                 disabled={isBudgetPending}
-                className="px-4 rounded-[12px] text-[13px] font-black text-white disabled:opacity-50"
+                className="px-4 rounded-[12px] text-[15px] font-black text-white disabled:opacity-50"
                 style={{ background: 'var(--f-blue)' }}
               >
                 {isBudgetPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'OK'}
@@ -320,19 +320,19 @@ export default function DashboardClient({ user, accounts, transactions, categori
                 <p className="text-[28px] font-black tabular-nums leading-none" style={{ color: 'var(--f-text)' }}>
                   <AnimatedCurrency value={monthExpenses} />
                 </p>
-                <p className="text-[14px] font-bold pb-1" style={{ color: 'var(--f-text-3)' }}>
+                <p className="text-[16px] font-bold pb-1" style={{ color: 'var(--f-text-3)' }}>
                   de {formatCurrency(budgetAmount)}
                 </p>
               </div>
               <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--f-bg-input)' }}>
                 <AnimatedBar pct={budgetPct} color={budgetOver ? 'var(--f-expense)' : budgetLeft < budgetAmount * 0.20 ? 'var(--f-credit)' : 'var(--f-income)'} />
               </div>
-              <p className="text-[14px] tracking-[0.5px] font-bold mt-2 tabular-nums" style={{ color: budgetOver ? 'var(--f-expense)' : budgetLeft < budgetAmount * 0.20 ? 'var(--f-credit)' : 'var(--f-income)' }}>
+              <p className="text-[16px] tracking-[0.5px] font-bold mt-2 tabular-nums" style={{ color: budgetOver ? 'var(--f-expense)' : budgetLeft < budgetAmount * 0.20 ? 'var(--f-credit)' : 'var(--f-income)' }}>
                 {budgetOver ? `¡Excedido! Te pasaste por ${formatCurrency(Math.abs(budgetLeft))}` : budgetLeft < budgetAmount * 0.20 ? `¡Cuidado! Quedan ${formatCurrency(budgetLeft)}` : `¡Vamos bien! Quedan ${formatCurrency(budgetLeft)}`}
               </p>
             </>
           ) : (
-            <p className="text-[12px] font-bold" style={{ color: 'var(--f-text-4)' }}>
+            <p className="text-[14px] font-bold" style={{ color: 'var(--f-text-4)' }}>
               Sin presupuesto — toca el lápiz para configurar
             </p>
           )}
@@ -349,7 +349,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
               <button
                 key={v}
                 onClick={() => setSpendView(v)}
-                className="flex-1 py-3 text-[11px] font-black tracking-[1px] uppercase transition-colors"
+                className="flex-1 py-3 text-[13px] font-black tracking-[1px] uppercase transition-colors"
                 style={{
                   color: spendView === v ? 'var(--f-blue)' : 'var(--f-text-3)',
                   borderBottom: spendView === v ? '2px solid var(--f-blue)' : '2px solid transparent',
@@ -360,7 +360,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
             ))}
           </div>
           <div className="px-5 py-4">
-            <p className="text-center text-[11px] font-bold capitalize mb-3" style={{ color: 'var(--f-text-3)' }}>
+            <p className="text-center text-[13px] font-bold capitalize mb-3" style={{ color: 'var(--f-text-3)' }}>
               {spendView === 'daily' ? dayLabel : weekLabel}
             </p>
             <div className="flex items-center justify-between gap-3">
@@ -429,27 +429,27 @@ export default function DashboardClient({ user, accounts, transactions, categori
               className="rounded-[20px] p-4 animate-fade-up"
               style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', animationDelay: '0.08s' }}
             >
-              <p className="text-[11px] font-black tracking-[3px] uppercase mb-4" style={{ color: 'var(--f-text-3)' }}>
+              <p className="text-[13px] font-black tracking-[3px] uppercase mb-4" style={{ color: 'var(--f-text-3)' }}>
                 Próximos recurrentes
               </p>
 
               {totalIncomes > 0 && (
                 <div className={totalExpenses > 0 ? 'mt-4 mb-3' : 'mb-3'}>
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-[11px] font-black tracking-[2px] uppercase" style={{ color: 'var(--f-income)', opacity: 0.7 }}>Ingresos</p>
-                    <p className="text-[14px] font-black tabular-nums leading-none" style={{ color: 'var(--f-income)' }}>
-                      {formatCurrency(totalIncomes)}<span className="text-[12px] font-bold opacity-60">/mes</span>
+                    <p className="text-[13px] font-black tracking-[2px] uppercase" style={{ color: 'var(--f-income)', opacity: 0.7 }}>Ingresos</p>
+                    <p className="text-[16px] font-black tabular-nums leading-none" style={{ color: 'var(--f-income)' }}>
+                      {formatCurrency(totalIncomes)}<span className="text-[14px] font-bold opacity-60">/mes</span>
                     </p>
                   </div>
                   <div className="h-1.5 rounded-full overflow-hidden mb-2" style={{ background: 'var(--f-bg-input)' }}>
                     <AnimatedBar pct={incomePct} color="var(--f-income)" />
                   </div>
                   <div className="flex justify-between">
-                    <p className="text-[12px] font-bold tabular-nums" style={{ color: 'var(--f-income)' }}>
+                    <p className="text-[14px] font-bold tabular-nums" style={{ color: 'var(--f-income)' }}>
                       {formatCurrency(receivedIncomes)} recibido
                     </p>
                     {totalIncomes - receivedIncomes > 0 && (
-                      <p className="text-[12px] font-bold tabular-nums" style={{ color: 'var(--f-text-3)' }}>
+                      <p className="text-[14px] font-bold tabular-nums" style={{ color: 'var(--f-text-3)' }}>
                         {formatCurrency(totalIncomes - receivedIncomes)} pendiente
                       </p>
                     )}
@@ -460,20 +460,20 @@ export default function DashboardClient({ user, accounts, transactions, categori
               {totalExpenses > 0 && (
                 <div className="mb-3">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-[11px] font-black tracking-[2px] uppercase" style={{ color: 'var(--f-expense)', opacity: 0.7 }}>Gastos</p>
-                    <p className="text-[14px] font-black tabular-nums leading-none" style={{ color: 'var(--f-expense)' }}>
-                      {formatCurrency(totalExpenses)}<span className="text-[12px] font-bold opacity-60">/mes</span>
+                    <p className="text-[13px] font-black tracking-[2px] uppercase" style={{ color: 'var(--f-expense)', opacity: 0.7 }}>Gastos</p>
+                    <p className="text-[16px] font-black tabular-nums leading-none" style={{ color: 'var(--f-expense)' }}>
+                      {formatCurrency(totalExpenses)}<span className="text-[14px] font-bold opacity-60">/mes</span>
                     </p>
                   </div>
                   <div className="h-1.5 rounded-full overflow-hidden mb-2" style={{ background: 'var(--f-bg-input)' }}>
                     <AnimatedBar pct={expensePct} color="var(--f-expense)" />
                   </div>
                   <div className="flex justify-between">
-                    <p className="text-[12px] font-bold tabular-nums" style={{ color: 'var(--f-expense)' }}>
+                    <p className="text-[14px] font-bold tabular-nums" style={{ color: 'var(--f-expense)' }}>
                       {formatCurrency(paidExpenses)} pagado
                     </p>
                     {totalExpenses - paidExpenses > 0 && (
-                      <p className="text-[12px] font-bold tabular-nums" style={{ color: 'var(--f-text-3)' }}>
+                      <p className="text-[14px] font-bold tabular-nums" style={{ color: 'var(--f-text-3)' }}>
                         {formatCurrency(totalExpenses - paidExpenses)} pendiente
                       </p>
                     )}
@@ -503,16 +503,16 @@ export default function DashboardClient({ user, accounts, transactions, categori
                         <i className={`${d.icon} ${d.color} text-xs`} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{s.name}</p>
-                        <p className="text-[11px]" style={{ color: 'var(--f-text-3)' }}>
+                        <p className="text-[15px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{s.name}</p>
+                        <p className="text-[13px]" style={{ color: 'var(--f-text-3)' }}>
                           {s.next_charge_date ? `Día ${new Date(s.next_charge_date + 'T12:00:00').getDate()}` : 'Pendiente'}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <p className="text-[13px] font-black tabular-nums" style={{ color: amtColor }}>
+                        <p className="text-[15px] font-black tabular-nums" style={{ color: amtColor }}>
                           {isIncome ? '+' : isExpense ? '−' : ''}{formatCurrency(Number(s.amount))}
                         </p>
-                        <i className="fa-solid fa-chevron-right text-[9px]" style={{ color: 'var(--f-text-4)' }} />
+                        <i className="fa-solid fa-chevron-right text-[11px]" style={{ color: 'var(--f-text-4)' }} />
                       </div>
                     </button>
                   )
@@ -525,15 +525,15 @@ export default function DashboardClient({ user, accounts, transactions, categori
         {/* Accounts grid — gradient tinted cards */}
         <div data-coach="home-accounts" className="animate-fade-up" style={{ animationDelay: '0.12s' }}>
           <div className="flex items-center justify-between mb-3">
-            <p className="text-[10px] font-black tracking-[3px] uppercase" style={{ color: 'var(--f-text-3)' }}>
+            <p className="text-[12px] font-black tracking-[3px] uppercase" style={{ color: 'var(--f-text-3)' }}>
               Estado de cuentas
             </p>
             <button
               onClick={() => setAuditOpen(true)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-[10px] text-[11px] font-black uppercase tracking-wide active:scale-95 transition-transform"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-[10px] text-[13px] font-black uppercase tracking-wide active:scale-95 transition-transform"
               style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)', border: '1px solid var(--f-accent-border)' }}
             >
-              <i className="fa-solid fa-sliders text-[10px]" />
+              <i className="fa-solid fa-sliders text-[12px]" />
               Auditar
             </button>
           </div>
@@ -554,7 +554,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
                     <i className={`${method.icon} text-xs flex-shrink-0`} style={{ color: acc.balance < 0 ? '#2b2b2b' : '#f3f3f3' }} />
                   </div>
                   <p
-                    className="text-[20px] font-black tabular-nums leading-none"
+                    className="text-[22px] font-black tabular-nums leading-none"
                     style={{ color: acc.balance < 0 ? '#2b2b2b' : 'white' }}
                   >
                     <AnimatedCurrency value={acc.balance} />
@@ -568,7 +568,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
         {/* Credit card payments section */}
         {creditCards.length > 0 && (
           <div className="animate-fade-up" style={{ animationDelay: '0.16s' }}>
-            <p className="text-[10px] font-black tracking-[3px] uppercase mb-3" style={{ color: 'var(--f-text-3)' }}>
+            <p className="text-[12px] font-black tracking-[3px] uppercase mb-3" style={{ color: 'var(--f-text-3)' }}>
               Pagos TDC
             </p>
             <div className="rounded-[20px] overflow-hidden" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)' }}>
@@ -610,17 +610,17 @@ export default function DashboardClient({ user, accounts, transactions, categori
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[13px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{acc.name}</p>
+                      <p className="text-[15px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{acc.name}</p>
                       {isSkipped ? (
-                        <p className="text-[11px]" style={{ color: 'var(--f-transfer)' }}>Omitido este mes</p>
+                        <p className="text-[13px]" style={{ color: 'var(--f-transfer)' }}>Omitido este mes</p>
                       ) : isPaid ? (
-                        <p className="text-[11px] truncate" style={{ color: 'var(--f-income)' }}>
+                        <p className="text-[13px] truncate" style={{ color: 'var(--f-income)' }}>
                           {formatCurrency(payment.amount)} · {payment.payment_type === 'transfer'
                             ? (sourceAcc ? `de ${sourceAcc.name}` : 'Transferencia')
                             : 'Depósito directo'}
                         </p>
                       ) : (
-                        <p className="text-[11px]" style={{ color: isOverdue ? 'var(--f-expense)' : 'var(--f-text-3)' }}>
+                        <p className="text-[13px]" style={{ color: isOverdue ? 'var(--f-expense)' : 'var(--f-text-3)' }}>
                           {dueDay != null
                             ? isOverdue
                               ? `Venció el día ${dueDay}`
@@ -634,14 +634,14 @@ export default function DashboardClient({ user, accounts, transactions, categori
                     <div className="flex-shrink-0">
                       {isPaid ? (
                         <span
-                          className="px-2.5 py-1 rounded-full text-[10px] font-black"
+                          className="px-2.5 py-1 rounded-full text-[12px] font-black"
                           style={{ background: 'var(--f-income-bg)', color: 'var(--f-income)' }}
                         >
                           Pagado
                         </span>
                       ) : (
                         <span
-                          className="px-2.5 py-1 rounded-full text-[10px] font-black"
+                          className="px-2.5 py-1 rounded-full text-[12px] font-black"
                           style={{
                             background: isOverdue ? 'var(--f-expense-bg)' : 'var(--f-accent-bg)',
                             color: isOverdue ? 'var(--f-expense)' : 'var(--f-blue)',
@@ -669,8 +669,8 @@ export default function DashboardClient({ user, accounts, transactions, categori
           >
             <div className="flex items-center gap-3 mb-5">
               <div className="flex-1 min-w-0">
-                <p className="text-[17px] font-black truncate" style={{ color: 'var(--f-text)' }}>{scheduledAction.name}</p>
-                <p className="text-[13px] mt-0.5" style={{ color: 'var(--f-text-3)' }}>
+                <p className="text-[19px] font-black truncate" style={{ color: 'var(--f-text)' }}>{scheduledAction.name}</p>
+                <p className="text-[15px] mt-0.5" style={{ color: 'var(--f-text-3)' }}>
                   Recurrente · {formatCurrency(scheduledAction.amount)}
                 </p>
               </div>
@@ -686,7 +686,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
               <button
                 onClick={() => handleChargeScheduled(scheduledAction.id, false)}
                 disabled={isChargePending}
-                className="py-4 rounded-[16px] text-white text-[14px] font-black disabled:opacity-50 active:scale-[0.98] transition-all"
+                className="py-4 rounded-[16px] text-white text-[16px] font-black disabled:opacity-50 active:scale-[0.98] transition-all"
                 style={{ background: 'var(--f-blue)', boxShadow: 'var(--f-shadow-accent)' }}
               >
                 {isChargePending ? <i className="fa-solid fa-spinner fa-spin" /> : '✓ Registrar pago'}
@@ -694,7 +694,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
               <button
                 onClick={() => handleChargeScheduled(scheduledAction.id, true)}
                 disabled={isChargePending}
-                className="py-4 rounded-[16px] text-[14px] font-black disabled:opacity-50 active:scale-[0.98] transition-all"
+                className="py-4 rounded-[16px] text-[16px] font-black disabled:opacity-50 active:scale-[0.98] transition-all"
                 style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-2)' }}
               >
                 Omitir ciclo
@@ -716,8 +716,8 @@ export default function DashboardClient({ user, accounts, transactions, categori
             {/* Header */}
             <div className="flex items-center justify-between px-5 pt-5 pb-4">
               <div>
-                <p className="text-[15px] font-black" style={{ color: 'var(--f-text)' }}>{tdcModal.name}</p>
-                <p className="text-[11px] mt-0.5" style={{ color: 'var(--f-text-3)' }}>
+                <p className="text-[17px] font-black" style={{ color: 'var(--f-text)' }}>{tdcModal.name}</p>
+                <p className="text-[13px] mt-0.5" style={{ color: 'var(--f-text-3)' }}>
                   {tdcModal.payment_day != null ? `Fecha límite: día ${tdcModal.payment_day}` : 'Registrar pago'}
                 </p>
               </div>
@@ -733,7 +733,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
             <div className="px-5 space-y-4 pb-2">
               {/* Amount */}
               <div>
-                <p className="text-[10px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-3)' }}>
+                <p className="text-[12px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-3)' }}>
                   Monto pagado
                 </p>
                 <input
@@ -744,14 +744,14 @@ export default function DashboardClient({ user, accounts, transactions, categori
                   placeholder="0.00"
                   value={tdcAmount}
                   onChange={e => setTdcAmount(e.target.value)}
-                  className="w-full rounded-[14px] px-4 py-3.5 text-[17px] font-black outline-none tabular-nums"
+                  className="w-full rounded-[14px] px-4 py-3.5 text-[19px] font-black outline-none tabular-nums"
                   style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)', color: 'var(--f-text)' }}
                 />
               </div>
 
               {/* Payment type toggle */}
               <div>
-                <p className="text-[10px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-3)' }}>
+                <p className="text-[12px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-3)' }}>
                   Tipo de pago
                 </p>
                 <div className="grid grid-cols-2 gap-2">
@@ -759,7 +759,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
                     <button
                       key={t}
                       onClick={() => setTdcPayType(t)}
-                      className="py-3 rounded-[12px] text-[12px] font-black flex items-center justify-center gap-2 transition-all active:scale-95"
+                      className="py-3 rounded-[12px] text-[14px] font-black flex items-center justify-center gap-2 transition-all active:scale-95"
                       style={tdcPayType === t
                         ? { background: 'var(--f-blue)', color: 'white' }
                         : { background: 'var(--f-bg-input)', color: 'var(--f-text-2)' }
@@ -775,7 +775,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
               {/* Source account — only for transfers */}
               {tdcPayType === 'transfer' && nonTdcAccounts.length > 0 && (
                 <div>
-                  <p className="text-[10px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-3)' }}>
+                  <p className="text-[12px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-3)' }}>
                     Cuenta origen
                   </p>
                   <div className="space-y-2">
@@ -790,8 +790,8 @@ export default function DashboardClient({ user, accounts, transactions, categori
                         }
                       >
                         <div className="flex-1 min-w-0 text-left">
-                          <p className="text-[13px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{a.name}</p>
-                          <p className="text-[11px] tabular-nums" style={{ color: 'var(--f-text-3)' }}>
+                          <p className="text-[15px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{a.name}</p>
+                          <p className="text-[13px] tabular-nums" style={{ color: 'var(--f-text-3)' }}>
                             {formatCurrency(a.balance)}
                           </p>
                         </div>
@@ -808,7 +808,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
               <button
                 onClick={handleSaveTdc}
                 disabled={isTdcPending}
-                className="w-full py-4 rounded-[16px] text-white text-[14px] font-black disabled:opacity-50 active:scale-[0.98] transition-all"
+                className="w-full py-4 rounded-[16px] text-white text-[16px] font-black disabled:opacity-50 active:scale-[0.98] transition-all"
                 style={{ background: 'var(--f-blue)', boxShadow: 'var(--f-shadow-accent)' }}
               >
                 {isTdcPending ? <i className="fa-solid fa-spinner fa-spin" /> : '✓ Registrar pago'}
@@ -819,7 +819,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
                 <button
                   onClick={handleSkipTdc}
                   disabled={isSkipPending || isTdcPending}
-                  className="w-full py-3 rounded-[16px] text-[13px] font-black disabled:opacity-50 active:scale-[0.98] transition-all"
+                  className="w-full py-3 rounded-[16px] text-[15px] font-black disabled:opacity-50 active:scale-[0.98] transition-all"
                   style={{ background: 'var(--f-transfer-bg)', color: 'var(--f-transfer)', border: '1px solid var(--f-transfer-border)' }}
                 >
                   {isSkipPending
@@ -834,7 +834,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
                 <button
                   onClick={handleDeleteTdc}
                   disabled={isTdcPending}
-                  className="w-full py-3 rounded-[16px] text-[13px] font-black disabled:opacity-50 active:scale-[0.98] transition-all"
+                  className="w-full py-3 rounded-[16px] text-[15px] font-black disabled:opacity-50 active:scale-[0.98] transition-all"
                   style={{ background: 'var(--f-expense-bg)', color: 'var(--f-expense)', border: '1px solid var(--f-expense-border)' }}
                 >
                   Desmarcar

@@ -121,10 +121,10 @@ export default function NotificationBell() {
       className="relative flex items-center justify-center rounded-[14px] transition-all active:scale-90"
       style={{ width: 44, height: 44, background: unread > 0 ? 'var(--f-accent-bg)' : 'transparent' }}
     >
-      <i className="fa-solid fa-bell text-[20px]" style={{ color: unread > 0 ? 'var(--f-blue)' : 'var(--f-text-3)' }} />
+      <i className="fa-solid fa-bell text-[22px]" style={{ color: unread > 0 ? 'var(--f-blue)' : 'var(--f-text-3)' }} />
       {unread > 0 && (
         <span
-          className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 rounded-full flex items-center justify-center text-[10px] font-black text-white px-1"
+          className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 rounded-full flex items-center justify-center text-[12px] font-black text-white px-1"
           style={{ background: 'var(--f-expense)', lineHeight: 1 }}
         >
           {unread > 9 ? '9+' : unread}
@@ -156,7 +156,7 @@ export default function NotificationBell() {
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 flex-shrink-0" style={{ borderBottom: '1px solid var(--f-line)' }}>
-          <p className="text-[17px] font-black" style={{ color: 'var(--f-text)' }}>Notificaciones</p>
+          <p className="text-[19px] font-black" style={{ color: 'var(--f-text)' }}>Notificaciones</p>
           <button
             onClick={() => setOpen(false)}
             className="w-8 h-8 flex items-center justify-center rounded-full"
@@ -175,7 +175,7 @@ export default function NotificationBell() {
           ) : list.length === 0 ? (
             <div className="py-20 text-center">
               <i className="fa-solid fa-bell-slash text-3xl mb-4 block" style={{ color: 'var(--f-text-4)' }} />
-              <p className="text-[14px] font-semibold" style={{ color: 'var(--f-text-4)' }}>Sin notificaciones</p>
+              <p className="text-[16px] font-semibold" style={{ color: 'var(--f-text-4)' }}>Sin notificaciones</p>
             </div>
           ) : list.map(n => {
             const { icon, iconColor, text } = notifLabel(n)
@@ -189,11 +189,11 @@ export default function NotificationBell() {
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
                     style={{ background: 'var(--f-bg-input)' }}>
-                    <i className={`${icon} text-[14px]`} style={{ color: iconColor }} />
+                    <i className={`${icon} text-[16px]`} style={{ color: iconColor }} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[14px] font-bold leading-snug" style={{ color: 'var(--f-text)' }}>{text}</p>
-                    <p className="text-[12px] mt-0.5 font-medium" style={{ color: 'var(--f-text-4)' }}>
+                    <p className="text-[16px] font-bold leading-snug" style={{ color: 'var(--f-text)' }}>{text}</p>
+                    <p className="text-[14px] mt-0.5 font-medium" style={{ color: 'var(--f-text-4)' }}>
                       {formatDistanceToNow(new Date(n.created_at), { locale: es, addSuffix: true })}
                     </p>
                     {n.type === 'friend_request' && !n.read && d.friendship_id && (
@@ -201,7 +201,7 @@ export default function NotificationBell() {
                         <button
                           onClick={() => handleFriendResponse(d.friendship_id, false)}
                           disabled={isPending}
-                          className="flex-1 py-3 rounded-[12px] text-[13px] font-black transition-all active:scale-95 disabled:opacity-50"
+                          className="flex-1 py-3 rounded-[12px] text-[15px] font-black transition-all active:scale-95 disabled:opacity-50"
                           style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
                         >
                           Rechazar
@@ -209,7 +209,7 @@ export default function NotificationBell() {
                         <button
                           onClick={() => handleFriendResponse(d.friendship_id, true)}
                           disabled={isPending}
-                          className="flex-[2] py-3 rounded-[12px] text-[13px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
+                          className="flex-[2] py-3 rounded-[12px] text-[15px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
                           style={{ background: 'var(--f-blue)' }}
                         >
                           {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Aceptar'}
@@ -218,13 +218,13 @@ export default function NotificationBell() {
                     )}
                     {n.type === 'expense_settled_confirm' && !n.read && (
                       <div className="mt-3">
-                        <p className="text-[12px] font-bold tabular-nums mb-2" style={{ color: 'var(--f-income)' }}>
+                        <p className="text-[14px] font-bold tabular-nums mb-2" style={{ color: 'var(--f-income)' }}>
                           Monto: {formatCurrency(Number(d.amount))}
                         </p>
                         <button
                           onClick={() => handleConfirmSettle(n.id)}
                           disabled={isPending}
-                          className="w-full py-3 rounded-[12px] text-[13px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
+                          className="w-full py-3 rounded-[12px] text-[15px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
                           style={{ background: 'var(--f-income)' }}
                         >
                           {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Confirmar'}
@@ -233,7 +233,7 @@ export default function NotificationBell() {
                     )}
                     {n.type === 'shared_expense_invite' && !n.read && (
                       <>
-                        <p className="text-[12px] mt-1 font-bold tabular-nums" style={{ color: 'var(--f-transfer)' }}>
+                        <p className="text-[14px] mt-1 font-bold tabular-nums" style={{ color: 'var(--f-transfer)' }}>
                           Tu parte: {formatCurrency(Number(d.participant_amount))}
                         </p>
                         {acceptingId === n.id ? (
@@ -241,7 +241,7 @@ export default function NotificationBell() {
                             <select
                               value={acceptAccountId}
                               onChange={e => setAcceptAccountId(e.target.value)}
-                              className="w-full rounded-[10px] px-3 py-2 text-[13px] font-semibold outline-none"
+                              className="w-full rounded-[10px] px-3 py-2 text-[15px] font-semibold outline-none"
                               style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)', colorScheme: 'dark' }}
                             >
                               <option value="">¿En qué cuenta?</option>
@@ -250,7 +250,7 @@ export default function NotificationBell() {
                             <div className="flex gap-2">
                               <button
                                 onClick={() => { setAcceptingId(null); setAcceptAccountId('') }}
-                                className="flex-1 py-3 rounded-[12px] text-[13px] font-black"
+                                className="flex-1 py-3 rounded-[12px] text-[15px] font-black"
                                 style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
                               >
                                 Cancelar
@@ -258,7 +258,7 @@ export default function NotificationBell() {
                               <button
                                 onClick={() => handleAcceptExpense(n.id)}
                                 disabled={!acceptAccountId || isPending}
-                                className="flex-[2] py-3 rounded-[12px] text-[13px] font-black text-white disabled:opacity-50 active:scale-95"
+                                className="flex-[2] py-3 rounded-[12px] text-[15px] font-black text-white disabled:opacity-50 active:scale-95"
                                 style={{ background: 'var(--f-transfer)' }}
                               >
                                 {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Confirmar'}
@@ -270,7 +270,7 @@ export default function NotificationBell() {
                             <button
                               onClick={() => handleDeclineExpense(n.id)}
                               disabled={isPending}
-                              className="flex-1 py-3 rounded-[12px] text-[13px] font-black transition-all active:scale-95 disabled:opacity-50"
+                              className="flex-1 py-3 rounded-[12px] text-[15px] font-black transition-all active:scale-95 disabled:opacity-50"
                               style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
                             >
                               Ignorar
@@ -278,7 +278,7 @@ export default function NotificationBell() {
                             <button
                               onClick={() => { setAcceptingId(n.id); setAcceptAccountId('') }}
                               disabled={isPending}
-                              className="flex-[2] py-3 rounded-[12px] text-[13px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
+                              className="flex-[2] py-3 rounded-[12px] text-[15px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
                               style={{ background: 'var(--f-transfer)' }}
                             >
                               Registrar

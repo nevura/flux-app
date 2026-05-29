@@ -142,7 +142,7 @@ export default function LoginPage() {
             {oauthLoading ? (
               <i className="fa-solid fa-spinner fa-spin" />
             ) : (
-              <i className="fa-brands fa-google text-[15px]" />
+              <i className="fa-brands fa-google text-[17px]" />
             )}
             Continuar con Google
           </button>
