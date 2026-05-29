@@ -235,7 +235,7 @@ export async function respondFriendRequest(friendshipId: string, accept: boolean
       const { data: unlinkedInB } = await supabase
         .from('people').select('id').eq('user_id', user.id).is('linked_user_id', null).ilike('name', aName).maybeSingle()
       if (unlinkedInB) {
-        await supabase.from('people').update({ linked_user_id: friendship.requester_id }).eq('id', unlinkedInB.id).catch(() => {})
+        try { await supabase.from('people').update({ linked_user_id: friendship.requester_id }).eq('id', unlinkedInB.id) } catch { /* ignore */ }
       } else {
         try {
           await supabase.from('people').insert({
@@ -254,7 +254,7 @@ export async function respondFriendRequest(friendshipId: string, accept: boolean
       const { data: unlinkedInA } = await (admin.from('people') as any)
         .select('id').eq('user_id', friendship.requester_id).is('linked_user_id', null).ilike('name', bName).maybeSingle()
       if (unlinkedInA) {
-        await (admin.from('people') as any).update({ linked_user_id: user.id }).eq('id', unlinkedInA.id).catch(() => {})
+        try { await (admin.from('people') as any).update({ linked_user_id: user.id }).eq('id', unlinkedInA.id) } catch { /* ignore */ }
       } else {
         try {
           await (admin.from('people') as any).insert({
