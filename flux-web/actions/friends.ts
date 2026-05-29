@@ -233,13 +233,15 @@ export async function respondFriendRequest(friendshipId: string, accept: boolean
       .eq('linked_user_id', friendship.requester_id)
       .maybeSingle()
     if (!existingInB) {
-      await supabase.from('people').insert({
-        id: `PER-FRD-${Date.now()}-${friendship.requester_id.slice(0, 6)}`,
-        user_id: user.id,
-        name: requesterProfile?.full_name ?? `@${requesterProfile?.username ?? 'amigo'}`,
-        linked_user_id: friendship.requester_id,
-        is_me: false,
-      }).catch(() => {})
+      try {
+        await supabase.from('people').insert({
+          id: `PER-FRD-${Date.now()}-${friendship.requester_id.slice(0, 6)}`,
+          user_id: user.id,
+          name: requesterProfile?.full_name ?? `@${requesterProfile?.username ?? 'amigo'}`,
+          linked_user_id: friendship.requester_id,
+          is_me: false,
+        })
+      } catch { /* ignore */ }
     }
 
     // Auto-link: ensure accepter (B) exists as a person in requester's (A) people table
@@ -249,13 +251,15 @@ export async function respondFriendRequest(friendshipId: string, accept: boolean
       .eq('linked_user_id', user.id)
       .maybeSingle()
     if (!existingInA) {
-      await (admin.from('people') as any).insert({
-        id: `PER-FRD-${Date.now() + 1}-${user.id.slice(0, 6)}`,
-        user_id: friendship.requester_id,
-        name: myProfile?.full_name ?? `@${myProfile?.username ?? 'amigo'}`,
-        linked_user_id: user.id,
-        is_me: false,
-      }).catch(() => {})
+      try {
+        await (admin.from('people') as any).insert({
+          id: `PER-FRD-${Date.now() + 1}-${user.id.slice(0, 6)}`,
+          user_id: friendship.requester_id,
+          name: myProfile?.full_name ?? `@${myProfile?.username ?? 'amigo'}`,
+          linked_user_id: user.id,
+          is_me: false,
+        })
+      } catch { /* ignore */ }
     }
   }
 
