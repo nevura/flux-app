@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
       type: 'TR-TRANSFER', amount, adjustment: -amount,
       category_id: null, account_id: accountId,
       destination_account_id: destId,
-      transaction_date: date, is_validated: body.validated === 1,
+      transaction_date: date, is_validated: false,
     })
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   } else {
@@ -157,7 +157,7 @@ export async function POST(req: NextRequest) {
       category_id: categoryId,
       account_id: accountId,
       transaction_date: date,
-      is_validated: body.validated !== 0,
+      is_validated: false, // Apple Pay always requires manual confirmation
       notes: body.notes ?? null,
     })
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })

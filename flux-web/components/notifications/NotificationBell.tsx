@@ -28,6 +28,8 @@ function notifLabel(n: Notification): { icon: string; iconColor: string; text: s
     }
     case 'shared_expense_accepted':
       return { icon: 'fa-solid fa-circle-check', iconColor: 'var(--f-transfer)', text: `@${d.from_username} aceptó la deuda de: ${d.concept}` }
+    case 'shared_expense_declined':
+      return { icon: 'fa-solid fa-circle-xmark', iconColor: 'var(--f-expense)', text: `@${d.from_username} rechazó el gasto: ${d.concept}` }
     case 'expense_settled_confirm':
       return { icon: 'fa-solid fa-hand-holding-dollar', iconColor: 'var(--f-income)', text: `@${d.from_username} reporta que pagó su parte de: ${d.concept}` }
     case 'expense_settled':
@@ -47,6 +49,8 @@ export default function NotificationBell() {
   const [mounted, setMounted] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [rejectingId, setRejectingId] = useState<string | null>(null)
+  const [accounts, setAccounts] = useState<{ id: string; name: string }[]>([])
+  const [confirmAccountId, setConfirmAccountId] = useState('')
 
   useEffect(() => {
     setMounted(true)
@@ -62,8 +66,12 @@ export default function NotificationBell() {
     setOpen(true)
     setLoading(true)
     const supabase = createClient()
-    const { data: notifs } = await supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(30)
+    const [{ data: notifs }, { data: accs }] = await Promise.all([
+      supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(30),
+      supabase.from('accounts').select('id, name').eq('is_active', true).order('sort_order'),
+    ])
     setList(notifs ?? [])
+    setAccounts(accs ?? [])
     setLoading(false)
     if (unread > 0) {
       setUnread(0)
@@ -91,10 +99,11 @@ export default function NotificationBell() {
 
   function handleConfirmSettle(notifId: string) {
     startTransition(async () => {
-      const res = await confirmSettledExpense(notifId)
+      const res = await confirmSettledExpense(notifId, confirmAccountId || undefined)
       if (res.error) { toast.error(res.error); return }
-      toast.success('Confirmado')
+      toast.success(confirmAccountId ? 'Confirmado y registrado en cuenta' : 'Confirmado')
       setList(prev => prev.map(n => n.id === notifId ? { ...n, read: true } : n))
+      setConfirmAccountId('')
     })
   }
 
@@ -225,6 +234,16 @@ export default function NotificationBell() {
                         <p className="text-[14px] font-bold tabular-nums" style={{ color: 'var(--f-income)' }}>
                           Monto: {formatCurrency(Number(d.amount))}
                         </p>
+                        {/* Optional account to credit on confirm */}
+                        <select
+                          value={confirmAccountId}
+                          onChange={e => setConfirmAccountId(e.target.value)}
+                          className="w-full rounded-[10px] px-3 py-2 text-[15px] font-semibold outline-none"
+                          style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)', colorScheme: 'dark' }}
+                        >
+                          <option value="">Sin registrar en cuenta</option>
+                          {accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name}</option>)}
+                        </select>
                         {rejectingId === n.id ? (
                           <div className="flex gap-2">
                             <button

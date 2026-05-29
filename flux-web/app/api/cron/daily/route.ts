@@ -40,7 +40,7 @@ export async function GET(request: Request) {
           category_id:      s.category_id ?? null,
           account_id:       s.account_id,
           transaction_date: s.next_charge_date,
-          is_validated:     true,
+          is_validated:     false, // auto-generated — user must confirm
           scheduled_id:     s.id,
           split_data:       s.split_data ?? null,
         }

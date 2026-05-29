@@ -87,6 +87,7 @@ export type NotificationType =
   | 'shared_expense_invite'
   | 'shared_expense_sent'
   | 'shared_expense_accepted'
+  | 'shared_expense_declined'
   | 'expense_settled_confirm'
   | 'expense_settled'
   | 'expense_settle_rejected'

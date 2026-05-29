@@ -119,3 +119,54 @@ export async function sendAppInviteEmail(opts: {
 
   return send(opts.to, `${opts.fromName} te invita a Flux`, html)
 }
+
+export async function sendSharedExpenseInviteEmail(opts: {
+  to: string
+  toName: string
+  fromName: string
+  fromUsername: string
+  concept: string
+  amount: string
+}) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://fluxapp-nevura.vercel.app'
+  const html = `<!DOCTYPE html><html><body style="font-family:sans-serif;background:#0F172A;color:#fff;padding:32px">
+<div style="max-width:480px;margin:auto">
+  <h2 style="color:#64D2FF;margin-bottom:4px">Gasto compartido</h2>
+  <p style="color:#94a3b8;margin-top:0">@${opts.fromUsername} te invita a dividir un gasto</p>
+  <div style="background:#1C1C1E;border-radius:16px;padding:20px;margin:20px 0">
+    <p style="margin:0;font-size:18px;font-weight:bold">${opts.concept}</p>
+    <p style="margin:8px 0 0;font-size:24px;font-weight:900;color:#64D2FF">${opts.amount}</p>
+    <p style="margin:4px 0 0;font-size:13px;color:#94a3b8">tu parte</p>
+  </div>
+  <a href="${appUrl}" style="display:block;background:#007AFF;color:#fff;text-decoration:none;border-radius:12px;padding:14px;text-align:center;font-weight:900">
+    Abrir Flux para aceptar
+  </a>
+  <p style="color:#475569;font-size:12px;margin-top:24px;text-align:center">Flux · Finanzas personales</p>
+</div></body></html>`
+  return send(opts.to, `${opts.fromName} te invita a dividir: ${opts.concept}`, html)
+}
+
+export async function sendSharedExpensePaidEmail(opts: {
+  to: string
+  toName: string
+  fromName: string
+  fromUsername: string
+  concept: string
+  amount: string
+}) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://fluxapp-nevura.vercel.app'
+  const html = `<!DOCTYPE html><html><body style="font-family:sans-serif;background:#0F172A;color:#fff;padding:32px">
+<div style="max-width:480px;margin:auto">
+  <h2 style="color:#30D158;margin-bottom:4px">Pago reportado</h2>
+  <p style="color:#94a3b8;margin-top:0">@${opts.fromUsername} reporta que pagó su parte</p>
+  <div style="background:#1C1C1E;border-radius:16px;padding:20px;margin:20px 0">
+    <p style="margin:0;font-size:18px;font-weight:bold">${opts.concept}</p>
+    <p style="margin:8px 0 0;font-size:24px;font-weight:900;color:#30D158">${opts.amount}</p>
+  </div>
+  <a href="${appUrl}" style="display:block;background:#30D158;color:#fff;text-decoration:none;border-radius:12px;padding:14px;text-align:center;font-weight:900">
+    Abrir Flux para confirmar
+  </a>
+  <p style="color:#475569;font-size:12px;margin-top:24px;text-align:center">Flux · Finanzas personales</p>
+</div></body></html>`
+  return send(opts.to, `${opts.fromName} pagó su parte de: ${opts.concept}`, html)
+}

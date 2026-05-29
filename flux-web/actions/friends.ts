@@ -213,9 +213,9 @@ export async function respondFriendRequest(friendshipId: string, accept: boolean
   if (accept) {
     const admin = createAdminClient()
     const { data: requesterProfile } = await (admin.from('profiles') as any)
-      .select('email, full_name')
+      .select('email, full_name, username')
       .eq('id', friendship.requester_id)
-      .single() as { data: { email: string | null; full_name: string | null } | null }
+      .single() as { data: { email: string | null; full_name: string | null; username: string | null } | null }
 
     if (requesterProfile?.email) {
       await sendFriendAcceptedEmail({
@@ -224,6 +224,38 @@ export async function respondFriendRequest(friendshipId: string, accept: boolean
         acceptedByName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
         acceptedByUsername: myProfile?.username ?? '',
       }).catch(console.error)
+    }
+
+    // Auto-link: ensure requester (A) exists as a person in accepter's (B) people table
+    const { data: existingInB } = await supabase
+      .from('people').select('id')
+      .eq('user_id', user.id)
+      .eq('linked_user_id', friendship.requester_id)
+      .maybeSingle()
+    if (!existingInB) {
+      await supabase.from('people').insert({
+        id: `PER-FRD-${Date.now()}-${friendship.requester_id.slice(0, 6)}`,
+        user_id: user.id,
+        name: requesterProfile?.full_name ?? `@${requesterProfile?.username ?? 'amigo'}`,
+        linked_user_id: friendship.requester_id,
+        is_me: false,
+      }).catch(() => {})
+    }
+
+    // Auto-link: ensure accepter (B) exists as a person in requester's (A) people table
+    const { data: existingInA } = await (admin.from('people') as any)
+      .select('id')
+      .eq('user_id', friendship.requester_id)
+      .eq('linked_user_id', user.id)
+      .maybeSingle()
+    if (!existingInA) {
+      await (admin.from('people') as any).insert({
+        id: `PER-FRD-${Date.now() + 1}-${user.id.slice(0, 6)}`,
+        user_id: friendship.requester_id,
+        name: myProfile?.full_name ?? `@${myProfile?.username ?? 'amigo'}`,
+        linked_user_id: user.id,
+        is_me: false,
+      }).catch(() => {})
     }
   }
 

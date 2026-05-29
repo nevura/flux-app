@@ -3,7 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { adjustmentFor, parseAmount, getMexicoNow } from '@/lib/utils'
+import { adjustmentFor, parseAmount, getMexicoNow, formatCurrency } from '@/lib/utils'
+import { sendSharedExpenseInviteEmail, sendSharedExpensePaidEmail } from '@/lib/email'
 import type { TransactionForm, SplitParticipant, AccountWithBalance, Category, Person } from '@/lib/types'
 
 // Sends expense_settled_confirm notification to a person if they have a linked Flux user.
@@ -15,7 +16,12 @@ async function notifyLinkedPersonSettled(
   concept: string,
   amount: number,
   isTheyOwe: boolean,
-  extra?: { linked_tx_id?: string; linked_participant_id?: string }
+  extra?: {
+    linked_tx_id?: string       // creator's original tx (for them to update on confirm)
+    linked_participant_id?: string // settler's person ID in creator's system
+    from_tx_id?: string         // settler's IOWE tx (for creator to re-open on reject)
+    from_participant_id?: string  // creator's person ID in settler's system
+  }
 ) {
   const { data: person } = await supabase
     .from('people').select('linked_user_id').eq('id', personId).eq('user_id', myUserId).maybeSingle()
@@ -36,9 +42,25 @@ async function notifyLinkedPersonSettled(
         is_they_owe: isTheyOwe,
         linked_tx_id: extra?.linked_tx_id ?? null,
         linked_participant_id: extra?.linked_participant_id ?? null,
+        from_tx_id: extra?.from_tx_id ?? null,
+        from_participant_id: extra?.from_participant_id ?? null,
       },
     })
   } catch { /* ignore — notification is best-effort */ }
+
+  // Send email to the person being notified (best-effort)
+  const { data: recipientProfile } = await (admin.from('profiles') as any)
+    .select('email, full_name').eq('id', person.linked_user_id).single()
+  if (recipientProfile?.email) {
+    sendSharedExpensePaidEmail({
+      to: recipientProfile.email,
+      toName: recipientProfile.full_name ?? '',
+      fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
+      fromUsername: myProfile?.username ?? '',
+      concept,
+      amount: formatCurrency(amount),
+    }).catch(() => {})
+  }
 }
 
 export async function getTransactionModalData(): Promise<{ accounts: AccountWithBalance[]; categories: Category[]; people: Person[] }> {
@@ -129,6 +151,19 @@ export async function addTransaction(form: TransactionForm) {
                 category_id: form.category_id || null,
               },
             })
+            // Send invite email to each linked participant
+            const { data: recipientProfile } = await (admin.from('profiles') as any)
+              .select('email, full_name').eq('id', lp.linked_user_id).single()
+            if (recipientProfile?.email) {
+              sendSharedExpenseInviteEmail({
+                to: recipientProfile.email,
+                toName: recipientProfile.full_name ?? '',
+                fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
+                fromUsername: myProfile?.username ?? '',
+                concept: form.concept,
+                amount: formatCurrency(participant.value),
+              }).catch(() => {})
+            }
           }
 
           // Notify creator that invites were sent
@@ -266,7 +301,12 @@ export async function settleParticipant(txId: string, participantId: string, not
         }
       }
     }
-    await notifyLinkedPersonSettled(supabase, participantId, user.id, tx.concept, participant.value, isTheyOwe, { linked_tx_id, linked_participant_id })
+    await notifyLinkedPersonSettled(supabase, participantId, user.id, tx.concept, participant.value, isTheyOwe, {
+      linked_tx_id,
+      linked_participant_id,
+      from_tx_id: txId,
+      from_participant_id: participantId,
+    })
   }
 
   revalidatePath('/shared')
@@ -383,7 +423,12 @@ export async function settleAndRecord(txId: string, participantId: string, accou
     }
   }
 
-  await notifyLinkedPersonSettled(supabase, participantId, user.id, tx.concept, unpaid, isTheyOwe, { linked_tx_id, linked_participant_id })
+  await notifyLinkedPersonSettled(supabase, participantId, user.id, tx.concept, unpaid, isTheyOwe, {
+    linked_tx_id,
+    linked_participant_id,
+    from_tx_id: txId,
+    from_participant_id: participantId,
+  })
 
   revalidatePath('/shared')
   revalidatePath('/home')
@@ -533,7 +578,7 @@ export async function settleAllForPerson(personId: string, personName: string, a
   return { error: null }
 }
 
-export async function confirmSettledExpense(notificationId: string) {
+export async function confirmSettledExpense(notificationId: string, accountId?: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autorizado' }
@@ -564,6 +609,23 @@ export async function confirmSettledExpense(notificationId: string) {
             .eq('id', linked_tx_id)
         }
       }
+    }
+
+    // If an account was selected, create an income entry for A (the confirmer)
+    if (accountId) {
+      try {
+        await supabase.from('transactions').insert({
+          user_id: user.id,
+          concept: `Cobro: ${String(d.concept)}`,
+          type: 'TR-INGRESO',
+          amount: Number(d.amount),
+          adjustment: adjustmentFor('TR-INGRESO', Number(d.amount)),
+          account_id: accountId,
+          transaction_date: getMexicoNow().slice(0, 10),
+          is_validated: true,
+        })
+      } catch { /* ignore */ }
+      revalidatePath('/transactions')
     }
 
     // Notify the person who settled that their payment was confirmed
@@ -601,6 +663,26 @@ export async function rejectSettledExpense(notificationId: string) {
     const d = notif.data as Record<string, unknown>
     const { data: myProfile } = await supabase.from('profiles').select('username, full_name').eq('id', user.id).single()
     const admin = createAdminClient()
+
+    // Re-open B's debt: find B's IOWE transaction via from_tx_id and reset the participant
+    const from_tx_id = d.from_tx_id ? String(d.from_tx_id) : null
+    const from_participant_id = d.from_participant_id ? String(d.from_participant_id) : null
+    if (from_tx_id && from_participant_id) {
+      const { data: bTx } = await (admin.from('transactions') as any).select('*').eq('id', from_tx_id).maybeSingle()
+      if (bTx?.split_data) {
+        const sd = bTx.split_data as import('@/lib/types').SplitData
+        if (Array.isArray(sd.data)) {
+          const reopenedData = sd.data.map((p: SplitParticipant) =>
+            p.id === from_participant_id ? { ...p, paidStatus: false, paidAmount: 0 } : p
+          )
+          await (admin.from('transactions') as any)
+            .update({ split_data: { ...sd, data: reopenedData } })
+            .eq('id', from_tx_id)
+        }
+      }
+    }
+
+    // Notify B that A rejected their payment claim
     try {
       await (admin.from('notifications') as any).insert({
         user_id: String(d.from_user_id),
@@ -616,6 +698,7 @@ export async function rejectSettledExpense(notificationId: string) {
     } catch { /* ignore */ }
   }
 
+  revalidatePath('/shared')
   return { error: null }
 }
 
@@ -751,7 +834,31 @@ export async function declineSharedExpense(notificationId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autorizado' }
+
+  const { data: notif } = await supabase
+    .from('notifications').select('*').eq('id', notificationId).eq('user_id', user.id).maybeSingle()
+
   await supabase.from('notifications').update({ read: true }).eq('id', notificationId).eq('user_id', user.id)
+
+  if (notif) {
+    const d = notif.data as Record<string, unknown>
+    const { data: myProfile } = await supabase.from('profiles').select('username, full_name').eq('id', user.id).single()
+    const admin = createAdminClient()
+    try {
+      await (admin.from('notifications') as any).insert({
+        user_id: String(d.from_user_id),
+        type: 'shared_expense_declined',
+        data: {
+          from_user_id: user.id,
+          from_username: myProfile?.username ?? '',
+          from_name: myProfile?.full_name ?? '',
+          concept: String(d.concept),
+          amount: Number(d.participant_amount),
+        },
+      })
+    } catch { /* ignore */ }
+  }
+
   return { error: null }
 }
 
