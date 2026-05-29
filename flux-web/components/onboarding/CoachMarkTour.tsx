@@ -20,8 +20,11 @@ export default function CoachMarkTour({ pageKey, force, onDone }: Props) {
     if (force) { setShow(true); return }
     const done = localStorage.getItem(LS_KEY(pageKey))
     if (!done) {
-      // Small delay so the page content is fully rendered
-      const t = setTimeout(() => setShow(true), 600)
+      const t = setTimeout(() => {
+        // Don't show while onboarding slides are active
+        if (localStorage.getItem('flux_onboarding_open')) return
+        setShow(true)
+      }, 600)
       return () => clearTimeout(t)
     }
   }, [pageKey, force])

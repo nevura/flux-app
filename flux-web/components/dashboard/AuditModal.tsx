@@ -108,7 +108,7 @@ export default function AuditModal({ accounts, onClose }: Props) {
                 <div
                   key={acc.id}
                   className="rounded-[16px] p-4"
-                  style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
+                  style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)' }}
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -143,7 +143,7 @@ export default function AuditModal({ accounts, onClose }: Props) {
                       className="w-full rounded-[12px] py-2.5 pr-10 text-[16px] font-bold outline-none"
                       style={{
                         paddingLeft: isTDC ? '1.5rem' : '0.75rem',
-                        background: isTDC ? 'var(--f-expense-bg)' : 'var(--f-bg-card)',
+                        background: isTDC ? 'var(--f-expense-bg)' : 'var(--f-bg-input)',
                         border: `1px solid ${hasChange
                           ? (delta! > 0 ? 'var(--f-income-border)' : 'var(--f-expense-border)')
                           : isTDC ? 'var(--f-expense-border)' : 'var(--f-line)'}`,
@@ -190,7 +190,7 @@ export default function AuditModal({ accounts, onClose }: Props) {
           className="px-5 py-4 flex-shrink-0"
           style={{
             borderTop: '1px solid var(--f-line)',
-            paddingBottom: 'calc(4.5rem + var(--safe-bottom))',
+            paddingBottom: 'max(1.25rem, var(--safe-bottom))',
             background: 'var(--f-bg-elevated)',
           }}
         >

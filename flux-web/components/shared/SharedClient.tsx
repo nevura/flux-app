@@ -321,33 +321,36 @@ export default function SharedClient({ transactions, people, accounts, categorie
                     </button>
                   </div>
 
-                  {/* Global abono panel */}
+                  {/* Global abono panel — compact inline style */}
                   {isAbonoOpen && (
-                    <div className="mx-4 mb-4 rounded-[14px] p-4 space-y-3 animate-fade-up"
-                      style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-line-strong)' }}>
-                      <div>
-                        <p className="text-[15px] font-black mb-0.5" style={{ color: 'var(--f-text)' }}>
-                          Abonar a {b.person.name}
-                        </p>
-                        <p className="text-[13px] font-bold" style={{ color: 'var(--f-text-4)' }}>
-                          Saldo pendiente: {formatCurrency(Math.abs(b.net))} — se aplica FIFO (más antiguo primero)
-                        </p>
+                    <div className="mx-4 mb-4 space-y-2 animate-fade-up">
+                      <div className="flex gap-2">
+                        <input
+                          autoFocus
+                          type="number"
+                          inputMode="decimal"
+                          min="0"
+                          step="0.01"
+                          value={globalAbonoAmount}
+                          onChange={e => setGlobalAbonoAmount(e.target.value)}
+                          onKeyDown={e => { if (e.key === 'Enter' && globalAbonoAmount) executeAbonoGlobal(b.person.id, b.person.name) }}
+                          placeholder={`Máx. ${formatCurrency(Math.abs(b.net))}`}
+                          className="flex-1 rounded-[10px] px-3 py-2 text-[16px] font-bold outline-none tabular-nums"
+                          style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-border)', color: 'var(--f-text)' }}
+                        />
+                        <button
+                          onClick={() => executeAbonoGlobal(b.person.id, b.person.name)}
+                          disabled={isAbonoPending || !globalAbonoAmount}
+                          className="px-3 rounded-[10px] text-[16px] font-black text-white disabled:opacity-50 transition-all active:scale-95"
+                          style={{ background: 'var(--f-blue)' }}
+                        >
+                          {isAbonoPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'OK'}
+                        </button>
                       </div>
-                      <input
-                        type="number"
-                        inputMode="decimal"
-                        min="0"
-                        step="0.01"
-                        value={globalAbonoAmount}
-                        onChange={e => setGlobalAbonoAmount(e.target.value)}
-                        placeholder="Monto del abono"
-                        className="w-full rounded-[10px] px-3 py-2.5 text-[16px] font-bold outline-none tabular-nums"
-                        style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-border)', color: 'var(--f-text)' }}
-                      />
                       <select
                         value={globalAbonoAccountId}
                         onChange={e => setGlobalAbonoAccountId(e.target.value)}
-                        className="w-full rounded-[10px] px-3 py-2.5 text-[16px] font-bold outline-none"
+                        className="w-full rounded-[10px] px-3 py-2 text-[15px] font-bold outline-none"
                         style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)', colorScheme: 'dark' }}
                       >
                         <option value="">Sin registrar en cuenta</option>
@@ -355,46 +358,16 @@ export default function SharedClient({ transactions, people, accounts, categorie
                           <option key={acc.id} value={acc.id}>{acc.name}</option>
                         ))}
                       </select>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => { setGlobalAbonoId(null); setGlobalAbonoAmount(''); setGlobalAbonoAccountId('') }}
-                          className="flex-1 py-2 rounded-[10px] text-[15px] font-black transition-all active:scale-95"
-                          style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
-                        >
-                          Cancelar
-                        </button>
-                        <button
-                          onClick={() => executeAbonoGlobal(b.person.id, b.person.name)}
-                          disabled={isAbonoPending || !globalAbonoAmount}
-                          className="px-5 py-2 rounded-[10px] text-[15px] font-black text-white disabled:opacity-50 transition-all active:scale-95"
-                          style={{ background: 'var(--f-blue)', flex: 2 }}
-                        >
-                          {isAbonoPending
-                            ? <i className="fa-solid fa-spinner fa-spin" />
-                            : globalAbonoAccountId ? 'Abonar y registrar' : 'Abonar'}
-                        </button>
-                      </div>
                     </div>
                   )}
 
-                  {/* Global settle panel */}
+                  {/* Global settle panel — compact inline style */}
                   {isGlobalOpen && (
-                    <div className="mx-4 mb-4 rounded-[14px] p-4 space-y-3 animate-fade-up"
-                      style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-line-strong)' }}>
-                      <div>
-                        <p className="text-[15px] font-black mb-0.5" style={{ color: 'var(--f-text)' }}>
-                          Saldar todo con {b.person.name}
-                        </p>
-                        <p className="text-[13px] font-bold" style={{ color: 'var(--f-text-4)' }}>
-                          {b.owesMe > 0 && `Cobrar ${formatCurrency(b.owesMe)}`}
-                          {b.owesMe > 0 && b.iOwe > 0 && ' · '}
-                          {b.iOwe > 0 && `Pagar ${formatCurrency(b.iOwe)}`}
-                        </p>
-                      </div>
+                    <div className="mx-4 mb-4 space-y-2 animate-fade-up">
                       <select
                         value={globalAccountId}
                         onChange={e => setGlobalAccountId(e.target.value)}
-                        className="w-full rounded-[10px] px-3 py-2.5 text-[16px] font-bold outline-none"
+                        className="w-full rounded-[10px] px-3 py-2 text-[15px] font-bold outline-none"
                         style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)', colorScheme: 'dark' }}
                       >
                         <option value="">Sin registrar en cuenta</option>
@@ -413,7 +386,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                         <button
                           onClick={() => executeGlobalSettle(b.person.id, b.person.name, !!globalAccountId)}
                           disabled={isGlobalPending}
-                          className="flex-2 px-5 py-2 rounded-[10px] text-[15px] font-black text-white disabled:opacity-50 transition-all active:scale-95"
+                          className="flex-1 py-2 rounded-[10px] text-[15px] font-black text-white disabled:opacity-50 transition-all active:scale-95"
                           style={{ background: 'var(--f-income)', flex: 2 }}
                         >
                           {isGlobalPending
@@ -499,68 +472,22 @@ export default function SharedClient({ transactions, people, accounts, categorie
                               </p>
                             </button>
 
-                            {/* Confirmation prompt */}
-                            {isConfirming ? (
-                              <div className="rounded-[10px] p-2.5 space-y-2"
-                                style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-line-strong)' }}>
-                                {confirmAction === 'settle' ? (
-                                  <>
-                                    <p className="text-[15px] font-bold text-center" style={{ color: 'var(--f-text-2)' }}>
-                                      {isTheyOwe ? '¿A qué cuenta cayó el cobro?' : '¿De qué cuenta salió el pago?'}
-                                    </p>
-                                    <select
-                                      value={settleAccountId}
-                                      onChange={e => setSettleAccountId(e.target.value)}
-                                      className="w-full rounded-[8px] px-3 py-2 text-[16px] font-bold outline-none"
-                                      style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)', colorScheme: 'dark' }}
-                                    >
-                                      <option value="">Sin registrar en cuenta</option>
-                                      {accounts.map(acc => (
-                                        <option key={acc.id} value={acc.id}>{acc.name}</option>
-                                      ))}
-                                    </select>
-                                  </>
-                                ) : (
-                                  <p className="text-[15px] font-bold text-center" style={{ color: 'var(--f-text-2)' }}>
-                                    {confirmAction === 'forget' ? '¿Olvidar esta deuda?' :
-                                      `¿Registrar abono de ${formatCurrency(parseFloat(partialInput.replace(',', '.')) || 0)}?`}
-                                  </p>
-                                )}
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={cancelConfirm}
-                                    className="flex-1 py-1.5 rounded-[8px] text-[15px] font-black"
-                                    style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
-                                  >
-                                    Cancelar
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      if (confirmAction === 'settle') {
-                                        if (settleAccountId) executeSettleWithRecord(tx.id, participant.id, settleAccountId)
-                                        else executeSettle(tx.id, participant.id)
-                                      } else if (confirmAction === 'forget') {
-                                        executeForget(tx.id, participant.id)
-                                      } else {
-                                        executePartialSettle(tx.id, participant.id)
-                                      }
-                                    }}
-                                    disabled={isPending || isPartialPending}
-                                    className="flex-1 py-1.5 rounded-[8px] text-[15px] font-black text-white disabled:opacity-50"
-                                    style={{ background: confirmAction === 'forget' ? 'var(--f-expense)' : 'var(--f-income)' }}
-                                  >
-                                    {isPending || isPartialPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Confirmar'}
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              /* Normal action buttons */
+                            {/* Action buttons — always visible (hidden only for forget/partial confirmation) */}
+                            {(!isConfirming || confirmAction === 'settle') && (
                               <div className="flex gap-1.5">
                                 <button
-                                  onClick={() => requestConfirm(key, 'settle')}
+                                  onClick={() => {
+                                    if (isConfirming && confirmAction === 'settle') { cancelConfirm(); return }
+                                    setPartialMode(null); setPartialInput(''); setPartialAccountId('')
+                                    requestConfirm(key, 'settle')
+                                  }}
                                   disabled={isPending || isPartialPending}
                                   className="flex-1 py-1.5 rounded-[8px] text-[14px] font-black disabled:opacity-40 transition-all active:scale-95"
-                                  style={{ background: 'var(--f-income-bg)', color: 'var(--f-income)', border: '1px solid var(--f-income-border)' }}
+                                  style={{
+                                    background: isConfirming && confirmAction === 'settle' ? 'var(--f-income-bg)' : 'var(--f-income-bg)',
+                                    color: 'var(--f-income)',
+                                    border: `1px solid ${isConfirming && confirmAction === 'settle' ? 'var(--f-income)' : 'var(--f-income-border)'}`,
+                                  }}
                                 >
                                   {isSettling ? <i className="fa-solid fa-spinner fa-spin" /> : isTheyOwe ? '✓ Cobrado' : '✓ Pagado'}
                                 </button>
@@ -580,6 +507,74 @@ export default function SharedClient({ transactions, people, accounts, categorie
                                 >
                                   Olvidar
                                 </button>
+                              </div>
+                            )}
+
+                            {/* Settle inline expansion — same style as Abono */}
+                            {isConfirming && confirmAction === 'settle' && (
+                              <div className="space-y-2 animate-fade-up">
+                                <select
+                                  value={settleAccountId}
+                                  onChange={e => setSettleAccountId(e.target.value)}
+                                  className="w-full rounded-[10px] px-3 py-2 text-[15px] font-bold outline-none"
+                                  style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)', colorScheme: 'dark' }}
+                                >
+                                  <option value="">Sin registrar en cuenta</option>
+                                  {accounts.map(acc => (
+                                    <option key={acc.id} value={acc.id}>{acc.name}</option>
+                                  ))}
+                                </select>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={cancelConfirm}
+                                    className="flex-1 py-1.5 rounded-[10px] text-[15px] font-black transition-all active:scale-95"
+                                    style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
+                                  >
+                                    Cancelar
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      if (settleAccountId) executeSettleWithRecord(tx.id, participant.id, settleAccountId)
+                                      else executeSettle(tx.id, participant.id)
+                                    }}
+                                    disabled={isPending}
+                                    className="flex-1 py-1.5 rounded-[10px] text-[15px] font-black text-white disabled:opacity-50 transition-all active:scale-95"
+                                    style={{ background: 'var(--f-income)' }}
+                                  >
+                                    {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Confirmar'}
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Forget/Partial confirmation card */}
+                            {isConfirming && confirmAction !== 'settle' && (
+                              <div className="rounded-[10px] p-2.5 space-y-2"
+                                style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-line-strong)' }}>
+                                <p className="text-[15px] font-bold text-center" style={{ color: 'var(--f-text-2)' }}>
+                                  {confirmAction === 'forget' ? '¿Olvidar esta deuda?' :
+                                    `¿Registrar abono de ${formatCurrency(parseFloat(partialInput.replace(',', '.')) || 0)}?`}
+                                </p>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={cancelConfirm}
+                                    className="flex-1 py-1.5 rounded-[8px] text-[15px] font-black"
+                                    style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
+                                  >
+                                    Cancelar
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      if (confirmAction === 'forget') executeForget(tx.id, participant.id)
+                                      else executePartialSettle(tx.id, participant.id)
+                                    }}
+                                    disabled={isPending || isPartialPending}
+                                    className="flex-1 py-1.5 rounded-[8px] text-[15px] font-black text-white disabled:opacity-50"
+                                    style={{ background: confirmAction === 'forget' ? 'var(--f-expense)' : 'var(--f-income)' }}
+                                  >
+                                    {isPending || isPartialPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Confirmar'}
+                                  </button>
+                                </div>
                               </div>
                             )}
 
