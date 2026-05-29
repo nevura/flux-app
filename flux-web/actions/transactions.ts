@@ -556,6 +556,43 @@ export async function acceptSharedExpense(notificationId: string, accountId: str
   const d = notif.data as Record<string, unknown>
   const participantAmount = Number(d.participant_amount)
   const today = getMexicoNow().slice(0, 10)
+  const fromUserId = String(d.from_user_id)
+  const admin = createAdminClient()
+
+  // Find or create a person record for the creator in the recipient's people table
+  const { data: existingPerson } = await supabase
+    .from('people').select('id, name')
+    .eq('user_id', user.id)
+    .eq('linked_user_id', fromUserId)
+    .maybeSingle()
+
+  let creatorPersonId: string | null = existingPerson?.id ?? null
+  const creatorName = existingPerson?.name ?? String(d.from_name ?? d.from_username ?? 'Desconocido')
+
+  if (!creatorPersonId) {
+    const newId = `PER-${Date.now()}`
+    const { error: personErr } = await supabase.from('people').insert({
+      id: newId,
+      user_id: user.id,
+      name: String(d.from_name ?? d.from_username ?? 'Desconocido'),
+      linked_user_id: fromUserId,
+      is_me: false,
+    })
+    if (!personErr) creatorPersonId = newId
+  }
+
+  // Build split_data to link this expense to the creator (IOWE mode, already paid since account was charged)
+  const splitData = creatorPersonId ? {
+    mode: 'AMT',
+    splitMode: 'IOWE',
+    data: [{
+      id: creatorPersonId,
+      nombre: creatorName,
+      value: participantAmount,
+      paidAmount: participantAmount,
+      paidStatus: true,
+    }],
+  } : null
 
   const { error: txError } = await supabase.from('transactions').insert({
     user_id: user.id,
@@ -563,21 +600,40 @@ export async function acceptSharedExpense(notificationId: string, accountId: str
     type: 'TR-GASTO',
     amount: participantAmount,
     adjustment: adjustmentFor('TR-GASTO', participantAmount),
-    category_id: null,
+    category_id: d.category_id ? String(d.category_id) : null,
     account_id: accountId,
     transaction_date: today,
     is_validated: true,
+    split_data: splitData,
   })
   if (txError) return { error: txError.message }
 
+  // Mark the recipient as paid in the creator's original transaction
+  const origTxId = String(d.transaction_id ?? '')
+  const participantPersonId = String(d.participant_person_id ?? '')
+  if (origTxId && participantPersonId) {
+    const { data: origTx } = await (admin.from('transactions') as any)
+      .select('*').eq('id', origTxId).maybeSingle()
+    if (origTx?.split_data) {
+      const sd = origTx.split_data as { data: SplitParticipant[]; splitMode: string; mode: string }
+      if (Array.isArray(sd.data)) {
+        const newData = sd.data.map((p: SplitParticipant) =>
+          p.id === participantPersonId ? { ...p, paidStatus: true, paidAmount: p.value } : p
+        )
+        await (admin.from('transactions') as any)
+          .update({ split_data: { ...sd, data: newData } })
+          .eq('id', origTxId)
+      }
+    }
+  }
+
   await supabase.from('notifications').update({ read: true }).eq('id', notificationId)
 
-  // Notify the creator that the expense was accepted
+  // Notify creator that the expense was accepted
   const { data: myProfile } = await supabase
     .from('profiles').select('username, full_name').eq('id', user.id).single()
-  const admin = createAdminClient()
   await (admin.from('notifications') as any).insert({
-    user_id: String(d.from_user_id),
+    user_id: fromUserId,
     type: 'expense_settled',
     data: {
       from_user_id: user.id,
@@ -590,6 +646,7 @@ export async function acceptSharedExpense(notificationId: string, accountId: str
 
   revalidatePath('/home')
   revalidatePath('/transactions')
+  revalidatePath('/shared')
   return { error: null }
 }
 
