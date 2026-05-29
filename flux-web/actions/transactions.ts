@@ -273,9 +273,13 @@ export async function settleParticipant(txId: string, participantId: string, not
     p.id === participantId ? { ...p, paidStatus: true, paidAmount: p.value } : p
   )
 
+  // For IOWE (accepted debt): also mark as validated — debt is resolved even without account
+  const updatePayload: Record<string, unknown> = { split_data: { ...sd, data: newData } }
+  if (sd.splitMode === 'IOWE') updatePayload.is_validated = true
+
   const { error } = await supabase
     .from('transactions')
-    .update({ split_data: { ...sd, data: newData } })
+    .update(updatePayload)
     .eq('id', txId)
     .eq('user_id', user.id)
 
@@ -381,28 +385,42 @@ export async function settleAndRecord(txId: string, participantId: string, accou
   if (unpaid <= 0) return { error: 'Sin saldo pendiente' }
 
   const isTheyOwe = sd.splitMode === 'THEY'
-  const txType = isTheyOwe ? 'TR-INGRESO' : 'TR-GASTO'
-
-  const { error: txCreateErr } = await supabase.from('transactions').insert({
-    user_id: user.id,
-    concept: `${isTheyOwe ? 'Cobro' : 'Pago'}: ${tx.concept}`,
-    type: txType,
-    amount: unpaid,
-    adjustment: adjustmentFor(txType, unpaid),
-    category_id: tx.category_id,
-    account_id: accountId,
-    transaction_date: getMexicoNow().slice(0, 10),
-    is_validated: true,
-  })
-  if (txCreateErr) return { error: txCreateErr.message }
 
   const newData = (sd.data as SplitParticipant[]).map(p =>
     p.id === participantId ? { ...p, paidStatus: true, paidAmount: p.value } : p
   )
-  const { error } = await supabase
-    .from('transactions').update({ split_data: { ...sd, data: newData } })
-    .eq('id', txId).eq('user_id', user.id)
-  if (error) return { error: error.message }
+
+  if (sd.splitMode === 'IOWE') {
+    // IOWE = accepted shared expense debt. Update the original tx in-place instead of
+    // creating a new one — the debt-tracking tx already exists, just activate it.
+    const { error } = await supabase.from('transactions').update({
+      account_id: accountId,
+      adjustment: adjustmentFor('TR-GASTO', unpaid),
+      is_validated: true,
+      split_data: { ...sd, data: newData },
+    }).eq('id', txId).eq('user_id', user.id)
+    if (error) return { error: error.message }
+  } else {
+    // THEY / DIV: create a new income/expense record on the creator's side
+    const txType = isTheyOwe ? 'TR-INGRESO' : 'TR-GASTO'
+    const { error: txCreateErr } = await supabase.from('transactions').insert({
+      user_id: user.id,
+      concept: `${isTheyOwe ? 'Cobro' : 'Pago'}: ${tx.concept}`,
+      type: txType,
+      amount: unpaid,
+      adjustment: adjustmentFor(txType, unpaid),
+      category_id: tx.category_id,
+      account_id: accountId,
+      transaction_date: getMexicoNow().slice(0, 10),
+      is_validated: true,
+    })
+    if (txCreateErr) return { error: txCreateErr.message }
+
+    const { error } = await supabase
+      .from('transactions').update({ split_data: { ...sd, data: newData } })
+      .eq('id', txId).eq('user_id', user.id)
+    if (error) return { error: error.message }
+  }
 
   // If this is an IOWE transaction with a linked_tx_id, also update the creator's original tx
   const linked_tx_id = (sd as import('@/lib/types').SplitData).linked_tx_id
