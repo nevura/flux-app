@@ -1,14 +1,15 @@
 'use client'
 
-import { useState, useTransition, useEffect } from 'react'
+import { useState, useTransition, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
-import { markNotificationsRead, respondFriendRequest } from '@/actions/friends'
+import { markNotificationsRead, respondFriendRequest, deleteNotification, clearAllNotifications } from '@/actions/friends'
 import { acceptSharedExpense, declineSharedExpense, confirmSettledExpense, rejectSettledExpense } from '@/actions/transactions'
 import { formatCurrency } from '@/lib/utils'
+import { useBottomSheetSwipe } from '@/lib/hooks/useBottomSheetSwipe'
 import type { Notification } from '@/lib/types'
 
 function notifLabel(n: Notification): { icon: string; iconColor: string; text: string } {
@@ -51,6 +52,10 @@ export default function NotificationBell() {
   const [rejectingId, setRejectingId] = useState<string | null>(null)
   const [accounts, setAccounts] = useState<{ id: string; name: string }[]>([])
   const [confirmAccountId, setConfirmAccountId] = useState('')
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  const handleClose = useCallback(() => setOpen(false), [])
+  const { handleProps: swipeHandleProps, sheetStyle } = useBottomSheetSwipe(handleClose)
 
   useEffect(() => {
     setMounted(true)
@@ -138,6 +143,23 @@ export default function NotificationBell() {
     })
   }
 
+  function handleDelete(id: string) {
+    setDeletingId(id)
+    startTransition(async () => {
+      await deleteNotification(id)
+      setList(prev => prev.filter(n => n.id !== id))
+      setDeletingId(null)
+    })
+  }
+
+  function handleClearAll() {
+    startTransition(async () => {
+      await clearAllNotifications()
+      setList([])
+      setUnread(0)
+    })
+  }
+
   function handleFriendResponse(friendshipId: string, accept: boolean) {
     startTransition(async () => {
       const res = await respondFriendRequest(friendshipId, accept)
@@ -182,24 +204,37 @@ export default function NotificationBell() {
           border: '1px solid var(--f-line)',
           maxHeight: '85dvh',
           paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
+          ...sheetStyle,
         }}
         onClick={e => e.stopPropagation()}
       >
-        {/* Handle */}
-        <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
+        {/* Handle — drag here to dismiss */}
+        <div className="flex justify-center pt-3 pb-1 flex-shrink-0" {...swipeHandleProps}>
           <div className="w-10 h-1 rounded-full" style={{ background: 'var(--f-line-strong)' }} />
         </div>
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 flex-shrink-0" style={{ borderBottom: '1px solid var(--f-line)' }}>
           <p className="text-[19px] font-black" style={{ color: 'var(--f-text)' }}>Notificaciones</p>
-          <button
-            onClick={() => setOpen(false)}
-            className="w-8 h-8 flex items-center justify-center rounded-full"
-            style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
-          >
-            <i className="fa-solid fa-xmark text-sm" />
-          </button>
+          <div className="flex items-center gap-2">
+            {list.length > 0 && (
+              <button
+                onClick={handleClearAll}
+                disabled={isPending}
+                className="px-3 py-1.5 rounded-[10px] text-[13px] font-bold disabled:opacity-50"
+                style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
+              >
+                Limpiar todo
+              </button>
+            )}
+            <button
+              onClick={() => setOpen(false)}
+              className="w-8 h-8 flex items-center justify-center rounded-full"
+              style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
+            >
+              <i className="fa-solid fa-xmark text-sm" />
+            </button>
+          </div>
         </div>
 
         {/* List */}
@@ -227,7 +262,8 @@ export default function NotificationBell() {
                     style={{ background: 'var(--f-bg-input)' }}>
                     <i className={`${icon} text-[16px]`} style={{ color: iconColor }} />
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 flex items-start gap-2">
+                    <div className="flex-1 min-w-0">
                     <p className="text-[16px] font-bold leading-snug" style={{ color: 'var(--f-text)' }}>{text}</p>
                     <p className="text-[14px] mt-0.5 font-medium" style={{ color: 'var(--f-text-4)' }}>
                       {formatDistanceToNow(new Date(n.created_at), { locale: es, addSuffix: true })}
@@ -332,6 +368,19 @@ export default function NotificationBell() {
                         </div>
                       </>
                     )}
+                    </div>
+                    {/* Delete button */}
+                    <button
+                      onClick={() => handleDelete(n.id)}
+                      disabled={deletingId === n.id || isPending}
+                      className="w-7 h-7 flex items-center justify-center rounded-full flex-shrink-0 transition-all active:scale-90 disabled:opacity-40"
+                      style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-4)' }}
+                    >
+                      {deletingId === n.id
+                        ? <i className="fa-solid fa-spinner fa-spin text-[12px]" />
+                        : <i className="fa-solid fa-xmark text-[12px]" />
+                      }
+                    </button>
                   </div>
                 </div>
               </div>

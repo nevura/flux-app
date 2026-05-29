@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { addTransaction, updateTransaction, deleteTransaction, confirmTransaction } from '@/actions/transactions'
 import { addPerson } from '@/actions/config'
 import { getCategoryDisplay, getMexicoNow } from '@/lib/utils'
+import { useBottomSheetSwipe } from '@/lib/hooks/useBottomSheetSwipe'
 import type { Transaction, AccountWithBalance, Category, Person, SplitData } from '@/lib/types'
 
 interface Props {
@@ -30,6 +31,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
   const isEdit = Boolean(transaction)
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+  const { handleProps: swipeHandleProps, sheetStyle } = useBottomSheetSwipe(onClose)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const needsConfirm = isEdit && transaction?.is_validated === false
 
@@ -179,10 +181,11 @@ export default function TransactionModal({ transaction, accounts, categories, pe
           borderRadius: '28px 28px 0 0',
           border: '1px solid var(--f-line-strong)',
           borderBottom: 'none',
+          ...sheetStyle,
         }}
       >
         {/* Drag handle */}
-        <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
+        <div className="flex justify-center pt-3 pb-1 flex-shrink-0" {...swipeHandleProps}>
           <div className="w-10 h-1 rounded-full" style={{ background: 'var(--f-line-strong)' }} />
         </div>
 

@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendFriendRequestEmail, sendFriendAcceptedEmail } from '@/lib/email'
-import type { PublicProfile, Friendship, Notification } from '@/lib/types'
+import type { PublicProfile } from '@/lib/types'
 
 // ── Username ──────────────────────────────────────────────────────────────────
 
@@ -169,18 +169,12 @@ export async function sendFriendRequest(addresseeId: string) {
   const { data: linkedInA } = await supabase
     .from('people').select('id').eq('user_id', user.id).eq('linked_user_id', addresseeId).maybeSingle()
   if (!linkedInA) {
-    const { data: unlinkedInA } = await supabase
-      .from('people').select('id').eq('user_id', user.id).is('linked_user_id', null).ilike('name', bName).maybeSingle()
-    if (unlinkedInA) {
-      try { await supabase.from('people').update({ linked_user_id: addresseeId }).eq('id', unlinkedInA.id) } catch { /* ignore */ }
-    } else {
-      try {
-        await supabase.from('people').insert({
-          id: `PER-FRD-${Date.now()}-${addresseeId.slice(0, 6)}`,
-          user_id: user.id, name: bName, linked_user_id: addresseeId, is_me: false,
-        })
-      } catch { /* ignore */ }
-    }
+    try {
+      await supabase.from('people').insert({
+        id: `PER-FRD-${Date.now()}-${addresseeId.slice(0, 6)}`,
+        user_id: user.id, name: bName, linked_user_id: addresseeId, is_me: false,
+      })
+    } catch { /* ignore */ }
   }
 
   revalidatePath('/friends')
@@ -247,23 +241,16 @@ export async function respondFriendRequest(friendshipId: string, accept: boolean
     }
 
     // Auto-link: ensure requester (A) exists in accepter's (B) people table.
-    // First try to link an existing unlinked contact with matching name.
     const aName = requesterProfile?.full_name ?? `@${requesterProfile?.username ?? 'amigo'}`
     const { data: linkedInB } = await supabase
       .from('people').select('id').eq('user_id', user.id).eq('linked_user_id', friendship.requester_id).maybeSingle()
     if (!linkedInB) {
-      const { data: unlinkedInB } = await supabase
-        .from('people').select('id').eq('user_id', user.id).is('linked_user_id', null).ilike('name', aName).maybeSingle()
-      if (unlinkedInB) {
-        try { await supabase.from('people').update({ linked_user_id: friendship.requester_id }).eq('id', unlinkedInB.id) } catch { /* ignore */ }
-      } else {
-        try {
-          await supabase.from('people').insert({
-            id: `PER-FRD-${Date.now()}-${friendship.requester_id.slice(0, 6)}`,
-            user_id: user.id, name: aName, linked_user_id: friendship.requester_id, is_me: false,
-          })
-        } catch { /* ignore */ }
-      }
+      try {
+        await supabase.from('people').insert({
+          id: `PER-FRD-${Date.now()}-${friendship.requester_id.slice(0, 6)}`,
+          user_id: user.id, name: aName, linked_user_id: friendship.requester_id, is_me: false,
+        })
+      } catch { /* ignore */ }
     }
 
     // Auto-link: ensure accepter (B) exists in requester's (A) people table.
@@ -271,18 +258,12 @@ export async function respondFriendRequest(friendshipId: string, accept: boolean
     const { data: linkedInA } = await (admin.from('people') as any)
       .select('id').eq('user_id', friendship.requester_id).eq('linked_user_id', user.id).maybeSingle()
     if (!linkedInA) {
-      const { data: unlinkedInA } = await (admin.from('people') as any)
-        .select('id').eq('user_id', friendship.requester_id).is('linked_user_id', null).ilike('name', bName).maybeSingle()
-      if (unlinkedInA) {
-        try { await (admin.from('people') as any).update({ linked_user_id: user.id }).eq('id', unlinkedInA.id) } catch { /* ignore */ }
-      } else {
-        try {
-          await (admin.from('people') as any).insert({
-            id: `PER-FRD-${Date.now() + 1}-${user.id.slice(0, 6)}`,
-            user_id: friendship.requester_id, name: bName, linked_user_id: user.id, is_me: false,
-          })
-        } catch { /* ignore */ }
-      }
+      try {
+        await (admin.from('people') as any).insert({
+          id: `PER-FRD-${Date.now() + 1}-${user.id.slice(0, 6)}`,
+          user_id: friendship.requester_id, name: bName, linked_user_id: user.id, is_me: false,
+        })
+      } catch { /* ignore */ }
     }
   }
 
@@ -352,6 +333,26 @@ export async function linkPersonToUser(personId: string, linkedUserId: string | 
   if (error) return { error: error.message }
   revalidatePath('/shared')
   revalidatePath('/settings')
+  return { error: null }
+}
+
+// ── Delete notifications ──────────────────────────────────────────────────────
+
+export async function deleteNotification(id: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+  const { error } = await supabase.from('notifications').delete().eq('id', id).eq('user_id', user.id)
+  if (error) return { error: error.message }
+  return { error: null }
+}
+
+export async function clearAllNotifications() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+  const { error } = await supabase.from('notifications').delete().eq('user_id', user.id)
+  if (error) return { error: error.message }
   return { error: null }
 }
 

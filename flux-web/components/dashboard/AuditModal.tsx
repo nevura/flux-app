@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { applyAdjustment } from '@/actions/config'
 import { formatCurrency, getPaymentMethod } from '@/lib/utils'
+import { useBottomSheetSwipe } from '@/lib/hooks/useBottomSheetSwipe'
 import type { AccountWithBalance } from '@/lib/types'
 
 function evalMath(expr: string): number | null {
@@ -26,6 +27,7 @@ interface Props {
 export default function AuditModal({ accounts, onClose }: Props) {
   const [inputs, setInputs] = useState<Record<string, string>>({})
   const [isPending, startTransition] = useTransition()
+  const { handleProps: swipeHandleProps, sheetStyle } = useBottomSheetSwipe(onClose)
 
   function getComputed(accId: string, isTDC: boolean): number | null {
     const v = inputs[accId]
@@ -77,9 +79,10 @@ export default function AuditModal({ accounts, onClose }: Props) {
           borderRadius: '28px 28px 0 0',
           border: '1px solid var(--f-line-strong)',
           borderBottom: 'none',
+          ...sheetStyle,
         }}
       >
-        <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
+        <div className="flex justify-center pt-3 pb-1 flex-shrink-0" {...swipeHandleProps}>
           <div className="w-10 h-1 rounded-full" style={{ background: 'var(--f-line-strong)' }} />
         </div>
         <div className="flex items-start justify-between px-5 py-3 flex-shrink-0" style={{ borderBottom: '1px solid var(--f-line)' }}>

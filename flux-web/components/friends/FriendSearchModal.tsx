@@ -4,6 +4,7 @@ import { useState, useTransition, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
 import { searchUsers, sendFriendRequest, sendAppInvite } from '@/actions/friends'
+import { useBottomSheetSwipe } from '@/lib/hooks/useBottomSheetSwipe'
 import type { PublicProfile, Friendship } from '@/lib/types'
 
 interface Props {
@@ -30,6 +31,7 @@ export default function FriendSearchModal({ onClose, existingFriendships, myUser
   const [showInvite, setShowInvite] = useState(false)
   const [isPending, startTransition] = useTransition()
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const { handleProps: swipeHandleProps, sheetStyle } = useBottomSheetSwipe(onClose)
 
   function handleInput(v: string) {
     setQuery(v)
@@ -84,11 +86,15 @@ export default function FriendSearchModal({ onClose, existingFriendships, myUser
     >
       <div
         className="w-full max-w-lg rounded-t-[28px] pb-[max(1.5rem,env(safe-area-inset-bottom))]"
-        style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)' }}
+        style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', ...sheetStyle }}
         onClick={e => e.stopPropagation()}
       >
+        {/* Drag handle */}
+        <div className="flex justify-center pt-3 pb-1" {...swipeHandleProps}>
+          <div className="w-10 h-1 rounded-full" style={{ background: 'var(--f-line-strong)' }} />
+        </div>
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-4">
+        <div className="flex items-center justify-between px-5 pt-2 pb-4">
           <h2 className="text-[20px] font-black" style={{ color: 'var(--f-text)' }}>Agregar amigo</h2>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full" style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}>
             <i className="fa-solid fa-xmark text-sm" />

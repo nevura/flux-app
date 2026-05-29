@@ -4,6 +4,7 @@ import { useState, useRef, useTransition, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
 import { getMyFriends, linkPersonToUser } from '@/actions/friends'
+import { useBottomSheetSwipe } from '@/lib/hooks/useBottomSheetSwipe'
 import type { PublicProfile } from '@/lib/types'
 
 interface Props {
@@ -21,6 +22,7 @@ export default function LinkPersonModal({ personId, personName, currentLinkedUse
   const [filter, setFilter] = useState('')
   const [isPending, startTransition] = useTransition()
   const inputRef = useRef<HTMLInputElement>(null)
+  const { handleProps: swipeHandleProps, sheetStyle } = useBottomSheetSwipe(onClose)
 
   useEffect(() => {
     setMounted(true)
@@ -64,11 +66,15 @@ export default function LinkPersonModal({ personId, personName, currentLinkedUse
     >
       <div
         className="w-full max-w-lg rounded-t-[28px] pb-[max(1.5rem,env(safe-area-inset-bottom))]"
-        style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)' }}
+        style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', ...sheetStyle }}
         onClick={e => e.stopPropagation()}
       >
+        {/* Drag handle */}
+        <div className="flex justify-center pt-3 pb-1" {...swipeHandleProps}>
+          <div className="w-10 h-1 rounded-full" style={{ background: 'var(--f-line-strong)' }} />
+        </div>
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-4">
+        <div className="flex items-center justify-between px-5 pt-2 pb-4">
           <div>
             <h2 className="text-[20px] font-black" style={{ color: 'var(--f-text)' }}>Vincular contacto</h2>
             <p className="text-[14px] font-semibold mt-0.5" style={{ color: 'var(--f-text-4)' }}>
