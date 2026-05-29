@@ -86,8 +86,10 @@ export type NotificationType =
   | 'friend_declined'
   | 'shared_expense_invite'
   | 'shared_expense_sent'
+  | 'shared_expense_accepted'
   | 'expense_settled_confirm'
   | 'expense_settled'
+  | 'expense_settle_rejected'
 
 export interface Notification {
   id: string
@@ -116,6 +118,10 @@ export interface SplitData {
   mode: 'AMT' | 'PCT'
   splitMode: 'DIV' | 'IOWE' | 'THEY'
   data: SplitParticipant[]
+  // For IOWE transactions created via shared_expense_invite acceptance:
+  // reference back to the creator's original transaction for bidirectional updates
+  linked_tx_id?: string
+  linked_participant_id?: string
 }
 
 export interface Transaction {

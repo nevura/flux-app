@@ -6,14 +6,16 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { adjustmentFor, parseAmount, getMexicoNow } from '@/lib/utils'
 import type { TransactionForm, SplitParticipant, AccountWithBalance, Category, Person } from '@/lib/types'
 
-// Sends expense_settled_confirm notification to a person if they have a linked Flux user
+// Sends expense_settled_confirm notification to a person if they have a linked Flux user.
+// linked_tx_id / linked_participant_id let the receiver update their own transaction on confirmation.
 async function notifyLinkedPersonSettled(
   supabase: Awaited<ReturnType<typeof createClient>>,
   personId: string,
   myUserId: string,
   concept: string,
   amount: number,
-  isTheyOwe: boolean
+  isTheyOwe: boolean,
+  extra?: { linked_tx_id?: string; linked_participant_id?: string }
 ) {
   const { data: person } = await supabase
     .from('people').select('linked_user_id').eq('id', personId).eq('user_id', myUserId).maybeSingle()
@@ -24,7 +26,17 @@ async function notifyLinkedPersonSettled(
   await (admin.from('notifications') as any).insert({
     user_id: person.linked_user_id,
     type: 'expense_settled_confirm',
-    data: { from_user_id: myUserId, from_username: myProfile?.username ?? '', from_name: myProfile?.full_name ?? '', concept, amount, is_they_owe: isTheyOwe },
+    data: {
+      from_user_id: myUserId,
+      from_username: myProfile?.username ?? '',
+      from_name: myProfile?.full_name ?? '',
+      concept,
+      amount,
+      is_they_owe: isTheyOwe,
+      // For the receiver to update the creator's original transaction on confirmation
+      linked_tx_id: extra?.linked_tx_id ?? null,
+      linked_participant_id: extra?.linked_participant_id ?? null,
+    },
   }).catch(() => {})
 }
 
@@ -235,7 +247,25 @@ export async function settleParticipant(txId: string, participantId: string, not
 
   if (notify && participant) {
     const isTheyOwe = sd.splitMode === 'THEY' || sd.splitMode === 'DIV'
-    await notifyLinkedPersonSettled(supabase, participantId, user.id, tx.concept, participant.value, isTheyOwe)
+    // If this is an IOWE transaction with a linked_tx_id, also update the creator's original tx
+    const linked_tx_id = (sd as import('@/lib/types').SplitData).linked_tx_id
+    const linked_participant_id = (sd as import('@/lib/types').SplitData).linked_participant_id
+    if (linked_tx_id && linked_participant_id) {
+      const admin = createAdminClient()
+      const { data: origTx } = await (admin.from('transactions') as any).select('*').eq('id', linked_tx_id).maybeSingle()
+      if (origTx?.split_data) {
+        const origSd = origTx.split_data as import('@/lib/types').SplitData
+        if (Array.isArray(origSd.data)) {
+          const updatedData = origSd.data.map((p: SplitParticipant) =>
+            p.id === linked_participant_id ? { ...p, paidStatus: true, paidAmount: p.value } : p
+          )
+          await (admin.from('transactions') as any)
+            .update({ split_data: { ...origSd, data: updatedData } })
+            .eq('id', linked_tx_id)
+        }
+      }
+    }
+    await notifyLinkedPersonSettled(supabase, participantId, user.id, tx.concept, participant.value, isTheyOwe, { linked_tx_id, linked_participant_id })
   }
 
   revalidatePath('/shared')
@@ -333,7 +363,26 @@ export async function settleAndRecord(txId: string, participantId: string, accou
     .eq('id', txId).eq('user_id', user.id)
   if (error) return { error: error.message }
 
-  await notifyLinkedPersonSettled(supabase, participantId, user.id, tx.concept, unpaid, isTheyOwe)
+  // If this is an IOWE transaction with a linked_tx_id, also update the creator's original tx
+  const linked_tx_id = (sd as import('@/lib/types').SplitData).linked_tx_id
+  const linked_participant_id = (sd as import('@/lib/types').SplitData).linked_participant_id
+  if (linked_tx_id && linked_participant_id) {
+    const admin = createAdminClient()
+    const { data: origTx } = await (admin.from('transactions') as any).select('*').eq('id', linked_tx_id).maybeSingle()
+    if (origTx?.split_data) {
+      const origSd = origTx.split_data as import('@/lib/types').SplitData
+      if (Array.isArray(origSd.data)) {
+        const updatedData = origSd.data.map((p: SplitParticipant) =>
+          p.id === linked_participant_id ? { ...p, paidStatus: true, paidAmount: p.value } : p
+        )
+        await (admin.from('transactions') as any)
+          .update({ split_data: { ...origSd, data: updatedData } })
+          .eq('id', linked_tx_id)
+      }
+    }
+  }
+
+  await notifyLinkedPersonSettled(supabase, participantId, user.id, tx.concept, unpaid, isTheyOwe, { linked_tx_id, linked_participant_id })
 
   revalidatePath('/shared')
   revalidatePath('/home')
@@ -497,9 +546,61 @@ export async function confirmSettledExpense(notificationId: string) {
     const d = notif.data as Record<string, unknown>
     const { data: myProfile } = await supabase.from('profiles').select('username, full_name').eq('id', user.id).single()
     const admin = createAdminClient()
+
+    // If the notification carries a linked_tx_id, update the confirmer's own transaction as paid
+    const linked_tx_id = d.linked_tx_id ? String(d.linked_tx_id) : null
+    const linked_participant_id = d.linked_participant_id ? String(d.linked_participant_id) : null
+    if (linked_tx_id && linked_participant_id) {
+      const { data: myTx } = await (admin.from('transactions') as any).select('*').eq('id', linked_tx_id).maybeSingle()
+      if (myTx?.split_data) {
+        const sd = myTx.split_data as import('@/lib/types').SplitData
+        if (Array.isArray(sd.data)) {
+          const updatedData = sd.data.map((p: SplitParticipant) =>
+            p.id === linked_participant_id ? { ...p, paidStatus: true, paidAmount: p.value } : p
+          )
+          await (admin.from('transactions') as any)
+            .update({ split_data: { ...sd, data: updatedData } })
+            .eq('id', linked_tx_id)
+        }
+      }
+    }
+
+    // Notify the person who settled that their payment was confirmed
     await (admin.from('notifications') as any).insert({
       user_id: String(d.from_user_id),
       type: 'expense_settled',
+      data: {
+        from_user_id: user.id,
+        from_username: myProfile?.username ?? '',
+        from_name: myProfile?.full_name ?? '',
+        concept: String(d.concept),
+        amount: Number(d.amount),
+      },
+    }).catch(() => {})
+  }
+
+  revalidatePath('/shared')
+  revalidatePath('/home')
+  return { error: null }
+}
+
+export async function rejectSettledExpense(notificationId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+
+  const { data: notif } = await supabase
+    .from('notifications').select('*').eq('id', notificationId).eq('user_id', user.id).single()
+
+  await supabase.from('notifications').update({ read: true }).eq('id', notificationId)
+
+  if (notif) {
+    const d = notif.data as Record<string, unknown>
+    const { data: myProfile } = await supabase.from('profiles').select('username, full_name').eq('id', user.id).single()
+    const admin = createAdminClient()
+    await (admin.from('notifications') as any).insert({
+      user_id: String(d.from_user_id),
+      type: 'expense_settle_rejected',
       data: {
         from_user_id: user.id,
         from_username: myProfile?.username ?? '',
@@ -544,7 +645,9 @@ export async function searchAllTransactions(query: string) {
   return { data: data ?? [] }
 }
 
-export async function acceptSharedExpense(notificationId: string, accountId: string) {
+// Accept = acknowledge the debt only. No money movement. The actual payment
+// happens later when the recipient marks as settled from Compartidos.
+export async function acceptSharedExpense(notificationId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autorizado' }
@@ -581,16 +684,22 @@ export async function acceptSharedExpense(notificationId: string, accountId: str
     if (!personErr) creatorPersonId = newId
   }
 
-  // Build split_data to link this expense to the creator (IOWE mode, already paid since account was charged)
+  const origTxId = String(d.transaction_id ?? '')
+  const participantPersonId = String(d.participant_person_id ?? '')
+
+  // Debt tracking transaction: no account_id, no money movement, paidStatus: false
+  // linked_tx_id / linked_participant_id enable bidirectional update when settling
   const splitData = creatorPersonId ? {
     mode: 'AMT',
     splitMode: 'IOWE',
+    linked_tx_id: origTxId || undefined,
+    linked_participant_id: participantPersonId || undefined,
     data: [{
       id: creatorPersonId,
       nombre: creatorName,
       value: participantAmount,
-      paidAmount: participantAmount,
-      paidStatus: true,
+      paidAmount: 0,
+      paidStatus: false,
     }],
   } : null
 
@@ -599,42 +708,23 @@ export async function acceptSharedExpense(notificationId: string, accountId: str
     concept: String(d.concept),
     type: 'TR-GASTO',
     amount: participantAmount,
-    adjustment: adjustmentFor('TR-GASTO', participantAmount),
+    adjustment: 0,       // no real money movement until settled
     category_id: d.category_id ? String(d.category_id) : null,
-    account_id: accountId,
+    account_id: null,    // no account until payment is confirmed
     transaction_date: today,
-    is_validated: true,
+    is_validated: false, // pending — will be validated when settled
     split_data: splitData,
   })
   if (txError) return { error: txError.message }
 
-  // Mark the recipient as paid in the creator's original transaction
-  const origTxId = String(d.transaction_id ?? '')
-  const participantPersonId = String(d.participant_person_id ?? '')
-  if (origTxId && participantPersonId) {
-    const { data: origTx } = await (admin.from('transactions') as any)
-      .select('*').eq('id', origTxId).maybeSingle()
-    if (origTx?.split_data) {
-      const sd = origTx.split_data as { data: SplitParticipant[]; splitMode: string; mode: string }
-      if (Array.isArray(sd.data)) {
-        const newData = sd.data.map((p: SplitParticipant) =>
-          p.id === participantPersonId ? { ...p, paidStatus: true, paidAmount: p.value } : p
-        )
-        await (admin.from('transactions') as any)
-          .update({ split_data: { ...sd, data: newData } })
-          .eq('id', origTxId)
-      }
-    }
-  }
-
   await supabase.from('notifications').update({ read: true }).eq('id', notificationId)
 
-  // Notify creator that the expense was accepted
+  // Notify creator that B accepted (acknowledged the debt)
   const { data: myProfile } = await supabase
     .from('profiles').select('username, full_name').eq('id', user.id).single()
   await (admin.from('notifications') as any).insert({
     user_id: fromUserId,
-    type: 'expense_settled',
+    type: 'shared_expense_accepted',
     data: {
       from_user_id: user.id,
       from_username: myProfile?.username ?? '',
