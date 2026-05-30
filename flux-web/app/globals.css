@@ -13,22 +13,32 @@
    ─────────────────────────────────────────────────────────────────────────── */
 :root {
   /* Brand */
-  --f-blue:       #007AFF;   /* iOS System Blue */
-  --f-blue-dark:  #0056CC;   /* Darker blue for gradients */
+  --f-blue: #007AFF;
+  /* iOS System Blue */
+  --f-blue-dark: #0056CC;
+  /* Darker blue for gradients */
 
   /* Transaction types */
-  --f-income:     #30D158;   /* Green  — ingresos */
-  --f-expense:    #FF453A;   /* Red    — gastos */
-  --f-transfer:   #64D2FF;   /* Cyan   — transferencias */
+  --f-income: #30D158;
+  /* Green  — ingresos */
+  --f-expense: #FF453A;
+  /* Red    — gastos */
+  --f-transfer: #64D2FF;
+  /* Cyan   — transferencias */
 
   /* Status */
-  --f-warning:    #FF9500;   /* Orange — banners, alertas */
-  --f-pending:    #FF9F0A;   /* Amber  — transacciones sin validar */
+  --f-warning: #FF9500;
+  /* Orange — banners, alertas */
+  --f-pending: #FF9F0A;
+  /* Amber  — transacciones sin validar */
 
   /* Payment method icons */
-  --f-cash:       #00AD40;   /* Efectivo */
-  --f-debit:      #007AFF;   /* TDD — comparte color con blue */
-  --f-credit:     #FF8A80;   /* TDC */
+  --f-cash: #00AD40;
+  /* Efectivo */
+  --f-debit: #007AFF;
+  /* TDD — comparte color con blue */
+  --f-credit: #FF8A80;
+  /* TDC */
 }
 
 /* ── 2. Dark theme (default) ─────────────────────────────────────────────────
@@ -38,69 +48,87 @@
 :root {
 
   /* ── Backgrounds (4 elevation layers) ── */
-  --f-bg:          #020617;              /* L0 — página principal */
-  --f-bg-card:     #0F172A;              /* L1 — tarjetas, listas */
-  --f-bg-elevated: #1C1C1E;             /* L2 — bottom sheets, modales */
-  --f-bg-input:    rgba(255,255,255,0.07); /* L3 — campos de texto */
-  --f-bg-glass:    rgba(2,6,23,0.95);   /* Header sticky con blur */
-  --f-bg-nav:      rgba(28,28,30,0.92); /* Nav bar con blur */
-  --f-bg-overlay:  rgba(0,0,0,0.62);   /* Overlay oscuro */
+  --f-bg: #020617;
+  /* L0 — página principal */
+  --f-bg-card: #0F172A;
+  /* L1 — tarjetas, listas */
+  --f-bg-elevated: #1C1C1E;
+  /* L2 — bottom sheets, modales */
+  --f-bg-input: rgba(255, 255, 255, 0.07);
+  /* L3 — campos de texto */
+  --f-bg-glass: rgba(2, 6, 23, 0.95);
+  /* Header sticky con blur */
+  --f-bg-nav: rgba(28, 28, 30, 0.92);
+  /* Nav bar con blur */
+  --f-bg-overlay: rgba(0, 0, 0, 0.62);
+  /* Overlay oscuro */
 
   /* ── Text (jerarquía de 4 niveles) ── */
-  --f-text:        #FFFFFF;                    /* Principal */
-  --f-text-2:      rgba(255,255,255,0.65);     /* Secundario */
-  --f-text-3:      rgba(255,255,255,0.40);     /* Terciario (labels, hints) */
-  --f-text-4:      rgba(255,255,255,0.20);     /* Deshabilitado / placeholder */
+  --f-text: #FFFFFF;
+  /* Principal */
+  --f-text-2: rgba(255, 255, 255, 0.65);
+  /* Secundario */
+  --f-text-3: rgba(255, 255, 255, 0.40);
+  /* Terciario (labels, hints) */
+  --f-text-4: rgba(255, 255, 255, 0.20);
+  /* Deshabilitado / placeholder */
 
   /* ── Borders / Divisores ── */
-  --f-line:        rgba(255,255,255,0.08);     /* Estándar */
-  --f-line-strong: rgba(255,255,255,0.15);     /* Énfasis */
-  --f-line-faint:  rgba(255,255,255,0.04);     /* Sutil */
+  --f-line: rgba(255, 255, 255, 0.08);
+  /* Estándar */
+  --f-line-strong: rgba(255, 255, 255, 0.15);
+  /* Énfasis */
+  --f-line-faint: rgba(255, 255, 255, 0.04);
+  /* Sutil */
 
   /* ── Accent — Azul ── */
-  --f-accent:         var(--f-blue);
-  --f-accent-text:    #007AFF;                 /* Texto/icono azul sobre fondo oscuro */
-  --f-accent-bg:      rgba(0,122,255,0.10);    /* Fondo sutil azul */
-  --f-accent-border:  rgba(0,122,255,0.20);    /* Borde azul */
-  --f-accent-glow:    rgba(0,122,255,0.35);    /* Sombra/glow azul */
+  --f-accent: var(--f-blue);
+  --f-accent-text: #007AFF;
+  /* Texto/icono azul sobre fondo oscuro */
+  --f-accent-bg: rgba(0, 122, 255, 0.10);
+  /* Fondo sutil azul */
+  --f-accent-border: rgba(0, 122, 255, 0.20);
+  /* Borde azul */
+  --f-accent-glow: rgba(0, 122, 255, 0.35);
+  /* Sombra/glow azul */
 
   /* ── Income — Verde ── */
-  --f-income-text:    var(--f-income);
-  --f-income-bg:      rgba(48,209,88,0.08);
-  --f-income-border:  rgba(48,209,88,0.20);
-  --f-income-glow:    rgba(48,209,88,0.18);
+  --f-income-text: var(--f-income);
+  --f-income-bg: rgba(48, 209, 88, 0.08);
+  --f-income-border: rgba(48, 209, 88, 0.20);
+  --f-income-glow: rgba(48, 209, 88, 0.18);
 
   /* ── Expense — Rojo ── */
-  --f-expense-text:   var(--f-expense);
-  --f-expense-bg:     rgba(255,69,58,0.08);
-  --f-expense-border: rgba(255,69,58,0.20);
-  --f-expense-glow:   rgba(255,69,58,0.18);
+  --f-expense-text: var(--f-expense);
+  --f-expense-bg: rgba(255, 69, 58, 0.08);
+  --f-expense-border: rgba(255, 69, 58, 0.20);
+  --f-expense-glow: rgba(255, 69, 58, 0.18);
 
   /* ── Transfer — Cyan ── */
-  --f-transfer-text:    var(--f-transfer);
-  --f-transfer-bg:      rgba(100,210,255,0.10);
-  --f-transfer-border:  rgba(100,210,255,0.20);
+  --f-transfer-text: var(--f-transfer);
+  --f-transfer-bg: rgba(100, 210, 255, 0.10);
+  --f-transfer-border: rgba(100, 210, 255, 0.20);
 
   /* ── Warning — Naranja ── */
-  --f-warning-text:    var(--f-warning);
-  --f-warning-bg:      rgba(255,149,0,0.10);
-  --f-warning-border:  rgba(255,149,0,0.22);
+  --f-warning-text: var(--f-warning);
+  --f-warning-bg: rgba(255, 149, 0, 0.10);
+  --f-warning-border: rgba(255, 149, 0, 0.22);
 
   /* ── Pending — Ámbar ── */
-  --f-pending-text:    var(--f-pending);
-  --f-pending-bg:      rgba(255,159,10,0.08);
-  --f-pending-border:  rgba(255,159,10,0.22);
+  --f-pending-text: var(--f-pending);
+  --f-pending-bg: rgba(255, 159, 10, 0.08);
+  --f-pending-border: rgba(255, 159, 10, 0.22);
 
   /* ── Shadows ── */
-  --f-shadow-card:    0 4px 24px rgba(0,0,0,0.35);
-  --f-shadow-pop:     0 8px 40px rgba(0,0,0,0.55);
-  --f-shadow-nav:     0 8px 32px rgba(0,0,0,0.50);
-  --f-shadow-accent:  0 4px 20px rgba(0,122,255,0.35);
-  --f-shadow-income:  0 4px 20px rgba(48,209,88,0.20);
-  --f-shadow-expense: 0 4px 20px rgba(255,69,58,0.20);
+  --f-shadow-card: 0 4px 24px rgba(0, 0, 0, 0.35);
+  --f-shadow-pop: 0 8px 40px rgba(0, 0, 0, 0.55);
+  --f-shadow-nav: 0 8px 32px rgba(0, 0, 0, 0.50);
+  --f-shadow-accent: 0 4px 20px rgba(0, 122, 255, 0.35);
+  --f-shadow-income: 0 4px 20px rgba(48, 209, 88, 0.20);
+  --f-shadow-expense: 0 4px 20px rgba(255, 69, 58, 0.20);
 
   /* ── Skeleton loader ── */
-  --f-skeleton-base:  #2C2C2E;
+  --f-skeleton-base: #2C2C2E;
   --f-skeleton-shine: #3A3A3C;
 }
 
@@ -111,58 +139,66 @@
 [data-theme="light"] {
 
   /* ── Backgrounds ── */
-  --f-bg:          #F2F2F7;              /* iOS systemGroupedBackground */
-  --f-bg-card:     #FFFFFF;
+  --f-bg: #F2F2F7;
+  /* iOS systemGroupedBackground */
+  --f-bg-card: #FFFFFF;
   --f-bg-elevated: #FFFFFF;
-  --f-bg-input:    rgba(0,0,0,0.05);
-  --f-bg-glass:    rgba(242,242,247,0.92);
-  --f-bg-nav:      rgba(255,255,255,0.88);
-  --f-bg-overlay:  rgba(0,0,0,0.50);
+  --f-bg-input: rgba(0, 0, 0, 0.05);
+  --f-bg-glass: rgba(242, 242, 247, 0.92);
+  --f-bg-nav: rgba(255, 255, 255, 0.88);
+  --f-bg-overlay: rgba(0, 0, 0, 0.50);
 
   /* ── Text ── */
-  --f-text:        #1C1C1E;             /* iOS label */
-  --f-text-2:      #6D6D72;             /* iOS secondaryLabel */
-  --f-text-3:      #8E8E93;             /* iOS tertiaryLabel */
-  --f-text-4:      #AEAEB2;             /* iOS quaternaryLabel */
+  --f-text: #1C1C1E;
+  /* iOS label */
+  --f-text-2: #6D6D72;
+  /* iOS secondaryLabel */
+  --f-text-3: #8E8E93;
+  /* iOS tertiaryLabel */
+  --f-text-4: #AEAEB2;
+  /* iOS quaternaryLabel */
 
   /* ── Borders ── */
-  --f-line:        rgba(0,0,0,0.08);
-  --f-line-strong: rgba(0,0,0,0.14);
-  --f-line-faint:  rgba(0,0,0,0.04);
+  --f-line: rgba(0, 0, 0, 0.08);
+  --f-line-strong: rgba(0, 0, 0, 0.14);
+  --f-line-faint: rgba(0, 0, 0, 0.04);
 
   /* ── Accent ── */
-  --f-accent-text:   #007AFF;
-  --f-accent-bg:     rgba(0,122,255,0.08);
-  --f-accent-border: rgba(0,122,255,0.18);
-  --f-accent-glow:   rgba(0,122,255,0.20);
+  --f-accent-text: #007AFF;
+  --f-accent-bg: rgba(0, 122, 255, 0.08);
+  --f-accent-border: rgba(0, 122, 255, 0.18);
+  --f-accent-glow: rgba(0, 122, 255, 0.20);
 
   /* ── Brand colors — darker for legibility on white backgrounds ── */
-  --f-income:        #1A7F37;    /* accessible dark green */
-  --f-expense:       #C0392B;    /* accessible dark red */
-  --f-transfer:      #0A84C8;    /* accessible dark cyan */
+  --f-income: #00AD40;
+  /* accessible dark green */
+  --f-expense: #FF004F;
+  /* accessible dark red */
+  --f-transfer: #007AFF;
+  /* accessible dark cyan */
 
   /* ── Status backgrounds (ligeramente más saturados en light) ── */
-  --f-income-bg:     rgba(26,127,55,0.10);
-  --f-income-border: rgba(26,127,55,0.22);
-  --f-expense-bg:    rgba(192,57,43,0.08);
-  --f-expense-border:rgba(192,57,43,0.20);
-  --f-transfer-bg:   rgba(10,132,200,0.10);
-  --f-transfer-border:rgba(10,132,200,0.20);
-  --f-warning-bg:    rgba(255,149,0,0.09);
-  --f-warning-border:rgba(255,149,0,0.20);
-  --f-pending-bg:    rgba(255,159,10,0.09);
-  --f-pending-border:rgba(255,159,10,0.20);
+  --f-income-bg: rgba(26, 127, 55, 0.10);
+  --f-income-border: rgba(26, 127, 55, 0.22);
+  --f-expense-bg: rgba(192, 57, 43, 0.08);
+  --f-expense-border: rgba(192, 57, 43, 0.20);
+  --f-transfer-bg: rgba(10, 132, 200, 0.10);
+  --f-transfer-border: rgba(10, 132, 200, 0.20);
+  --f-warning-bg: rgba(255, 149, 0, 0.09);
+  --f-warning-border: rgba(255, 149, 0, 0.20);
+  --f-pending-bg: rgba(255, 159, 10, 0.09);
+  --f-pending-border: rgba(255, 159, 10, 0.20);
 
   /* ── Shadows (más suaves en light) ── */
-  --f-shadow-card:    0 2px 16px rgba(0,0,0,0.07);
-  --f-shadow-pop:     0 8px 40px rgba(0,0,0,0.14);
-  --f-shadow-nav:     0 -1px 0 rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
-  --f-shadow-accent:  0 4px 20px rgba(0,122,255,0.22);
-  --f-shadow-income:  0 4px 20px rgba(48,209,88,0.14);
-  --f-shadow-expense: 0 4px 20px rgba(255,69,58,0.14);
+  --f-shadow-card: 0 2px 16px rgba(0, 0, 0, 0.07);
+  --f-shadow-pop: 0 8px 40px rgba(0, 0, 0, 0.14);
+  --f-shadow-nav: 0 -1px 0 rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.06);
+  --f-shadow-accent: 0 4px 20px rgba(0, 122, 255, 0.22);
+  --f-shadow-income: 0 4px 20px rgba(48, 209, 88, 0.14);
+  --f-shadow-expense: 0 4px 20px rgba(255, 69, 58, 0.14);
 
   /* ── Skeleton ── */
-  --f-skeleton-base:  #E5E5EA;
+  --f-skeleton-base: #E5E5EA;
   --f-skeleton-shine: #F2F2F7;
 }
 
@@ -176,10 +212,10 @@ html.theme-transitioning *::before,
 html.theme-transitioning *::after {
   transition:
     background-color 0.25s ease,
-    background      0.25s ease,
-    color           0.20s ease,
-    border-color    0.25s ease,
-    box-shadow      0.25s ease !important;
+    background 0.25s ease,
+    color 0.20s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease !important;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -187,22 +223,22 @@ html.theme-transitioning *::after {
    Expose flux tokens as Tailwind color classes (bg-accent, text-income, etc.)
 ───────────────────────────────────────────────────────────────────────────── */
 @theme inline {
-  --color-background:   var(--f-bg);
-  --color-foreground:   var(--f-text);
-  --color-card:         var(--f-bg-card);
-  --color-card-border:  var(--f-line);
-  --color-elevated:     var(--f-bg-elevated);
-  --color-input:        var(--f-bg-input);
-  --color-muted:        var(--f-bg-elevated);
-  --color-muted-fg:     var(--f-text-3);
-  --color-primary:      var(--f-accent);
-  --color-primary-fg:   #ffffff;
-  --color-income:       var(--f-income);
-  --color-expense:      var(--f-expense);
-  --color-transfer:     var(--f-transfer);
-  --radius:             1rem;
-  --font-sans:          var(--font-geist-sans);
-  --font-mono:          var(--font-geist-mono);
+  --color-background: var(--f-bg);
+  --color-foreground: var(--f-text);
+  --color-card: var(--f-bg-card);
+  --color-card-border: var(--f-line);
+  --color-elevated: var(--f-bg-elevated);
+  --color-input: var(--f-bg-input);
+  --color-muted: var(--f-bg-elevated);
+  --color-muted-fg: var(--f-text-3);
+  --color-primary: var(--f-accent);
+  --color-primary-fg: #ffffff;
+  --color-income: var(--f-income);
+  --color-expense: var(--f-expense);
+  --color-transfer: var(--f-transfer);
+  --radius: 1rem;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -214,11 +250,12 @@ html.theme-transitioning *::after {
 }
 
 :root {
-  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   background-color: var(--f-bg);
@@ -232,6 +269,7 @@ html, body {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
+
 *::-webkit-scrollbar {
   display: none;
 }
@@ -242,6 +280,7 @@ html, body {
 [data-sonner-toaster] {
   --width: 356px !important;
 }
+
 [data-sonner-toast] {
   background: var(--f-bg-card) !important;
   border: 1px solid var(--f-line-strong) !important;
@@ -250,22 +289,32 @@ html, body {
   font-size: 13px !important;
   font-weight: 700 !important;
   padding: 14px 16px !important;
-  animation: toast-slide-down 0.35s cubic-bezier(0.34,1.56,0.64,1) !important;
+  animation: toast-slide-down 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
   color: var(--f-text) !important;
 }
+
 [data-sonner-toast][data-type='success'] {
   background: color-mix(in srgb, var(--f-income) 10%, var(--f-bg-card)) !important;
   border-color: var(--f-income-border) !important;
   box-shadow: var(--f-shadow-pop), 0 0 24px var(--f-income-glow) !important;
 }
+
 [data-sonner-toast][data-type='error'] {
   background: color-mix(in srgb, var(--f-expense) 10%, var(--f-bg-card)) !important;
   border-color: var(--f-expense-border) !important;
   box-shadow: var(--f-shadow-pop), 0 0 24px var(--f-expense-glow) !important;
 }
+
 @keyframes toast-slide-down {
-  from { opacity: 0; transform: translateY(-12px) scale(0.93); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.93);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* ── Light mode fixes ─────────────────────────────────────────────────────────
@@ -281,6 +330,7 @@ html, body {
 [data-theme="light"] [data-settings] label.text-white {
   color: var(--f-text);
 }
+
 /* Active nav tab icon uses accent blue in light mode */
 [data-theme="light"] .nav-icon-active {
   color: var(--f-blue) !important;
@@ -290,12 +340,10 @@ html, body {
    SKELETON LOADER
 ───────────────────────────────────────────────────────────────────────────── */
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--f-skeleton-base) 25%,
-    var(--f-skeleton-shine) 50%,
-    var(--f-skeleton-base) 75%
-  );
+  background: linear-gradient(90deg,
+      var(--f-skeleton-base) 25%,
+      var(--f-skeleton-shine) 50%,
+      var(--f-skeleton-base) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
@@ -304,56 +352,159 @@ html, body {
    ANIMATIONS
 ───────────────────────────────────────────────────────────────────────────── */
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(14px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-@keyframes slide-up {
-  from { opacity: 0; transform: translateY(100%); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes scale-in {
-  from { opacity: 0; transform: scale(0.94); }
-  to   { opacity: 1; transform: scale(1); }
-}
-@keyframes shimmer {
-  from { background-position: -200% 0; }
-  to   { background-position:  200% 0; }
-}
-@keyframes pop {
-  0%   { transform: scale(1); }
-  50%  { transform: scale(1.07); }
-  100% { transform: scale(1); }
-}
-@keyframes slide-from-right {
-  from { opacity: 0; transform: translateX(28px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-@keyframes slide-from-left {
-  from { opacity: 0; transform: translateX(-28px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-@keyframes rise-in {
-  from { opacity: 0; transform: translateY(12px) scale(0.96); }
-  to   { opacity: 1; transform: translateY(0)    scale(1); }
-}
-@keyframes search-expand {
-  from { opacity: 0; transform: scaleX(0.88) translateX(10px); }
-  to   { opacity: 1; transform: scaleX(1)    translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.animate-fade-up           { animation: fade-up           0.6s  cubic-bezier(0.22,1,0.36,1) both; }
-.animate-fade-in           { animation: fade-in           0.4s  ease-out both; }
-.animate-slide-up          { animation: slide-up          0.75s cubic-bezier(0.16,1,0.3,1) both; }
-.animate-scale-in          { animation: scale-in          0.45s cubic-bezier(0.16,1,0.3,1) both; }
-.animate-pop               { animation: pop               0.5s  cubic-bezier(0.22,1,0.36,1) both; }
-.animate-slide-from-right  { animation: slide-from-right  0.6s  cubic-bezier(0.22,1,0.36,1) both; }
-.animate-slide-from-left   { animation: slide-from-left   0.6s  cubic-bezier(0.22,1,0.36,1) both; }
-.animate-spring-in         { animation: rise-in           0.6s  cubic-bezier(0.16,1,0.3,1) both; }
-.animate-search-expand     { animation: search-expand     0.35s cubic-bezier(0.16,1,0.3,1) both; transform-origin: right center; }
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -200% 0;
+  }
+
+  to {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.07);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes search-expand {
+  from {
+    opacity: 0;
+    transform: scaleX(0.88) translateX(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scaleX(1) translateX(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out both;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-pop {
+  animation: pop 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-slide-from-right {
+  animation: slide-from-right 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-slide-from-left {
+  animation: slide-from-left 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-spring-in {
+  animation: rise-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-search-expand {
+  animation: search-expand 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: right center;
+}
 
 /* ─────────────────────────────────────────────────────────────────────────────
    MISC

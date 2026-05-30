@@ -48,65 +48,82 @@ function Navbar({ scrolled }: { scrolled: boolean }) {
 /* ── iPhone Mockup ───────────────────────────────────────────────────────── */
 function PhoneMockup() {
   return (
-    <div
-      className="relative mx-auto"
-      style={{ width: 220, height: 460 }}
-    >
+    <div className="relative mx-auto" style={{ width: 240, height: 520 }}>
       {/* Phone frame */}
       <div
-        className="absolute inset-0 rounded-[44px]"
+        className="absolute inset-0 rounded-[50px]"
         style={{
-          background: '#1C1C1E',
-          boxShadow: '0 40px 80px rgba(0,0,0,0.22), 0 0 0 1.5px rgba(255,255,255,0.12) inset, 0 0 0 3px #1C1C1E',
+          background: '#0F172A',
+          boxShadow: '0 48px 96px rgba(0,0,0,0.30), 0 0 0 1.5px rgba(255,255,255,0.10) inset',
         }}
       >
-        {/* Notch */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[90px] h-[30px] rounded-b-[18px]" style={{ background: '#1C1C1E', zIndex: 10 }} />
+        {/* Dynamic Island */}
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 w-[72px] h-[24px] rounded-full z-10" style={{ background: '#000' }} />
+
         {/* Screen */}
-        <div className="absolute inset-[3px] rounded-[42px] overflow-hidden" style={{ background: '#020617' }}>
-          {/* Status bar */}
-          <div className="flex items-center justify-between px-5 pt-10 pb-1">
-            <span className="text-[10px] font-bold text-white">9:41</span>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-2 rounded-sm border border-white/60" style={{ background: 'rgba(255,255,255,0.8)' }} />
+        <div className="absolute inset-[3px] rounded-[48px] overflow-hidden" style={{ background: '#020617' }}>
+
+          {/* Header */}
+          <div className="px-4 pt-12 pb-3 flex items-start justify-between">
+            <div>
+              <p className="text-[8px] font-black uppercase tracking-[2px]" style={{ color: 'rgba(255,255,255,0.35)' }}>MAYO 2026</p>
+              <p className="text-[17px] font-black text-white leading-tight">Hola, Bernardo</p>
+            </div>
+            <div className="w-7 h-7 rounded-full flex items-center justify-center mt-1" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <i className="fa-regular fa-bell text-white text-[11px]" />
             </div>
           </div>
-          {/* App content */}
-          <div className="px-4 pt-2">
-            <p className="text-[10px] font-black uppercase tracking-[2px] mb-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>Total mes</p>
-            <p className="text-[26px] font-black text-white leading-none tabular-nums">$12,840</p>
-            <p className="text-[10px] font-semibold mt-1 mb-4" style={{ color: '#30D158' }}>▲ +4.2% vs mes anterior</p>
-            {/* Mini chart */}
-            <div className="flex items-end gap-1 mb-4 h-[48px]">
-              {[32,45,28,60,42,55,68,40,72,50,65,80].map((h,i)=>(
-                <div key={i} className="flex-1 rounded-t-[3px]" style={{
-                  height: `${h}%`,
-                  background: i === 11 ? '#007AFF' : 'rgba(0,122,255,0.3)',
-                }}/>
-              ))}
+
+          {/* Balance card */}
+          <div className="mx-4 mb-3 rounded-[18px] p-4" style={{ background: '#007AFF' }}>
+            <p className="text-[8px] font-black uppercase tracking-[2px] mb-1" style={{ color: 'rgba(255,255,255,0.65)' }}>SALDO ACTUAL</p>
+            <p className="text-[26px] font-black text-white leading-none tabular-nums">$8,240.50</p>
+          </div>
+
+          {/* Budget section */}
+          <div className="mx-4 mb-3 rounded-[14px] p-3" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
+            <div className="flex items-center justify-between mb-1.5">
+              <p className="text-[8px] font-black uppercase tracking-[2px]" style={{ color: 'rgba(255,255,255,0.40)' }}>PRESUPUESTO DEL MES</p>
+              <i className="fa-solid fa-pen text-[8px]" style={{ color: 'rgba(255,255,255,0.3)' }} />
             </div>
-            {/* Transactions */}
-            <div className="space-y-2">
-              {[
-                { icon: '🍎', name: 'Apple Pay', cat: 'OXXO · Automático', amt: '-$52', color: '#FF453A' },
-                { icon: '🎬', name: 'Netflix',   cat: 'Entretenimiento',   amt: '-$219', color: '#FF453A' },
-                { icon: '💸', name: 'Roy',       cat: 'Me debe · HBO',     amt: '+$40', color: '#30D158' },
-              ].map((tx, i) => (
-                <div key={i} className="flex items-center gap-2 rounded-[10px] px-2 py-2" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                  <div className="w-6 h-6 rounded-[6px] flex items-center justify-center text-[11px]" style={{ background: 'rgba(255,255,255,0.08)' }}>{tx.icon}</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[9px] font-bold text-white truncate">{tx.name}</p>
-                    <p className="text-[8px] font-medium truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>{tx.cat}</p>
-                  </div>
-                  <p className="text-[9px] font-black tabular-nums flex-shrink-0" style={{ color: tx.color }}>{tx.amt}</p>
-                </div>
-              ))}
+            <p className="text-[17px] font-black text-white tabular-nums mb-0.5">$6,420.00</p>
+            <p className="text-[8px] font-semibold mb-2" style={{ color: 'rgba(255,255,255,0.40)' }}>de $10,000.00</p>
+            {/* Progress bar */}
+            <div className="h-[5px] rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
+              <div className="h-full rounded-full" style={{ width: '64%', background: '#30D158' }} />
             </div>
           </div>
+
+          {/* Today/Week tabs */}
+          <div className="mx-4 mb-2">
+            <div className="flex rounded-[10px] overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+              <div className="flex-1 py-1.5 text-center text-[9px] font-black" style={{ background: '#007AFF', color: '#fff' }}>HOY</div>
+              <div className="flex-1 py-1.5 text-center text-[9px] font-black" style={{ color: 'rgba(255,255,255,0.35)' }}>SEMANA</div>
+            </div>
+            <p className="text-center text-[8px] font-semibold mt-2 mb-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>Hoy</p>
+            <p className="text-center text-[16px] font-black text-white tabular-nums">$1,240.00</p>
+          </div>
+
+          {/* Recurrentes label */}
+          <div className="mx-4 mt-1">
+            <p className="text-[7px] font-black uppercase tracking-[2px]" style={{ color: 'rgba(255,255,255,0.25)' }}>PRÓXIMOS RECURRENTES</p>
+          </div>
+
           {/* Bottom nav */}
-          <div className="absolute bottom-0 left-0 right-0 flex justify-around items-center px-4 py-3" style={{ background: 'rgba(15,23,42,0.95)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-            {['fa-home','fa-list','fa-chart-pie','fa-users','fa-gear'].map((icon,i) => (
-              <i key={i} className={`fa-solid ${icon}`} style={{ fontSize: 14, color: i === 0 ? '#007AFF' : 'rgba(255,255,255,0.35)' }} />
+          <div className="absolute bottom-0 left-0 right-0 flex justify-around items-center px-3 pb-4 pt-3"
+            style={{ background: 'rgba(2,6,23,0.96)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            {[
+              { icon: 'fa-wallet', active: true },
+              { icon: 'fa-list', active: false },
+              { icon: 'fa-chart-pie', active: false },
+              { icon: 'fa-users', active: false },
+              { icon: 'fa-gear', active: false },
+            ].map((item, i) => (
+              i === 2
+                ? <div key={i} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: '#007AFF' }}>
+                    <i className="fa-solid fa-plus text-white text-[14px]" />
+                  </div>
+                : <i key={i} className={`fa-solid ${item.icon}`} style={{ fontSize: 16, color: item.active ? '#007AFF' : 'rgba(255,255,255,0.25)' }} />
             ))}
           </div>
         </div>
@@ -138,11 +155,13 @@ function Hero() {
             </div>
 
             <h1
-              className="text-[52px] sm:text-[68px] font-black leading-[1.04] tracking-[-2px] mb-6"
+              className="text-[44px] sm:text-[58px] lg:text-[64px] font-black leading-[1.05] tracking-[-2px] mb-6"
               style={{ color: DARK }}
             >
               Tu dinero.{' '}
+              <br className="hidden sm:block" />
               <span style={{ color: BLUE }}>Bajo control.</span>{' '}
+              <br />
               Automáticamente.
             </h1>
 
