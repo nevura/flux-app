@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect, useRef, useTransition } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { formatCurrency, formatDateShort, getCategoryDisplay } from '@/lib/utils'
@@ -11,8 +11,9 @@ function AnimatedCurrency({ value }: { value: number }) {
   return <>{formatCurrency(animated)}</>
 }
 import { MONTHS_ES } from '@/lib/constants'
-import { searchAllTransactions, fetchSharedTransactions } from '@/actions/transactions'
+import { searchAllTransactions, fetchSharedTransactions, deleteTransaction, confirmTransaction } from '@/actions/transactions'
 import CoachMarkTour from '@/components/onboarding/CoachMarkTour'
+import { SwipeableRow } from '@/components/shared/SwipeableRow'
 import type { Transaction, Category, AccountWithBalance, Person } from '@/lib/types'
 import TransactionModal from './TransactionModal'
 
@@ -27,6 +28,7 @@ interface Props {
 
 export default function TransactionsClient({ initialTransactions, categories, accounts, people, year, month }: Props) {
   const router = useRouter()
+  const [isPending, startTransition] = useTransition()
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing]     = useState<Transaction | null>(null)
   const [search, setSearch]         = useState('')
@@ -136,6 +138,20 @@ export default function TransactionsClient({ initialTransactions, categories, ac
   }, [filtered])
 
   function openEdit(tx: Transaction) { setEditing(tx); setModalOpen(true) }
+
+  function handleQuickDelete(tx: Transaction) {
+    startTransition(async () => {
+      await deleteTransaction(tx.id)
+      router.refresh()
+    })
+  }
+
+  function handleQuickConfirm(tx: Transaction) {
+    startTransition(async () => {
+      await confirmTransaction(tx.id)
+      router.refresh()
+    })
+  }
 
 
   const now = new Date()
@@ -480,42 +496,60 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                     const d = isTransfer
                       ? { icon: 'fa-solid fa-shuffle', color: 'text-sky-400', bg: 'bg-sky-500/20', name: `${accMap[tx.account_id]?.name ?? '?'} → ${accMap[tx.destination_account_id ?? '']?.name ?? '?'}` }
                       : getCategoryDisplay(cat)
-                    const isIncome  = tx.type === 'TR-INGRESO'
-                    const isExpense = tx.type === 'TR-GASTO'
-                    const amtColor  = isIncome ? 'var(--f-income)' : isExpense ? 'var(--f-expense)' : 'var(--f-transfer)'
-                    const isPending = !tx.is_validated
+                    const isIncome   = tx.type === 'TR-INGRESO'
+                    const isExpense  = tx.type === 'TR-GASTO'
+                    const amtColor   = isIncome ? 'var(--f-income)' : isExpense ? 'var(--f-expense)' : 'var(--f-transfer)'
+                    const isTxPending = !tx.is_validated
                     return (
-                      <button
+                      <SwipeableRow
                         key={tx.id}
-                        onClick={() => openEdit(tx)}
-                        className="w-full rounded-[16px] px-4 py-3.5 flex items-center gap-3 active:scale-[0.98] transition-transform text-left animate-spring-in"
-                        style={{
-                          background: isPending ? 'var(--f-pending-bg)' : 'var(--f-bg-card)',
-                          border: isPending ? '1px solid var(--f-pending-border)' : '1px solid var(--f-accent-border)',
-                          animationDelay: `${gi * 0.045 + ti * 0.03}s`,
-                        }}
+                        className="rounded-[16px]"
+                        rightActions={[
+                          ...(isTxPending ? [{
+                            icon: 'fa-solid fa-circle-check',
+                            label: 'Confirmar',
+                            bg: 'var(--f-income)',
+                            onClick: () => handleQuickConfirm(tx),
+                          }] : []),
+                          {
+                            icon: 'fa-solid fa-trash',
+                            label: 'Eliminar',
+                            bg: 'var(--f-expense)',
+                            onClick: () => handleQuickDelete(tx),
+                          },
+                        ]}
                       >
-                        <div className={`w-11 h-11 rounded-[12px] flex items-center justify-center flex-shrink-0 ${d.bg}`}>
-                          <i className={`${d.icon} ${d.color} text-sm`} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[15px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{tx.concept}</p>
-                          <p className="text-[13px] mt-0.5 truncate" style={{ color: 'var(--f-text-3)' }}>
-                            {isPending && <span style={{ color: 'var(--f-pending)' }}>Por confirmar · </span>}
-                            {d.name}
-                          </p>
-                        </div>
-                        <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
-                          <p className="text-[16px] font-black tabular-nums" style={{ color: amtColor }}>
-                            {isIncome ? '+' : isExpense ? '-' : ''}{formatCurrency(Number(tx.amount))}
-                          </p>
-                          {!isPending && (tx.is_receivable || tx.is_payable) && (
-                            <span className="text-[11px] font-black mt-0.5 inline-block px-1.5 py-0.5 rounded-full" style={{ background: 'var(--f-pending-bg)', color: 'var(--f-pending)' }}>
-                              {tx.is_receivable ? 'Por cobrar' : 'Por pagar'}
-                            </span>
-                          )}
-                        </div>
-                      </button>
+                        <button
+                          onClick={() => openEdit(tx)}
+                          className="w-full rounded-[16px] px-4 py-3.5 flex items-center gap-3 active:scale-[0.98] transition-transform text-left animate-spring-in"
+                          style={{
+                            background: isTxPending ? 'var(--f-pending-bg)' : 'var(--f-bg-card)',
+                            border: isTxPending ? '1px solid var(--f-pending-border)' : '1px solid var(--f-accent-border)',
+                            animationDelay: `${gi * 0.045 + ti * 0.03}s`,
+                          }}
+                        >
+                          <div className={`w-11 h-11 rounded-[12px] flex items-center justify-center flex-shrink-0 ${d.bg}`}>
+                            <i className={`${d.icon} ${d.color} text-sm`} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[15px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{tx.concept}</p>
+                            <p className="text-[13px] mt-0.5 truncate" style={{ color: 'var(--f-text-3)' }}>
+                              {isTxPending && <span style={{ color: 'var(--f-pending)' }}>Por confirmar · </span>}
+                              {d.name}
+                            </p>
+                          </div>
+                          <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
+                            <p className="text-[16px] font-black tabular-nums" style={{ color: amtColor }}>
+                              {isIncome ? '+' : isExpense ? '-' : ''}{formatCurrency(Number(tx.amount))}
+                            </p>
+                            {!isTxPending && (tx.is_receivable || tx.is_payable) && (
+                              <span className="text-[11px] font-black mt-0.5 inline-block px-1.5 py-0.5 rounded-full" style={{ background: 'var(--f-pending-bg)', color: 'var(--f-pending)' }}>
+                                {tx.is_receivable ? 'Por cobrar' : 'Por pagar'}
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      </SwipeableRow>
                     )
                   })}
                 </div>

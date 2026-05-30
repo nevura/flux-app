@@ -10,6 +10,8 @@ import { markNotificationsRead, respondFriendRequest, deleteNotification, clearA
 import { acceptSharedExpense, declineSharedExpense, confirmSettledExpense, rejectSettledExpense } from '@/actions/transactions'
 import { formatCurrency } from '@/lib/utils'
 import { useBottomSheetSwipe } from '@/lib/hooks/useBottomSheetSwipe'
+import { SwipeableRow } from '@/components/shared/SwipeableRow'
+import AssignFriendModal from '@/components/friends/AssignFriendModal'
 import type { Notification } from '@/lib/types'
 
 function notifLabel(n: Notification): { icon: string; iconColor: string; text: string } {
@@ -53,9 +55,18 @@ export default function NotificationBell() {
   const [accounts, setAccounts] = useState<{ id: string; name: string }[]>([])
   const [confirmAccountId, setConfirmAccountId] = useState('')
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [assignFriend, setAssignFriend] = useState<{ userId: string; name: string } | null>(null)
 
   const handleClose = useCallback(() => setOpen(false), [])
   const { handleProps: swipeHandleProps, sheetStyle } = useBottomSheetSwipe(handleClose)
+
+  // Lock body scroll while panel is open
+  useEffect(() => {
+    if (!open) return
+    const orig = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = orig }
+  }, [open])
 
   useEffect(() => {
     setMounted(true)
@@ -160,16 +171,20 @@ export default function NotificationBell() {
     })
   }
 
-  function handleFriendResponse(friendshipId: string, accept: boolean) {
+  function handleFriendResponse(n: Notification, accept: boolean) {
+    const d = n.data as Record<string, string>
+    const friendshipId = d.friendship_id
     startTransition(async () => {
       const res = await respondFriendRequest(friendshipId, accept)
       if (res.error) { toast.error(res.error); return }
       toast.success(accept ? 'Solicitud aceptada' : 'Solicitud rechazada')
-      setList(prev => prev.filter(n => {
-        if (n.type !== 'friend_request') return true
-        const d = n.data as Record<string, string>
-        return d.friendship_id !== friendshipId
-      }))
+      setList(prev => prev.filter(notif => notif.id !== n.id))
+      if (accept) {
+        setAssignFriend({
+          userId: d.from_user_id,
+          name: d.from_name || `@${d.from_username}` || 'Amigo',
+        })
+      }
     })
   }
 
@@ -252,8 +267,16 @@ export default function NotificationBell() {
             const { icon, iconColor, text } = notifLabel(n)
             const d = n.data as Record<string, string>
             return (
-              <div
+              <SwipeableRow
                 key={n.id}
+                rightActions={[{
+                  icon: 'fa-solid fa-trash',
+                  label: 'Eliminar',
+                  bg: 'var(--f-expense)',
+                  onClick: () => handleDelete(n.id),
+                }]}
+              >
+              <div
                 className="px-5 py-4"
                 style={{ background: n.read ? 'transparent' : 'var(--f-accent-bg)', borderBottom: '1px solid var(--f-line)' }}
               >
@@ -271,7 +294,7 @@ export default function NotificationBell() {
                     {n.type === 'friend_request' && !n.read && d.friendship_id && (
                       <div className="flex gap-2 mt-3">
                         <button
-                          onClick={() => handleFriendResponse(d.friendship_id, false)}
+                          onClick={() => handleFriendResponse(n, false)}
                           disabled={isPending}
                           className="flex-1 py-3 rounded-[12px] text-[15px] font-black transition-all active:scale-95 disabled:opacity-50"
                           style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
@@ -279,7 +302,7 @@ export default function NotificationBell() {
                           Rechazar
                         </button>
                         <button
-                          onClick={() => handleFriendResponse(d.friendship_id, true)}
+                          onClick={() => handleFriendResponse(n, true)}
                           disabled={isPending}
                           className="flex-[2] py-3 rounded-[12px] text-[15px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
                           style={{ background: 'var(--f-blue)' }}
@@ -383,7 +406,21 @@ export default function NotificationBell() {
                     </button>
                   </div>
                 </div>
+                {/* friend_accepted: offer to assign to a contact */}
+                {n.type === 'friend_accepted' && (
+                  <div className="px-4 pb-3">
+                    <button
+                      onClick={() => setAssignFriend({ userId: d.from_user_id, name: d.from_name || `@${d.from_username}` })}
+                      className="w-full py-2.5 rounded-[12px] text-[14px] font-bold flex items-center justify-center gap-2 active:opacity-70"
+                      style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)' }}
+                    >
+                      <i className="fa-solid fa-link text-xs" />
+                      Asignar a contacto
+                    </button>
+                  </div>
+                )}
               </div>
+            </SwipeableRow>
             )
           })}
         </div>
@@ -396,6 +433,13 @@ export default function NotificationBell() {
     <>
       {bellButton}
       {panel}
+      {assignFriend && (
+        <AssignFriendModal
+          linkedUserId={assignFriend.userId}
+          linkedUserName={assignFriend.name}
+          onClose={() => setAssignFriend(null)}
+        />
+      )}
     </>
   )
 }

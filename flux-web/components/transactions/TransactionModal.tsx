@@ -8,6 +8,7 @@ import { addTransaction, updateTransaction, deleteTransaction, confirmTransactio
 import { addPerson } from '@/actions/config'
 import { getCategoryDisplay, getMexicoNow } from '@/lib/utils'
 import { useBottomSheetSwipe } from '@/lib/hooks/useBottomSheetSwipe'
+import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock'
 import type { Transaction, AccountWithBalance, Category, Person, SplitData } from '@/lib/types'
 
 interface Props {
@@ -32,6 +33,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const { handleProps: swipeHandleProps, sheetStyle } = useBottomSheetSwipe(onClose)
+  useBodyScrollLock()
   const [confirmDelete, setConfirmDelete] = useState(false)
   const needsConfirm = isEdit && transaction?.is_validated === false
 

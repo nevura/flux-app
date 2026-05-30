@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
 import { searchUsers, sendFriendRequest, sendAppInvite } from '@/actions/friends'
 import { useBottomSheetSwipe } from '@/lib/hooks/useBottomSheetSwipe'
+import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock'
 import type { PublicProfile, Friendship } from '@/lib/types'
 
 interface Props {
@@ -32,6 +33,7 @@ export default function FriendSearchModal({ onClose, existingFriendships, myUser
   const [isPending, startTransition] = useTransition()
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { handleProps: swipeHandleProps, sheetStyle } = useBottomSheetSwipe(onClose)
+  useBodyScrollLock()
 
   function handleInput(v: string) {
     setQuery(v)

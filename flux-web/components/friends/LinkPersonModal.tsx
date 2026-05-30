@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
 import { getMyFriends, linkPersonToUser } from '@/actions/friends'
 import { useBottomSheetSwipe } from '@/lib/hooks/useBottomSheetSwipe'
+import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock'
 import type { PublicProfile } from '@/lib/types'
 
 interface Props {
@@ -23,6 +24,7 @@ export default function LinkPersonModal({ personId, personName, currentLinkedUse
   const [isPending, startTransition] = useTransition()
   const inputRef = useRef<HTMLInputElement>(null)
   const { handleProps: swipeHandleProps, sheetStyle } = useBottomSheetSwipe(onClose)
+  useBodyScrollLock()
 
   useEffect(() => {
     setMounted(true)

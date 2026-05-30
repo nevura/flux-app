@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { applyAdjustment } from '@/actions/config'
 import { formatCurrency, getPaymentMethod } from '@/lib/utils'
 import { useBottomSheetSwipe } from '@/lib/hooks/useBottomSheetSwipe'
+import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock'
 import type { AccountWithBalance } from '@/lib/types'
 
 function evalMath(expr: string): number | null {
@@ -28,6 +29,7 @@ export default function AuditModal({ accounts, onClose }: Props) {
   const [inputs, setInputs] = useState<Record<string, string>>({})
   const [isPending, startTransition] = useTransition()
   const { handleProps: swipeHandleProps, sheetStyle } = useBottomSheetSwipe(onClose)
+  useBodyScrollLock()
 
   function getComputed(accId: string, isTDC: boolean): number | null {
     const v = inputs[accId]

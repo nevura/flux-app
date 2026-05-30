@@ -336,6 +336,39 @@ export async function linkPersonToUser(personId: string, linkedUserId: string | 
   return { error: null }
 }
 
+// ── People (unlinked) ────────────────────────────────────────────────────────
+
+export async function getMyPeopleUnlinked(): Promise<{ people: { id: string; name: string }[] }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { people: [] }
+  const { data } = await supabase
+    .from('people')
+    .select('id, name')
+    .eq('user_id', user.id)
+    .eq('is_me', false)
+    .is('linked_user_id', null)
+    .order('name')
+  return { people: (data ?? []) as { id: string; name: string }[] }
+}
+
+export async function createLinkedPerson(name: string, linkedUserId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+  const suffix = Math.random().toString(36).slice(2, 10).toUpperCase()
+  const { error } = await supabase.from('people').insert({
+    id: `PER-FRD-${suffix}`,
+    user_id: user.id,
+    name: name.trim(),
+    linked_user_id: linkedUserId,
+    is_me: false,
+  })
+  if (error) return { error: error.message }
+  revalidatePath('/settings')
+  return { error: null }
+}
+
 // ── Delete notifications ──────────────────────────────────────────────────────
 
 export async function deleteNotification(id: string) {
