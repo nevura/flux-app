@@ -109,22 +109,16 @@ function PhoneMockup() {
             <p className="text-[7px] font-black uppercase tracking-[2px]" style={{ color: 'rgba(255,255,255,0.25)' }}>PRÓXIMOS RECURRENTES</p>
           </div>
 
-          {/* Bottom nav */}
+          {/* Bottom nav — 4 tabs + center FAB */}
           <div className="absolute bottom-0 left-0 right-0 flex justify-around items-center px-3 pb-4 pt-3"
             style={{ background: 'rgba(2,6,23,0.96)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-            {[
-              { icon: 'fa-wallet', active: true },
-              { icon: 'fa-list', active: false },
-              { icon: 'fa-chart-pie', active: false },
-              { icon: 'fa-users', active: false },
-              { icon: 'fa-gear', active: false },
-            ].map((item, i) => (
-              i === 2
-                ? <div key={i} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: '#007AFF' }}>
-                    <i className="fa-solid fa-plus text-white text-[14px]" />
-                  </div>
-                : <i key={i} className={`fa-solid ${item.icon}`} style={{ fontSize: 16, color: item.active ? '#007AFF' : 'rgba(255,255,255,0.25)' }} />
-            ))}
+            <i className="fa-solid fa-wallet" style={{ fontSize: 16, color: '#007AFF' }} />
+            <i className="fa-solid fa-list" style={{ fontSize: 16, color: 'rgba(255,255,255,0.25)' }} />
+            <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: '#007AFF' }}>
+              <i className="fa-solid fa-plus text-white text-[14px]" />
+            </div>
+            <i className="fa-solid fa-chart-pie" style={{ fontSize: 16, color: 'rgba(255,255,255,0.25)' }} />
+            <i className="fa-solid fa-users" style={{ fontSize: 16, color: 'rgba(255,255,255,0.25)' }} />
           </div>
         </div>
       </div>
@@ -578,7 +572,7 @@ export default function LandingPage() {
   }, [])
 
   return (
-    <div style={{ background: WHITE, color: DARK, fontFamily: 'var(--font-geist-sans)' }}>
+    <div style={{ background: WHITE, color: DARK, fontFamily: 'var(--font-geist-sans)', overflowX: 'hidden' }}>
       <Navbar scrolled={scrolled} />
       <Hero />
       <TrustBar />

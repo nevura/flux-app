@@ -44,7 +44,7 @@ export const COACH_MARKS: Record<string, CoachMarkStep[]> = {
     {
       target: 'app-nav',
       title: 'Navegación',
-      description: 'Inicio · Movimientos · Estadísticas · Compartidos · Configuración.',
+      description: 'Inicio · Movimientos · Estadísticas · Compartidos. El botón central + agrega movimientos rápidamente.',
     },
   ],
   transactions: [

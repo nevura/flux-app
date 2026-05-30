@@ -139,10 +139,10 @@
 [data-theme="light"] {
 
   /* ── Backgrounds ── */
-  --f-bg: #F2F2F7;
+  --f-bg: #FFFFFF;
   /* iOS systemGroupedBackground */
-  --f-bg-card: #FFFFFF;
-  --f-bg-elevated: #FFFFFF;
+  --f-bg-card: #F2F2F7;
+  --f-bg-elevated: #F2F2F7;
   --f-bg-input: rgba(0, 0, 0, 0.05);
   --f-bg-glass: rgba(242, 242, 247, 0.92);
   --f-bg-nav: rgba(255, 255, 255, 0.88);
@@ -171,11 +171,9 @@
 
   /* ── Brand colors — darker for legibility on white backgrounds ── */
   --f-income: #00AD40;
-  /* accessible dark green */
   --f-expense: #FF004F;
-  /* accessible dark red */
   --f-transfer: #007AFF;
-  /* accessible dark cyan */
+
 
   /* ── Status backgrounds (ligeramente más saturados en light) ── */
   --f-income-bg: rgba(26, 127, 55, 0.10);

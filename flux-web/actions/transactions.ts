@@ -420,9 +420,10 @@ export async function settleAndRecord(txId: string, participantId: string, accou
   } else {
     // THEY / DIV: create a new income/expense record on the creator's side
     const txType = isTheyOwe ? 'TR-INGRESO' : 'TR-GASTO'
+    const personLabel = participant.nombre ?? 'persona'
     const { error: txCreateErr } = await supabase.from('transactions').insert({
       user_id: user.id,
-      concept: `${isTheyOwe ? 'Cobro' : 'Pago'}: ${tx.concept}`,
+      concept: `${isTheyOwe ? 'Cobro' : 'Pago'} de ${personLabel}: ${tx.concept}`,
       type: txType,
       amount: unpaid,
       adjustment: adjustmentFor(txType, unpaid),
@@ -519,7 +520,7 @@ export async function abonoGlobalForPerson(personId: string, personName: string,
   if (accountId) {
     await supabase.from('transactions').insert({
       user_id: user.id,
-      concept: `Abono global: ${personName}`,
+      concept: `Cobro de ${personName}`,
       type: 'TR-INGRESO',
       amount,
       adjustment: adjustmentFor('TR-INGRESO', amount),

@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useTransition } from 'react'
 import { createPortal } from 'react-dom'
+import Link from 'next/link'
 import { toast } from 'sonner'
 import { formatCurrency, getCategoryDisplay, getPaymentMethod } from '@/lib/utils'
 import { MONTHS_ES } from '@/lib/constants'
@@ -220,13 +221,22 @@ export default function DashboardClient({ user, accounts, transactions, categori
         }}
       >
         <div className="flex items-start justify-between">
-          <div>
-            <p className="text-[12px] font-black tracking-[3px] uppercase" style={{ color: 'var(--f-text-3)' }}>
-              {MONTHS_ES[month - 1].toUpperCase()} {year}
-            </p>
-            <h1 className="text-[22px] font-black leading-tight mt-0.5" style={{ color: 'var(--f-text)' }}>
-              Hola, {userName}
-            </h1>
+          <div className="flex items-start gap-3">
+            <Link
+              href="/settings"
+              className="w-9 h-9 rounded-[12px] flex items-center justify-center flex-shrink-0 mt-0.5 active:scale-90 transition-transform"
+              style={{ background: 'var(--f-bg-input)' }}
+            >
+              <i className="fa-solid fa-bars" style={{ color: 'var(--f-text-3)', fontSize: 16 }} />
+            </Link>
+            <div>
+              <p className="text-[12px] font-black tracking-[3px] uppercase" style={{ color: 'var(--f-text-3)' }}>
+                {MONTHS_ES[month - 1].toUpperCase()} {year}
+              </p>
+              <h1 className="text-[22px] font-black leading-tight mt-0.5" style={{ color: 'var(--f-text)' }}>
+                Hola, {userName}
+              </h1>
+            </div>
           </div>
           <div data-coach="home-bell"><NotificationBell /></div>
         </div>

@@ -67,22 +67,24 @@ export default function GuiaPage() {
       <h1 className="text-[40px] font-black tracking-[-1px] mb-2" style={{ color: DARK }}>Guía de Flux</h1>
       <p className="text-[16px] font-medium mb-10" style={{ color: GRAY }}>Todo lo que necesitas saber para sacar el máximo provecho.</p>
 
-      {/* Tabs */}
-      <div className="flex gap-2 flex-wrap mb-10">
-        {tabs.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setActive(t.id)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-[12px] text-[14px] font-bold transition-all"
-            style={active === t.id
-              ? { background: BLUE, color: '#fff' }
-              : { background: LIGHT, color: GRAY, border: '1px solid rgba(0,0,0,0.08)' }
-            }
-          >
-            <i className={`fa-solid ${t.icon} text-[13px]`} />
-            {t.label}
-          </button>
-        ))}
+      {/* Tabs — single scrollable row */}
+      <div className="-mx-6 px-6 mb-10">
+        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          {tabs.map(t => (
+            <button
+              key={t.id}
+              onClick={() => setActive(t.id)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-[12px] text-[14px] font-bold transition-all flex-shrink-0"
+              style={active === t.id
+                ? { background: BLUE, color: '#fff' }
+                : { background: LIGHT, color: GRAY, border: '1px solid rgba(0,0,0,0.08)' }
+              }
+            >
+              <i className={`fa-solid ${t.icon} text-[13px]`} />
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Content */}

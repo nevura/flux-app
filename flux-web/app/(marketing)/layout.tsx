@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ background: '#fff', color: '#1D1D1F', fontFamily: 'var(--font-geist-sans)', minHeight: '100vh' }}>
+    <div style={{ background: '#fff', color: '#1D1D1F', fontFamily: 'var(--font-geist-sans)', minHeight: '100vh', overflowX: 'hidden' }}>
       {/* Minimal nav */}
       <nav
         className="sticky top-0 z-50"

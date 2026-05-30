@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { getCategoryDisplay, getPaymentMethod, formatCurrency } from '@/lib/utils'
@@ -110,6 +111,7 @@ const SECTIONS: { key: Tab; icon: string; label: string; description: string; hi
 })
 
 export default function SettingsClient({ profile, shortcutToken, categories, accounts, scheduled, people }: Props) {
+  const router = useRouter()
   const [section, setSection] = useState<Tab | null>(null)
   const [isPending, startTransition] = useTransition()
   const [theme, setTheme] = useState<'dark' | 'light'>(profile?.theme_preference ?? 'dark')
@@ -491,8 +493,17 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
           borderBottom: '1px solid var(--f-accent-bg)',
         }}
       >
-        <div className="flex items-center mb-4">
-          <h1 className="text-xl font-black text-white">Ajustes</h1>
+        <div className="flex items-center gap-3 mb-4">
+          <button
+            onClick={() => section ? setSection(null) : router.back()}
+            className="w-9 h-9 rounded-[12px] flex items-center justify-center flex-shrink-0 active:scale-90 transition-transform"
+            style={{ background: 'var(--f-bg-input)' }}
+          >
+            <i className="fa-solid fa-chevron-left" style={{ color: 'var(--f-text-3)', fontSize: 15 }} />
+          </button>
+          <h1 className="text-xl font-black" style={{ color: 'var(--f-text)' }}>
+            {section ? (SECTIONS.find(s => s.key === section)?.label ?? 'Ajustes') : 'Ajustes'}
+          </h1>
         </div>
 
         {/* Profile card — tap to edit in Perfil section */}

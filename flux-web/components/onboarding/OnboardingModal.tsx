@@ -49,7 +49,7 @@ export default function OnboardingModal({ onDone }: Props) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[500] flex flex-col"
+      className="fixed inset-0 z-[9999] flex flex-col"
       style={{ background: 'var(--f-bg)', paddingTop: 'var(--safe-top)', paddingBottom: 'max(1.5rem, var(--safe-bottom))' }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
