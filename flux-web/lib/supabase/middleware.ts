@@ -28,8 +28,9 @@ export async function updateSession(request: NextRequest) {
   const isAuthCallback  = path.startsWith('/auth/')
   const isApiRoute      = path.startsWith('/api/')
   const isStatusRoute   = path.startsWith('/pending') || path.startsWith('/rejected')
+  const isMarketingRoute = path === '/' || path.startsWith('/terminos') || path.startsWith('/privacidad') || path.startsWith('/guia')
 
-  if (!user && !isAuthRoute && !isAuthCallback && !isApiRoute) {
+  if (!user && !isAuthRoute && !isAuthCallback && !isApiRoute && !isMarketingRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
@@ -42,7 +43,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Check approval + subscription status for authenticated users
-  if (user && !isAuthRoute && !isAuthCallback && !isApiRoute && !isStatusRoute) {
+  if (user && !isAuthRoute && !isAuthCallback && !isApiRoute && !isStatusRoute && !isMarketingRoute) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('status, subscription_status, trial_ends_at, subscription_ends_at')
