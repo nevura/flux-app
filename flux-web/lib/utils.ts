@@ -71,6 +71,9 @@ export function getPaymentMethod(id: string) {
 
 export function getCategoryDisplay(category: Category | undefined) {
   if (!category) return { icon: 'fa-solid fa-circle-question', color: 'text-slate-500', bg: 'bg-slate-500/20', name: 'Sin categoría' }
+  if (category.id === 'CAT-APPLE') {
+    return { icon: 'fa-brands fa-apple', color: 'text-white', bg: 'bg-black', name: category.name }
+  }
   const icon = getIcon(category.icon_id)
   const color = getColor(category.color_id)
   return { icon: icon.icon_base, color: color.tailwind, bg: color.bg, name: category.name }

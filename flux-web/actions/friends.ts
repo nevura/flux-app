@@ -239,32 +239,6 @@ export async function respondFriendRequest(friendshipId: string, accept: boolean
         acceptedByUsername: myProfile?.username ?? '',
       }).catch(console.error)
     }
-
-    // Auto-link: ensure requester (A) exists in accepter's (B) people table.
-    const aName = requesterProfile?.full_name ?? `@${requesterProfile?.username ?? 'amigo'}`
-    const { data: linkedInB } = await supabase
-      .from('people').select('id').eq('user_id', user.id).eq('linked_user_id', friendship.requester_id).maybeSingle()
-    if (!linkedInB) {
-      try {
-        await supabase.from('people').insert({
-          id: `PER-FRD-${Date.now()}-${friendship.requester_id.slice(0, 6)}`,
-          user_id: user.id, name: aName, linked_user_id: friendship.requester_id, is_me: false,
-        })
-      } catch { /* ignore */ }
-    }
-
-    // Auto-link: ensure accepter (B) exists in requester's (A) people table.
-    const bName = myProfile?.full_name ?? `@${myProfile?.username ?? 'amigo'}`
-    const { data: linkedInA } = await (admin.from('people') as any)
-      .select('id').eq('user_id', friendship.requester_id).eq('linked_user_id', user.id).maybeSingle()
-    if (!linkedInA) {
-      try {
-        await (admin.from('people') as any).insert({
-          id: `PER-FRD-${Date.now() + 1}-${user.id.slice(0, 6)}`,
-          user_id: friendship.requester_id, name: bName, linked_user_id: user.id, is_me: false,
-        })
-      } catch { /* ignore */ }
-    }
   }
 
   // Mark the friend_request notification as read for current user
