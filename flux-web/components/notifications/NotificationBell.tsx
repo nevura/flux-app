@@ -114,7 +114,15 @@ export default function NotificationBell() {
     setLoading(false)
     if (unread > 0) {
       setUnread(0)
-      startTransition(async () => { await markNotificationsRead() })
+      // Don't auto-mark actionable notifications as read — they need explicit user action.
+      // They get marked read only when accept/decline/confirm/reject is executed.
+      const ACTIONABLE = ['friend_request', 'shared_expense_invite', 'expense_settled_confirm']
+      const passiveIds = (notifs ?? [])
+        .filter(n => !n.read && !ACTIONABLE.includes(n.type))
+        .map(n => n.id)
+      if (passiveIds.length > 0) {
+        startTransition(async () => { await markNotificationsRead(passiveIds) })
+      }
     }
   }
 
