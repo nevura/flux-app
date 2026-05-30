@@ -89,7 +89,7 @@ export function SwipeableRow({ children, rightActions, className, style }: Props
     }
   }, [maxReveal])
 
-  const contentTransition = isDraggingRef.current
+  const transition = isDraggingRef.current
     ? 'none'
     : 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)'
 
@@ -99,41 +99,55 @@ export function SwipeableRow({ children, rightActions, className, style }: Props
       className={`relative overflow-hidden ${className ?? ''}`}
       style={style}
     >
-      {/* Action tray (right side, revealed on left-swipe) */}
-      <div className="absolute right-0 top-0 bottom-0 flex" style={{ width: maxReveal }}>
-        {rightActions.map((action, i) => (
-          <button
-            key={i}
-            onClick={() => { action.onClick(); snapTo(0) }}
-            className="flex-1 flex flex-col items-center justify-center gap-1.5 active:opacity-75"
-            style={{ background: action.bg, color: 'white' }}
-          >
-            <i className={`${action.icon} text-[22px]`} />
-            {action.label && (
-              <span className="text-[11px] font-black tracking-tight">{action.label}</span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* Content wrapper */}
+      {/*
+        Inner flex row: content + tray placed side-by-side.
+        The row is (container_width + maxReveal) wide, so the tray starts
+        exactly at the right edge of the container and is hidden by
+        overflow-hidden. When the row translates left, the tray slides in.
+      */}
       <div
         style={{
+          display: 'flex',
+          width: `calc(100% + ${maxReveal}px)`,
           transform: `translateX(${offset}px)`,
-          transition: contentTransition,
+          transition,
           willChange: 'transform',
-          position: 'relative',
-          zIndex: 1,
         }}
       >
-        {/* Invisible overlay that captures taps while row is open */}
-        {offset < 0 && (
-          <div
-            className="absolute inset-0 z-10"
-            onClick={() => snapTo(0)}
-          />
-        )}
-        {children}
+        {/* Content — exactly as wide as the container */}
+        <div
+          style={{
+            flex: `0 0 calc(100% - ${maxReveal}px)`,
+            minWidth: 0,
+            position: 'relative',
+          }}
+        >
+          {/* Tap-to-close overlay while row is open */}
+          {offset < 0 && (
+            <div
+              className="absolute inset-0 z-10"
+              onClick={() => snapTo(0)}
+            />
+          )}
+          {children}
+        </div>
+
+        {/* Tray — sits just beyond the container's right edge at rest */}
+        <div style={{ display: 'flex', flex: `0 0 ${maxReveal}px` }}>
+          {rightActions.map((action, i) => (
+            <button
+              key={i}
+              onClick={() => { action.onClick(); snapTo(0) }}
+              className="flex-1 flex flex-col items-center justify-center gap-1.5 active:opacity-75"
+              style={{ background: action.bg, color: 'white' }}
+            >
+              <i className={`${action.icon} text-[22px]`} />
+              {action.label && (
+                <span className="text-[11px] font-black tracking-tight">{action.label}</span>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   )
