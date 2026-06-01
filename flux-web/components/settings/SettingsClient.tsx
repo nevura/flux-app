@@ -484,7 +484,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
             <AccountsTab accounts={accounts} isPending={isPending} startTransition={startTransition} />
           )}
           {section === 'planificados' && (
-            <ScheduledTab scheduled={scheduled} categories={categories} accounts={accounts} people={people} isPending={isPending} startTransition={startTransition} />
+            <ScheduledTab scheduled={scheduled} categories={categories} accounts={accounts} people={people} />
           )}
           {section === 'personas' && (
             <PeopleTab people={people} isPending={isPending} startTransition={startTransition} />
@@ -1076,19 +1076,19 @@ const TYPE_CONFIG = {
   'TR-TRANSFER': { label: 'Transferencia', color: '#64D2FF', icon: 'fa-solid fa-shuffle' },
 }
 
-function ScheduledTab({ scheduled, categories, accounts, people, isPending, startTransition }: {
+function ScheduledTab({ scheduled, categories, accounts, people }: {
   scheduled: ScheduledTransaction[]
   categories: Category[]
   accounts: Account[]
   people: Person[]
-  isPending: boolean
-  startTransition: (fn: () => void) => void
 }) {
   const [editing, setEditing] = useState<SchedForm | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [localScheduled, setLocalScheduled] = useState<ScheduledTransaction[]>(scheduled)
   const [localPeople, setLocalPeople] = useState(people)
   const [newPersonName, setNewPersonName] = useState('')
   const [addingPerson, setAddingPerson] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const [isAddingPerson, startAddPerson] = useTransition()
   const catMap = Object.fromEntries(categories.map(c => [c.id, c]))
   const otherPeople = localPeople.filter(p => !p.is_me)
@@ -1108,7 +1108,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
   }
 
   // Monthly expense metric — normalize all active expenses to monthly cost
-  const monthlyExpenses = scheduled
+  const monthlyExpenses = localScheduled
     .filter(s => s.status === 'ACTIVO' && s.type === 'TR-GASTO')
     .reduce((sum, s) => {
       const daysMap: Record<string, number> = { dia: 1, semana: 7, mes: 30, año: 365 }
@@ -1165,40 +1165,56 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
       }
     }
 
+    const snap = editing
     startTransition(async () => {
       const payload: Partial<ScheduledTransaction> = {
-        id: editing.id,
-        name: editing.name,
-        type: editing.type,
+        id: snap.id,
+        name: snap.name,
+        type: snap.type,
         amount,
-        category_id: editing.category_id || null,
-        account_id: editing.account_id,
-        destination_account_id: editing.type === 'TR-TRANSFER' ? editing.destination_account_id || null : null,
-        frequency_num: editing.frequency_num,
-        frequency_unit: editing.frequency_unit,
-        payment_day: editing.payment_day ? Number(editing.payment_day) : null,
-        notification_days: editing.notification_days,
-        status: editing.status,
+        category_id: snap.category_id || null,
+        account_id: snap.account_id,
+        destination_account_id: snap.type === 'TR-TRANSFER' ? snap.destination_account_id || null : null,
+        frequency_num: snap.frequency_num,
+        frequency_unit: snap.frequency_unit,
+        payment_day: snap.payment_day ? Number(snap.payment_day) : null,
+        notification_days: snap.notification_days,
+        status: snap.status,
         split_data: split_data as import('@/lib/types').SplitData | null,
       }
       const res = await saveScheduled(payload)
-      if (res.error) toast.error(res.error)
-      else { toast.success(editing.id ? 'Recurrente actualizado' : 'Recurrente creado'); setEditing(null) }
+      if (res.error) { toast.error(res.error); return }
+      toast.success(snap.id ? 'Recurrente actualizado' : 'Recurrente creado')
+      setEditing(null)
+      if (snap.id) {
+        setLocalScheduled(prev => prev.map(s => s.id === snap.id ? { ...s, ...payload } as ScheduledTransaction : s))
+      } else {
+        // Optimistic: add placeholder — server revalidation will give the real id
+        const optimistic = { ...payload, id: `temp-${Date.now()}`, user_id: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), next_charge_date: null, last_charge_date: null, last_notification_date: null } as ScheduledTransaction
+        setLocalScheduled(prev => [...prev, optimistic])
+      }
     })
   }
 
   function handleDelete(id: string) {
     startTransition(async () => {
       const res = await deleteScheduled(id)
-      if (res.error) toast.error(res.error)
-      else { toast.success('Eliminado'); setDeleteConfirm(null) }
+      if (res.error) { toast.error(res.error); return }
+      toast.success('Eliminado')
+      setDeleteConfirm(null)
+      setLocalScheduled(prev => prev.filter(s => s.id !== id))
     })
   }
 
   function handleToggle(s: ScheduledTransaction) {
+    const newStatus = s.status === 'ACTIVO' ? 'PAUSADO' : 'ACTIVO'
+    setLocalScheduled(prev => prev.map(t => t.id === s.id ? { ...t, status: newStatus } : t))
     startTransition(async () => {
-      const res = await saveScheduled({ ...s, status: s.status === 'ACTIVO' ? 'PAUSADO' : 'ACTIVO' })
-      if (res.error) toast.error(res.error)
+      const res = await saveScheduled({ ...s, status: newStatus })
+      if (res.error) {
+        toast.error(res.error)
+        setLocalScheduled(prev => prev.map(t => t.id === s.id ? { ...t, status: s.status } : t))
+      }
     })
   }
 
@@ -1212,7 +1228,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
       </div>
 
       {/* Monthly expense metric */}
-      {scheduled.filter(s => s.status === 'ACTIVO' && s.type === 'TR-GASTO').length > 0 && (
+      {localScheduled.filter(s => s.status === 'ACTIVO' && s.type === 'TR-GASTO').length > 0 && (
         <div
           className="rounded-[16px] px-4 py-3 flex items-center justify-between"
           style={{ background: 'var(--f-expense-bg)', border: '1px solid var(--f-expense-border)' }}
@@ -1227,11 +1243,11 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
         </div>
       )}
 
-      {scheduled.length === 0 && (
+      {localScheduled.length === 0 && (
         <p className="text-sm text-center py-8" style={{ color: 'var(--f-text-4)' }}>Sin recurrentes configurados</p>
       )}
 
-      {scheduled.map((s, i) => {
+      {localScheduled.map((s, i) => {
         const cat = catMap[s.category_id ?? '']
         const d = getCategoryDisplay(cat)
         const isActive = s.status === 'ACTIVO'

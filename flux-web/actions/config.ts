@@ -282,8 +282,51 @@ export async function saveCreditPayment(data: {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autorizado' }
 
+  // Delete any previous transaction linked to this payment before upserting
+  const { data: existing } = await supabase
+    .from('credit_payments')
+    .select('transaction_id')
+    .eq('user_id', user.id)
+    .eq('account_id', data.account_id)
+    .eq('year', data.year)
+    .eq('month', data.month)
+    .maybeSingle()
+
+  if (existing?.transaction_id) {
+    await supabase.from('transactions').delete().eq('id', existing.transaction_id)
+  }
+
+  let transaction_id: string | null = null
+
+  // When paying by transfer, create a real transaction so the source account balance decreases
+  if (data.payment_type === 'transfer' && data.source_account_id && data.amount > 0) {
+    const { data: acc } = await supabase
+      .from('accounts').select('name').eq('id', data.account_id).single()
+    const tdcName = acc?.name ?? 'TDC'
+    const today = getMexicoNow().slice(0, 10)
+
+    const { data: tx, error: txErr } = await supabase
+      .from('transactions')
+      .insert({
+        user_id: user.id,
+        concept: `Pago ${tdcName}`,
+        type: 'TR-TRANSFER',
+        amount: data.amount,
+        adjustment: -data.amount,
+        account_id: data.source_account_id,
+        destination_account_id: data.account_id,
+        transaction_date: today,
+        is_validated: true,
+      })
+      .select('id')
+      .single()
+
+    if (txErr) return { error: txErr.message }
+    transaction_id = tx?.id ?? null
+  }
+
   const { error } = await supabase.from('credit_payments').upsert(
-    { ...data, user_id: user.id },
+    { ...data, user_id: user.id, transaction_id },
     { onConflict: 'user_id,account_id,year,month' },
   )
   if (error) return { error: error.message }
@@ -295,6 +338,20 @@ export async function deleteCreditPayment(account_id: string, year: number, mont
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autorizado' }
+
+  // Also delete the linked transaction if any
+  const { data: existing } = await supabase
+    .from('credit_payments')
+    .select('transaction_id')
+    .eq('user_id', user.id)
+    .eq('account_id', account_id)
+    .eq('year', year)
+    .eq('month', month)
+    .maybeSingle()
+
+  if (existing?.transaction_id) {
+    await supabase.from('transactions').delete().eq('id', existing.transaction_id)
+  }
 
   const { error } = await supabase
     .from('credit_payments')
