@@ -66,6 +66,7 @@ export default async function HomePage() {
       user={{ id: user.id, email: user.email ?? '', full_name: profile?.full_name ?? null }}
       accounts={accountsWithBalance}
       transactions={transactions ?? []}
+      loadedFrom={from.slice(0, 10)}
       categories={categories ?? []}
       scheduled={scheduled ?? []}
       budget={monthlyBudget}

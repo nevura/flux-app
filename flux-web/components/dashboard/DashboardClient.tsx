@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useTransition } from 'react'
+import { useState, useMemo, useTransition, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -12,6 +12,10 @@ import AuditModal from './AuditModal'
 import { useCountUp, useAnimatedWidth } from '@/lib/hooks'
 import NotificationBell from '@/components/notifications/NotificationBell'
 import CoachMarkTour from '@/components/onboarding/CoachMarkTour'
+import { createClient } from '@/lib/supabase/client'
+
+// Days from the earliest loaded date before we start fetching the previous batch
+const LAZY_THRESHOLD_DAYS = 14
 
 function AnimatedCurrency({ value, duration }: { value: number; duration?: number }) {
   const animated = useCountUp(value, duration)
@@ -39,6 +43,7 @@ interface Props {
   user: { id: string; email: string; full_name: string | null }
   accounts: AccountWithBalance[]
   transactions: Transaction[]
+  loadedFrom: string   // 'YYYY-MM-DD' — earliest date in the initial server fetch
   categories: Category[]
   scheduled: ScheduledTransaction[]
   budget: Budget | null
@@ -47,10 +52,77 @@ interface Props {
   month: number
 }
 
-export default function DashboardClient({ user, accounts, transactions, categories, scheduled, budget, creditPayments, year, month }: Props) {
+export default function DashboardClient({ user, accounts, transactions, loadedFrom, categories, scheduled, budget, creditPayments, year, month }: Props) {
   const [spendView, setSpendView] = useState<'daily' | 'weekly'>('daily')
   const [dayOffset, setDayOffset] = useState(0)
   const [weekOffset, setWeekOffset] = useState(0)
+
+  // ── Lazy historical loading ──────────────────────────────────────────────────
+  // `transactions` prop always has fresh server data for the current window.
+  // `historyTxs` holds extra batches loaded client-side while navigating backwards.
+  // They're merged (deduped) so server rerenders don't overwrite historical data.
+  const [historyTxs, setHistoryTxs] = useState<Transaction[]>([])
+  const earliestLoadedRef = useRef<string>(loadedFrom)
+  const isFetchingMoreRef = useRef(false)
+  const supabase = useRef(createClient()).current
+
+  const txList = useMemo(() => {
+    if (historyTxs.length === 0) return transactions
+    const ids = new Set(transactions.map(t => t.id))
+    return [...transactions, ...historyTxs.filter(t => !ids.has(t.id))]
+  }, [transactions, historyTxs])
+
+  useEffect(() => {
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Mexico_City' }))
+    let viewDate: Date
+    if (spendView === 'daily') {
+      viewDate = new Date(now)
+      viewDate.setDate(now.getDate() + dayOffset)
+    } else {
+      const dow = now.getDay()
+      const daysBack = dow === 0 ? 6 : dow - 1
+      viewDate = new Date(now)
+      viewDate.setDate(now.getDate() - daysBack + weekOffset * 7)
+    }
+
+    const earliest = earliestLoadedRef.current
+    if (earliest === '1900-01-01') return  // nothing older to load
+
+    const earliestTime = new Date(earliest + 'T12:00:00').getTime()
+    const viewTime = viewDate.getTime()
+    const daysDiff = Math.floor((earliestTime - viewTime) / 86_400_000)
+
+    if (daysDiff < LAZY_THRESHOLD_DAYS && !isFetchingMoreRef.current) {
+      isFetchingMoreRef.current = true
+
+      const toDate = new Date(earliest + 'T00:00:00')
+      toDate.setDate(toDate.getDate() - 1)
+      const fromDate = new Date(toDate)
+      fromDate.setMonth(fromDate.getMonth() - 2)
+
+      const newFrom = fromDate.toLocaleDateString('en-CA')
+      const newTo   = toDate.toLocaleDateString('en-CA')
+
+      supabase
+        .from('transactions')
+        .select('*')
+        .gte('transaction_date', newFrom)
+        .lte('transaction_date', newTo)
+        .order('transaction_date', { ascending: false })
+        .then(({ data }) => {
+          if (!data || data.length === 0) {
+            earliestLoadedRef.current = '1900-01-01'
+          } else {
+            setHistoryTxs(prev => {
+              const ids = new Set(prev.map(t => t.id))
+              return [...prev, ...(data as Transaction[]).filter(t => !ids.has(t.id))]
+            })
+            earliestLoadedRef.current = newFrom
+          }
+          isFetchingMoreRef.current = false
+        })
+    }
+  }, [dayOffset, weekOffset, spendView, supabase])
   const [budgetEditOpen, setBudgetEditOpen] = useState(false)
   const [budgetInput, setBudgetInput] = useState('')
   const [auditOpen, setAuditOpen] = useState(false)
@@ -75,10 +147,10 @@ export default function DashboardClient({ user, accounts, transactions, categori
 
   const currentMonthStr = `${year}-${String(month).padStart(2, '0')}`
   const monthExpenses = useMemo(
-    () => transactions
+    () => txList
       .filter(t => t.type === 'TR-GASTO' && t.transaction_date.slice(0, 7) === currentMonthStr)
       .reduce((s, t) => s + Number(t.amount), 0),
-    [transactions, currentMonthStr],
+    [txList, currentMonthStr],
   )
 
   const targetDay = useMemo(() => {
@@ -100,22 +172,22 @@ export default function DashboardClient({ user, accounts, transactions, categori
 
   const dailySpend = useMemo(() => {
     const dayStr = targetDay.toLocaleDateString('en-CA')
-    return transactions
+    return txList
       .filter(t => t.type === 'TR-GASTO' && t.transaction_date.startsWith(dayStr))
       .reduce((s, t) => s + Number(t.amount), 0)
-  }, [transactions, targetDay])
+  }, [txList, targetDay])
 
   const weeklySpend = useMemo(() => {
     const mondayStr = targetWeekRange.monday.toLocaleDateString('en-CA')
     const sundayStr = targetWeekRange.sunday.toLocaleDateString('en-CA')
-    return transactions
+    return txList
       .filter(t => {
         if (t.type !== 'TR-GASTO') return false
         const d = t.transaction_date.slice(0, 10)
         return d >= mondayStr && d <= sundayStr
       })
       .reduce((s, t) => s + Number(t.amount), 0)
-  }, [transactions, targetWeekRange])
+  }, [txList, targetWeekRange])
 
   const dayLabel = useMemo(() => {
     if (dayOffset === 0) return 'Hoy'
