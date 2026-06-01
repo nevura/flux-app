@@ -1,13 +1,12 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import AppNav from '@/components/layout/AppNav'
-import PullToRefresh from '@/components/layout/PullToRefresh'
 import SubscriptionBanner from '@/components/subscription/SubscriptionBanner'
 import ReadOnlyOverlay from '@/components/subscription/ReadOnlyOverlay'
 import ThemeSync from '@/components/layout/ThemeSync'
 import WakeOnFocus from '@/components/layout/WakeOnFocus'
 import UsernameSetupModal from '@/components/onboarding/UsernameSetupModal'
 import OnboardingWrapper from '@/components/onboarding/OnboardingWrapper'
+import AppShell from '@/components/layout/AppShell'
 import { getSubscriptionInfo } from '@/lib/subscription'
 
 function suggestUsername(fullName: string | null, email: string | null): string {
@@ -17,7 +16,7 @@ function suggestUsername(fullName: string | null, email: string | null): string 
   return base.slice(0, 20) || 'usuario'
 }
 
-export default async function AppLayout({ children }: { children: React.ReactNode }) {
+export default async function AppLayout({ children: _children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -43,14 +42,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         />
       )}
       {needsOnboarding && <OnboardingWrapper />}
-      <PullToRefresh>
-        <main className="flex-1 pb-[calc(5rem+var(--safe-bottom))]">
-          <div className="animate-fade-in">
-            {children}
-          </div>
-        </main>
-      </PullToRefresh>
-      <AppNav isReadOnly={sub.isReadOnly} />
+
+      {/* AppShell persists across tab navigations — all tabs stay mounted */}
+      <AppShell
+        userId={user.id}
+        fullName={profile?.full_name ?? null}
+        email={user.email ?? ''}
+        isReadOnly={sub.isReadOnly}
+      />
     </div>
   )
 }

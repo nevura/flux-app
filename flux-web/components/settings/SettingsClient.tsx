@@ -3,6 +3,7 @@
 import { useState, useTransition, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { getCategoryDisplay, getPaymentMethod, formatCurrency } from '@/lib/utils'
@@ -602,6 +603,24 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
             )
           })}
         </div>
+
+        {!section && profile?.email === 'bernardo.perezro06@gmail.com' && (
+          <Link
+            href="/admin"
+            className="w-full flex items-center gap-4 px-4 py-4 rounded-[16px] text-left transition-all active:scale-[0.99]"
+            style={{ background: 'rgba(255,149,0,0.08)', border: '1px solid rgba(255,149,0,0.20)' }}
+          >
+            <div className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0"
+              style={{ background: 'rgba(255,149,0,0.15)' }}>
+              <i className="fa-solid fa-shield-halved text-sm" style={{ color: '#FF9500' }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[16px] font-bold" style={{ color: 'var(--f-text)' }}>Panel de admin</p>
+              <p className="text-[14px]" style={{ color: 'var(--f-text-4)' }}>Gestionar usuarios y accesos</p>
+            </div>
+            <i className="fa-solid fa-chevron-right text-xs" style={{ color: 'var(--f-line-strong)' }} />
+          </Link>
+        )}
 
         <button
           onClick={handleSignOut}
