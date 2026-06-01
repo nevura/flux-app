@@ -45,6 +45,18 @@ export async function saveAccount(data: Partial<Account> & { name: string; payme
   return { error: null, id }
 }
 
+export async function reorderAccounts(orderedIds: string[]) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+  for (let i = 0; i < orderedIds.length; i++) {
+    await supabase.from('accounts').update({ sort_order: i + 1 }).eq('id', orderedIds[i]).eq('user_id', user.id)
+  }
+  revalidatePath('/home')
+  revalidatePath('/settings')
+  return { error: null }
+}
+
 export async function deleteAccount(id: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

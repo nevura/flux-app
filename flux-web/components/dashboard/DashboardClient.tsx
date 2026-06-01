@@ -141,9 +141,14 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
   const catMap = useMemo(() => Object.fromEntries(categories.map(c => [c.id, c])), [categories])
   const totalBalance = useMemo(() => accounts.reduce((s, a) => s + a.balance, 0), [accounts])
 
-  const creditCards = useMemo(() => accounts.filter(a => a.payment_method_id === 'MP-TDC'), [accounts])
-  const nonTdcAccounts = useMemo(() => accounts.filter(a => a.payment_method_id !== 'MP-TDC'), [accounts])
   const creditPayMap = useMemo(() => Object.fromEntries(creditPayments.map(p => [p.account_id, p])), [creditPayments])
+  const nonTdcAccounts = useMemo(() => accounts.filter(a => a.payment_method_id !== 'MP-TDC'), [accounts])
+  // Show only unpaid TDC cards, sorted by payment_day ascending (overdue first)
+  const creditCards = useMemo(() =>
+    accounts
+      .filter(a => a.payment_method_id === 'MP-TDC' && !creditPayMap[a.id])
+      .sort((a, b) => (a.payment_day ?? 99) - (b.payment_day ?? 99)),
+  [accounts, creditPayMap])
 
   const currentMonthStr = `${year}-${String(month).padStart(2, '0')}`
 
@@ -529,51 +534,34 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
                 Próximos recurrentes
               </p>
 
-              {totalIncomes > 0 && (
-                <div className={totalExpenses > 0 ? 'mt-4 mb-3' : 'mb-3'}>
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-[13px] font-black tracking-[2px] uppercase" style={{ color: 'var(--f-income)', opacity: 0.7 }}>Ingresos</p>
-                    <p className="text-[16px] font-black tabular-nums leading-none" style={{ color: 'var(--f-income)' }}>
-                      {formatCurrency(totalIncomes)}<span className="text-[14px] font-bold opacity-60">/mes</span>
-                    </p>
-                  </div>
-                  <div className="h-1.5 rounded-full overflow-hidden mb-2" style={{ background: 'var(--f-bg-input)' }}>
-                    <AnimatedBar pct={incomePct} color="var(--f-income)" />
-                  </div>
-                  <div className="flex justify-between">
-                    <p className="text-[14px] font-bold tabular-nums" style={{ color: 'var(--f-income)' }}>
-                      {formatCurrency(receivedIncomes)} recibido
-                    </p>
-                    {totalIncomes - receivedIncomes > 0 && (
-                      <p className="text-[14px] font-bold tabular-nums" style={{ color: 'var(--f-text-3)' }}>
-                        {formatCurrency(totalIncomes - receivedIncomes)} pendiente
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {totalExpenses > 0 && (
-                <div className="mb-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-[13px] font-black tracking-[2px] uppercase" style={{ color: 'var(--f-expense)', opacity: 0.7 }}>Gastos</p>
-                    <p className="text-[16px] font-black tabular-nums leading-none" style={{ color: 'var(--f-expense)' }}>
-                      {formatCurrency(totalExpenses)}<span className="text-[14px] font-bold opacity-60">/mes</span>
-                    </p>
-                  </div>
-                  <div className="h-1.5 rounded-full overflow-hidden mb-2" style={{ background: 'var(--f-bg-input)' }}>
-                    <AnimatedBar pct={expensePct} color="var(--f-expense)" />
-                  </div>
-                  <div className="flex justify-between">
-                    <p className="text-[14px] font-bold tabular-nums" style={{ color: 'var(--f-expense)' }}>
-                      {formatCurrency(paidExpenses)} pagado
-                    </p>
-                    {totalExpenses - paidExpenses > 0 && (
-                      <p className="text-[14px] font-bold tabular-nums" style={{ color: 'var(--f-text-3)' }}>
-                        {formatCurrency(totalExpenses - paidExpenses)} pendiente
-                      </p>
-                    )}
-                  </div>
+              {(totalIncomes > 0 || totalExpenses > 0) && (
+                <div className="space-y-3 mb-1">
+                  {totalIncomes > 0 && (
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <p className="text-[11px] font-black tracking-[2px] uppercase" style={{ color: 'var(--f-income)' }}>Ingresos</p>
+                        <p className="text-[11px] font-bold tabular-nums" style={{ color: 'var(--f-text-3)' }}>
+                          {formatCurrency(receivedIncomes)} / {formatCurrency(totalIncomes)}
+                        </p>
+                      </div>
+                      <div className="h-[6px] rounded-full overflow-hidden" style={{ background: 'var(--f-bg-input)' }}>
+                        <AnimatedBar pct={incomePct} color="var(--f-income)" />
+                      </div>
+                    </div>
+                  )}
+                  {totalExpenses > 0 && (
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <p className="text-[11px] font-black tracking-[2px] uppercase" style={{ color: 'var(--f-expense)' }}>Gastos</p>
+                        <p className="text-[11px] font-bold tabular-nums" style={{ color: 'var(--f-text-3)' }}>
+                          {formatCurrency(paidExpenses)} / {formatCurrency(totalExpenses)}
+                        </p>
+                      </div>
+                      <div className="h-[6px] rounded-full overflow-hidden" style={{ background: 'var(--f-bg-input)' }}>
+                        <AnimatedBar pct={expensePct} color="var(--f-expense)" />
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -601,7 +589,11 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
                       <div className="flex-1 min-w-0">
                         <p className="text-[15px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{s.name}</p>
                         <p className="text-[13px]" style={{ color: 'var(--f-text-3)' }}>
-                          {s.next_charge_date ? `Día ${new Date(s.next_charge_date + 'T12:00:00').getDate()}` : 'Pendiente'}
+                          {s.next_charge_date ? (() => {
+                            const _d = new Date(s.next_charge_date + 'T12:00:00')
+                            const _days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+                            return `${_days[_d.getDay()]}, ${_d.getDate()}`
+                          })() : 'Pendiente'}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
@@ -624,14 +616,24 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
             <p className="text-[12px] font-black tracking-[3px] uppercase" style={{ color: 'var(--f-text-3)' }}>
               Estado de cuentas
             </p>
-            <button
-              onClick={() => setAuditOpen(true)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-[10px] text-[13px] font-black uppercase tracking-wide active:scale-95 transition-transform"
-              style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)', border: '1px solid var(--f-accent-border)' }}
-            >
-              <i className="fa-solid fa-sliders text-[12px]" />
-              Auditar
-            </button>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/settings?section=cuentas"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[13px] font-black uppercase tracking-wide active:scale-95 transition-transform"
+                style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)', border: '1px solid var(--f-accent-border)' }}
+              >
+                <i className="fa-solid fa-plus text-[11px]" />
+                Nueva
+              </Link>
+              <button
+                onClick={() => setAuditOpen(true)}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-[10px] text-[13px] font-black uppercase tracking-wide active:scale-95 transition-transform"
+                style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)', border: '1px solid var(--f-accent-border)' }}
+              >
+                <i className="fa-solid fa-sliders text-[12px]" />
+                Auditar
+              </button>
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {accounts.map((acc, i) => {

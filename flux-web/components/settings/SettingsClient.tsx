@@ -2,13 +2,13 @@
 
 import { useState, useTransition, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { getCategoryDisplay, getPaymentMethod, formatCurrency } from '@/lib/utils'
 import { STATIC_ICONS, STATIC_COLORS, PAYMENT_METHODS, SHORTCUT_LINKS } from '@/lib/constants'
-import { saveCategory, deleteCategory, saveAccount, deleteAccount, saveScheduled, deleteScheduled, updateProfile, saveDefaultBudget, updateThemePreference, addPerson, updatePerson, deletePerson } from '@/actions/config'
+import { saveCategory, deleteCategory, saveAccount, deleteAccount, reorderAccounts, saveScheduled, deleteScheduled, updateProfile, saveDefaultBudget, updateThemePreference, addPerson, updatePerson, deletePerson } from '@/actions/config'
 import { sendSupportMessage, getMyTickets, type SupportTicket } from '@/actions/admin'
 import { setUsername, updatePhone, checkUsernameAvailable, linkPersonToUser } from '@/actions/friends'
 import type { Profile, Category, Account, ScheduledTransaction, Person, PublicProfile } from '@/lib/types'
@@ -115,7 +115,11 @@ const SECTIONS: { key: Tab; icon: string; label: string; description: string; hi
 
 export default function SettingsClient({ profile, shortcutToken, categories, accounts, scheduled, people }: Props) {
   const router = useRouter()
-  const [section, setSection] = useState<Tab | null>(null)
+  const searchParams = useSearchParams()
+  const [section, setSection] = useState<Tab | null>(() => {
+    const s = searchParams.get('section') as Tab | null
+    return s && SECTIONS.some(sec => sec.key === s) ? s : null
+  })
   const [isPending, startTransition] = useTransition()
   const [theme, setTheme] = useState<'dark' | 'light'>(profile?.theme_preference ?? 'dark')
 
@@ -799,6 +803,10 @@ function AccountsTab({ accounts, isPending, startTransition }: {
 }) {
   const [editing, setEditing] = useState<Partial<Account> | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [ordered, setOrdered] = useState<Account[]>(accounts)
+
+  // Sync when server revalidates
+  useEffect(() => { setOrdered(accounts) }, [accounts])
 
   function handleSave() {
     if (!editing?.name) return
@@ -817,6 +825,17 @@ function AccountsTab({ accounts, isPending, startTransition }: {
     })
   }
 
+  function handleMove(id: string, dir: 'up' | 'down') {
+    const idx = ordered.findIndex(a => a.id === id)
+    if (dir === 'up' && idx === 0) return
+    if (dir === 'down' && idx === ordered.length - 1) return
+    const next = [...ordered]
+    const swap = dir === 'up' ? idx - 1 : idx + 1
+    ;[next[idx], next[swap]] = [next[swap], next[idx]]
+    setOrdered(next)
+    startTransition(async () => { await reorderAccounts(next.map(a => a.id)) })
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -827,27 +846,46 @@ function AccountsTab({ accounts, isPending, startTransition }: {
       </div>
 
       <div className="space-y-2">
-        {accounts.map((acc, i) => {
+        {ordered.map((acc, i) => {
           const method = getPaymentMethod(acc.payment_method_id)
           return (
-            <div key={acc.id} className="rounded-2xl px-4 py-4 flex items-center gap-4 animate-fade-up" style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-accent-bg)', animationDelay: `${i * 0.04}s` }}>
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: 'var(--f-accent-bg)' }}>
+            <div key={acc.id} className="rounded-2xl px-4 py-3 flex items-center gap-3 animate-fade-up" style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-accent-bg)', animationDelay: `${i * 0.04}s` }}>
+              {/* Reorder arrows */}
+              <div className="flex flex-col gap-0.5 flex-shrink-0">
+                <button
+                  onClick={() => handleMove(acc.id, 'up')}
+                  disabled={i === 0 || isPending}
+                  className="w-6 h-5 flex items-center justify-center rounded disabled:opacity-20 transition-opacity"
+                  style={{ color: 'var(--f-text-4)' }}
+                >
+                  <i className="fa-solid fa-chevron-up text-[10px]" />
+                </button>
+                <button
+                  onClick={() => handleMove(acc.id, 'down')}
+                  disabled={i === ordered.length - 1 || isPending}
+                  className="w-6 h-5 flex items-center justify-center rounded disabled:opacity-20 transition-opacity"
+                  style={{ color: 'var(--f-text-4)' }}
+                >
+                  <i className="fa-solid fa-chevron-down text-[10px]" />
+                </button>
+              </div>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'var(--f-accent-bg)' }}>
                 <i className={`${method.icon} text-sm`} style={{ color: 'var(--f-blue)' }} />
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-white">{acc.name}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-white truncate">{acc.name}</p>
                 <p className="text-xs" style={{ color: 'var(--f-text-3)' }}>{method.nombre}</p>
               </div>
-              <button onClick={() => setEditing(acc)} className="px-2" style={{ color: 'var(--f-text-3)' }}>
+              <button onClick={() => setEditing(acc)} className="px-2 flex-shrink-0" style={{ color: 'var(--f-text-3)' }}>
                 <i className="fa-solid fa-pen text-xs" />
               </button>
               {deleteConfirm === acc.id ? (
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 flex-shrink-0">
                   <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-xl text-[15px] font-bold" style={{ color: 'var(--f-text-2)', background: 'var(--f-bg-input)' }}>No</button>
                   <button onClick={() => handleDelete(acc.id)} className="px-3 py-1.5 rounded-xl text-[15px] font-bold text-white" style={{ background: 'var(--f-expense)' }}>Sí</button>
                 </div>
               ) : (
-                <button onClick={() => setDeleteConfirm(acc.id)} className="px-2" style={{ color: 'var(--f-text-3)' }}>
+                <button onClick={() => setDeleteConfirm(acc.id)} className="px-2 flex-shrink-0" style={{ color: 'var(--f-text-3)' }}>
                   <i className="fa-solid fa-trash text-xs" />
                 </button>
               )}
