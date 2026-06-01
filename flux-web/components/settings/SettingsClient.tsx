@@ -10,6 +10,7 @@ import { getCategoryDisplay, getPaymentMethod, formatCurrency } from '@/lib/util
 import { STATIC_ICONS, STATIC_COLORS, PAYMENT_METHODS, SHORTCUT_LINKS } from '@/lib/constants'
 import { saveCategory, deleteCategory, saveAccount, deleteAccount, reorderAccounts, saveScheduled, deleteScheduled, updateProfile, saveDefaultBudget, updateThemePreference, addPerson, updatePerson, deletePerson } from '@/actions/config'
 import { sendSupportMessage, getMyTickets, type SupportTicket } from '@/actions/admin'
+import { exportTransactionsCSV, importTransactions, type ImportRow } from '@/actions/data'
 import { setUsername, updatePhone, checkUsernameAvailable, linkPersonToUser } from '@/actions/friends'
 import type { Profile, Category, Account, ScheduledTransaction, Person, PublicProfile } from '@/lib/types'
 import ShortcutInstall from './ShortcutInstall'
@@ -26,7 +27,7 @@ interface Props {
   people: Person[]
 }
 
-type Tab = 'shortcuts' | 'categorias' | 'cuentas' | 'planificados' | 'personas' | 'suscripcion' | 'apariencia' | 'perfil' | 'guia' | 'presupuesto' | 'soporte'
+type Tab = 'shortcuts' | 'categorias' | 'cuentas' | 'planificados' | 'personas' | 'suscripcion' | 'apariencia' | 'perfil' | 'guia' | 'presupuesto' | 'soporte' | 'datos'
 
 // ── Bottom Sheet ──────────────────────────────────────────────────────────────
 
@@ -34,42 +35,21 @@ function BottomSheet({ onClose, children, title }: { onClose: () => void; childr
   const sheetRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // iOS-safe body lock: position:fixed instead of overflow:hidden so
-    // children with overflow:auto (the sheet itself) still scroll via touch
+    // Body lock that doesn't break inner scroll on iOS:
+    // overflow:hidden on both html and body prevents background scroll
+    // without the position:fixed hack that blocks fixed children's touch scroll.
     const y = window.scrollY
+    const html = document.documentElement
+    html.style.overflow = 'hidden'
+    html.style.height = '100%'
     document.body.style.overflow = 'hidden'
-    document.body.style.position = 'fixed'
-    document.body.style.top = `-${y}px`
-    document.body.style.width = '100%'
+    // Scroll the sheet to top on open
+    if (sheetRef.current) sheetRef.current.scrollTop = 0
     return () => {
+      html.style.overflow = ''
+      html.style.height = ''
       document.body.style.overflow = ''
-      document.body.style.position = ''
-      document.body.style.top = ''
-      document.body.style.width = ''
       window.scrollTo({ top: y, behavior: 'instant' })
-    }
-  }, [])
-
-  // Lift sheet above keyboard on mobile using visualViewport
-  useEffect(() => {
-    const vv = window.visualViewport
-    if (!vv) return
-    function onViewportResize() {
-      if (!sheetRef.current) return
-      const kh = Math.max(0, window.innerHeight - vv!.height - vv!.offsetTop)
-      if (kh > 0) {
-        sheetRef.current.style.bottom = `${kh}px`
-        sheetRef.current.style.maxHeight = `${vv!.height * 0.92}px`
-      } else {
-        sheetRef.current.style.bottom = ''
-        sheetRef.current.style.maxHeight = ''
-      }
-    }
-    vv.addEventListener('resize', onViewportResize)
-    vv.addEventListener('scroll', onViewportResize)
-    return () => {
-      vv.removeEventListener('resize', onViewportResize)
-      vv.removeEventListener('scroll', onViewportResize)
     }
   }, [])
 
@@ -84,9 +64,9 @@ function BottomSheet({ onClose, children, title }: { onClose: () => void; childr
           paddingBottom: 'calc(1.5rem + var(--safe-bottom))',
           maxHeight: '90dvh',
           overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch' as React.CSSProperties['WebkitOverflowScrolling'],
+          overscrollBehavior: 'contain',
           touchAction: 'pan-y',
-          transition: 'bottom 0.15s ease-out, max-height 0.15s ease-out',
-          willChange: 'bottom',
         }}
       >
         {title && (
@@ -118,6 +98,7 @@ const SECTIONS: { key: Tab; icon: string; label: string; description: string; hi
   { key: 'suscripcion' as Tab, icon: 'fa-solid fa-crown', label: 'Plan', description: 'Suscripción y facturación' },
   { key: 'guia' as Tab, icon: 'fa-solid fa-book-open', label: 'Guía', description: 'Aprende a usar Flux' },
   { key: 'soporte' as Tab, icon: 'fa-solid fa-headset', label: 'Soporte', description: 'Envía un mensaje al equipo' },
+  { key: 'datos' as Tab, icon: 'fa-solid fa-database', label: 'Datos', description: 'Exportar e importar movimientos' },
 ].sort((a, b) => {
   if (a.hidden) return -1
   if (b.hidden) return 1
@@ -236,6 +217,8 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
   const trialDaysLeft = profile?.subscription_status === 'trialing' && profile?.trial_ends_at
     ? Math.max(0, Math.ceil((new Date(profile.trial_ends_at).getTime() - Date.now()) / 86_400_000))
     : null
+
+  const isExpired = profile?.subscription_status === 'canceled' || profile?.subscription_status === 'past_due' || profile?.subscription_status === 'unpaid'
 
   async function handleSignOut() {
     const supabase = createClient()
@@ -497,6 +480,9 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
           )}
           {section === 'soporte' && (
             <SupportTab />
+          )}
+          {section === 'datos' && (
+            <DataTab isActive={!isExpired} />
           )}
         </div>
       </div>
@@ -818,6 +804,7 @@ function AccountsTab({ accounts, isPending, startTransition }: {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [ordered, setOrdered] = useState<Account[]>(accounts)
   const [draggingIdx, setDraggingIdx] = useState<number | null>(null)
+  const [insertBeforeIdx, setInsertBeforeIdx] = useState<number | null>(null)
   const dragState = useRef<{ fromIdx: number; currentIdx: number } | null>(null)
   const rowRefs = useRef<Array<HTMLDivElement | null>>([])
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -843,70 +830,85 @@ function AccountsTab({ accounts, isPending, startTransition }: {
   }
 
   function onGrabDown(e: React.PointerEvent<HTMLDivElement>, idx: number) {
-    const el = e.currentTarget
     const pointerId = e.pointerId
     const startY = e.clientY
     let cancelled = false
 
-    function onDocMove(ev: PointerEvent) {
+    // Phase 1: wait for long-press, cancel if user scrolls (>6px movement)
+    function onDocMovePrePress(ev: PointerEvent) {
       if (ev.pointerId !== pointerId) return
-      // Cancel if the user scrolls more than 8px before the long-press fires
-      if (Math.abs(ev.clientY - startY) > 8) { cancelled = true; cleanup() }
+      if (Math.abs(ev.clientY - startY) > 6) { cancelled = true; cleanupPrePress() }
     }
-    function onDocCancel(ev: PointerEvent) {
+    function onDocCancelPrePress(ev: PointerEvent) {
       if (ev.pointerId !== pointerId) return
-      cancelled = true; cleanup()
+      cancelled = true; cleanupPrePress()
     }
-    function cleanup() {
+    function cleanupPrePress() {
       if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null }
-      document.removeEventListener('pointermove', onDocMove)
-      document.removeEventListener('pointerup', onDocCancel)
-      document.removeEventListener('pointercancel', onDocCancel)
+      document.removeEventListener('pointermove', onDocMovePrePress)
+      document.removeEventListener('pointerup', onDocCancelPrePress)
+      document.removeEventListener('pointercancel', onDocCancelPrePress)
     }
-
-    document.addEventListener('pointermove', onDocMove)
-    document.addEventListener('pointerup', onDocCancel)
-    document.addEventListener('pointercancel', onDocCancel)
+    document.addEventListener('pointermove', onDocMovePrePress)
+    document.addEventListener('pointerup', onDocCancelPrePress)
+    document.addEventListener('pointercancel', onDocCancelPrePress)
 
     longPressTimer.current = setTimeout(() => {
-      cleanup()
+      cleanupPrePress()
       if (cancelled) return
-      el.setPointerCapture(pointerId)
+
+      // Phase 2: drag active — use document listeners so re-renders don't lose the drag
       dragState.current = { fromIdx: idx, currentIdx: idx }
       setDraggingIdx(idx)
-      if ('vibrate' in navigator) navigator.vibrate(15)
-    }, 800)
-  }
+      if ('vibrate' in navigator) navigator.vibrate(20)
 
-  function onGrabMove(e: React.PointerEvent<HTMLDivElement>) {
-    if (!dragState.current) return
-    for (let i = 0; i < rowRefs.current.length; i++) {
-      const el = rowRefs.current[i]
-      if (!el) continue
-      const rect = el.getBoundingClientRect()
-      if (e.clientY >= rect.top && e.clientY <= rect.bottom && i !== dragState.current.currentIdx) {
-        setOrdered(prev => {
-          const next = [...prev]
-          const [item] = next.splice(dragState.current!.currentIdx, 1)
-          next.splice(i, 0, item)
-          return next
-        })
-        dragState.current.currentIdx = i
-        setDraggingIdx(i)
-        break
+      function onDragMove(ev: PointerEvent) {
+        if (ev.pointerId !== pointerId || !dragState.current) return
+        const cy = ev.clientY
+        let targetIdx = dragState.current.currentIdx
+        for (let i = 0; i < rowRefs.current.length; i++) {
+          const el = rowRefs.current[i]
+          if (!el) continue
+          const rect = el.getBoundingClientRect()
+          const mid = rect.top + rect.height / 2
+          if (cy < mid) { targetIdx = i; break }
+          targetIdx = i + 1
+        }
+        targetIdx = Math.min(targetIdx, rowRefs.current.length - 1)
+
+        // Show insert indicator
+        setInsertBeforeIdx(targetIdx)
+
+        if (targetIdx !== dragState.current.currentIdx) {
+          setOrdered(prev => {
+            const next = [...prev]
+            const [item] = next.splice(dragState.current!.currentIdx, 1)
+            next.splice(targetIdx, 0, item)
+            dragState.current!.currentIdx = targetIdx
+            return next
+          })
+          setDraggingIdx(targetIdx)
+        }
       }
-    }
-  }
 
-  function onGrabUp(e: React.PointerEvent<HTMLDivElement>) {
-    if (!dragState.current) return
-    e.currentTarget.releasePointerCapture(e.pointerId)
-    dragState.current = null
-    setDraggingIdx(null)
-    setOrdered(prev => {
-      startTransition(async () => { await reorderAccounts(prev.map(a => a.id)) })
-      return prev
-    })
+      function onDragEnd(ev: PointerEvent) {
+        if (ev.pointerId !== pointerId) return
+        document.removeEventListener('pointermove', onDragMove)
+        document.removeEventListener('pointerup', onDragEnd)
+        document.removeEventListener('pointercancel', onDragEnd)
+        dragState.current = null
+        setDraggingIdx(null)
+        setInsertBeforeIdx(null)
+        setOrdered(prev => {
+          startTransition(async () => { await reorderAccounts(prev.map(a => a.id)) })
+          return prev
+        })
+      }
+
+      document.addEventListener('pointermove', onDragMove)
+      document.addEventListener('pointerup', onDragEnd)
+      document.addEventListener('pointercancel', onDragEnd)
+    }, 500)
   }
 
   return (
@@ -917,32 +919,43 @@ function AccountsTab({ accounts, isPending, startTransition }: {
           <i className="fa-solid fa-plus" /> Nueva
         </button>
       </div>
+      {draggingIdx !== null && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl" style={{ background: 'rgba(0,122,255,0.12)', border: '1px solid rgba(0,122,255,0.3)' }}>
+          <i className="fa-solid fa-hand text-xs" style={{ color: 'var(--f-blue)' }} />
+          <p className="text-[13px] font-bold" style={{ color: 'var(--f-blue)' }}>Arrastrando — suelta para soltar en su posición</p>
+        </div>
+      )}
 
-      <div className="space-y-2">
+      <div className="space-y-0.5">
         {ordered.map((acc, i) => {
           const method = getPaymentMethod(acc.payment_method_id)
           const isBeingDragged = draggingIdx === i
           return (
+            <div key={acc.id}>
+              {/* Drop zone indicator — shown ABOVE this row when dragging */}
+              {draggingIdx !== null && insertBeforeIdx === i && !isBeingDragged && (
+                <div className="h-0.5 rounded-full mx-2 my-1" style={{ background: 'var(--f-blue)', boxShadow: '0 0 6px var(--f-blue)' }} />
+              )}
             <div
-              key={acc.id}
               ref={el => { rowRefs.current[i] = el }}
               className="rounded-2xl px-4 py-3 flex items-center gap-3"
               style={{
-                background: 'var(--f-bg-elevated)',
+                background: isBeingDragged ? 'rgba(0,122,255,0.1)' : 'var(--f-bg-elevated)',
                 border: `1px solid ${isBeingDragged ? 'var(--f-blue)' : 'var(--f-accent-bg)'}`,
-                opacity: isBeingDragged ? 0.75 : 1,
-                transition: 'border-color 0.15s, opacity 0.15s',
+                opacity: isBeingDragged ? 0.6 : 1,
+                transform: isBeingDragged ? 'scale(0.97)' : 'scale(1)',
+                boxShadow: isBeingDragged ? '0 4px 20px rgba(0,122,255,0.3)' : 'none',
+                transition: 'border-color 0.15s, opacity 0.15s, transform 0.15s, box-shadow 0.15s',
+                marginBottom: '0.5rem',
               }}
             >
               {/* Drag handle — touch-action:none only here so the rest of the row stays scrollable */}
               <div
-                className="flex-shrink-0 w-6 h-10 flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
-                style={{ color: 'var(--f-text-4)', touchAction: 'none' }}
+                className="flex-shrink-0 w-8 h-10 flex items-center justify-center select-none"
+                style={{ color: draggingIdx !== null ? 'var(--f-blue)' : 'var(--f-text-3)', touchAction: 'none', cursor: 'grab' }}
                 onPointerDown={e => onGrabDown(e, i)}
-                onPointerMove={onGrabMove}
-                onPointerUp={onGrabUp}
               >
-                <i className="fa-solid fa-grip-vertical text-[13px]" />
+                <i className="fa-solid fa-grip-vertical text-[15px]" />
               </div>
               <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'var(--f-accent-bg)' }}>
                 <i className={`${method.icon} text-sm`} style={{ color: 'var(--f-blue)' }} />
@@ -964,6 +977,7 @@ function AccountsTab({ accounts, isPending, startTransition }: {
                   <i className="fa-solid fa-trash text-xs" />
                 </button>
               )}
+            </div>
             </div>
           )
         })}
@@ -2228,4 +2242,198 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
       )}
     </div>
   )
+}
+
+// ── Data Tab (Import / Export) ────────────────────────────────────────────────
+
+function DataTab({ isActive }: { isActive: boolean }) {
+  const [exporting, setExporting] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const [importResult, setImportResult] = useState<{ imported: number; errors: string[] } | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  async function handleExport() {
+    setExporting(true)
+    try {
+      const { csv, error } = await exportTransactionsCSV()
+      if (error || !csv) { toast.error(error ?? 'Error al exportar'); return }
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `flux-movimientos-${new Date().toISOString().slice(0, 10)}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+      toast.success('Archivo descargado')
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  function downloadTemplate() {
+    const template = [
+      'Fecha,Concepto,Tipo,Monto,Categoría,Cuenta,Notas',
+      '2025-01-15,Netflix,Gasto,199,Entretenimiento,BBVA Débito,Suscripción mensual',
+      '2025-01-20,Sueldo,Ingreso,15000,,BBVA Débito,',
+      '2025-01-22,Pago tarjeta,Transferencia,5000,,BBVA Débito,',
+    ].join('\n')
+    const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'flux-machote-importacion.csv'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImportResult(null)
+    setImporting(true)
+    try {
+      const text = await file.text()
+      const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+      if (lines.length < 2) { toast.error('El archivo está vacío o sin filas'); return }
+
+      const header = lines[0].split(',').map(h => h.replace(/"/g, '').trim().toLowerCase())
+      const COLS: Record<string, keyof ImportRow> = {
+        'fecha': 'fecha', 'date': 'fecha',
+        'concepto': 'concepto', 'concept': 'concepto', 'descripción': 'concepto', 'description': 'concepto',
+        'tipo': 'tipo', 'type': 'tipo',
+        'monto': 'monto', 'amount': 'monto', 'importe': 'monto',
+        'categoría': 'categoria', 'categoria': 'categoria', 'category': 'categoria',
+        'cuenta': 'cuenta', 'account': 'cuenta',
+        'notas': 'notas', 'notes': 'notas', 'nota': 'notas',
+      }
+
+      const rows: ImportRow[] = lines.slice(1).map(line => {
+        const vals = parseCSVLine(line)
+        const row: Partial<ImportRow> = {}
+        header.forEach((h, idx) => {
+          const key = COLS[h]
+          if (key) (row as any)[key] = vals[idx] ?? ''
+        })
+        return row as ImportRow
+      })
+
+      const { imported, errors, error } = await importTransactions(rows)
+      if (error) { toast.error(error); return }
+      setImportResult({ imported, errors })
+      if (imported > 0) toast.success(`${imported} movimiento${imported !== 1 ? 's' : ''} importado${imported !== 1 ? 's' : ''}`)
+      if (errors.length && !imported) toast.error(`${errors.length} fila${errors.length !== 1 ? 's' : ''} con errores`)
+    } catch {
+      toast.error('Error al leer el archivo')
+    } finally {
+      setImporting(false)
+      if (fileRef.current) fileRef.current.value = ''
+    }
+  }
+
+  if (!isActive) {
+    return (
+      <div className="text-center py-16 space-y-3">
+        <div className="w-16 h-16 rounded-[24px] flex items-center justify-center mx-auto" style={{ background: 'rgba(255,159,10,0.15)' }}>
+          <i className="fa-solid fa-crown text-2xl" style={{ color: '#ff9f0a' }} />
+        </div>
+        <p className="text-[17px] font-black text-white">Función Pro</p>
+        <p className="text-[14px] font-medium" style={{ color: 'var(--f-text-3)' }}>
+          La importación y exportación está disponible solo para cuentas activas.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="rounded-[20px] overflow-hidden" style={{ border: '1px solid var(--f-line)' }}>
+        <div className="px-4 py-4" style={{ background: 'var(--f-bg-card)' }}>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(48,209,88,0.15)' }}>
+              <i className="fa-solid fa-file-arrow-down text-sm" style={{ color: 'var(--f-income)' }} />
+            </div>
+            <div>
+              <p className="text-[15px] font-black text-white">Exportar movimientos</p>
+              <p className="text-[13px]" style={{ color: 'var(--f-text-3)' }}>Descarga todos tus movimientos en CSV</p>
+            </div>
+          </div>
+          <button onClick={handleExport} disabled={exporting}
+            className="w-full py-3 rounded-[14px] text-[15px] font-black text-white disabled:opacity-50 transition-all active:scale-[0.98]"
+            style={{ background: 'var(--f-income)' }}>
+            {exporting ? <><i className="fa-solid fa-spinner fa-spin mr-2" />Generando...</> : <><i className="fa-solid fa-download mr-2" />Descargar CSV</>}
+          </button>
+        </div>
+      </div>
+
+      <div className="rounded-[20px] overflow-hidden" style={{ border: '1px solid var(--f-line)' }}>
+        <div className="px-4 py-4 space-y-3" style={{ background: 'var(--f-bg-card)' }}>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(0,122,255,0.15)' }}>
+              <i className="fa-solid fa-file-arrow-up text-sm" style={{ color: 'var(--f-blue)' }} />
+            </div>
+            <div>
+              <p className="text-[15px] font-black text-white">Importar movimientos</p>
+              <p className="text-[13px]" style={{ color: 'var(--f-text-3)' }}>Sube un CSV con el formato correcto</p>
+            </div>
+          </div>
+
+          <button onClick={downloadTemplate}
+            className="w-full py-2.5 rounded-[12px] text-[14px] font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+            style={{ background: 'var(--f-accent-bg)', border: '1px solid var(--f-accent-border)', color: 'var(--f-blue)' }}>
+            <i className="fa-solid fa-table text-[13px]" />
+            Descargar machote (plantilla)
+          </button>
+
+          <div className="rounded-[12px] px-3 py-2.5 space-y-1" style={{ background: 'var(--f-bg-input)' }}>
+            <p className="text-[12px] font-black uppercase tracking-wider" style={{ color: 'var(--f-text-4)' }}>Formato esperado</p>
+            <p className="text-[12px] font-mono" style={{ color: 'var(--f-text-3)' }}>Fecha, Concepto, Tipo, Monto, Categoría, Cuenta, Notas</p>
+            <p className="text-[12px]" style={{ color: 'var(--f-text-4)' }}>Tipo: <span style={{ color: 'var(--f-text-2)' }}>Gasto · Ingreso · Transferencia</span></p>
+            <p className="text-[12px]" style={{ color: 'var(--f-text-4)' }}>Fecha: <span style={{ color: 'var(--f-text-2)' }}>YYYY-MM-DD</span></p>
+          </div>
+
+          <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={handleFileChange} className="hidden" />
+          <button onClick={() => fileRef.current?.click()} disabled={importing}
+            className="w-full py-3 rounded-[14px] text-[15px] font-black text-white disabled:opacity-50 transition-all active:scale-[0.98]"
+            style={{ background: 'var(--f-blue)' }}>
+            {importing ? <><i className="fa-solid fa-spinner fa-spin mr-2" />Importando...</> : <><i className="fa-solid fa-upload mr-2" />Seleccionar archivo CSV</>}
+          </button>
+        </div>
+      </div>
+
+      {importResult && (
+        <div className="rounded-[16px] px-4 py-3 space-y-2"
+          style={{ background: importResult.imported > 0 ? 'rgba(48,209,88,0.08)' : 'rgba(255,69,58,0.08)', border: `1px solid ${importResult.imported > 0 ? 'rgba(48,209,88,0.25)' : 'rgba(255,69,58,0.25)'}` }}>
+          {importResult.imported > 0 && (
+            <p className="text-[14px] font-bold" style={{ color: 'var(--f-income)' }}>
+              <i className="fa-solid fa-check-circle mr-1.5" />{importResult.imported} movimiento{importResult.imported !== 1 ? 's' : ''} importado{importResult.imported !== 1 ? 's' : ''} correctamente
+            </p>
+          )}
+          {importResult.errors.map((err, i) => (
+            <p key={i} className="text-[13px]" style={{ color: 'var(--f-expense)' }}>
+              <i className="fa-solid fa-triangle-exclamation mr-1" />{err}
+            </p>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function parseCSVLine(line: string): string[] {
+  const result: string[] = []
+  let cur = ''
+  let inQuotes = false
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i]
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') { cur += '"'; i++ }
+      else inQuotes = !inQuotes
+    } else if (ch === ',' && !inQuotes) {
+      result.push(cur.trim()); cur = ''
+    } else {
+      cur += ch
+    }
+  }
+  result.push(cur.trim())
+  return result
 }
