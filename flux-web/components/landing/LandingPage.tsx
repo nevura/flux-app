@@ -23,7 +23,7 @@ function Navbar({ scrolled, isAuthenticated }: { scrolled: boolean; isAuthentica
       }}
     >
       <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-[60px]">
-        <span className="text-[22px] font-black tracking-tight" style={{ color: BLUE }}>flux</span>
+        <span className="text-[22px] font-black tracking-tight" style={{ color: BLUE }}>fluxapp finance</span>
         <div className="flex items-center gap-3">
           <Link
             href="/guia"
@@ -170,7 +170,7 @@ function Hero() {
             </div>
 
             <h1
-              className="text-[44px] sm:text-[58px] lg:text-[64px] font-black leading-[1.05] tracking-[-2px] mb-6"
+              className="text-[38px] sm:text-[58px] lg:text-[64px] font-black leading-[1.05] tracking-[-2px] mb-6"
               style={{ color: DARK }}
             >
               Tu dinero.{' '}
@@ -206,13 +206,13 @@ function Hero() {
             </div>
 
             <p className="text-[13px] font-semibold mt-5" style={{ color: 'rgba(0,0,0,0.35)' }}>
-              Gratis durante 14 días · Sin tarjeta de crédito
+              Gratis durante 20 días · Sin tarjeta de crédito
             </p>
           </div>
 
           {/* Right — phone mockup */}
           <div className="flex justify-center lg:justify-end">
-            <div style={{ animation: 'heroFloat 6s ease-in-out infinite' }}>
+            <div style={{ animation: 'heroFloat 6s ease-in-out infinite', display: 'inline-block' }}>
               <PhoneMockup />
             </div>
           </div>
@@ -284,7 +284,7 @@ function ApplePaySection() {
 
         <RevealWrapper delay={240}>
           <p className="text-[18px] font-medium leading-relaxed max-w-xl mx-auto mb-10" style={{ color: 'rgba(255,255,255,0.55)' }}>
-            Nunca más olvides registrar un gasto. Flux se conecta con Atajos de iPhone y captura cada pago con Apple Pay en el momento exacto en que lo haces — sin abrir ninguna app.
+            Nunca más olvides registrar un gasto. FluxApp Finance se conecta con Atajos de iPhone y captura cada pago con Apple Pay en el momento exacto en que lo haces — sin abrir ninguna app.
           </p>
         </RevealWrapper>
 
@@ -456,7 +456,7 @@ function HowItWorks() {
   const steps = [
     { n: '01', title: 'Crea tu cuenta', desc: 'Regístrate con tu email en menos de 30 segundos. Sin formularios largos.', icon: 'fa-user-plus' },
     { n: '02', title: 'Instala el Atajo', desc: 'Descarga el Atajo de iPhone con un tap. Lo configuras una sola vez.', icon: 'fa-mobile-screen' },
-    { n: '03', title: 'Paga y olvídate', desc: 'Cada compra con Apple Pay queda registrada automáticamente en Flux.', icon: 'fa-bolt' },
+    { n: '03', title: 'Paga y olvídate', desc: 'Cada compra con Apple Pay queda registrada automáticamente en FluxApp Finance.', icon: 'fa-bolt' },
   ]
 
   return (
@@ -470,18 +470,24 @@ function HowItWorks() {
         </RevealWrapper>
 
         <div className="grid sm:grid-cols-3 gap-6 relative">
-          {/* Connector line */}
-          <div className="hidden sm:block absolute top-8 left-[calc(16.66%+16px)] right-[calc(16.66%+16px)] h-[2px]"
-            style={{ background: 'rgba(0,122,255,0.15)' }} />
+          {/* Connector line — aligned with icon circle centers (badge 40px + gap 16px + half icon 32px = 88px) */}
+          <div className="hidden sm:block absolute left-[calc(16.66%+16px)] right-[calc(16.66%+16px)] h-[2px]"
+            style={{ top: 88, background: 'rgba(0,122,255,0.15)' }} />
 
           {steps.map((s, i) => (
             <RevealWrapper key={i} delay={i * 100}>
               <div className="relative text-center">
-                <div className="relative inline-flex w-16 h-16 rounded-full items-center justify-center mb-5 mx-auto"
+                {/* Step number — prominent square badge */}
+                <div
+                  className="w-10 h-10 rounded-[12px] flex items-center justify-center mb-4 mx-auto font-black text-[15px] tabular-nums"
+                  style={{ background: BLUE, color: WHITE, boxShadow: '0 4px 12px rgba(0,122,255,0.35)', letterSpacing: '0.5px' }}
+                >
+                  {s.n}
+                </div>
+                {/* Icon circle */}
+                <div className="inline-flex w-16 h-16 rounded-full items-center justify-center mb-5"
                   style={{ background: BLUE, boxShadow: '0 8px 24px rgba(0,122,255,0.3)' }}>
-                  <i className={`fa-solid ${s.icon} text-white text-[20px]`} />
-                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-[10px] font-black flex items-center justify-center"
-                    style={{ background: DARK, color: WHITE }}>{s.n}</span>
+                  <i className={`fa-solid ${s.icon} text-white text-[22px]`} />
                 </div>
                 <h3 className="text-[20px] font-bold mb-2" style={{ color: DARK }}>{s.title}</h3>
                 <p className="text-[15px] font-medium leading-relaxed" style={{ color: GRAY }}>{s.desc}</p>
@@ -543,7 +549,7 @@ function Footer() {
       <div className="max-w-6xl mx-auto px-6 py-12">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <span className="text-[22px] font-black tracking-tight" style={{ color: BLUE }}>flux</span>
+            <span className="text-[22px] font-black tracking-tight" style={{ color: BLUE }}>fluxapp finance</span>
             <span className="text-[13px] font-medium" style={{ color: 'rgba(255,255,255,0.3)' }}>Finanzas personales</span>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-6">
@@ -571,7 +577,7 @@ function Footer() {
         <div className="mt-8 pt-8 flex flex-col sm:flex-row items-center justify-between gap-2"
           style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
           <p className="text-[13px] font-medium" style={{ color: 'rgba(255,255,255,0.25)' }}>
-            © 2026 Flux App · Todos los derechos reservados
+            © 2026 Flux App Finance · Todos los derechos reservados
           </p>
           <p className="text-[13px] font-medium" style={{ color: 'rgba(255,255,255,0.25)' }}>
             Hecho en México 🇲🇽
