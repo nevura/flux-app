@@ -34,8 +34,20 @@ function BottomSheet({ onClose, children, title }: { onClose: () => void; childr
   const sheetRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    // iOS-safe body lock: position:fixed instead of overflow:hidden so
+    // children with overflow:auto (the sheet itself) still scroll via touch
+    const y = window.scrollY
     document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = '' }
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${y}px`
+    document.body.style.width = '100%'
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      window.scrollTo({ top: y, behavior: 'instant' })
+    }
   }, [])
 
   // Lift sheet above keyboard on mobile using visualViewport
@@ -72,6 +84,7 @@ function BottomSheet({ onClose, children, title }: { onClose: () => void; childr
           paddingBottom: 'calc(1.5rem + var(--safe-bottom))',
           maxHeight: '90dvh',
           overflowY: 'auto',
+          touchAction: 'pan-y',
           transition: 'bottom 0.15s ease-out, max-height 0.15s ease-out',
           willChange: 'bottom',
         }}
@@ -807,6 +820,7 @@ function AccountsTab({ accounts, isPending, startTransition }: {
   const [draggingIdx, setDraggingIdx] = useState<number | null>(null)
   const dragState = useRef<{ fromIdx: number; currentIdx: number } | null>(null)
   const rowRefs = useRef<Array<HTMLDivElement | null>>([])
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Sync when server revalidates
   useEffect(() => { setOrdered(accounts) }, [accounts])
@@ -829,9 +843,39 @@ function AccountsTab({ accounts, isPending, startTransition }: {
   }
 
   function onGrabDown(e: React.PointerEvent<HTMLDivElement>, idx: number) {
-    e.currentTarget.setPointerCapture(e.pointerId)
-    dragState.current = { fromIdx: idx, currentIdx: idx }
-    setDraggingIdx(idx)
+    const el = e.currentTarget
+    const pointerId = e.pointerId
+    const startY = e.clientY
+    let cancelled = false
+
+    function onDocMove(ev: PointerEvent) {
+      if (ev.pointerId !== pointerId) return
+      // Cancel if the user scrolls more than 8px before the long-press fires
+      if (Math.abs(ev.clientY - startY) > 8) { cancelled = true; cleanup() }
+    }
+    function onDocCancel(ev: PointerEvent) {
+      if (ev.pointerId !== pointerId) return
+      cancelled = true; cleanup()
+    }
+    function cleanup() {
+      if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null }
+      document.removeEventListener('pointermove', onDocMove)
+      document.removeEventListener('pointerup', onDocCancel)
+      document.removeEventListener('pointercancel', onDocCancel)
+    }
+
+    document.addEventListener('pointermove', onDocMove)
+    document.addEventListener('pointerup', onDocCancel)
+    document.addEventListener('pointercancel', onDocCancel)
+
+    longPressTimer.current = setTimeout(() => {
+      cleanup()
+      if (cancelled) return
+      el.setPointerCapture(pointerId)
+      dragState.current = { fromIdx: idx, currentIdx: idx }
+      setDraggingIdx(idx)
+      if ('vibrate' in navigator) navigator.vibrate(15)
+    }, 800)
   }
 
   function onGrabMove(e: React.PointerEvent<HTMLDivElement>) {
@@ -855,8 +899,8 @@ function AccountsTab({ accounts, isPending, startTransition }: {
   }
 
   function onGrabUp(e: React.PointerEvent<HTMLDivElement>) {
-    e.currentTarget.releasePointerCapture(e.pointerId)
     if (!dragState.current) return
+    e.currentTarget.releasePointerCapture(e.pointerId)
     dragState.current = null
     setDraggingIdx(null)
     setOrdered(prev => {
