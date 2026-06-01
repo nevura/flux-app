@@ -165,11 +165,20 @@ export default function InsightsClient({ transactions, categories, monthlySummar
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [year, month])
 
+  function effectiveExpenseAmount(t: Transaction): number {
+    if (t.exclude_mode === 'all') return 0
+    if (t.exclude_mode === 'shared_only' && t.split_data) {
+      const othersTotal = t.split_data.data.reduce((s, d) => s + d.value, 0)
+      return Math.max(0, Number(t.amount) - othersTotal)
+    }
+    return Number(t.amount)
+  }
+
   const { income, expenses } = useMemo(() => {
     let inc = 0, exp = 0
     for (const t of transactions) {
       if (t.type === 'TR-INGRESO') inc += Number(t.amount)
-      else if (t.type === 'TR-GASTO') exp += Number(t.amount)
+      else if (t.type === 'TR-GASTO') exp += effectiveExpenseAmount(t)
     }
     return { income: inc, expenses: exp }
   }, [transactions])
@@ -178,7 +187,8 @@ export default function InsightsClient({ transactions, categories, monthlySummar
     const map: Record<string, number> = {}
     for (const t of transactions) {
       if (t.type === 'TR-GASTO' && t.category_id) {
-        map[t.category_id] = (map[t.category_id] ?? 0) + Number(t.amount)
+        const eff = effectiveExpenseAmount(t)
+        if (eff > 0) map[t.category_id] = (map[t.category_id] ?? 0) + eff
       }
     }
     return Object.entries(map)

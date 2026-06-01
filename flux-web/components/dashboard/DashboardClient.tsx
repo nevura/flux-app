@@ -440,12 +440,12 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
           className="rounded-[20px] overflow-hidden animate-fade-up"
           style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', animationDelay: '0.06s' }}
         >
-          <div className="flex p-1.5 gap-1" style={{ borderBottom: '1px solid var(--f-line)' }}>
+          <div className="flex" style={{ borderBottom: '1px solid var(--f-line)' }}>
             {(['daily', 'weekly'] as const).map(v => (
               <button
                 key={v}
                 onClick={() => setSpendView(v)}
-                className="flex-1 py-2 rounded-[10px] text-[13px] font-black tracking-[1px] uppercase transition-all active:scale-95"
+                className="flex-1 py-2.5 text-[13px] font-black tracking-[1px] uppercase transition-all active:scale-95"
                 style={spendView === v
                   ? { background: 'var(--f-blue)', color: '#fff' }
                   : { background: 'transparent', color: 'var(--f-text-3)' }

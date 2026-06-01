@@ -53,18 +53,28 @@ export default function InsightsTab({ userId, active, refreshSignal }: Props) {
         .order('transaction_date', { ascending: false }),
       supabase.from('categories').select('*').or(`user_id.eq.${userId},user_id.is.null`).order('sort_order'),
       supabase.from('transactions')
-        .select('type, amount, transaction_date')
+        .select('type, amount, transaction_date, exclude_mode, split_data')
         .eq('user_id', userId)
         .neq('type', 'TR-TRANSFER'),
     ])
+
+    function effectiveAmt(t: { type: string; amount: number; exclude_mode?: string | null; split_data?: { data: { value: number }[] } | null }): number {
+      if (t.exclude_mode === 'all') return 0
+      if (t.exclude_mode === 'shared_only' && t.split_data?.data) {
+        const othersTotal = t.split_data.data.reduce((s, d) => s + d.value, 0)
+        return Math.max(0, Number(t.amount) - othersTotal)
+      }
+      return Number(t.amount)
+    }
 
     const monthMap: Record<string, MonthlyRow> = {}
     for (const t of allTx ?? []) {
       const d = new Date(t.transaction_date)
       const key = `${d.getFullYear()}-${d.getMonth() + 1}`
       if (!monthMap[key]) monthMap[key] = { year: d.getFullYear(), month: d.getMonth() + 1, income: 0, expenses: 0 }
-      if (t.type === 'TR-INGRESO') monthMap[key].income   += Number(t.amount)
-      else                         monthMap[key].expenses += Number(t.amount)
+      const eff = effectiveAmt(t)
+      if (t.type === 'TR-INGRESO') monthMap[key].income   += eff
+      else                         monthMap[key].expenses += eff
     }
     const monthlySummary = Object.values(monthMap).sort((a, b) =>
       a.year !== b.year ? a.year - b.year : a.month - b.month,

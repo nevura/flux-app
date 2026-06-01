@@ -73,56 +73,67 @@ function PhoneMockup() {
         {/* Screen */}
         <div className="absolute inset-[3px] rounded-[48px] overflow-hidden" style={{ background: '#020617' }}>
 
-          {/* Header */}
-          <div className="px-4 pt-12 pb-3 flex items-start justify-between">
-            <div>
-              <p className="text-[8px] font-black uppercase tracking-[2px]" style={{ color: 'rgba(255,255,255,0.35)' }}>MAYO 2026</p>
-              <p className="text-[17px] font-black text-white leading-tight">Hola, Bernardo</p>
+          {/* Header — matches real DashboardClient layout */}
+          <div className="px-4 pt-12 pb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-[9px] flex items-center justify-center flex-shrink-0"
+                style={{ background: 'rgba(255,255,255,0.07)' }}>
+                <i className="fa-solid fa-bars text-white text-[10px]" />
+              </div>
+              <div>
+                <p className="text-[7px] font-black uppercase tracking-[2px] leading-none" style={{ color: 'rgba(255,255,255,0.35)' }}>JUNIO 2026</p>
+                <p className="text-[14px] font-black text-white leading-tight">Hola, Bernardo</p>
+              </div>
             </div>
-            <div className="w-7 h-7 rounded-full flex items-center justify-center mt-1" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="w-7 h-7 rounded-full flex items-center justify-center"
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
               <i className="fa-regular fa-bell text-white text-[11px]" />
             </div>
           </div>
 
           {/* Balance card */}
-          <div className="mx-4 mb-3 rounded-[18px] p-4" style={{ background: '#007AFF' }}>
-            <p className="text-[8px] font-black uppercase tracking-[2px] mb-1" style={{ color: 'rgba(255,255,255,0.65)' }}>SALDO ACTUAL</p>
+          <div className="mx-3 mb-2.5 rounded-[20px] p-4" style={{ background: '#007AFF', boxShadow: '0 8px 24px rgba(0,122,255,0.35)' }}>
+            <p className="text-[7px] font-black uppercase tracking-[2px] mb-1" style={{ color: 'rgba(255,255,255,0.65)' }}>SALDO ACTUAL</p>
             <p className="text-[26px] font-black text-white leading-none tabular-nums">$8,240.50</p>
           </div>
 
           {/* Budget section */}
-          <div className="mx-4 mb-3 rounded-[14px] p-3" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
-            <div className="flex items-center justify-between mb-1.5">
-              <p className="text-[8px] font-black uppercase tracking-[2px]" style={{ color: 'rgba(255,255,255,0.40)' }}>PRESUPUESTO DEL MES</p>
-              <i className="fa-solid fa-pen text-[8px]" style={{ color: 'rgba(255,255,255,0.3)' }} />
+          <div className="mx-3 mb-2.5 rounded-[14px] p-3"
+            style={{ background: 'rgba(0,122,255,0.08)', border: '1px solid rgba(0,122,255,0.2)' }}>
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-[7px] font-black uppercase tracking-[2px]" style={{ color: 'rgba(255,255,255,0.40)' }}>PRESUPUESTO</p>
+              <i className="fa-solid fa-pen text-[7px]" style={{ color: 'rgba(255,255,255,0.3)' }} />
             </div>
-            <p className="text-[17px] font-black text-white tabular-nums mb-0.5">$6,420.00</p>
-            <p className="text-[8px] font-semibold mb-2" style={{ color: 'rgba(255,255,255,0.40)' }}>de $10,000.00</p>
-            {/* Progress bar */}
-            <div className="h-[5px] rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
+            <p className="text-[15px] font-black text-white tabular-nums leading-none">$6,420.00</p>
+            <p className="text-[7px] font-semibold mb-1.5" style={{ color: 'rgba(255,255,255,0.35)' }}>de $10,000.00 · te quedan $3,580</p>
+            <div className="h-[4px] rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
               <div className="h-full rounded-full" style={{ width: '64%', background: '#30D158' }} />
             </div>
           </div>
 
-          {/* Today/Week tabs */}
-          <div className="mx-4 mb-2">
-            <div className="flex rounded-[10px] overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
-              <div className="flex-1 py-1.5 text-center text-[9px] font-black" style={{ background: '#007AFF', color: '#fff' }}>HOY</div>
-              <div className="flex-1 py-1.5 text-center text-[9px] font-black" style={{ color: 'rgba(255,255,255,0.35)' }}>SEMANA</div>
+          {/* Hoy/Semana — flush header, no padding gaps */}
+          <div className="mx-3 mb-2 rounded-[14px] overflow-hidden"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
+            <div className="flex" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+              <div className="flex-1 py-2 text-center text-[9px] font-black uppercase tracking-[1px]"
+                style={{ background: '#007AFF', color: '#fff' }}>HOY</div>
+              <div className="flex-1 py-2 text-center text-[9px] font-black uppercase tracking-[1px]"
+                style={{ color: 'rgba(255,255,255,0.35)' }}>SEMANA</div>
             </div>
-            <p className="text-center text-[8px] font-semibold mt-2 mb-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>Hoy</p>
-            <p className="text-center text-[16px] font-black text-white tabular-nums">$1,240.00</p>
+            <div className="px-3 py-2.5">
+              <p className="text-center text-[8px] font-bold mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Hoy</p>
+              <div className="flex items-center justify-between">
+                <i className="fa-solid fa-chevron-left text-[7px]" style={{ color: 'rgba(255,255,255,0.3)' }} />
+                <p className="text-[20px] font-black text-white tabular-nums">$1,240.00</p>
+                <i className="fa-solid fa-chevron-right text-[7px]" style={{ color: 'rgba(255,255,255,0.15)' }} />
+              </div>
+            </div>
           </div>
 
-          {/* Recurrentes label */}
-          <div className="mx-4 mt-1">
-            <p className="text-[7px] font-black uppercase tracking-[2px]" style={{ color: 'rgba(255,255,255,0.25)' }}>PRÓXIMOS RECURRENTES</p>
-          </div>
-
-          {/* Bottom nav — 4 tabs + center FAB */}
+          {/* Bottom nav */}
           <div className="absolute bottom-0 left-0 right-0 flex justify-around items-center px-3 pb-4 pt-3"
             style={{ background: 'rgba(2,6,23,0.96)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-            <i className="fa-solid fa-wallet" style={{ fontSize: 16, color: '#007AFF' }} />
+            <i className="fa-solid fa-wallet" style={{ fontSize: 16, color: '#ffffff' }} />
             <i className="fa-solid fa-list" style={{ fontSize: 16, color: 'rgba(255,255,255,0.25)' }} />
             <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: '#007AFF' }}>
               <i className="fa-solid fa-plus text-white text-[14px]" />
@@ -390,9 +401,9 @@ function SharedSection() {
 
               {/* People list */}
               {[
-                { name: 'Ferchis', handle: '@ferjimguz', amt: '+$280', color: '#30D158', icon: 'F' },
-                { name: 'Pach',    handle: 'Sin vincular', amt: '+$200', color: '#30D158', icon: 'P' },
-                { name: 'Roy',     handle: '@roymuñoz',   amt: '-$120', color: '#FF453A', icon: 'R' },
+                { name: 'Fernando', handle: '@fernando_garza', amt: '+$280', color: '#30D158', icon: 'F' },
+                { name: 'Santiago', handle: '@santi_mtz', amt: '+$200', color: '#30D158', icon: 'S' },
+                { name: 'Raúl', handle: '@raul.lopez', amt: '-$120', color: '#FF453A', icon: 'R' },
               ].map((p, i) => (
                 <div key={i} className="flex items-center gap-3 rounded-[14px] px-4 py-3 mb-2"
                   style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
@@ -504,7 +515,7 @@ function CTASection() {
             <div className="relative">
               <p className="text-[12px] font-black uppercase tracking-[4px] mb-4 text-white/60">Comienza hoy</p>
               <h2 className="text-[36px] sm:text-[48px] font-black leading-[1.06] tracking-[-1.5px] text-white mb-4">
-                14 días gratis.<br />Sin tarjeta.
+                20 días gratis.<br />Sin tarjeta.
               </h2>
               <p className="text-[17px] font-medium text-white/70 mb-8 max-w-md mx-auto">
                 Únete y descubre por qué controlar tu dinero puede ser simple.
