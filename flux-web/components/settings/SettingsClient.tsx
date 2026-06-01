@@ -829,7 +829,6 @@ function AccountsTab({ accounts, isPending, startTransition }: {
   }
 
   function onGrabDown(e: React.PointerEvent<HTMLDivElement>, idx: number) {
-    e.preventDefault()
     e.currentTarget.setPointerCapture(e.pointerId)
     dragState.current = { fromIdx: idx, currentIdx: idx }
     setDraggingIdx(idx)
@@ -889,10 +888,9 @@ function AccountsTab({ accounts, isPending, startTransition }: {
                 border: `1px solid ${isBeingDragged ? 'var(--f-blue)' : 'var(--f-accent-bg)'}`,
                 opacity: isBeingDragged ? 0.75 : 1,
                 transition: 'border-color 0.15s, opacity 0.15s',
-                touchAction: 'none',
               }}
             >
-              {/* Drag handle */}
+              {/* Drag handle — touch-action:none only here so the rest of the row stays scrollable */}
               <div
                 className="flex-shrink-0 w-6 h-10 flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
                 style={{ color: 'var(--f-text-4)', touchAction: 'none' }}

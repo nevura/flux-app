@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import AppNav from './AppNav'
 import PullToRefresh from './PullToRefresh'
 import DashboardTab from '@/components/tabs/DashboardTab'
@@ -30,6 +30,8 @@ interface Props {
 export default function AppShell({ userId, fullName, email, isReadOnly, children }: Props) {
   const pathname = usePathname()
   const activeTab = pathToTab(pathname)
+  const prevTabRef = useRef<TabKey | null>(null)
+  const scrollPositions = useRef<Partial<Record<TabKey, number>>>({})
 
   const [refreshSignal, setRefreshSignal] = useState(0)
 
@@ -38,6 +40,20 @@ export default function AppShell({ userId, fullName, email, isReadOnly, children
     window.addEventListener('flux:refresh', handler)
     return () => window.removeEventListener('flux:refresh', handler)
   }, [])
+
+  // Save scroll position of previous tab and restore position of the new tab
+  useEffect(() => {
+    if (!activeTab) return
+    const prev = prevTabRef.current
+    if (prev && prev !== activeTab) {
+      scrollPositions.current[prev] = window.scrollY
+    }
+    if (prev !== activeTab) {
+      const saved = scrollPositions.current[activeTab] ?? 0
+      window.scrollTo({ top: saved, behavior: 'instant' })
+    }
+    prevTabRef.current = activeTab
+  }, [activeTab])
 
   const tabProps = { userId, active: false as boolean, refreshSignal }
 
