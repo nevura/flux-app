@@ -91,6 +91,8 @@ export type NotificationType =
   | 'expense_settled_confirm'
   | 'expense_settled'
   | 'expense_settle_rejected'
+  | 'scheduled_due'
+  | 'tdc_due'
 
 export interface Notification {
   id: string

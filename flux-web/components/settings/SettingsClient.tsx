@@ -804,6 +804,9 @@ function AccountsTab({ accounts, isPending, startTransition }: {
   const [editing, setEditing] = useState<Partial<Account> | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [ordered, setOrdered] = useState<Account[]>(accounts)
+  const [draggingIdx, setDraggingIdx] = useState<number | null>(null)
+  const dragState = useRef<{ fromIdx: number; currentIdx: number } | null>(null)
+  const rowRefs = useRef<Array<HTMLDivElement | null>>([])
 
   // Sync when server revalidates
   useEffect(() => { setOrdered(accounts) }, [accounts])
@@ -825,15 +828,42 @@ function AccountsTab({ accounts, isPending, startTransition }: {
     })
   }
 
-  function handleMove(id: string, dir: 'up' | 'down') {
-    const idx = ordered.findIndex(a => a.id === id)
-    if (dir === 'up' && idx === 0) return
-    if (dir === 'down' && idx === ordered.length - 1) return
-    const next = [...ordered]
-    const swap = dir === 'up' ? idx - 1 : idx + 1
-    ;[next[idx], next[swap]] = [next[swap], next[idx]]
-    setOrdered(next)
-    startTransition(async () => { await reorderAccounts(next.map(a => a.id)) })
+  function onGrabDown(e: React.PointerEvent<HTMLDivElement>, idx: number) {
+    e.preventDefault()
+    e.currentTarget.setPointerCapture(e.pointerId)
+    dragState.current = { fromIdx: idx, currentIdx: idx }
+    setDraggingIdx(idx)
+  }
+
+  function onGrabMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (!dragState.current) return
+    for (let i = 0; i < rowRefs.current.length; i++) {
+      const el = rowRefs.current[i]
+      if (!el) continue
+      const rect = el.getBoundingClientRect()
+      if (e.clientY >= rect.top && e.clientY <= rect.bottom && i !== dragState.current.currentIdx) {
+        setOrdered(prev => {
+          const next = [...prev]
+          const [item] = next.splice(dragState.current!.currentIdx, 1)
+          next.splice(i, 0, item)
+          return next
+        })
+        dragState.current.currentIdx = i
+        setDraggingIdx(i)
+        break
+      }
+    }
+  }
+
+  function onGrabUp(e: React.PointerEvent<HTMLDivElement>) {
+    e.currentTarget.releasePointerCapture(e.pointerId)
+    if (!dragState.current) return
+    dragState.current = null
+    setDraggingIdx(null)
+    setOrdered(prev => {
+      startTransition(async () => { await reorderAccounts(prev.map(a => a.id)) })
+      return prev
+    })
   }
 
   return (
@@ -848,26 +878,29 @@ function AccountsTab({ accounts, isPending, startTransition }: {
       <div className="space-y-2">
         {ordered.map((acc, i) => {
           const method = getPaymentMethod(acc.payment_method_id)
+          const isBeingDragged = draggingIdx === i
           return (
-            <div key={acc.id} className="rounded-2xl px-4 py-3 flex items-center gap-3 animate-fade-up" style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-accent-bg)', animationDelay: `${i * 0.04}s` }}>
-              {/* Reorder arrows */}
-              <div className="flex flex-col gap-0.5 flex-shrink-0">
-                <button
-                  onClick={() => handleMove(acc.id, 'up')}
-                  disabled={i === 0 || isPending}
-                  className="w-6 h-5 flex items-center justify-center rounded disabled:opacity-20 transition-opacity"
-                  style={{ color: 'var(--f-text-4)' }}
-                >
-                  <i className="fa-solid fa-chevron-up text-[10px]" />
-                </button>
-                <button
-                  onClick={() => handleMove(acc.id, 'down')}
-                  disabled={i === ordered.length - 1 || isPending}
-                  className="w-6 h-5 flex items-center justify-center rounded disabled:opacity-20 transition-opacity"
-                  style={{ color: 'var(--f-text-4)' }}
-                >
-                  <i className="fa-solid fa-chevron-down text-[10px]" />
-                </button>
+            <div
+              key={acc.id}
+              ref={el => { rowRefs.current[i] = el }}
+              className="rounded-2xl px-4 py-3 flex items-center gap-3"
+              style={{
+                background: 'var(--f-bg-elevated)',
+                border: `1px solid ${isBeingDragged ? 'var(--f-blue)' : 'var(--f-accent-bg)'}`,
+                opacity: isBeingDragged ? 0.75 : 1,
+                transition: 'border-color 0.15s, opacity 0.15s',
+                touchAction: 'none',
+              }}
+            >
+              {/* Drag handle */}
+              <div
+                className="flex-shrink-0 w-6 h-10 flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
+                style={{ color: 'var(--f-text-4)', touchAction: 'none' }}
+                onPointerDown={e => onGrabDown(e, i)}
+                onPointerMove={onGrabMove}
+                onPointerUp={onGrabUp}
+              >
+                <i className="fa-solid fa-grip-vertical text-[13px]" />
               </div>
               <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'var(--f-accent-bg)' }}>
                 <i className={`${method.icon} text-sm`} style={{ color: 'var(--f-blue)' }} />

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { currentYearMonth, monthRange } from '@/lib/utils'
 import DashboardClient from '@/components/dashboard/DashboardClient'
+import { generateSystemNotifications } from '@/actions/notifications'
 import type { AccountWithBalance, Transaction, Category, ScheduledTransaction, Budget, CreditPayment } from '@/lib/types'
 
 interface DashboardData {
@@ -103,6 +104,12 @@ export default function DashboardTab({ userId, fullName, email, active, refreshS
       year,
       month,
     })
+
+    // Generate system notifications once per session on first load
+    if (!loadedRef.current) {
+      generateSystemNotifications().catch(() => {})
+    }
+
     loadedRef.current = true
   }, [userId, supabase])
 

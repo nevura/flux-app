@@ -39,6 +39,13 @@ function notifLabel(n: Notification): { icon: string; iconColor: string; text: s
       return { icon: 'fa-solid fa-circle-check', iconColor: 'var(--f-income)', text: `@${d.from_username} confirmó el pago de: ${d.concept}` }
     case 'expense_settle_rejected':
       return { icon: 'fa-solid fa-circle-xmark', iconColor: 'var(--f-expense)', text: `@${d.from_username} no confirmó el pago de: ${d.concept}` }
+    case 'scheduled_due':
+      return { icon: 'fa-solid fa-calendar-exclamation', iconColor: 'var(--f-expense)', text: `Vence hoy: ${d.name} · ${formatCurrency(Number(d.amount))}` }
+    case 'tdc_due': {
+      const days = Number(d.days_until)
+      const when = days === 0 ? 'hoy' : days === 1 ? 'mañana' : `en ${days} días`
+      return { icon: 'fa-solid fa-credit-card', iconColor: 'var(--f-transfer)', text: `Pago TDC ${d.name} — vence ${when}` }
+    }
     default:
       return { icon: 'fa-solid fa-bell', iconColor: 'var(--f-text-3)', text: 'Notificación' }
   }

@@ -34,9 +34,9 @@ function AnimatedBar({ pct, color }: { pct: number; color: string }) {
 
 
 const PM_CARDS: Record<string, { bg: string; shadow: string }> = {
-  'MP-EFECTIVO': { bg: 'linear-gradient(135deg, var(--f-cash) 0%, var(--f-cash) 100%)',   shadow: 'var(--f-shadow-income)'  },
-  'MP-TDD':      { bg: 'linear-gradient(135deg, var(--f-debit) 0%, var(--f-debit) 100%)', shadow: 'var(--f-shadow-accent)'  },
-  'MP-TDC':      { bg: 'linear-gradient(135deg, var(--f-credit) 0%, var(--f-credit) 100%)', shadow: 'var(--f-shadow-expense)' },
+  'MP-EFECTIVO': { bg: 'linear-gradient(135deg, var(--f-cash) 0%, var(--f-cash) 100%)', shadow: 'var(--f-shadow-income)' },
+  'MP-TDD': { bg: 'linear-gradient(135deg, var(--f-debit) 0%, var(--f-debit) 100%)', shadow: 'var(--f-shadow-accent)' },
+  'MP-TDC': { bg: 'linear-gradient(135deg, var(--f-credit) 0%, var(--f-credit) 100%)', shadow: 'var(--f-shadow-expense)' },
 }
 
 interface Props {
@@ -101,7 +101,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
       fromDate.setMonth(fromDate.getMonth() - 2)
 
       const newFrom = fromDate.toLocaleDateString('en-CA')
-      const newTo   = toDate.toLocaleDateString('en-CA')
+      const newTo = toDate.toLocaleDateString('en-CA')
 
       supabase
         .from('transactions')
@@ -148,7 +148,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
     accounts
       .filter(a => a.payment_method_id === 'MP-TDC' && !creditPayMap[a.id])
       .sort((a, b) => (a.payment_day ?? 99) - (b.payment_day ?? 99)),
-  [accounts, creditPayMap])
+    [accounts, creditPayMap])
 
   const currentMonthStr = `${year}-${String(month).padStart(2, '0')}`
 
@@ -428,7 +428,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
               <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--f-bg-input)' }}>
                 <AnimatedBar pct={budgetPct} color={budgetOver ? 'var(--f-expense)' : budgetLeft < budgetAmount * 0.20 ? 'var(--f-credit)' : 'var(--f-income)'} />
               </div>
-              <p className="text-[18px] font-black mt-2 tabular-nums" style={{ color: budgetOver ? 'var(--f-expense)' : budgetLeft < budgetAmount * 0.20 ? 'var(--f-credit)' : 'var(--f-income)' }}>
+              <p className="text-[14px] font-black mt-2 tabular-nums" style={{ color: budgetOver ? 'var(--f-expense)' : budgetLeft < budgetAmount * 0.20 ? 'var(--f-credit)' : 'var(--f-income)' }}>
                 {budgetOver ? `+${formatCurrency(Math.abs(budgetLeft))}` : `-${formatCurrency(budgetLeft)}`}
               </p>
             </>
@@ -619,11 +619,10 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
             <div className="flex items-center gap-2">
               <Link
                 href="/settings?section=cuentas"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[13px] font-black uppercase tracking-wide active:scale-95 transition-transform"
+                className="flex items-center justify-center w-9 h-9 rounded-[10px] active:scale-95 transition-transform"
                 style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)', border: '1px solid var(--f-accent-border)' }}
               >
-                <i className="fa-solid fa-plus text-[11px]" />
-                Nueva
+                <i className="fa-solid fa-plus text-[13px]" />
               </Link>
               <button
                 onClick={() => setAuditOpen(true)}

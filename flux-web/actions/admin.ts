@@ -1,10 +1,21 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import nodemailer from 'nodemailer'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-const ADMIN_EMAIL = 'bernardo.perezro06@gmail.com'
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'bernardo.perezro06@gmail.com'
+
+const mailer = nodemailer.createTransport({
+  service: 'gmail',
+  auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
+})
+
+async function sendAdminEmail(subject: string, html: string) {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) return
+  await mailer.sendMail({ from: process.env.GMAIL_USER, to: ADMIN_EMAIL, subject, html }).catch(() => {})
+}
 
 async function verifyAdmin() {
   const supabase = await createClient()
@@ -115,8 +126,20 @@ export async function sendSupportMessage(message: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autorizado' }
+
+  const { data: profile } = await supabase.from('profiles').select('full_name, email').eq('id', user.id).single()
   const { error } = await supabase.from('support_tickets' as any).insert({ user_id: user.id, message })
   if (error) return { error: error.message }
+
+  const userName = (profile as any)?.full_name ?? (profile as any)?.email ?? user.email ?? 'Usuario'
+  await sendAdminEmail(
+    `💬 Nuevo mensaje de soporte — ${userName}`,
+    `<p><strong>De:</strong> ${userName} (${(profile as any)?.email ?? user.email})</p>
+     <p><strong>Mensaje:</strong></p>
+     <blockquote style="border-left:3px solid #007AFF;padding-left:12px;color:#555">${message.replace(/\n/g, '<br>')}</blockquote>
+     <p style="color:#888;font-size:12px">Responde desde el panel de admin en <a href="https://fluxapp.finance/admin">fluxapp.finance/admin</a></p>`,
+  )
+
   return { error: null }
 }
 
