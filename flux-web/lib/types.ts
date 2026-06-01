@@ -140,6 +140,7 @@ export interface Transaction {
   scheduled_id: string | null
   split_data: SplitData | null
   exclude_from_budget: boolean
+  exclude_mode: 'none' | 'all' | 'shared_only'
   is_receivable: boolean
   is_payable: boolean
   notes: string | null
@@ -205,7 +206,7 @@ export interface TransactionForm {
   destination_account_id?: string
   transaction_date: string
   split_data?: SplitData | null
-  exclude_from_budget?: boolean
+  exclude_mode?: 'none' | 'all' | 'shared_only'
   notes?: string
   scheduled_id?: string
 }

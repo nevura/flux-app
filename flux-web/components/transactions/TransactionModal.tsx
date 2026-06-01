@@ -42,6 +42,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
     await confirmTransaction(transaction.id)
     toast.success('Movimiento confirmado')
     router.refresh()
+    window.dispatchEvent(new CustomEvent('flux:refresh'))
     onClose()
   }
 
@@ -52,7 +53,10 @@ export default function TransactionModal({ transaction, accounts, categories, pe
   const [accId, setAccId] = useState(transaction?.account_id ?? accounts[0]?.id ?? '')
   const [destId, setDestId] = useState(transaction?.destination_account_id ?? '')
   const [date, setDate] = useState(transaction?.transaction_date?.slice(0, 16) ?? getMexicoNow().slice(0, 16))
-  const [exclude, setExclude] = useState(transaction?.exclude_from_budget ?? false)
+  type ExcludeMode = 'none' | 'all' | 'shared_only'
+  const [excludeMode, setExcludeMode] = useState<ExcludeMode>(
+    transaction?.exclude_mode ?? (transaction?.exclude_from_budget ? 'all' : 'none')
+  )
   const [notes, setNotes] = useState(transaction?.notes ?? '')
 
   const initSplit = transaction?.split_data
@@ -144,13 +148,14 @@ export default function TransactionModal({ transaction, accounts, categories, pe
   })
 
   async function handleSubmit() {
-    const form = { concept, type, amount, category_id: catId, account_id: accId, destination_account_id: destId, transaction_date: date, exclude_from_budget: exclude, notes, split_data: buildSplitData() }
+    const form = { concept, type, amount, category_id: catId, account_id: accId, destination_account_id: destId, transaction_date: date, exclude_mode: excludeMode, notes, split_data: buildSplitData() }
     startTransition(async () => {
       const res = isEdit && transaction
         ? await updateTransaction(transaction.id, form)
         : await addTransaction(form)
       if (res.error) { toast.error(res.error); return }
       toast.success(isEdit ? 'Movimiento actualizado' : 'Movimiento guardado')
+      window.dispatchEvent(new CustomEvent('flux:refresh'))
       onClose()
     })
   }
@@ -161,6 +166,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
       const res = await deleteTransaction(transaction.id)
       if (res.error) { toast.error(res.error); return }
       toast.success('Movimiento eliminado')
+      window.dispatchEvent(new CustomEvent('flux:refresh'))
       onClose()
     })
   }
@@ -417,31 +423,58 @@ export default function TransactionModal({ transaction, accounts, categories, pe
 
             {/* Exclude toggle */}
             {type === 'TR-GASTO' && (
-              <button
-                type="button"
-                onClick={() => setExclude(!exclude)}
-                className="w-full flex items-center justify-between px-4 py-3.5 rounded-[14px] transition-all"
-                style={{
-                  background: exclude ? 'rgba(255,159,10,0.1)' : 'var(--f-bg-input)',
-                  border: `1px solid ${exclude ? 'rgba(255,159,10,0.3)' : 'var(--f-line)'}`,
-                }}
-              >
-                <div>
-                  <p className="text-[15px] font-bold text-left" style={{ color: 'var(--f-text)' }}>Excluir del presupuesto</p>
-                  <p className="text-[13px] text-left mt-0.5" style={{ color: 'var(--f-text-3)' }}>
-                    No contar en el límite mensual
-                  </p>
-                </div>
-                <div
-                  className="w-10 h-6 rounded-full relative flex-shrink-0 transition-colors"
-                  style={{ background: exclude ? '#FF9F0A' : 'var(--f-line-strong)' }}
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => setExcludeMode(excludeMode === 'none' ? (splitEnabled ? 'shared_only' : 'all') : 'none')}
+                  className="w-full flex items-center justify-between px-4 py-3.5 rounded-[14px] transition-all"
+                  style={{
+                    background: excludeMode !== 'none' ? 'rgba(255,159,10,0.1)' : 'var(--f-bg-input)',
+                    border: `1px solid ${excludeMode !== 'none' ? 'rgba(255,159,10,0.3)' : 'var(--f-line)'}`,
+                  }}
                 >
+                  <div>
+                    <p className="text-[15px] font-bold text-left" style={{ color: 'var(--f-text)' }}>Excluir del presupuesto</p>
+                    <p className="text-[13px] text-left mt-0.5" style={{ color: 'var(--f-text-3)' }}>
+                      No contar en métricas ni en el límite mensual
+                    </p>
+                  </div>
                   <div
-                    className="absolute top-1 w-4 h-4 rounded-full bg-white transition-transform"
-                    style={{ transform: exclude ? 'translateX(20px)' : 'translateX(4px)' }}
-                  />
-                </div>
-              </button>
+                    className="w-10 h-6 rounded-full relative flex-shrink-0 transition-colors"
+                    style={{ background: excludeMode !== 'none' ? '#FF9F0A' : 'var(--f-line-strong)' }}
+                  >
+                    <div
+                      className="absolute top-1 w-4 h-4 rounded-full bg-white transition-transform"
+                      style={{ transform: excludeMode !== 'none' ? 'translateX(20px)' : 'translateX(4px)' }}
+                    />
+                  </div>
+                </button>
+
+                {/* Mode selector — only when excluded AND split is active */}
+                {excludeMode !== 'none' && splitEnabled && (
+                  <div className="flex gap-2 px-1">
+                    {([
+                      { id: 'all' as ExcludeMode, label: 'Todo el gasto', icon: 'fa-solid fa-ban' },
+                      { id: 'shared_only' as ExcludeMode, label: 'Solo lo compartido', icon: 'fa-solid fa-users' },
+                    ]).map(opt => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setExcludeMode(opt.id)}
+                        className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-[12px] transition-all"
+                        style={excludeMode === opt.id
+                          ? { background: 'rgba(255,159,10,0.15)', border: '1px solid rgba(255,159,10,0.4)' }
+                          : { background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
+                      >
+                        <i className={opt.icon} style={{ fontSize: 12, color: excludeMode === opt.id ? '#FF9F0A' : 'var(--f-text-3)' }} />
+                        <span className="text-[13px] font-semibold text-left leading-tight" style={{ color: excludeMode === opt.id ? '#FF9F0A' : 'var(--f-text-2)' }}>
+                          {opt.label}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Split section — only for expenses with people */}

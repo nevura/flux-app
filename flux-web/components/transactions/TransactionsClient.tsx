@@ -143,6 +143,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
     startTransition(async () => {
       await deleteTransaction(tx.id)
       router.refresh()
+      window.dispatchEvent(new CustomEvent('flux:refresh'))
     })
   }
 
@@ -150,6 +151,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
     startTransition(async () => {
       await confirmTransaction(tx.id)
       router.refresh()
+      window.dispatchEvent(new CustomEvent('flux:refresh'))
     })
   }
 

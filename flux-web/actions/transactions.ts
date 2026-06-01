@@ -131,7 +131,7 @@ export async function addTransaction(form: TransactionForm) {
       is_validated: true,
       scheduled_id: form.scheduled_id || null,
       split_data: form.split_data || null,
-      exclude_from_budget: form.exclude_from_budget ?? false,
+      exclude_mode: form.exclude_mode ?? 'none',
       notes: form.notes || null,
     }).select('id').single()
     if (error) return { error: error.message }
@@ -231,7 +231,7 @@ export async function updateTransaction(id: string, form: TransactionForm) {
       account_id: form.account_id,
       transaction_date: date,
       split_data: form.split_data || null,
-      exclude_from_budget: form.exclude_from_budget ?? false,
+      exclude_mode: form.exclude_mode ?? 'none',
       notes: form.notes || null,
     })
     .eq('id', id)

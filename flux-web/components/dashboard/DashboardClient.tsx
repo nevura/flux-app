@@ -146,10 +146,21 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
   const creditPayMap = useMemo(() => Object.fromEntries(creditPayments.map(p => [p.account_id, p])), [creditPayments])
 
   const currentMonthStr = `${year}-${String(month).padStart(2, '0')}`
+
+  // Returns the budget-effective amount for a transaction, respecting exclude_mode
+  function effectiveExpenseAmount(t: Transaction): number {
+    if (t.exclude_mode === 'all') return 0
+    if (t.exclude_mode === 'shared_only' && t.split_data) {
+      const othersTotal = t.split_data.data.reduce((s, d) => s + d.value, 0)
+      return Math.max(0, Number(t.amount) - othersTotal)
+    }
+    return Number(t.amount)
+  }
+
   const monthExpenses = useMemo(
     () => txList
       .filter(t => t.type === 'TR-GASTO' && t.transaction_date.slice(0, 7) === currentMonthStr)
-      .reduce((s, t) => s + Number(t.amount), 0),
+      .reduce((s, t) => s + effectiveExpenseAmount(t), 0),
     [txList, currentMonthStr],
   )
 
@@ -174,7 +185,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
     const dayStr = targetDay.toLocaleDateString('en-CA')
     return txList
       .filter(t => t.type === 'TR-GASTO' && t.transaction_date.startsWith(dayStr))
-      .reduce((s, t) => s + Number(t.amount), 0)
+      .reduce((s, t) => s + effectiveExpenseAmount(t), 0)
   }, [txList, targetDay])
 
   const weeklySpend = useMemo(() => {
@@ -186,7 +197,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
         const d = t.transaction_date.slice(0, 10)
         return d >= mondayStr && d <= sundayStr
       })
-      .reduce((s, t) => s + Number(t.amount), 0)
+      .reduce((s, t) => s + effectiveExpenseAmount(t), 0)
   }, [txList, targetWeekRange])
 
   const dayLabel = useMemo(() => {
