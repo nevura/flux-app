@@ -50,11 +50,6 @@ export async function updateSession(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    if (profile?.status === 'pending') {
-      const url = request.nextUrl.clone()
-      url.pathname = '/pending'
-      return NextResponse.redirect(url)
-    }
     if (profile?.status === 'rejected') {
       const url = request.nextUrl.clone()
       url.pathname = '/rejected'

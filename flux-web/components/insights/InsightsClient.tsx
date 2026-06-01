@@ -473,9 +473,14 @@ export default function InsightsClient({ transactions, categories, monthlySummar
                         <GrowBar target={incH} color={isCurrent ? 'var(--f-income)' : 'rgba(48,209,88,0.35)'} />
                         <GrowBar target={expH} color={isCurrent ? 'var(--f-expense)' : 'rgba(255,69,58,0.35)'} />
                       </div>
-                      <p className="text-[12px] font-black uppercase tracking-wide text-center" style={{ color: isCurrent ? 'var(--f-text)' : 'var(--f-text-4)' }}>
-                        {MONTHS_ES[row.month - 1].slice(0, 3)} {row.year.toString().slice(2)}
-                      </p>
+                      <div className="text-center leading-none mt-1">
+                        <p className="text-[10px] font-black uppercase" style={{ color: isCurrent ? 'var(--f-text)' : 'var(--f-text-4)' }}>
+                          {MONTHS_ES[row.month - 1].slice(0, 3)}
+                        </p>
+                        <p className="text-[9px] font-semibold mt-[2px]" style={{ color: isCurrent ? 'var(--f-text-3)' : 'var(--f-text-4)' }}>
+                          {row.year.toString().slice(2)}
+                        </p>
+                      </div>
                     </div>
                   )
                 })}

@@ -423,8 +423,8 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
               <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--f-bg-input)' }}>
                 <AnimatedBar pct={budgetPct} color={budgetOver ? 'var(--f-expense)' : budgetLeft < budgetAmount * 0.20 ? 'var(--f-credit)' : 'var(--f-income)'} />
               </div>
-              <p className="text-[16px] tracking-[0.5px] font-bold mt-2 tabular-nums" style={{ color: budgetOver ? 'var(--f-expense)' : budgetLeft < budgetAmount * 0.20 ? 'var(--f-credit)' : 'var(--f-income)' }}>
-                {budgetOver ? `¡Excedido! Te pasaste por ${formatCurrency(Math.abs(budgetLeft))}` : budgetLeft < budgetAmount * 0.20 ? `¡Cuidado! Quedan ${formatCurrency(budgetLeft)}` : `¡Vamos bien! Quedan ${formatCurrency(budgetLeft)}`}
+              <p className="text-[18px] font-black mt-2 tabular-nums" style={{ color: budgetOver ? 'var(--f-expense)' : budgetLeft < budgetAmount * 0.20 ? 'var(--f-credit)' : 'var(--f-income)' }}>
+                {budgetOver ? `+${formatCurrency(Math.abs(budgetLeft))}` : `-${formatCurrency(budgetLeft)}`}
               </p>
             </>
           ) : (

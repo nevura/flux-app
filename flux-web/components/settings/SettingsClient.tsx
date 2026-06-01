@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/client'
 import { getCategoryDisplay, getPaymentMethod, formatCurrency } from '@/lib/utils'
 import { STATIC_ICONS, STATIC_COLORS, PAYMENT_METHODS, SHORTCUT_LINKS } from '@/lib/constants'
 import { saveCategory, deleteCategory, saveAccount, deleteAccount, saveScheduled, deleteScheduled, updateProfile, saveDefaultBudget, updateThemePreference, addPerson, updatePerson, deletePerson } from '@/actions/config'
+import { sendSupportMessage, getMyTickets, type SupportTicket } from '@/actions/admin'
 import { setUsername, updatePhone, checkUsernameAvailable, linkPersonToUser } from '@/actions/friends'
 import type { Profile, Category, Account, ScheduledTransaction, Person, PublicProfile } from '@/lib/types'
 import ShortcutInstall from './ShortcutInstall'
@@ -25,7 +26,7 @@ interface Props {
   people: Person[]
 }
 
-type Tab = 'shortcuts' | 'categorias' | 'cuentas' | 'planificados' | 'personas' | 'suscripcion' | 'apariencia' | 'perfil' | 'guia' | 'presupuesto'
+type Tab = 'shortcuts' | 'categorias' | 'cuentas' | 'planificados' | 'personas' | 'suscripcion' | 'apariencia' | 'perfil' | 'guia' | 'presupuesto' | 'soporte'
 
 // ── Bottom Sheet ──────────────────────────────────────────────────────────────
 
@@ -103,6 +104,7 @@ const SECTIONS: { key: Tab; icon: string; label: string; description: string; hi
   { key: 'planificados' as Tab, icon: 'fa-solid fa-calendar', label: 'Recurrentes', description: 'Suscripciones y cobros fijos' },
   { key: 'suscripcion' as Tab, icon: 'fa-solid fa-crown', label: 'Plan', description: 'Suscripción y facturación' },
   { key: 'guia' as Tab, icon: 'fa-solid fa-book-open', label: 'Guía', description: 'Aprende a usar Flux' },
+  { key: 'soporte' as Tab, icon: 'fa-solid fa-headset', label: 'Soporte', description: 'Envía un mensaje al equipo' },
 ].sort((a, b) => {
   if (a.hidden) return -1
   if (b.hidden) return 1
@@ -475,6 +477,9 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
           )}
           {section === 'guia' && (
             <GuideTab />
+          )}
+          {section === 'soporte' && (
+            <SupportTab />
           )}
         </div>
       </div>
@@ -1549,6 +1554,100 @@ function ScheduledTab({ scheduled, categories, accounts, people, isPending, star
   )
 }
 
+// ── Support Tab ──────────────────────────────────────────────────────────────
+
+function SupportTab() {
+  const [message, setMessage] = useState('')
+  const [sending, setSending] = useState(false)
+  const [tickets, setTickets] = useState<SupportTicket[]>([])
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    getMyTickets().then(t => { setTickets(t); setLoaded(true) })
+  }, [])
+
+  async function handleSend() {
+    if (!message.trim()) return
+    setSending(true)
+    const r = await sendSupportMessage(message.trim())
+    setSending(false)
+    if (r.error) {
+      toast.error(r.error)
+    } else {
+      toast.success('Mensaje enviado')
+      setMessage('')
+      getMyTickets().then(setTickets)
+    }
+  }
+
+  function fmtDt(iso: string) {
+    return new Date(iso).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+  }
+
+  return (
+    <div className="space-y-5">
+      {/* Send message */}
+      <div className="rounded-[20px] p-5" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)' }}>
+        <p className="text-[13px] font-black uppercase tracking-[2px] mb-3" style={{ color: 'var(--f-text-3)' }}>
+          Nuevo mensaje
+        </p>
+        <textarea
+          rows={4}
+          value={message}
+          onChange={e => setMessage(e.target.value)}
+          placeholder="Describe tu duda, problema o sugerencia…"
+          className="w-full rounded-[14px] px-4 py-3 text-[15px] font-medium outline-none resize-none"
+          style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)', color: 'var(--f-text)' }}
+        />
+        <button
+          onClick={handleSend}
+          disabled={sending || !message.trim()}
+          className="w-full mt-3 py-3.5 rounded-[14px] text-[16px] font-black text-white transition-all active:scale-[0.98] disabled:opacity-50"
+          style={{ background: 'var(--f-blue)' }}
+        >
+          {sending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Enviar mensaje'}
+        </button>
+      </div>
+
+      {/* Message history */}
+      {loaded && tickets.length > 0 && (
+        <div>
+          <p className="text-[13px] font-black uppercase tracking-[2px] mb-3" style={{ color: 'var(--f-text-3)' }}>
+            Historial
+          </p>
+          <div className="space-y-3">
+            {tickets.map(t => (
+              <div key={t.id} className="rounded-[20px] p-5 space-y-3" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)' }}>
+                {/* User message */}
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: 'var(--f-text-4)' }}>
+                    Tú · {fmtDt(t.created_at)}
+                  </p>
+                  <p className="text-[14px] font-medium" style={{ color: 'var(--f-text)' }}>{t.message}</p>
+                </div>
+                {/* Admin reply */}
+                {t.admin_reply && (
+                  <div className="rounded-[12px] p-3" style={{ background: 'rgba(0,122,255,0.08)', border: '1px solid rgba(0,122,255,0.2)' }}>
+                    <p className="text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: 'var(--f-blue)' }}>
+                      Soporte · {t.replied_at ? fmtDt(t.replied_at) : ''}
+                    </p>
+                    <p className="text-[14px] font-medium" style={{ color: 'var(--f-text)' }}>{t.admin_reply}</p>
+                  </div>
+                )}
+                {!t.admin_reply && (
+                  <p className="text-[12px] font-medium" style={{ color: 'var(--f-text-4)' }}>
+                    <i className="fa-regular fa-clock mr-1.5" />Pendiente de respuesta
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Subscription Tab ─────────────────────────────────────────────────────────
 
 const PRICE_MONTHLY = 'price_1TbXRPJ3c9aWVlXAvs1otlmf'
@@ -1638,16 +1737,17 @@ function SubscriptionTab({ profile }: { profile: Profile | null }) {
               ? 'Suscríbete antes de que expire tu período de prueba para no perder acceso.'
               : 'Gracias por suscribirte. Tienes acceso completo a todas las funciones.'}
           </p>
-          <button
-            onClick={handlePortal}
-            disabled={loadingPortal}
-            className="w-full py-3.5 rounded-[14px] text-[16px] font-black text-white transition-all active:scale-[0.98] disabled:opacity-50"
-            style={{ background: isTrialing ? '#FF9F0A' : 'var(--f-income)', color: '#000' }}
-          >
-            {loadingPortal
-              ? <i className="fa-solid fa-spinner fa-spin" />
-              : isTrialing ? 'Suscribirme ahora' : 'Administrar suscripción'}
-          </button>
+          {/* Only show portal button if not trialing without a Stripe customer — those users use the price cards below */}
+          {(!isTrialing || hasCustomer) && (
+            <button
+              onClick={handlePortal}
+              disabled={loadingPortal}
+              className="w-full py-3.5 rounded-[14px] text-[16px] font-black transition-all active:scale-[0.98] disabled:opacity-50"
+              style={{ background: 'var(--f-income)', color: '#000' }}
+            >
+              {loadingPortal ? <i className="fa-solid fa-spinner fa-spin" /> : 'Administrar suscripción'}
+            </button>
+          )}
         </div>
 
         {isTrialing && (
