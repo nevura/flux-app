@@ -10,7 +10,11 @@ export default async function HomePage() {
   if (!user) return null
 
   const { year, month } = currentYearMonth()
-  const { from, to } = monthRange(year, month)
+  const { to } = monthRange(year, month)
+  // Include previous month so daily/weekly navigation doesn't go blank near month boundaries
+  const prevMonth = month === 1 ? 12 : month - 1
+  const prevYear  = month === 1 ? year - 1 : year
+  const { from } = monthRange(prevYear, prevMonth)
 
   const [
     { data: profile },

@@ -73,9 +73,12 @@ export default function DashboardClient({ user, accounts, transactions, categori
   const nonTdcAccounts = useMemo(() => accounts.filter(a => a.payment_method_id !== 'MP-TDC'), [accounts])
   const creditPayMap = useMemo(() => Object.fromEntries(creditPayments.map(p => [p.account_id, p])), [creditPayments])
 
+  const currentMonthStr = `${year}-${String(month).padStart(2, '0')}`
   const monthExpenses = useMemo(
-    () => transactions.filter(t => t.type === 'TR-GASTO').reduce((s, t) => s + Number(t.amount), 0),
-    [transactions],
+    () => transactions
+      .filter(t => t.type === 'TR-GASTO' && t.transaction_date.slice(0, 7) === currentMonthStr)
+      .reduce((s, t) => s + Number(t.amount), 0),
+    [transactions, currentMonthStr],
   )
 
   const targetDay = useMemo(() => {
@@ -354,16 +357,16 @@ export default function DashboardClient({ user, accounts, transactions, categori
           className="rounded-[20px] overflow-hidden animate-fade-up"
           style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', animationDelay: '0.06s' }}
         >
-          <div className="flex border-b" style={{ borderColor: 'var(--f-line)' }}>
+          <div className="flex p-1.5 gap-1" style={{ borderBottom: '1px solid var(--f-line)' }}>
             {(['daily', 'weekly'] as const).map(v => (
               <button
                 key={v}
                 onClick={() => setSpendView(v)}
-                className="flex-1 py-3 text-[13px] font-black tracking-[1px] uppercase transition-colors"
-                style={{
-                  color: spendView === v ? 'var(--f-blue)' : 'var(--f-text-3)',
-                  borderBottom: spendView === v ? '2px solid var(--f-blue)' : '2px solid transparent',
-                }}
+                className="flex-1 py-2 rounded-[10px] text-[13px] font-black tracking-[1px] uppercase transition-all active:scale-95"
+                style={spendView === v
+                  ? { background: 'var(--f-blue)', color: '#fff' }
+                  : { background: 'transparent', color: 'var(--f-text-3)' }
+                }
               >
                 {v === 'daily' ? 'Hoy' : 'Semana'}
               </button>
