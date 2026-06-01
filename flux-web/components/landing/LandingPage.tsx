@@ -470,20 +470,20 @@ function HowItWorks() {
         </RevealWrapper>
 
         <div className="grid sm:grid-cols-3 gap-6 relative">
-          {/* Connector line — aligned with icon circle centers (badge 40px + gap 16px + half icon 32px = 88px) */}
+          {/* Connector line — icon center = number (48px) + mb-3 (12px) + half icon (32px) = 92px */}
           <div className="hidden sm:block absolute left-[calc(16.66%+16px)] right-[calc(16.66%+16px)] h-[2px]"
-            style={{ top: 88, background: 'rgba(0,122,255,0.15)' }} />
+            style={{ top: 92, background: 'rgba(0,122,255,0.15)' }} />
 
           {steps.map((s, i) => (
             <RevealWrapper key={i} delay={i * 100}>
               <div className="relative text-center">
-                {/* Step number — prominent square badge */}
-                <div
-                  className="w-10 h-10 rounded-[12px] flex items-center justify-center mb-4 mx-auto font-black text-[16px] tabular-nums"
-                  style={{ background: 'none', color: BLUE, boxShadow: 'none', letterSpacing: '0.5px' }}
+                {/* Step number — large blue text, proportional to 64px icon circle */}
+                <p
+                  className="font-black tabular-nums leading-none mb-3"
+                  style={{ fontSize: 48, color: BLUE, letterSpacing: '-1px' }}
                 >
                   {s.n}
-                </div>
+                </p>
                 {/* Icon circle */}
                 <div className="inline-flex w-16 h-16 rounded-full items-center justify-center mb-5"
                   style={{ background: BLUE, boxShadow: '0 8px 24px rgba(0,122,255,0.3)' }}>
