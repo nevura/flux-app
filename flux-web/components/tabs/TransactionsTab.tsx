@@ -47,16 +47,24 @@ export default function TransactionsTab({ userId, active, refreshSignal }: Props
 
   const load = useCallback(async (y: number, m: number) => {
     const { from, to } = monthRange(y, m)
-    const [{ data: txs }, { data: cats }, { data: accs }, { data: people }] = await Promise.all([
+    const [{ data: txs }, { data: pendingAll }, { data: cats }, { data: accs }, { data: people }] = await Promise.all([
       supabase.from('transactions').select('*').eq('user_id', userId)
         .gte('transaction_date', from.slice(0, 10)).lte('transaction_date', to.slice(0, 10))
+        .order('transaction_date', { ascending: false }),
+      // Always fetch ALL unvalidated transactions regardless of month
+      supabase.from('transactions').select('*').eq('user_id', userId)
+        .eq('is_validated', false)
         .order('transaction_date', { ascending: false }),
       supabase.from('categories').select('*').or(`user_id.eq.${userId},user_id.is.null`).order('sort_order'),
       supabase.from('accounts').select('*').eq('user_id', userId).eq('is_active', true).order('sort_order'),
       supabase.from('people').select('*').eq('user_id', userId),
     ])
+    // Merge pending from other months (dedup by id)
+    const monthlyTxs = (txs ?? []) as Transaction[]
+    const ids = new Set(monthlyTxs.map(t => t.id))
+    const extraPending = ((pendingAll ?? []) as Transaction[]).filter(t => !ids.has(t.id))
     setData({
-      transactions: (txs ?? []) as Transaction[],
+      transactions: [...monthlyTxs, ...extraPending],
       categories: (cats ?? []) as Category[],
       accounts: (accs ?? []) as AccountWithBalance[],
       people: (people ?? []) as Person[],

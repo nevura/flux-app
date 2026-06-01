@@ -58,6 +58,7 @@ export default function DashboardTab({ userId, fullName, email, active, refreshS
       { data: budgets },
       { data: creditPayments },
       { data: allTx },
+      { data: profile },
     ] = await Promise.all([
       supabase.from('accounts').select('*').eq('user_id', userId).eq('is_active', true).order('sort_order'),
       supabase.from('transactions').select('*').eq('user_id', userId)
@@ -68,6 +69,7 @@ export default function DashboardTab({ userId, fullName, email, active, refreshS
       supabase.from('budgets').select('*').eq('user_id', userId).eq('year', year).eq('month', month),
       supabase.from('credit_payments').select('*').eq('user_id', userId).eq('year', year).eq('month', month),
       supabase.from('transactions').select('account_id,adjustment,type,amount,destination_account_id').eq('user_id', userId),
+      supabase.from('profiles').select('default_monthly_budget').eq('id', userId).single(),
     ])
 
     const balanceMap: Record<string, number> = {}
@@ -83,7 +85,12 @@ export default function DashboardTab({ userId, fullName, email, active, refreshS
       balance: balanceMap[a.id] ?? 0,
     })) as AccountWithBalance[]
 
-    const budget = budgets?.[0] ?? null
+    // Apply default_monthly_budget fallback, same as the original server page
+    const budget = budgets?.[0] ?? (
+      profile?.default_monthly_budget
+        ? { id: 'default', user_id: userId, year, month, amount: profile.default_monthly_budget, created_at: '', updated_at: '' }
+        : null
+    )
 
     setData({
       accounts: accountsWithBalance,

@@ -18,6 +18,7 @@ export default function PullToRefresh({ children }: { children: React.ReactNode 
     refreshingRef.current = true
     setRefreshing(true)
     router.refresh()
+    window.dispatchEvent(new CustomEvent('flux:refresh'))
     setTimeout(() => {
       refreshingRef.current = false
       setRefreshing(false)

@@ -16,7 +16,7 @@ function suggestUsername(fullName: string | null, email: string | null): string 
   return base.slice(0, 20) || 'usuario'
 }
 
-export default async function AppLayout({ children: _children }: { children: React.ReactNode }) {
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -49,7 +49,9 @@ export default async function AppLayout({ children: _children }: { children: Rea
         fullName={profile?.full_name ?? null}
         email={user.email ?? ''}
         isReadOnly={sub.isReadOnly}
-      />
+      >
+        {children}
+      </AppShell>
     </div>
   )
 }
