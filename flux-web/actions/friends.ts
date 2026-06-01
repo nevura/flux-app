@@ -8,7 +8,7 @@ import type { PublicProfile } from '@/lib/types'
 
 // ── Username ──────────────────────────────────────────────────────────────────
 
-export async function setUsername(username: string) {
+export async function setUsername(username: string, displayName?: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autorizado' }
@@ -18,9 +18,12 @@ export async function setUsername(username: string) {
     return { error: 'Solo letras, números, guion bajo, punto y guion. Entre 3 y 20 caracteres.' }
   }
 
+  const patch: Record<string, string> = { username: clean }
+  if (displayName?.trim()) patch.full_name = displayName.trim()
+
   const { error } = await supabase
     .from('profiles')
-    .update({ username: clean })
+    .update(patch)
     .eq('id', user.id)
 
   if (error) {
@@ -29,6 +32,7 @@ export async function setUsername(username: string) {
   }
 
   revalidatePath('/settings')
+  revalidatePath('/home')
   return { error: null }
 }
 

@@ -11,7 +11,7 @@ const LIGHT_GRAY = '#F5F5F7'
 const WHITE = '#FFFFFF'
 
 /* ── Navbar ─────────────────────────────────────────────────────────────── */
-function Navbar({ scrolled }: { scrolled: boolean }) {
+function Navbar({ scrolled, isAuthenticated }: { scrolled: boolean; isAuthenticated: boolean }) {
   return (
     <nav
       className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
@@ -32,13 +32,23 @@ function Navbar({ scrolled }: { scrolled: boolean }) {
           >
             Guía
           </Link>
-          <Link
-            href="/login"
-            className="text-[15px] font-bold px-4 py-2 rounded-[10px] transition-all active:scale-95"
-            style={{ background: BLUE, color: WHITE }}
-          >
-            Iniciar sesión
-          </Link>
+          {isAuthenticated ? (
+            <Link
+              href="/home"
+              className="text-[15px] font-bold px-4 py-2 rounded-[10px] transition-all active:scale-95"
+              style={{ background: BLUE, color: WHITE }}
+            >
+              Ir a la app →
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="text-[15px] font-bold px-4 py-2 rounded-[10px] transition-all active:scale-95"
+              style={{ background: BLUE, color: WHITE }}
+            >
+              Iniciar sesión
+            </Link>
+          )}
         </div>
       </div>
     </nav>
@@ -562,7 +572,7 @@ function Footer() {
 }
 
 /* ── Main ────────────────────────────────────────────────────────────────── */
-export default function LandingPage() {
+export default function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
@@ -573,7 +583,7 @@ export default function LandingPage() {
 
   return (
     <div style={{ background: WHITE, color: DARK, fontFamily: 'var(--font-geist-sans)', overflowX: 'hidden' }}>
-      <Navbar scrolled={scrolled} />
+      <Navbar scrolled={scrolled} isAuthenticated={isAuthenticated} />
       <Hero />
       <TrustBar />
       <ApplePaySection />

@@ -13,8 +13,8 @@ import { useCountUp, useAnimatedWidth } from '@/lib/hooks'
 import NotificationBell from '@/components/notifications/NotificationBell'
 import CoachMarkTour from '@/components/onboarding/CoachMarkTour'
 
-function AnimatedCurrency({ value }: { value: number }) {
-  const animated = useCountUp(value)
+function AnimatedCurrency({ value, duration }: { value: number; duration?: number }) {
+  const animated = useCountUp(value, duration)
   return <>{formatCurrency(animated)}</>
 }
 
@@ -382,7 +382,7 @@ export default function DashboardClient({ user, accounts, transactions, categori
                 <i className="fa-solid fa-chevron-left text-xs" style={{ color: 'var(--f-text)' }} />
               </button>
               <p className="text-[38px] font-black leading-none tabular-nums flex-1 text-center" style={{ color: 'var(--f-text)' }}>
-                <AnimatedCurrency value={spendView === 'daily' ? dailySpend : weeklySpend} />
+                <AnimatedCurrency value={spendView === 'daily' ? dailySpend : weeklySpend} duration={100} />
               </p>
               <button
                 onClick={() => spendView === 'daily' ? setDayOffset(o => o + 1) : setWeekOffset(o => o + 1)}

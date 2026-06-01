@@ -140,10 +140,9 @@
 
   /* ── Backgrounds ── */
   --f-bg: #FFFFFF;
-  /* iOS systemGroupedBackground */
-  --f-bg-card: #F2F2F7;
-  --f-bg-elevated: #F2F2F7;
-  --f-bg-input: rgba(0, 0, 0, 0.05);
+  --f-bg-card: #EFEFEF;
+  --f-bg-elevated: #EFEFEF;
+  --f-bg-input: rgba(0, 0, 0, 0.06);
   --f-bg-glass: rgba(242, 242, 247, 0.92);
   --f-bg-nav: rgba(255, 255, 255, 0.88);
   --f-bg-overlay: rgba(0, 0, 0, 0.50);

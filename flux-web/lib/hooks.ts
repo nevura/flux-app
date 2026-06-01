@@ -9,7 +9,7 @@ export function useAnimatedWidth(target: number, delay = 100) {
   return w
 }
 
-export function useCountUp(target: number, duration = 1700) {
+export function useCountUp(target: number, duration: number = 1700) {
   const [value, setValue] = useState(0)
   const prevRef = useRef<number | null>(null)
   const rafRef = useRef<number>(0)

@@ -1,6 +1,10 @@
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
 
-export default function MarketingLayout({ children }: { children: React.ReactNode }) {
+export default async function MarketingLayout({ children }: { children: React.ReactNode }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
   return (
     <div style={{ background: '#fff', color: '#1D1D1F', fontFamily: 'var(--font-geist-sans)', minHeight: '100vh', overflowX: 'hidden' }}>
       {/* Minimal nav */}
@@ -18,11 +22,11 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
             flux
           </Link>
           <Link
-            href="/login"
+            href={user ? '/home' : '/login'}
             className="text-[14px] font-bold px-4 py-2 rounded-[10px] text-white"
             style={{ background: '#007AFF' }}
           >
-            Iniciar sesión
+            {user ? 'Ir a la app →' : 'Iniciar sesión'}
           </Link>
         </div>
       </nav>

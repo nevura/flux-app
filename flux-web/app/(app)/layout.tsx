@@ -27,8 +27,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     supabase.from('profiles').select('theme_preference, username, full_name, email, onboarding_completed').eq('id', user.id).single(),
   ])
 
-  const needsUsername = !profile?.username
-  const needsOnboarding = !needsUsername && !profile?.onboarding_completed
+  const needsSetup = !profile?.username || !profile?.full_name
+  const needsOnboarding = !needsSetup && !profile?.onboarding_completed
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -36,9 +36,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <WakeOnFocus />
       <SubscriptionBanner status={sub.status} daysLeft={sub.daysLeft} />
       {sub.isReadOnly && <ReadOnlyOverlay />}
-      {needsUsername && (
+      {needsSetup && (
         <UsernameSetupModal
           suggestedUsername={suggestUsername(profile?.full_name ?? null, profile?.email ?? null)}
+          suggestedName={profile?.full_name ?? ''}
         />
       )}
       {needsOnboarding && <OnboardingWrapper />}
