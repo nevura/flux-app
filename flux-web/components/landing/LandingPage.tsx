@@ -170,7 +170,7 @@ function Hero() {
             </div>
 
             <h1
-              className="text-[38px] sm:text-[58px] lg:text-[64px] font-black leading-[1.05] tracking-[-2px] mb-6"
+              className="text-[40px] sm:text-[58px] lg:text-[64px] font-black leading-[1.05] tracking-[-2px] mb-6"
               style={{ color: DARK }}
             >
               Tu dinero.{' '}
@@ -479,8 +479,8 @@ function HowItWorks() {
               <div className="relative text-center">
                 {/* Step number — prominent square badge */}
                 <div
-                  className="w-10 h-10 rounded-[12px] flex items-center justify-center mb-4 mx-auto font-black text-[15px] tabular-nums"
-                  style={{ background: BLUE, color: WHITE, boxShadow: '0 4px 12px rgba(0,122,255,0.35)', letterSpacing: '0.5px' }}
+                  className="w-10 h-10 rounded-[12px] flex items-center justify-center mb-4 mx-auto font-black text-[16px] tabular-nums"
+                  style={{ background: 'none', color: BLUE, boxShadow: 'none', letterSpacing: '0.5px' }}
                 >
                   {s.n}
                 </div>
