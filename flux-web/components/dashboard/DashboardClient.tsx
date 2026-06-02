@@ -421,20 +421,18 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
             </div>
           ) : budgetAmount > 0 ? (
             <>
-              <div className="flex items-end justify-between mb-2">
-                <p className="text-[28px] font-black tabular-nums leading-none" style={{ color: 'var(--f-text)' }}>
-                  <AnimatedCurrency value={monthExpenses} />
-                </p>
-                <p className="text-[16px] font-bold pb-1" style={{ color: 'var(--f-text-3)' }}>
-                  de {formatCurrency(budgetAmount)}
-                </p>
-              </div>
+              <p className="text-[28px] font-black tabular-nums leading-none mb-1" style={{ color: 'var(--f-text)' }}>
+                <AnimatedCurrency value={monthExpenses} />
+              </p>
+              <p className="text-[13px] font-semibold mb-2 tabular-nums" style={{ color: 'var(--f-text-3)' }}>
+                de {formatCurrency(budgetAmount)}&nbsp;&nbsp;·&nbsp;&nbsp;
+                <span style={{ color: budgetOver ? 'var(--f-expense)' : budgetLeft < budgetAmount * 0.20 ? 'var(--f-credit)' : 'var(--f-income)' }}>
+                  {budgetOver ? `excedido ${formatCurrency(Math.abs(budgetLeft))}` : `te quedan ${formatCurrency(budgetLeft)}`}
+                </span>
+              </p>
               <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--f-bg-input)' }}>
                 <AnimatedBar pct={budgetPct} color={budgetOver ? 'var(--f-expense)' : budgetLeft < budgetAmount * 0.20 ? 'var(--f-credit)' : 'var(--f-income)'} />
               </div>
-              <p className="text-[14px] font-black mt-2 tabular-nums" style={{ color: budgetOver ? 'var(--f-expense)' : budgetLeft < budgetAmount * 0.20 ? 'var(--f-credit)' : 'var(--f-income)' }}>
-                {budgetOver ? `+${formatCurrency(Math.abs(budgetLeft))}` : `-${formatCurrency(budgetLeft)}`}
-              </p>
             </>
           ) : (
             <p className="text-[14px] font-bold" style={{ color: 'var(--f-text-4)' }}>
