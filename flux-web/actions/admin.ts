@@ -1,17 +1,18 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { Resend } from 'resend'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'bernardo.perezro06@gmail.com'
 const FROM_EMAIL = 'Flux App <no-reply@send.fluxappfinance.com>'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 async function sendAdminEmail(subject: string, html: string) {
-  if (!process.env.RESEND_API_KEY) return
+  const key = process.env.RESEND_API_KEY
+  if (!key) return
+  // Lazy instantiation — avoid module-level constructor that throws at build time
+  const { Resend: ResendClient } = await import('resend')
+  const resend = new ResendClient(key)
   await resend.emails.send({ from: FROM_EMAIL, to: ADMIN_EMAIL, subject, html }).catch(() => {})
 }
 
