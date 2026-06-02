@@ -1498,13 +1498,21 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
                 <p className="text-[11px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>
                   {editing.id ? 'Próxima fecha de cobro' : 'Primera fecha de cobro'}
                 </p>
-                <input
-                  type="date"
-                  value={editing.next_charge_date}
-                  onChange={e => setEditing({ ...editing, next_charge_date: e.target.value })}
-                  className="w-full rounded-[14px] px-3 py-3 text-[14px] font-bold text-white focus:outline-none box-border"
-                  style={{ background: 'var(--f-bg-input)', border: `1px solid ${cfg.color}40`, colorScheme: 'dark', maxWidth: '100%' }}
-                />
+                <div className="overflow-hidden rounded-[14px]">
+                  <input
+                    type="date"
+                    value={editing.next_charge_date}
+                    onChange={e => setEditing({ ...editing, next_charge_date: e.target.value })}
+                    className="block w-full min-w-0 rounded-[14px] px-2 py-2 text-[13px] font-bold outline-none"
+                    style={{
+                      background: 'var(--f-bg-input)',
+                      border: `1px solid ${cfg.color}40`,
+                      color: 'var(--f-text)',
+                      colorScheme: 'dark',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
               </div>
 
               {/* Payment day + notification days */}

@@ -1,7 +1,8 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { getMexicoNow, currentYearMonth } from '@/lib/utils'
+import { getMexicoNow, currentYearMonth, formatCurrency } from '@/lib/utils'
+import { sendScheduledDueEmail, sendTdcDueEmail } from '@/lib/email'
 
 export async function generateSystemNotifications() {
   const supabase = await createClient()
@@ -87,5 +88,17 @@ export async function generateSystemNotifications() {
 
   if (inserts.length > 0) {
     await supabase.from('notifications').insert(inserts)
+
+    // Fire-and-forget emails — don't block the response
+    const email = user.email
+    if (email) {
+      for (const n of inserts) {
+        if (n.type === 'scheduled_due') {
+          sendScheduledDueEmail({ to: email, name: n.data.name, amount: formatCurrency(Number(n.data.amount)) }).catch(() => {})
+        } else if (n.type === 'tdc_due') {
+          sendTdcDueEmail({ to: email, accountName: n.data.name, daysUntil: Number(n.data.days_until) }).catch(() => {})
+        }
+      }
+    }
   }
 }
