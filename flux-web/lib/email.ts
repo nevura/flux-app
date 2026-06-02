@@ -1,7 +1,7 @@
 // Plain server-side utility — imported by server actions and API routes.
 // No 'use server' directive needed here; that's on the callers.
 
-const FROM = 'Flux App <no-reply@send.fluxappfinance.com>'
+const FROM = 'Flux App <no-reply@fluxappfinance.com>'
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://fluxappfinance.com'
 
 async function send(to: string, subject: string, html: string) {

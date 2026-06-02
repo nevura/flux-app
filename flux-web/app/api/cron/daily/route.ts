@@ -88,7 +88,7 @@ export async function GET(request: Request) {
     const itemList = items.map(i => `<li style="margin:4px 0;color:#F8FAFC">${i.name} — <strong>${formatCurrency(i.amount)}</strong></li>`).join('')
     const { Resend } = await import('resend')
     const resend = new Resend(process.env.RESEND_API_KEY)
-    const fromAddr = 'Flux App <no-reply@send.fluxappfinance.com>'
+    const fromAddr = 'Flux App <no-reply@fluxappfinance.com>'
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://fluxappfinance.com'
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
 <body style="margin:0;padding:0;background:#020617;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
