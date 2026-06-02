@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [mode, setMode]         = useState<'login' | 'signup'>('login')
   const [loading, setLoading]   = useState(false)
   const [oauthLoading, setOauthLoading] = useState(false)
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -107,9 +108,41 @@ export default function LoginPage() {
             />
           </div>
 
+          {mode === 'signup' && (
+            <label className="flex items-start gap-3 cursor-pointer mt-1">
+              <div className="relative flex-shrink-0 mt-0.5">
+                <input
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={e => setAcceptedTerms(e.target.checked)}
+                  className="sr-only"
+                />
+                <div
+                  className="w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all"
+                  style={{
+                    background: acceptedTerms ? '#007AFF' : 'transparent',
+                    borderColor: acceptedTerms ? '#007AFF' : '#475569',
+                  }}
+                >
+                  {acceptedTerms && <i className="fa-solid fa-check text-white text-[10px]" />}
+                </div>
+              </div>
+              <span className="text-xs text-slate-400 leading-relaxed">
+                Acepto los{' '}
+                <a href="/terminos" target="_blank" className="text-[#007AFF] font-semibold hover:underline">
+                  Términos de uso
+                </a>{' '}
+                y la{' '}
+                <a href="/privacidad" target="_blank" className="text-[#007AFF] font-semibold hover:underline">
+                  Política de privacidad
+                </a>
+              </span>
+            </label>
+          )}
+
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || (mode === 'signup' && !acceptedTerms)}
             className="mt-2 w-full disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all active:scale-95"
             style={{ background: '#007AFF', boxShadow: '0 4px 16px rgba(0,122,255,0.3)' }}
           >
