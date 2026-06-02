@@ -3,9 +3,10 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { sendSupportReplyEmail } from '@/lib/email'
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'bernardo.perezro06@gmail.com'
-const FROM_EMAIL = 'Flux App <no-reply@fluxappfinance.com>'
+const FROM_EMAIL  = 'FluxApp Finance <no-reply@fluxappfinance.com>'
 
 async function sendAdminEmail(subject: string, html: string) {
   const key = process.env.RESEND_API_KEY
@@ -131,12 +132,37 @@ export async function sendSupportMessage(message: string) {
   if (error) return { error: error.message }
 
   const userName = (profile as any)?.full_name ?? (profile as any)?.email ?? user.email ?? 'Usuario'
+  const userEmail = (profile as any)?.email ?? user.email ?? ''
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://fluxappfinance.com'
+
   await sendAdminEmail(
-    `💬 Nuevo mensaje de soporte — ${userName}`,
-    `<p><strong>De:</strong> ${userName} (${(profile as any)?.email ?? user.email})</p>
-     <p><strong>Mensaje:</strong></p>
-     <blockquote style="border-left:3px solid #007AFF;padding-left:12px;color:#555">${message.replace(/\n/g, '<br>')}</blockquote>
-     <p style="color:#888;font-size:12px">Responde desde el panel de admin en <a href="https://fluxappfinance.com/admin">fluxappfinance.com/admin</a></p>`,
+    `Nuevo mensaje de soporte — ${userName}`,
+    `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+    <body style="margin:0;padding:0;background:#F5F5F7;font-family:-apple-system,BlinkMacSystemFont,sans-serif">
+    <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 20px">
+    <table width="100%" style="max-width:480px" cellpadding="0" cellspacing="0">
+      <tr><td style="padding-bottom:24px">
+        <span style="color:#007AFF;font-size:22px;font-weight:900">fluxapp finance</span>
+        <span style="color:#6E6E73;font-size:13px;margin-left:8px">Soporte</span>
+      </td></tr>
+      <tr><td style="background:#FFFFFF;border-radius:20px;padding:28px;border:1px solid rgba(0,0,0,0.08)">
+        <h2 style="color:#1D1D1F;margin:0 0 16px;font-size:18px;font-weight:700">Nuevo mensaje de soporte</h2>
+        <div style="background:#F5F5F7;border-radius:12px;padding:14px;margin-bottom:16px;border:1px solid rgba(0,0,0,0.06)">
+          <p style="color:#6E6E73;font-size:12px;margin:0 0 4px;text-transform:uppercase;letter-spacing:0.5px">Usuario</p>
+          <p style="color:#1D1D1F;font-size:15px;font-weight:600;margin:0">${userName}</p>
+          <p style="color:#6E6E73;font-size:13px;margin:2px 0 0">${userEmail}</p>
+        </div>
+        <div style="background:#F5F5F7;border-radius:12px;padding:14px;border:1px solid rgba(0,0,0,0.06)">
+          <p style="color:#6E6E73;font-size:12px;margin:0 0 8px;text-transform:uppercase;letter-spacing:0.5px">Mensaje</p>
+          <p style="color:#1D1D1F;font-size:14px;margin:0;line-height:1.6;border-left:3px solid #007AFF;padding-left:10px">${message.replace(/\n/g, '<br>')}</p>
+        </div>
+        <a href="${appUrl}/admin" style="display:block;background:#007AFF;color:#fff;text-decoration:none;border-radius:12px;padding:14px;text-align:center;font-size:15px;font-weight:700;margin-top:20px">Responder en el panel</a>
+      </td></tr>
+      <tr><td style="padding-top:20px;text-align:center;color:#6E6E73;font-size:12px">
+        fluxapp finance &middot; <a href="${appUrl}" style="color:#6E6E73;text-decoration:none">fluxappfinance.com</a>
+      </td></tr>
+    </table></td></tr></table>
+    </body></html>`,
   )
 
   return { error: null }
@@ -174,10 +200,30 @@ export async function getAdminTickets(): Promise<SupportTicket[]> {
 export async function replyToTicket(ticketId: string, reply: string) {
   await verifyAdmin()
   const admin = createAdminClient()
+
+  // Fetch ticket + user info before updating
+  const { data: ticket } = await (admin.from('support_tickets') as any)
+    .select('message, user_id, profiles(email, full_name)')
+    .eq('id', ticketId)
+    .single()
+
   const { error } = await (admin.from('support_tickets') as any)
     .update({ admin_reply: reply, is_read: true, replied_at: new Date().toISOString() })
     .eq('id', ticketId)
   if (error) return { error: error.message }
+
+  // Send reply email to user fire-and-forget
+  const userEmail = ticket?.profiles?.email
+  if (userEmail) {
+    const userName = ticket?.profiles?.full_name ?? userEmail
+    sendSupportReplyEmail({
+      to: userEmail,
+      userName,
+      originalMessage: ticket.message ?? '',
+      reply,
+    }).catch(() => {})
+  }
+
   revalidatePath('/admin')
   return { error: null }
 }

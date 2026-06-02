@@ -1,7 +1,7 @@
 // Plain server-side utility — imported by server actions and API routes.
 // No 'use server' directive needed here; that's on the callers.
 
-const FROM = 'Flux App <no-reply@fluxappfinance.com>'
+const FROM    = 'FluxApp Finance <no-reply@fluxappfinance.com>'
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://fluxappfinance.com'
 
 async function send(to: string, subject: string, html: string) {
@@ -15,27 +15,31 @@ async function send(to: string, subject: string, html: string) {
 
 function base(title: string, body: string, cta?: { url: string; label: string; color?: string }) {
   const btn = cta
-    ? `<tr><td style="padding-top:20px"><a href="${cta.url}" style="display:block;background:${cta.color ?? '#007AFF'};color:#fff;text-decoration:none;border-radius:12px;padding:14px;text-align:center;font-size:15px;font-weight:900">${cta.label}</a></td></tr>`
+    ? `<tr><td style="padding-top:24px"><a href="${cta.url}" style="display:block;background:${cta.color ?? '#007AFF'};color:#fff;text-decoration:none;border-radius:12px;padding:14px;text-align:center;font-size:15px;font-weight:700">${cta.label}</a></td></tr>`
     : ''
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#020617;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
+<body style="margin:0;padding:0;background:#F5F5F7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
 <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 20px">
 <table width="100%" style="max-width:480px" cellpadding="0" cellspacing="0">
-  <tr><td style="padding-bottom:20px">
-    <span style="color:#007AFF;font-size:22px;font-weight:900;letter-spacing:-0.5px">Flux</span>
-    <span style="color:#334155;font-size:14px;margin-left:8px">Finanzas personales</span>
+  <tr><td style="padding-bottom:24px">
+    <span style="color:#007AFF;font-size:22px;font-weight:900;letter-spacing:-0.5px">fluxapp finance</span>
   </td></tr>
-  <tr><td style="background:#0F172A;border-radius:20px;padding:28px;border:1px solid #1E293B">
-    <h2 style="color:#F8FAFC;margin:0 0 12px;font-size:20px;font-weight:900">${title}</h2>
+  <tr><td style="background:#FFFFFF;border-radius:20px;padding:28px;border:1px solid rgba(0,0,0,0.08);box-shadow:0 2px 12px rgba(0,0,0,0.04)">
+    <h2 style="color:#1D1D1F;margin:0 0 12px;font-size:20px;font-weight:700">${title}</h2>
     ${body}${btn}
   </td></tr>
-  <tr><td style="padding-top:20px;text-align:center;color:#475569;font-size:12px">
-    Flux &middot; <a href="${APP_URL}" style="color:#64748B;text-decoration:none">fluxappfinance.com</a>
+  <tr><td style="padding-top:20px;text-align:center;color:#6E6E73;font-size:12px">
+    fluxapp finance &middot; <a href="${APP_URL}" style="color:#6E6E73;text-decoration:none">fluxappfinance.com</a>
     &middot; Si no esperabas este correo, ignóralo.
   </td></tr>
 </table>
 </td></tr></table>
 </body></html>`
+}
+
+// Chip/card element reusable in light theme
+function card(content: string) {
+  return `<div style="background:#F5F5F7;border-radius:12px;padding:16px;border:1px solid rgba(0,0,0,0.06)">${content}</div>`
 }
 
 // ── Approval flow ────────────────────────────────────────────────────────────
@@ -49,12 +53,12 @@ export async function sendApprovalRequestEmail(opts: {
 }) {
   const html = base(
     'Nueva solicitud de acceso',
-    `<p style="color:#94A3B8;margin:0 0 16px">Un nuevo usuario quiere acceso a Flux.</p>
-     <p style="color:#F8FAFC;margin:0"><strong>Email:</strong> ${opts.applicantEmail}</p>
-     ${opts.applicantName ? `<p style="color:#F8FAFC;margin:4px 0 0"><strong>Nombre:</strong> ${opts.applicantName}</p>` : ''}
+    `<p style="color:#6E6E73;margin:0 0 16px">Un nuevo usuario quiere acceso a FluxApp Finance.</p>
+     ${card(`<p style="color:#1D1D1F;margin:0 0 4px"><strong>Email:</strong> ${opts.applicantEmail}</p>
+             ${opts.applicantName ? `<p style="color:#1D1D1F;margin:0"><strong>Nombre:</strong> ${opts.applicantName}</p>` : ''}`)}
      <div style="margin-top:20px">
-       <a href="${opts.approveUrl}" style="display:inline-block;background:#30D158;color:#fff;text-decoration:none;border-radius:10px;padding:10px 20px;font-weight:900;margin-right:10px">Aprobar</a>
-       <a href="${opts.rejectUrl}" style="display:inline-block;background:#FF453A;color:#fff;text-decoration:none;border-radius:10px;padding:10px 20px;font-weight:900">Rechazar</a>
+       <a href="${opts.approveUrl}" style="display:inline-block;background:#34C759;color:#fff;text-decoration:none;border-radius:10px;padding:10px 20px;font-weight:700;margin-right:10px">Aprobar</a>
+       <a href="${opts.rejectUrl}" style="display:inline-block;background:#FF3B30;color:#fff;text-decoration:none;border-radius:10px;padding:10px 20px;font-weight:700">Rechazar</a>
      </div>`,
   )
   return send(opts.adminEmail, `Solicitud de acceso — ${opts.applicantEmail}`, html)
@@ -63,18 +67,18 @@ export async function sendApprovalRequestEmail(opts: {
 export async function sendApprovalGrantedEmail(opts: { to: string; loginUrl: string }) {
   const html = base(
     'Tu acceso fue aprobado',
-    `<p style="color:#94A3B8;margin:0">Bienvenido a Flux. Tu cuenta está activa y lista para usar.</p>`,
-    { url: opts.loginUrl, label: 'Entrar a Flux' },
+    `<p style="color:#6E6E73;margin:0">Bienvenido a FluxApp Finance. Tu cuenta está activa y lista para usar.</p>`,
+    { url: opts.loginUrl, label: 'Entrar a FluxApp Finance' },
   )
-  return send(opts.to, 'Tu acceso a Flux fue aprobado', html)
+  return send(opts.to, 'Tu acceso a FluxApp Finance fue aprobado', html)
 }
 
 export async function sendApprovalRejectedEmail(opts: { to: string }) {
   const html = base(
     'Solicitud de acceso',
-    `<p style="color:#94A3B8;margin:0">Por el momento no podemos aprobar tu solicitud. Dudas: <a href="mailto:hola@fluxappfinance.com" style="color:#007AFF">hola@fluxappfinance.com</a>.</p>`,
+    `<p style="color:#6E6E73;margin:0">Por el momento no podemos aprobar tu solicitud. ¿Dudas? <a href="mailto:hola@fluxappfinance.com" style="color:#007AFF">hola@fluxappfinance.com</a>.</p>`,
   )
-  return send(opts.to, 'Solicitud de acceso a Flux', html)
+  return send(opts.to, 'Solicitud de acceso a FluxApp Finance', html)
 }
 
 // ── TDC & monthly reminders ──────────────────────────────────────────────────
@@ -82,8 +86,9 @@ export async function sendApprovalRejectedEmail(opts: { to: string }) {
 export async function sendTdcReminderEmail(opts: { to: string; accountName: string; paymentDay: number }) {
   const html = base(
     `Pago de ${opts.accountName} mañana`,
-    `<p style="color:#94A3B8;margin:0 0 8px">Recuerda realizar el pago antes del día <strong style="color:#F8FAFC">${opts.paymentDay}</strong>.</p>
-     <p style="color:#94A3B8;margin:0">Puedes registrarlo desde la pantalla de inicio en Flux.</p>`,
+    `<p style="color:#6E6E73;margin:0 0 16px">Recuerda realizar el pago antes del día <strong style="color:#1D1D1F">${opts.paymentDay}</strong>. Puedes registrarlo desde la pantalla de inicio.</p>
+     ${card(`<p style="color:#6E6E73;font-size:13px;margin:0 0 4px">Tarjeta</p>
+             <p style="color:#1D1D1F;font-size:17px;font-weight:700;margin:0">${opts.accountName}</p>`)}`,
     { url: APP_URL, label: 'Registrar pago', color: '#FF9F0A' },
   )
   return send(opts.to, `Recordatorio: pago de ${opts.accountName} mañana`, html)
@@ -92,10 +97,10 @@ export async function sendTdcReminderEmail(opts: { to: string; accountName: stri
 export async function sendMonthlyAdjustmentEmail(opts: { to: string }) {
   const html = base(
     'Cierre de mes',
-    `<p style="color:#94A3B8;margin:0">Revisa tus saldos y ajusta lo necesario antes de cerrar el mes.</p>`,
+    `<p style="color:#6E6E73;margin:0">Revisa tus saldos y ajusta lo necesario antes de cerrar el mes para mantener tus finanzas al día.</p>`,
     { url: APP_URL, label: 'Revisar saldos' },
   )
-  return send(opts.to, 'Cierre de mes — revisa tus saldos en Flux', html)
+  return send(opts.to, 'Cierre de mes — revisa tus saldos en FluxApp Finance', html)
 }
 
 // ── System notifications ─────────────────────────────────────────────────────
@@ -103,12 +108,12 @@ export async function sendMonthlyAdjustmentEmail(opts: { to: string }) {
 export async function sendScheduledDueEmail(opts: { to: string; name: string; amount: string }) {
   const html = base(
     `Cobro pendiente: ${opts.name}`,
-    `<p style="color:#94A3B8;margin:0 0 12px">Tu cobro recurrente está pendiente de registrar.</p>
-     <div style="background:#1C1C2E;border-radius:12px;padding:16px">
-       <p style="margin:0;font-size:16px;font-weight:bold;color:#F8FAFC">${opts.name}</p>
-       <p style="margin:6px 0 0;font-size:22px;font-weight:900;color:#FF453A">${opts.amount}</p>
-     </div>`,
-    { url: APP_URL, label: 'Registrar en Flux', color: '#FF453A' },
+    `<p style="color:#6E6E73;margin:0 0 16px">Tu cobro recurrente está pendiente de registrar.</p>
+     ${card(`<p style="color:#6E6E73;font-size:13px;margin:0 0 4px">Concepto</p>
+             <p style="color:#1D1D1F;font-size:16px;font-weight:700;margin:0 0 8px">${opts.name}</p>
+             <p style="color:#6E6E73;font-size:13px;margin:0 0 4px">Monto</p>
+             <p style="color:#FF3B30;font-size:22px;font-weight:900;margin:0">${opts.amount}</p>`)}`,
+    { url: APP_URL, label: 'Ver en FluxApp Finance', color: '#FF3B30' },
   )
   return send(opts.to, `Cobro recurrente pendiente: ${opts.name}`, html)
 }
@@ -117,7 +122,11 @@ export async function sendTdcDueEmail(opts: { to: string; accountName: string; d
   const dueText = opts.daysUntil === 0 ? 'hoy' : opts.daysUntil === 1 ? 'mañana' : `en ${opts.daysUntil} días`
   const html = base(
     `Pago de ${opts.accountName} vence ${dueText}`,
-    `<p style="color:#94A3B8;margin:0">Tu tarjeta <strong style="color:#F8FAFC">${opts.accountName}</strong> tiene fecha de pago <strong style="color:#FF9F0A">${dueText}</strong>. Registra el pago en Flux para mantener tus saldos al día.</p>`,
+    `<p style="color:#6E6E73;margin:0 0 16px">Tu tarjeta tiene fecha de pago próxima. Regístralo para mantener tus saldos al día.</p>
+     ${card(`<p style="color:#6E6E73;font-size:13px;margin:0 0 4px">Tarjeta</p>
+             <p style="color:#1D1D1F;font-size:16px;font-weight:700;margin:0 0 8px">${opts.accountName}</p>
+             <p style="color:#6E6E73;font-size:13px;margin:0 0 4px">Vencimiento</p>
+             <p style="color:#FF9F0A;font-size:17px;font-weight:700;margin:0">${dueText.charAt(0).toUpperCase() + dueText.slice(1)}</p>`)}`,
     { url: APP_URL, label: 'Registrar pago', color: '#FF9F0A' },
   )
   return send(opts.to, `Pago de ${opts.accountName} vence ${dueText}`, html)
@@ -127,24 +136,28 @@ export async function sendTdcDueEmail(opts: { to: string; accountName: string; d
 
 export async function sendBudgetAlertEmail(opts: { to: string; percent: number; spent: string; limit: string }) {
   const isRed = opts.percent >= 100
-  const color = isRed ? '#FF453A' : '#FF9F0A'
+  const color = isRed ? '#FF3B30' : '#FF9F0A'
   const title = isRed ? 'Presupuesto agotado' : 'Presupuesto al 80%'
   const html = base(
     title,
-    `<p style="color:#94A3B8;margin:0 0 16px">Tu gasto mensual ha alcanzado el <strong style="color:${color}">${opts.percent}%</strong> del límite establecido.</p>
-     <div style="background:#1C1C2E;border-radius:12px;padding:16px">
-       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-         <span style="color:#94A3B8;font-size:13px">Gastado</span>
-         <span style="color:#F8FAFC;font-weight:900">${opts.spent}</span>
-       </div>
-       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-         <span style="color:#94A3B8;font-size:13px">Límite mensual</span>
-         <span style="color:#F8FAFC;font-weight:900">${opts.limit}</span>
-       </div>
-       <div style="background:#0F172A;border-radius:6px;overflow:hidden;height:8px">
-         <div style="background:${color};height:8px;width:${Math.min(opts.percent, 100)}%;border-radius:6px;transition:width 0.3s"></div>
-       </div>
-     </div>`,
+    `<p style="color:#6E6E73;margin:0 0 16px">Tu gasto mensual ha alcanzado el <strong style="color:${color}">${opts.percent}%</strong> del límite establecido.</p>
+     ${card(`<table width="100%" cellpadding="0" cellspacing="0">
+       <tr>
+         <td style="color:#6E6E73;font-size:13px;padding-bottom:6px">Gastado</td>
+         <td style="color:#1D1D1F;font-weight:700;text-align:right;padding-bottom:6px">${opts.spent}</td>
+       </tr>
+       <tr>
+         <td style="color:#6E6E73;font-size:13px;padding-bottom:12px">Límite mensual</td>
+         <td style="color:#1D1D1F;font-weight:700;text-align:right;padding-bottom:12px">${opts.limit}</td>
+       </tr>
+       <tr>
+         <td colspan="2">
+           <div style="background:#E5E5EA;border-radius:6px;overflow:hidden;height:8px">
+             <div style="background:${color};height:8px;width:${Math.min(opts.percent, 100)}%;border-radius:6px"></div>
+           </div>
+         </td>
+       </tr>
+     </table>`)}`,
     { url: APP_URL, label: 'Ver mis gastos', color },
   )
   return send(opts.to, `${title} — ${opts.percent}% usado este mes`, html)
@@ -155,14 +168,28 @@ export async function sendBudgetAlertEmail(opts: { to: string; percent: number; 
 export async function sendTrialExpiryEmail(opts: { to: string; daysLeft: number; upgradeUrl: string }) {
   const html = base(
     `Tu prueba vence en ${opts.daysLeft} días`,
-    `<p style="color:#94A3B8;margin:0 0 16px">Tu período de prueba gratuita está por terminar. Suscríbete para seguir usando Flux sin interrupciones.</p>
-     <div style="background:#1C1C2E;border-radius:12px;padding:20px;text-align:center">
-       <span style="color:#FF9F0A;font-size:42px;font-weight:900;line-height:1">${opts.daysLeft}</span>
-       <p style="color:#94A3B8;margin:6px 0 0;font-size:13px">días restantes</p>
-     </div>`,
-    { url: opts.upgradeUrl, label: 'Ver planes de suscripción', color: '#007AFF' },
+    `<p style="color:#6E6E73;margin:0 0 16px">Tu período de prueba gratuita está por terminar. Suscríbete para seguir usando FluxApp Finance sin interrupciones.</p>
+     ${card(`<p style="color:#6E6E73;font-size:13px;margin:0 0 4px;text-align:center">Días restantes</p>
+             <p style="color:#FF9F0A;font-size:48px;font-weight:900;margin:0;text-align:center;line-height:1">${opts.daysLeft}</p>`)}`,
+    { url: opts.upgradeUrl, label: 'Ver planes de suscripción' },
   )
-  return send(opts.to, `Tu prueba de Flux vence en ${opts.daysLeft} días`, html)
+  return send(opts.to, `Tu prueba de FluxApp Finance vence en ${opts.daysLeft} días`, html)
+}
+
+// ── Support ──────────────────────────────────────────────────────────────────
+
+export async function sendSupportReplyEmail(opts: { to: string; userName: string; originalMessage: string; reply: string }) {
+  const html = base(
+    'Respuesta de soporte',
+    `<p style="color:#6E6E73;margin:0 0 16px">Hola <strong style="color:#1D1D1F">${opts.userName}</strong>, hemos respondido a tu mensaje.</p>
+     ${card(`<p style="color:#6E6E73;font-size:12px;margin:0 0 8px;text-transform:uppercase;letter-spacing:0.5px">Tu mensaje</p>
+             <p style="color:#6E6E73;font-size:14px;margin:0 0 16px;border-left:3px solid #E5E5EA;padding-left:10px">${opts.originalMessage.replace(/\n/g, '<br>')}</p>
+             <p style="color:#6E6E73;font-size:12px;margin:0 0 8px;text-transform:uppercase;letter-spacing:0.5px">Respuesta</p>
+             <p style="color:#1D1D1F;font-size:14px;margin:0;border-left:3px solid #007AFF;padding-left:10px">${opts.reply.replace(/\n/g, '<br>')}</p>`)}
+     <p style="color:#6E6E73;font-size:13px;margin:16px 0 0">¿Tienes más preguntas? Contáctanos en <a href="mailto:hola@fluxappfinance.com" style="color:#007AFF">hola@fluxappfinance.com</a>.</p>`,
+    { url: APP_URL, label: 'Abrir FluxApp Finance' },
+  )
+  return send(opts.to, 'Respuesta a tu mensaje de soporte — FluxApp Finance', html)
 }
 
 // ── Friends ──────────────────────────────────────────────────────────────────
@@ -172,10 +199,11 @@ export async function sendFriendRequestEmail(opts: {
 }) {
   const html = base(
     'Solicitud de amistad',
-    `<p style="color:#94A3B8;margin:0"><strong style="color:#F8FAFC">${opts.fromName}</strong> (@${opts.fromUsername}) quiere conectar contigo en Flux para dividir gastos.</p>`,
+    `<p style="color:#6E6E73;margin:0 0 16px"><strong style="color:#1D1D1F">${opts.fromName}</strong> (@${opts.fromUsername}) quiere conectar contigo en FluxApp Finance para dividir gastos.</p>
+     ${card(`<p style="color:#6E6E73;font-size:13px;margin:0">Abre la app para aceptar o rechazar la solicitud.</p>`)}`,
     { url: APP_URL, label: 'Ver solicitud' },
   )
-  return send(opts.to, `${opts.fromName} quiere ser tu amigo en Flux`, html)
+  return send(opts.to, `${opts.fromName} quiere ser tu amigo en FluxApp Finance`, html)
 }
 
 export async function sendFriendAcceptedEmail(opts: {
@@ -183,19 +211,19 @@ export async function sendFriendAcceptedEmail(opts: {
 }) {
   const html = base(
     'Solicitud aceptada',
-    `<p style="color:#94A3B8;margin:0"><strong style="color:#F8FAFC">${opts.acceptedByName}</strong> (@${opts.acceptedByUsername}) aceptó tu solicitud. Ya pueden dividir gastos juntos.</p>`,
-    { url: APP_URL, label: 'Abrir Flux', color: '#30D158' },
+    `<p style="color:#6E6E73;margin:0"><strong style="color:#1D1D1F">${opts.acceptedByName}</strong> (@${opts.acceptedByUsername}) aceptó tu solicitud. Ya pueden dividir gastos juntos.</p>`,
+    { url: APP_URL, label: 'Abrir FluxApp Finance', color: '#34C759' },
   )
   return send(opts.to, `${opts.acceptedByName} aceptó tu solicitud de amistad`, html)
 }
 
 export async function sendAppInviteEmail(opts: { to: string; fromName: string; signupUrl: string }) {
   const html = base(
-    'Te invitan a Flux',
-    `<p style="color:#94A3B8;margin:0"><strong style="color:#F8FAFC">${opts.fromName}</strong> te invita a Flux, la app de finanzas personales donde pueden dividir gastos fácilmente.</p>`,
+    'Te invitan a FluxApp Finance',
+    `<p style="color:#6E6E73;margin:0"><strong style="color:#1D1D1F">${opts.fromName}</strong> te invita a FluxApp Finance, la app de finanzas personales donde pueden dividir gastos fácilmente.</p>`,
     { url: opts.signupUrl, label: 'Crear cuenta gratis' },
   )
-  return send(opts.to, `${opts.fromName} te invita a Flux`, html)
+  return send(opts.to, `${opts.fromName} te invita a FluxApp Finance`, html)
 }
 
 // ── Shared expenses ──────────────────────────────────────────────────────────
@@ -205,13 +233,12 @@ export async function sendSharedExpenseInviteEmail(opts: {
 }) {
   const html = base(
     'Gasto compartido',
-    `<p style="color:#94A3B8;margin:0 0 12px"><strong style="color:#F8FAFC">@${opts.fromUsername}</strong> te invita a dividir un gasto.</p>
-     <div style="background:#1C1C2E;border-radius:12px;padding:16px">
-       <p style="margin:0;font-size:16px;font-weight:bold;color:#F8FAFC">${opts.concept}</p>
-       <p style="margin:6px 0 0;font-size:22px;font-weight:900;color:#64D2FF">${opts.amount}</p>
-       <p style="margin:2px 0 0;font-size:12px;color:#64748B">tu parte</p>
-     </div>`,
-    { url: APP_URL, label: 'Aceptar en Flux', color: '#64D2FF' },
+    `<p style="color:#6E6E73;margin:0 0 16px"><strong style="color:#1D1D1F">@${opts.fromUsername}</strong> te invita a dividir un gasto.</p>
+     ${card(`<p style="color:#6E6E73;font-size:13px;margin:0 0 4px">Concepto</p>
+             <p style="color:#1D1D1F;font-size:16px;font-weight:700;margin:0 0 10px">${opts.concept}</p>
+             <p style="color:#6E6E73;font-size:13px;margin:0 0 4px">Tu parte</p>
+             <p style="color:#007AFF;font-size:22px;font-weight:900;margin:0">${opts.amount}</p>`)}`,
+    { url: APP_URL, label: 'Aceptar en FluxApp Finance', color: '#007AFF' },
   )
   return send(opts.to, `${opts.fromName} te invita a dividir: ${opts.concept}`, html)
 }
@@ -221,12 +248,12 @@ export async function sendSharedExpensePaidEmail(opts: {
 }) {
   const html = base(
     'Pago reportado',
-    `<p style="color:#94A3B8;margin:0 0 12px"><strong style="color:#F8FAFC">@${opts.fromUsername}</strong> reporta que pagó su parte.</p>
-     <div style="background:#1C1C2E;border-radius:12px;padding:16px">
-       <p style="margin:0;font-size:16px;font-weight:bold;color:#F8FAFC">${opts.concept}</p>
-       <p style="margin:6px 0 0;font-size:22px;font-weight:900;color:#30D158">${opts.amount}</p>
-     </div>`,
-    { url: APP_URL, label: 'Confirmar en Flux', color: '#30D158' },
+    `<p style="color:#6E6E73;margin:0 0 16px"><strong style="color:#1D1D1F">@${opts.fromUsername}</strong> reporta que pagó su parte.</p>
+     ${card(`<p style="color:#6E6E73;font-size:13px;margin:0 0 4px">Concepto</p>
+             <p style="color:#1D1D1F;font-size:16px;font-weight:700;margin:0 0 10px">${opts.concept}</p>
+             <p style="color:#6E6E73;font-size:13px;margin:0 0 4px">Monto pagado</p>
+             <p style="color:#34C759;font-size:22px;font-weight:900;margin:0">${opts.amount}</p>`)}`,
+    { url: APP_URL, label: 'Confirmar en FluxApp Finance', color: '#34C759' },
   )
   return send(opts.to, `${opts.fromName} pagó su parte de: ${opts.concept}`, html)
 }
