@@ -1,17 +1,23 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import {
   setUserAccountStatus,
   extendUserTrial,
   setUserSubscriptionStatus,
-  replyToTicket,
-  markTicketRead,
   type AdminProfile,
-  type SupportTicket,
 } from '@/actions/admin'
+import {
+  getAdminConversations,
+  getAdminMessages,
+  sendAdminMessage,
+  markReadByAdmin,
+  type SupportConversation,
+  type SupportMessage,
+} from '@/actions/support-chat'
+import { createClient } from '@/lib/supabase/client'
 
 const BLUE   = '#007AFF'
 const DARK   = '#1D1D1F'
@@ -230,108 +236,158 @@ function UserCard({ profile, isPending, onApprove, onReject, onExtend, onSetSub 
   )
 }
 
-// ── Ticket card ───────────────────────────────────────────────────────────────
-function TicketCard({ ticket, isPending, onReply, onRead }: {
-  ticket: SupportTicket
-  isPending: boolean
-  onReply: (id: string, reply: string) => void
-  onRead: (id: string) => void
-}) {
-  const [open, setOpen] = useState(!ticket.is_read)
-  const [replyText, setReplyText] = useState(ticket.admin_reply ?? '')
-  const [editing, setEditing] = useState(false)
+// ── Admin inbox ───────────────────────────────────────────────────────────────
+function AdminInbox() {
+  const [convs, setConvs] = useState<SupportConversation[]>([])
+  const [selected, setSelected] = useState<SupportConversation | null>(null)
+  const [messages, setMessages] = useState<SupportMessage[]>([])
+  const [reply, setReply] = useState('')
+  const [sending, setSending] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const bottomRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    getAdminConversations().then(c => { setConvs(c); setLoading(false) })
+  }, [])
+
+  async function openConv(conv: SupportConversation) {
+    setSelected(conv)
+    setMessages([])
+    const msgs = await getAdminMessages(conv.id)
+    setMessages(msgs)
+    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
+    if (conv.unread_admin > 0) {
+      await markReadByAdmin(conv.id)
+      setConvs(prev => prev.map(c => c.id === conv.id ? { ...c, unread_admin: 0 } : c))
+    }
+
+    // Realtime
+    const supabase = createClient()
+    supabase
+      .channel(`admin-chat-${conv.id}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_messages', filter: `conversation_id=eq.${conv.id}` },
+        (payload) => {
+          const msg = payload.new as SupportMessage
+          setMessages(prev => prev.find(m => m.id === msg.id) ? prev : [...prev, msg])
+          setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
+        }
+      )
+      .subscribe()
+  }
+
+  async function handleSend() {
+    if (!selected || !reply.trim() || sending) return
+    const body = reply.trim()
+    setReply('')
+    setSending(true)
+    const optimistic: SupportMessage = { id: `opt-${Date.now()}`, conversation_id: selected.id, sender: 'admin', body, created_at: new Date().toISOString() }
+    setMessages(prev => [...prev, optimistic])
+    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
+    const { error } = await sendAdminMessage(selected.id, body)
+    setSending(false)
+    if (error) { toast.error(error); setMessages(prev => prev.filter(m => m.id !== optimistic.id)); setReply(body) }
+  }
+
+  function fmtTime(iso: string) {
+    return new Date(iso).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+  }
+
+  if (loading) return (
+    <div className="py-20 text-center">
+      <i className="fa-solid fa-spinner fa-spin text-2xl" style={{ color: GRAY }} />
+    </div>
+  )
+
+  // Thread view
+  if (selected) return (
+    <div>
+      <button onClick={() => setSelected(null)} className="flex items-center gap-2 mb-5 text-[14px] font-bold" style={{ color: BLUE }}>
+        <i className="fa-solid fa-chevron-left" /> Conversaciones
+      </button>
+      <div className="flex items-center gap-3 mb-5 p-4 rounded-[16px]" style={{ background: LIGHT }}>
+        <div className="w-9 h-9 rounded-full flex items-center justify-center text-[14px] font-black text-white flex-shrink-0" style={{ background: BLUE }}>
+          {(selected.user_name || selected.user_email || '?')[0].toUpperCase()}
+        </div>
+        <div>
+          <p className="text-[15px] font-bold" style={{ color: DARK }}>{selected.user_name ?? 'Sin nombre'}</p>
+          <p className="text-[12px] font-medium" style={{ color: GRAY }}>{selected.user_email ?? ''}</p>
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div className="space-y-1 mb-4" style={{ minHeight: 200, maxHeight: 400, overflowY: 'auto' }}>
+        {messages.map(msg => {
+          const isAdmin = msg.sender === 'admin'
+          return (
+            <div key={msg.id} className={`flex ${isAdmin ? 'justify-end' : 'justify-start'} mb-1`}>
+              <div className="max-w-[75%] flex flex-col" style={{ alignItems: isAdmin ? 'flex-end' : 'flex-start' }}>
+                <div className="px-4 py-2.5 rounded-[18px] text-[14px] font-medium leading-relaxed"
+                  style={{
+                    background: isAdmin ? BLUE : '#fff',
+                    color: isAdmin ? '#fff' : DARK,
+                    border: isAdmin ? 'none' : '1px solid rgba(0,0,0,0.08)',
+                    borderBottomRightRadius: isAdmin ? 4 : 18,
+                    borderBottomLeftRadius: isAdmin ? 18 : 4,
+                  }}>
+                  {msg.body}
+                </div>
+                <span className="text-[10px] font-medium mt-0.5 px-1" style={{ color: GRAY }}>{fmtTime(msg.created_at)}</span>
+              </div>
+            </div>
+          )
+        })}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Reply input */}
+      <div className="flex items-end gap-2">
+        <textarea
+          rows={2}
+          value={reply}
+          onChange={e => setReply(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
+          placeholder="Escribe tu respuesta…"
+          className="flex-1 rounded-[16px] px-4 py-3 text-[14px] font-medium outline-none resize-none"
+          style={{ background: '#fff', border: '1px solid rgba(0,0,0,0.12)', color: DARK }}
+        />
+        <button onClick={handleSend} disabled={!reply.trim() || sending}
+          className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-40"
+          style={{ background: BLUE }}>
+          {sending ? <i className="fa-solid fa-spinner fa-spin text-white text-[13px]" /> : <i className="fa-solid fa-arrow-up text-white text-[13px]" />}
+        </button>
+      </div>
+    </div>
+  )
+
+  // Conversation list
+  if (convs.length === 0) return (
+    <div className="py-20 text-center">
+      <i className="fa-solid fa-comments text-4xl mb-4 block" style={{ color: 'rgba(0,0,0,0.15)' }} />
+      <p className="text-[16px] font-semibold" style={{ color: GRAY }}>Sin conversaciones de soporte</p>
+    </div>
+  )
 
   return (
-    <div
-      className="rounded-[20px] overflow-hidden"
-      style={{
-        background: !ticket.is_read ? 'rgba(0,122,255,0.04)' : LIGHT,
-        border: !ticket.is_read ? '1.5px solid rgba(0,122,255,0.25)' : '1px solid rgba(0,0,0,0.06)',
-      }}
-    >
-      <button className="w-full text-left p-5 flex items-start gap-4"
-        onClick={() => { setOpen(o => !o); if (!ticket.is_read) onRead(ticket.id) }}>
-        <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-[14px] font-black text-white"
-          style={{ background: BLUE }}>
-          {(ticket.user_name || ticket.user_email || '?')[0].toUpperCase()}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="text-[15px] font-bold truncate" style={{ color: DARK }}>
-              {ticket.user_name ?? ticket.user_email ?? 'Usuario desconocido'}
-            </p>
-            {!ticket.is_read && (
-              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: BLUE }} />
-            )}
+    <div className="space-y-3">
+      {convs.map(c => (
+        <button key={c.id} onClick={() => openConv(c)} className="w-full text-left rounded-[20px] p-5 flex items-center gap-4 transition-all active:scale-[0.99]"
+          style={{
+            background: c.unread_admin > 0 ? 'rgba(0,122,255,0.04)' : LIGHT,
+            border: c.unread_admin > 0 ? '1.5px solid rgba(0,122,255,0.25)' : '1px solid rgba(0,0,0,0.06)',
+          }}>
+          <div className="w-10 h-10 rounded-full flex items-center justify-center text-[15px] font-black text-white flex-shrink-0" style={{ background: BLUE }}>
+            {(c.user_name || c.user_email || '?')[0].toUpperCase()}
           </div>
-          <p className="text-[13px] font-medium mt-0.5 truncate" style={{ color: GRAY }}>
-            {ticket.message}
-          </p>
-          <p className="text-[11px] font-medium mt-1" style={{ color: GRAY }}>
-            {fmtDateTime(ticket.created_at)}
-          </p>
-        </div>
-        <i className={`fa-solid fa-chevron-down text-[13px] transition-transform duration-200 mt-1 flex-shrink-0 ${open ? 'rotate-180' : ''}`} style={{ color: GRAY }} />
-      </button>
-
-      {open && (
-        <div className="px-5 pb-5 space-y-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: 16 }}>
-          {/* User message */}
-          <div className="rounded-[14px] p-4" style={{ background: 'rgba(0,0,0,0.04)' }}>
-            <p className="text-[12px] font-black uppercase tracking-wide mb-1" style={{ color: GRAY }}>Mensaje</p>
-            <p className="text-[14px] font-medium" style={{ color: DARK }}>{ticket.message}</p>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="text-[15px] font-bold truncate" style={{ color: DARK }}>{c.user_name ?? c.user_email ?? 'Usuario'}</p>
+              {c.unread_admin > 0 && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: BLUE }} />}
+            </div>
+            <p className="text-[12px] font-medium mt-0.5" style={{ color: GRAY }}>{fmtDateTime(c.last_message_at)}</p>
           </div>
-
-          {/* Admin reply */}
-          {ticket.admin_reply && !editing && (
-            <div className="rounded-[14px] p-4" style={{ background: 'rgba(0,122,255,0.07)', border: '1px solid rgba(0,122,255,0.15)' }}>
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-[12px] font-black uppercase tracking-wide" style={{ color: BLUE }}>Respuesta</p>
-                <button onClick={() => setEditing(true)} className="text-[12px] font-bold" style={{ color: BLUE }}>
-                  Editar
-                </button>
-              </div>
-              <p className="text-[14px] font-medium" style={{ color: DARK }}>{ticket.admin_reply}</p>
-              {ticket.replied_at && (
-                <p className="text-[11px] font-medium mt-1" style={{ color: GRAY }}>{fmtDateTime(ticket.replied_at)}</p>
-              )}
-            </div>
-          )}
-
-          {/* Reply input */}
-          {(!ticket.admin_reply || editing) && (
-            <div>
-              <p className="text-[12px] font-black uppercase tracking-wide mb-2" style={{ color: GRAY }}>
-                {ticket.admin_reply ? 'Editar respuesta' : 'Responder'}
-              </p>
-              <textarea
-                rows={3}
-                value={replyText}
-                onChange={e => setReplyText(e.target.value)}
-                placeholder="Escribe tu respuesta..."
-                className="w-full rounded-[12px] px-4 py-3 text-[14px] font-medium outline-none resize-none"
-                style={{ background: '#fff', border: '1px solid rgba(0,0,0,0.12)', color: DARK }}
-              />
-              <div className="flex gap-2 mt-2">
-                {editing && (
-                  <button onClick={() => { setEditing(false); setReplyText(ticket.admin_reply ?? '') }}
-                    className="flex-1 py-2.5 rounded-[12px] text-[14px] font-bold"
-                    style={{ background: LIGHT, color: GRAY, border: '1px solid rgba(0,0,0,0.08)' }}>
-                    Cancelar
-                  </button>
-                )}
-                <button
-                  onClick={() => { onReply(ticket.id, replyText); setEditing(false) }}
-                  disabled={isPending || !replyText.trim()}
-                  className="flex-1 py-2.5 rounded-[12px] text-[14px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
-                  style={{ background: BLUE }}>
-                  {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Enviar respuesta'}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+          <i className="fa-solid fa-chevron-right text-[13px] flex-shrink-0" style={{ color: GRAY }} />
+        </button>
+      ))}
     </div>
   )
 }
@@ -358,7 +414,7 @@ function applyFilter(profiles: AdminProfile[], filter: string) {
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
-export default function AdminClient({ profiles, tickets }: { profiles: AdminProfile[]; tickets: SupportTicket[] }) {
+export default function AdminClient({ profiles }: { profiles: AdminProfile[] }) {
   const [view, setView]     = useState<'users' | 'inbox'>('users')
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
@@ -369,7 +425,7 @@ export default function AdminClient({ profiles, tickets }: { profiles: AdminProf
   const trialing = profiles.filter(p => p.subscription_status === 'trialing').length
   const active   = profiles.filter(p => p.subscription_status === 'active').length
   const expired  = profiles.filter(p => ['expired','grace','past_due','unpaid'].includes(p.subscription_status)).length
-  const unreadTickets = tickets.filter(t => !t.is_read).length
+  const unreadTickets = 0 // loaded dynamically in AdminInbox
 
   // Revenue (estimate: paying users × $89/mo, annual ≈ same since we don't know plan)
   const mrr = active * 89
@@ -404,16 +460,6 @@ export default function AdminClient({ profiles, tickets }: { profiles: AdminProf
       r.error ? toast.error(r.error) : toast.success('Estado actualizado')
     })
   }
-  function handleReply(id: string, reply: string) {
-    startTransition(async () => {
-      const r = await replyToTicket(id, reply)
-      r.error ? toast.error(r.error) : toast.success('Respuesta enviada')
-    })
-  }
-  function handleRead(id: string) {
-    startTransition(async () => { await markTicketRead(id) })
-  }
-
   return (
     <div style={{ background: '#fff', minHeight: '100vh', color: DARK }}>
       {/* ── Top bar ── */}
@@ -444,7 +490,7 @@ export default function AdminClient({ profiles, tickets }: { profiles: AdminProf
               <p className="text-[15px] font-medium mt-0.5" style={{ color: GRAY }}>
                 {view === 'users'
                   ? `${profiles.length} ${profiles.length === 1 ? 'usuario' : 'usuarios'} registrados`
-                  : `${tickets.length} ${tickets.length === 1 ? 'mensaje' : 'mensajes'}`}
+                  : 'Conversaciones de soporte'}
               </p>
             </div>
             {/* View switcher */}
@@ -552,22 +598,7 @@ export default function AdminClient({ profiles, tickets }: { profiles: AdminProf
         )}
 
         {/* ════════════════════════════════ INBOX VIEW ════════════════════════════════ */}
-        {view === 'inbox' && (
-          <>
-            {tickets.length === 0 ? (
-              <div className="py-20 text-center">
-                <i className="fa-solid fa-inbox text-4xl mb-4 block" style={{ color: 'rgba(0,0,0,0.15)' }} />
-                <p className="text-[16px] font-semibold" style={{ color: GRAY }}>Sin mensajes de soporte</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {tickets.map(t => (
-                  <TicketCard key={t.id} ticket={t} isPending={isPending} onReply={handleReply} onRead={handleRead} />
-                ))}
-              </div>
-            )}
-          </>
-        )}
+        {view === 'inbox' && <AdminInbox />}
       </main>
     </div>
   )
