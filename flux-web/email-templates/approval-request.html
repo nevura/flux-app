@@ -1,105 +1,18 @@
 <!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nueva solicitud de acceso — Flux</title>
-</head>
-<body style="margin:0;padding:0;background-color:#F2F2F7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F2F2F7;">
-    <tr>
-      <td align="center" style="padding:48px 20px 60px;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;">
-
-          <!-- Logo -->
-          <tr>
-            <td align="center" style="padding-bottom:32px;">
-              <table cellpadding="0" cellspacing="0" border="0">
-                <tr>
-                  <td align="center">
-                    <div style="width:64px;height:64px;background:#007AFF;border-radius:16px;display:inline-block;text-align:center;line-height:64px;box-shadow:0 8px 24px rgba(0,122,255,0.28);">
-                      <img src="https://raw.githubusercontent.com/nevura/flux-app/main/flux-web/public/icon-192.png" width="40" height="40" alt="Flux" style="vertical-align:middle;border-radius:6px;" />
-                    </div>
-                    <p style="margin:12px 0 2px;font-size:22px;font-weight:700;color:#1C1C1E;letter-spacing:-0.5px;">Flux</p>
-                    <p style="margin:0;font-size:13px;color:#8E8E93;">Finanzas que fluyen</p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- Card -->
-          <tr>
-            <td style="background:#FFFFFF;border-radius:20px;padding:36px 32px 32px;box-shadow:0 2px 16px rgba(0,0,0,0.08);">
-
-              <!-- Badge -->
-              <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                <tr>
-                  <td align="center" style="padding-bottom:24px;">
-                    <span style="display:inline-block;background:#EAF3FF;color:#007AFF;font-size:12px;font-weight:600;padding:5px 14px;border-radius:20px;letter-spacing:0.2px;">
-                      Nueva solicitud
-                    </span>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- Heading -->
-              <p style="margin:0 0 6px;font-size:22px;font-weight:700;color:#1C1C1E;text-align:center;letter-spacing:-0.4px;">
-                Alguien quiere acceder
-              </p>
-              <p style="margin:0 0 28px;font-size:15px;color:#6D6D72;text-align:center;line-height:1.6;">
-                <strong style="color:#1C1C1E;">{{APPLICANT_NAME}}</strong> solicitó acceso a Flux.
-              </p>
-
-              <!-- User card -->
-              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
-                <tr>
-                  <td style="background:#F2F2F7;border-radius:12px;padding:16px 18px;">
-                    <p style="margin:0 0 2px;font-size:11px;color:#8E8E93;text-transform:uppercase;letter-spacing:0.8px;font-weight:600;">Correo electrónico</p>
-                    <p style="margin:0;font-size:16px;color:#1C1C1E;font-weight:500;">{{APPLICANT_EMAIL}}</p>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- Buttons -->
-              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
-                <tr>
-                  <td width="48%" align="center">
-                    <a href="{{APPROVE_URL}}"
-                       style="display:block;background:#34C759;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 10px;border-radius:12px;text-align:center;letter-spacing:-0.1px;">
-                      ✓ &nbsp;Aprobar acceso
-                    </a>
-                  </td>
-                  <td width="4%"></td>
-                  <td width="48%" align="center">
-                    <a href="{{REJECT_URL}}"
-                       style="display:block;background:#FFF0F0;color:#FF3B30;text-decoration:none;font-size:15px;font-weight:600;padding:14px 10px;border-radius:12px;text-align:center;letter-spacing:-0.1px;border:1px solid #FFD5D3;">
-                      ✕ &nbsp;Rechazar
-                    </a>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- Note -->
-              <p style="margin:0;font-size:12px;color:#AEAEB2;text-align:center;line-height:1.6;">
-                Solo tú recibes este correo. El usuario no tiene acceso hasta que apruebes.
-              </p>
-
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td align="center" style="padding-top:28px;">
-              <p style="margin:0;font-size:11px;color:#AEAEB2;">
-                Powered by <strong style="color:#8E8E93;">Nevura</strong>
-              </p>
-            </td>
-          </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Solicitud de acceso — FluxApp Finance Admin</title></head>
+<body style="margin:0;padding:0;background:#F5F5F7;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 20px">
+<table width="100%" style="max-width:480px" cellpadding="0" cellspacing="0">
+<tr><td style="padding-bottom:24px"><span style="color:#007AFF;font-size:22px;font-weight:900;letter-spacing:-0.5px">fluxapp finance</span><span style="color:#6E6E73;font-size:13px;margin-left:8px">Admin</span></td></tr>
+<tr><td style="background:#FFFFFF;border-radius:20px;padding:28px;border:1px solid rgba(0,0,0,0.08);box-shadow:0 2px 12px rgba(0,0,0,0.04)">
+<h2 style="color:#1D1D1F;margin:0 0 16px;font-size:20px;font-weight:700">Nueva solicitud de acceso</h2>
+<p style="color:#6E6E73;margin:0 0 16px">Un nuevo usuario quiere acceso a FluxApp Finance.</p>
+<div style="background:#F5F5F7;border-radius:12px;padding:14px;margin-bottom:20px;border:1px solid rgba(0,0,0,0.06)">
+<p style="color:#1D1D1F;margin:0 0 4px"><strong>Email:</strong> usuario@ejemplo.com</p>
+<p style="color:#1D1D1F;margin:0"><strong>Nombre:</strong> Juan Pérez</p>
+</div>
+<a href="#aprobar" style="display:inline-block;background:#34C759;color:#fff;text-decoration:none;border-radius:10px;padding:10px 20px;font-weight:700;margin-right:10px">Aprobar</a>
+<a href="#rechazar" style="display:inline-block;background:#FF3B30;color:#fff;text-decoration:none;border-radius:10px;padding:10px 20px;font-weight:700">Rechazar</a>
+</td></tr>
+<tr><td style="padding-top:20px;text-align:center;color:#6E6E73;font-size:12px">fluxapp finance &middot; <a href="https://fluxappfinance.com" style="color:#6E6E73;text-decoration:none">fluxappfinance.com</a></td></tr>
+</table></td></tr></table></body></html>
