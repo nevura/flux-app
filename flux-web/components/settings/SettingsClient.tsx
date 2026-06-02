@@ -25,6 +25,7 @@ interface Props {
   accounts: Account[]
   scheduled: ScheduledTransaction[]
   people: Person[]
+  isAdmin?: boolean
 }
 
 type Tab = 'shortcuts' | 'categorias' | 'cuentas' | 'planificados' | 'personas' | 'suscripcion' | 'apariencia' | 'perfil' | 'guia' | 'presupuesto' | 'soporte' | 'datos'
@@ -107,7 +108,7 @@ const SECTIONS: { key: Tab; icon: string; label: string; description: string; hi
   return a.label.localeCompare(b.label, 'es')
 })
 
-export default function SettingsClient({ profile, shortcutToken, categories, accounts, scheduled, people }: Props) {
+export default function SettingsClient({ profile, shortcutToken, categories, accounts, scheduled, people, isAdmin }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [section, setSection] = useState<Tab | null>(() => {
@@ -614,7 +615,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
           })}
         </div>
 
-        {!section && profile?.email === 'bernardo.perezro06@gmail.com' && (
+        {!section && isAdmin && (
           <Link
             href="/admin"
             className="w-full flex items-center gap-4 px-4 py-4 rounded-[16px] text-left transition-all active:scale-[0.99]"
