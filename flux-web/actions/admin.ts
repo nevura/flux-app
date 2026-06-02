@@ -5,7 +5,8 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendSupportReplyEmail } from '@/lib/email'
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'bernardo.perezro06@gmail.com'
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? ''  // notification recipient
+const ADMIN_AUTH_EMAIL = process.env.ADMIN_AUTH_EMAIL || process.env.ADMIN_EMAIL || 'bernardo.perezro06@gmail.com'
 const FROM_EMAIL  = 'FluxApp Finance <no-reply@fluxappfinance.com>'
 
 async function sendAdminEmail(subject: string, html: string) {
@@ -20,7 +21,7 @@ async function sendAdminEmail(subject: string, html: string) {
 async function verifyAdmin() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user || user.email !== ADMIN_EMAIL) throw new Error('No autorizado')
+  if (!user || user.email !== ADMIN_AUTH_EMAIL) throw new Error('No autorizado')
   return user
 }
 

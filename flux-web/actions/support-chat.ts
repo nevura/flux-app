@@ -141,12 +141,13 @@ export async function markReadByUser(conversationId: string) {
 
 // ── Admin actions ─────────────────────────────────────────────────────────────
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'bernardo.perezro06@gmail.com'
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'bernardo.perezro06@gmail.com'  // notification recipient
+const ADMIN_AUTH_EMAIL = process.env.ADMIN_AUTH_EMAIL || process.env.ADMIN_EMAIL || 'bernardo.perezro06@gmail.com'
 
 async function verifyAdmin() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user || user.email !== ADMIN_EMAIL) throw new Error('No autorizado')
+  if (!user || user.email !== ADMIN_AUTH_EMAIL) throw new Error('No autorizado')
   return user
 }
 

@@ -25,8 +25,8 @@ export default async function SettingsPage() {
     supabase.from('people').select('*, linked_profile:profiles!linked_user_id(id, username, full_name)').eq('user_id', user.id).order('created_at'),
   ])
 
-  const adminEmail = process.env.ADMIN_EMAIL ?? 'bernardo.perezro06@gmail.com'
-  const isAdmin = user.email === adminEmail
+  const adminAuthEmail = process.env.ADMIN_AUTH_EMAIL || process.env.ADMIN_EMAIL || 'bernardo.perezro06@gmail.com'
+  const isAdmin = user.email === adminAuthEmail
 
   return (
     <SettingsClient
