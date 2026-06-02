@@ -297,7 +297,7 @@ function ApplePaySection() {
             <div className="text-left">
               <p className="text-[14px] font-bold text-white">Pagas con Apple Pay en OXXO</p>
               <p className="text-[13px] font-medium" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                Flux registra: -$89 · OXXO · Automático ✓
+                FluxApp registra: -$89 · OXXO · Automático ✓
               </p>
             </div>
           </div>
@@ -426,7 +426,7 @@ function SharedSection() {
               Divide sin<br />discusiones.
             </h2>
             <p className="text-[17px] font-medium leading-relaxed mb-6" style={{ color: GRAY }}>
-              Agrega a tus amigos en Flux y divide cualquier gasto en segundos. Cada quien ve lo que debe, el sistema rastrea los pagos y te notifica cuando liquidan.
+              Agrega a tus amigos en FluxApp y divide cualquier gasto en segundos. Cada quien ve lo que debe, el sistema rastrea los pagos y te notifica cuando liquidan.
             </p>
             <ul className="space-y-3">
               {[

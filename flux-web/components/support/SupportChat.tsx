@@ -26,7 +26,11 @@ function fmtDate(iso: string) {
   return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })
 }
 
-export default function SupportChat() {
+interface Props {
+  onBack?: () => void
+}
+
+export default function SupportChat({ onBack }: Props = {}) {
   const [conv, setConv] = useState<SupportConversation | null>(null)
   const [messages, setMessages] = useState<SupportMessage[]>([])
   const [loading, setLoading] = useState(true)
@@ -40,7 +44,8 @@ export default function SupportChat() {
   }, [])
 
   useEffect(() => {
-    let channel: ReturnType<typeof createClient>['channel'] extends ((...args: any[]) => infer R) ? R : never
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let channel: any
 
     async function init() {
       const conversation = await getOrCreateConversation()
@@ -52,10 +57,8 @@ export default function SupportChat() {
       setLoading(false)
       scrollToBottom()
 
-      // Mark read
       if (conversation.unread_user > 0) markReadByUser(conversation.id)
 
-      // Realtime subscription
       const supabase = createClient()
       channel = supabase
         .channel(`support-chat-${conversation.id}`)
@@ -65,8 +68,12 @@ export default function SupportChat() {
           (payload) => {
             const msg = payload.new as SupportMessage
             setMessages(prev => {
-              if (prev.find(m => m.id === msg.id)) return prev
-              return [...prev, msg]
+              // Replace any matching optimistic message (same sender + body) to avoid duplicates
+              const withoutOpt = prev.filter(m =>
+                !(m.id.startsWith('opt-') && m.sender === msg.sender && m.body === msg.body)
+              )
+              if (withoutOpt.find(m => m.id === msg.id)) return withoutOpt
+              return [...withoutOpt, msg]
             })
             scrollToBottom()
             if (msg.sender === 'admin') markReadByUser(conversation.id)
@@ -76,7 +83,7 @@ export default function SupportChat() {
     }
 
     init()
-    return () => { (channel as any)?.unsubscribe?.() }
+    return () => { channel?.unsubscribe?.() }
   }, [scrollToBottom])
 
   async function handleSend() {
@@ -85,7 +92,6 @@ export default function SupportChat() {
     setInput('')
     setSending(true)
 
-    // Optimistic insert
     const optimistic: SupportMessage = {
       id: `opt-${Date.now()}`,
       conversation_id: conv.id,
@@ -121,18 +127,11 @@ export default function SupportChat() {
     else grouped.push({ date: d, msgs: [msg] })
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <i className="fa-solid fa-spinner fa-spin text-2xl" style={{ color: 'var(--f-text-4)' }} />
-      </div>
-    )
-  }
+  // ── Shared sub-renders ────────────────────────────────────────────────────────
 
-  return (
-    <div className="flex flex-col" style={{ height: 'calc(100dvh - 200px)', minHeight: 400 }}>
-      {/* Header info */}
-      <div className="flex items-center gap-3 mb-3 px-1">
+  function ContactHeader() {
+    return (
+      <div className="flex items-center gap-3 px-1 py-4">
         <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
           style={{ background: 'rgba(0,122,255,0.12)' }}>
           <i className="fa-solid fa-headset text-[15px]" style={{ color: 'var(--f-blue)' }} />
@@ -142,11 +141,14 @@ export default function SupportChat() {
           <p className="text-[12px] font-medium" style={{ color: 'var(--f-text-4)' }}>Soporte · respondemos a la brevedad</p>
         </div>
       </div>
+    )
+  }
 
-      {/* Messages area */}
-      <div className="flex-1 overflow-y-auto px-1 space-y-1" style={{ overscrollBehavior: 'contain' }}>
+  function Messages() {
+    return (
+      <>
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full gap-3 py-12">
+          <div className="flex flex-col items-center justify-center gap-3 py-16">
             <div className="w-14 h-14 rounded-full flex items-center justify-center"
               style={{ background: 'rgba(0,122,255,0.1)' }}>
               <i className="fa-solid fa-comments text-2xl" style={{ color: 'var(--f-blue)' }} />
@@ -160,7 +162,6 @@ export default function SupportChat() {
 
         {grouped.map(group => (
           <div key={group.date}>
-            {/* Date separator */}
             <div className="flex items-center gap-3 my-4">
               <div className="flex-1 h-px" style={{ background: 'var(--f-line)' }} />
               <span className="text-[11px] font-bold px-2" style={{ color: 'var(--f-text-4)' }}>{group.date}</span>
@@ -174,7 +175,6 @@ export default function SupportChat() {
 
               return (
                 <div key={msg.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-1`}>
-                  {/* Admin avatar placeholder for alignment */}
                   {!isUser && (
                     <div className="w-7 h-7 rounded-full flex-shrink-0 mr-2 mt-auto mb-0.5 flex items-center justify-center"
                       style={{
@@ -184,7 +184,6 @@ export default function SupportChat() {
                       {showAvatar && <i className="fa-solid fa-headset text-[10px]" style={{ color: 'var(--f-blue)' }} />}
                     </div>
                   )}
-
                   <div className={`max-w-[75%] ${isUser ? 'items-end' : 'items-start'} flex flex-col`}>
                     <div
                       className="px-4 py-2.5 rounded-[18px] text-[15px] font-medium leading-relaxed"
@@ -208,10 +207,13 @@ export default function SupportChat() {
           </div>
         ))}
         <div ref={bottomRef} />
-      </div>
+      </>
+    )
+  }
 
-      {/* Input */}
-      <div className="mt-3 flex items-end gap-2">
+  function InputBar() {
+    return (
+      <div className="flex items-end gap-2">
         <div className="flex-1 rounded-[20px] px-4 py-3 flex items-end gap-2"
           style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)' }}>
           <textarea
@@ -240,6 +242,84 @@ export default function SupportChat() {
             : <i className="fa-solid fa-arrow-up text-white text-[13px]" />
           }
         </button>
+      </div>
+    )
+  }
+
+  // ── Full-screen mode (covers nav bar) ─────────────────────────────────────────
+
+  if (onBack !== undefined) {
+    return (
+      <div className="fixed inset-0 z-[60] flex flex-col" style={{ background: 'var(--f-bg)' }}>
+        <header
+          className="flex-shrink-0 px-5 pb-4"
+          style={{
+            paddingTop: 'calc(1rem + var(--safe-top))',
+            background: 'var(--f-bg-glass)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderBottom: '1px solid var(--f-accent-bg)',
+          }}
+        >
+          <div className="relative flex items-center">
+            <button
+              onClick={onBack}
+              className="flex items-center gap-1.5 text-sm font-semibold z-10"
+              style={{ color: 'var(--f-blue)' }}
+            >
+              <i className="fa-solid fa-chevron-left text-xs" />
+              Ajustes
+            </button>
+            <h1 className="absolute inset-0 flex items-center justify-center text-[17px] font-bold pointer-events-none"
+              style={{ color: 'var(--f-text)' }}>
+              Soporte
+            </h1>
+          </div>
+        </header>
+
+        {loading ? (
+          <div className="flex-1 flex items-center justify-center">
+            <i className="fa-solid fa-spinner fa-spin text-2xl" style={{ color: 'var(--f-text-4)' }} />
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto px-4" style={{ overscrollBehavior: 'contain' }}>
+            <ContactHeader />
+            <Messages />
+          </div>
+        )}
+
+        <div
+          className="flex-shrink-0 px-4 py-3"
+          style={{
+            paddingBottom: 'calc(0.75rem + var(--safe-bottom))',
+            background: 'var(--f-bg)',
+            borderTop: '1px solid var(--f-line)',
+          }}
+        >
+          <InputBar />
+        </div>
+      </div>
+    )
+  }
+
+  // ── Embedded fallback ─────────────────────────────────────────────────────────
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <i className="fa-solid fa-spinner fa-spin text-2xl" style={{ color: 'var(--f-text-4)' }} />
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col" style={{ height: 'calc(100dvh - 200px)', minHeight: 400 }}>
+      <ContactHeader />
+      <div className="flex-1 overflow-y-auto px-1 space-y-1" style={{ overscrollBehavior: 'contain' }}>
+        <Messages />
+      </div>
+      <div className="mt-3">
+        <InputBar />
       </div>
     </div>
   )

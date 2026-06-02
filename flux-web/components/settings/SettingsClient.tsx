@@ -226,6 +226,11 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
     window.location.href = '/login'
   }
 
+  // ── Support chat — full-screen, covers nav bar ───────────────────────────────
+  if (section === 'soporte') {
+    return <SupportChat onBack={() => setSection(null)} />
+  }
+
   // ── Section view ─────────────────────────────────────────────────────────────
   if (section !== null) {
     const current = SECTIONS.find(s => s.key === section)!
@@ -477,9 +482,6 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
           )}
           {section === 'guia' && (
             <GuideTab />
-          )}
-          {section === 'soporte' && (
-            <SupportTab />
           )}
           {section === 'datos' && (
             <DataTab isActive={!isExpired} categories={categories} accounts={accounts} />
@@ -1727,10 +1729,6 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
 }
 
 // ── Support Tab ──────────────────────────────────────────────────────────────
-
-function SupportTab() {
-  return <SupportChat />
-}
 
 // ── Subscription Tab ─────────────────────────────────────────────────────────
 
