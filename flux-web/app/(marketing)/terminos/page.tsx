@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Términos y Condiciones — Flux',
-  description: 'Términos y condiciones de uso de Flux App',
+  title: 'Términos y Condiciones — FluxApp Finance',
+  description: 'Términos y condiciones de uso de FluxApp Finance',
 }
 
 const BLUE = '#007AFF'
@@ -26,26 +26,26 @@ export default function TerminosPage() {
       <p className="text-[15px] font-medium mb-12" style={{ color: GRAY }}>Última actualización: 29 de mayo de 2026</p>
 
       <Section title="1. Aceptación de los términos">
-        <p>Al crear una cuenta y usar Flux ("la Aplicación"), aceptas estos Términos y Condiciones en su totalidad. Si no estás de acuerdo con alguna parte, no uses la aplicación.</p>
+        <p>Al crear una cuenta y usar FluxApp Finance ("la Aplicación"), aceptas estos Términos y Condiciones en su totalidad. Si no estás de acuerdo con alguna parte, no uses la aplicación.</p>
       </Section>
 
       <Section title="2. Descripción del servicio">
-        <p>Flux es una aplicación de gestión de finanzas personales que permite registrar transacciones, crear presupuestos, dividir gastos con otras personas y visualizar tu situación financiera.</p>
+        <p>FluxApp Finance es una aplicación de gestión de finanzas personales que permite registrar transacciones, crear presupuestos, dividir gastos con otras personas y visualizar tu situación financiera.</p>
         <p>El servicio incluye integración con Atajos de iPhone para el registro automático de compras realizadas con Apple Pay.</p>
       </Section>
 
       <Section title="3. Registro y cuenta">
-        <p>Para usar Flux necesitas crear una cuenta con una dirección de correo electrónico válida. Eres responsable de mantener la seguridad de tu contraseña y de todas las actividades realizadas desde tu cuenta.</p>
-        <p>El acceso a Flux está sujeto a aprobación por parte del equipo de Flux durante el período de acceso anticipado. Nos reservamos el derecho de rechazar o cancelar cuentas a nuestra discreción.</p>
+        <p>Para usar FluxApp Finance necesitas crear una cuenta con una dirección de correo electrónico válida. Eres responsable de mantener la seguridad de tu contraseña y de todas las actividades realizadas desde tu cuenta.</p>
+        <p>El acceso a FluxApp Finance está sujeto a aprobación por parte del equipo de FluxApp Finance durante el período de acceso anticipado. Nos reservamos el derecho de rechazar o cancelar cuentas a nuestra discreción.</p>
       </Section>
 
       <Section title="4. Suscripción y pagos">
-        <p>Flux ofrece un período de prueba gratuito de 14 días. Tras ese período, el acceso continuo requiere una suscripción activa.</p>
+        <p>FluxApp Finance ofrece un período de prueba gratuito de 14 días. Tras ese período, el acceso continuo requiere una suscripción activa.</p>
         <p>Los pagos se procesan a través de Stripe. Puedes cancelar tu suscripción en cualquier momento desde la configuración de tu cuenta. No se realizan reembolsos por períodos ya pagados.</p>
       </Section>
 
       <Section title="5. Uso aceptable">
-        <p>Te comprometes a usar Flux únicamente para la gestión de tus finanzas personales y a no:</p>
+        <p>Te comprometes a usar FluxApp Finance únicamente para la gestión de tus finanzas personales y a no:</p>
         <ul className="list-disc pl-5 space-y-1.5">
           <li>Compartir tu cuenta con terceros</li>
           <li>Intentar acceder a datos de otros usuarios</li>
@@ -55,11 +55,11 @@ export default function TerminosPage() {
       </Section>
 
       <Section title="6. Propiedad intelectual">
-        <p>Todo el contenido de Flux — diseño, código, marca y funcionalidades — es propiedad exclusiva de Flux y está protegido por leyes de propiedad intelectual. No puedes copiar, modificar ni distribuir ningún componente sin autorización expresa.</p>
+        <p>Todo el contenido de FluxApp Finance — diseño, código, marca y funcionalidades — es propiedad exclusiva de FluxApp Finance y está protegido por leyes de propiedad intelectual. No puedes copiar, modificar ni distribuir ningún componente sin autorización expresa.</p>
       </Section>
 
       <Section title="7. Limitación de responsabilidad">
-        <p>Flux es una herramienta de registro y organización financiera personal. No somos una institución financiera y no ofrecemos asesoría financiera, fiscal o de inversión.</p>
+        <p>FluxApp Finance es una herramienta de registro y organización financiera personal. No somos una institución financiera y no ofrecemos asesoría financiera, fiscal o de inversión.</p>
         <p>No nos hacemos responsables de decisiones financieras tomadas basadas en la información mostrada en la aplicación, ni de pérdidas económicas derivadas del uso del servicio.</p>
       </Section>
 

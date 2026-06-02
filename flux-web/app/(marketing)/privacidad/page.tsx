@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Política de Privacidad — Flux',
-  description: 'Política de privacidad de Flux App',
+  title: 'Política de Privacidad — FluxApp Finance',
+  description: 'Política de privacidad de FluxApp Finance',
 }
 
 const BLUE = '#007AFF'
@@ -26,7 +26,7 @@ export default function PrivacidadPage() {
       <p className="text-[15px] font-medium mb-12" style={{ color: GRAY }}>Última actualización: 29 de mayo de 2026</p>
 
       <Section title="1. Información que recopilamos">
-        <p>Flux recopila únicamente la información necesaria para brindarte el servicio:</p>
+        <p>FluxApp Finance recopila únicamente la información necesaria para brindarte el servicio:</p>
         <ul className="list-disc pl-5 space-y-1.5">
           <li><strong style={{ color: DARK }}>Datos de cuenta:</strong> nombre, correo electrónico y contraseña (encriptada)</li>
           <li><strong style={{ color: DARK }}>Datos financieros:</strong> transacciones, cuentas, categorías y presupuestos que registras manualmente o via Apple Pay</li>
@@ -37,7 +37,7 @@ export default function PrivacidadPage() {
       <Section title="2. Cómo usamos tu información">
         <p>Usamos tus datos exclusivamente para:</p>
         <ul className="list-disc pl-5 space-y-1.5">
-          <li>Proveer y mejorar el servicio de Flux</li>
+          <li>Proveer y mejorar el servicio de FluxApp Finance</li>
           <li>Mostrarte tu información financiera personal</li>
           <li>Enviarte notificaciones relacionadas con tu cuenta y gastos compartidos</li>
           <li>Procesar pagos de suscripción a través de Stripe</li>

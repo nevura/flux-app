@@ -59,7 +59,7 @@ export default function LoginPage() {
           <i className="fa-solid fa-wallet text-white text-2xl" />
         </div>
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-white">Flux</h1>
+          <h1 className="text-2xl font-bold text-white">FluxApp Finance</h1>
           <p className="text-slate-400 text-sm mt-0.5">Finanzas que fluyen</p>
         </div>
       </div>

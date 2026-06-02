@@ -16,7 +16,7 @@ const tabs = [
 
 const content: Record<string, { title: string; steps: { icon: string; title: string; desc: string; tip?: string }[] }> = {
   inicio: {
-    title: 'Primeros pasos con Flux',
+    title: 'Primeros pasos con FluxApp Finance',
     steps: [
       { icon: 'fa-user-plus', title: 'Crea tu cuenta', desc: 'Regístrate con tu correo electrónico. El acceso está sujeto a aprobación — te avisamos por email cuando esté lista tu cuenta.' },
       { icon: 'fa-wallet', title: 'Configura tus cuentas', desc: 'Ve a Ajustes → Cuentas y agrega tu cuenta de Efectivo, Tarjeta de Débito y/o Tarjeta de Crédito. Ajusta el saldo inicial para que coincida con tu saldo real.' },
@@ -29,10 +29,10 @@ const content: Record<string, { title: string; steps: { icon: string; title: str
     title: 'Integración con Apple Pay',
     steps: [
       { icon: 'fa-mobile-screen', title: 'Requisitos', desc: 'Necesitas un iPhone con iOS 16 o superior. La integración usa Atajos de iPhone (app nativa de Apple, pre-instalada).' },
-      { icon: 'fa-download', title: 'Descarga el Atajo', desc: 'En Flux, ve a Ajustes → Atajos de iPhone y toca "Instalar Atajo Apple Pay". Se abrirá la app de Atajos con el atajo listo para configurar.' },
-      { icon: 'fa-gear', title: 'Configura el Atajo', desc: 'Durante la instalación, el Atajo te pedirá tu token de Flux (lo encuentras en Ajustes → Atajos) y el nombre exacto de tu tarjeta tal como aparece en Wallet.', tip: '⚠️ El nombre de la cuenta en Flux debe coincidir EXACTAMENTE con el nombre de la tarjeta en Configuración → Wallet y Apple Pay → [tu tarjeta]' },
-      { icon: 'fa-bolt', title: 'Primera prueba', desc: 'Realiza una compra con Apple Pay. Segundos después, recibirás una notificación de Flux con el gasto registrado automáticamente.' },
-      { icon: 'fa-circle-check', title: 'Confirma el gasto', desc: 'Los gastos registrados automáticamente aparecen como "Por confirmar". Abre Flux, revisa el gasto y toca el botón ✓ para confirmarlo. También puedes confirmarlo directamente desde la lista deslizando la tarjeta.' },
+      { icon: 'fa-download', title: 'Descarga el Atajo', desc: 'En FluxApp Finance, ve a Ajustes → Atajos de iPhone y toca "Instalar Atajo Apple Pay". Se abrirá la app de Atajos con el atajo listo para configurar.' },
+      { icon: 'fa-gear', title: 'Configura el Atajo', desc: 'Durante la instalación, el Atajo te pedirá tu token de FluxApp Finance (lo encuentras en Ajustes → Atajos) y el nombre exacto de tu tarjeta tal como aparece en Wallet.', tip: '⚠️ El nombre de la cuenta en Flux debe coincidir EXACTAMENTE con el nombre de la tarjeta en Configuración → Wallet y Apple Pay → [tu tarjeta]' },
+      { icon: 'fa-bolt', title: 'Primera prueba', desc: 'Realiza una compra con Apple Pay. Segundos después, recibirás una notificación de FluxApp Finance con el gasto registrado automáticamente.' },
+      { icon: 'fa-circle-check', title: 'Confirma el gasto', desc: 'Los gastos registrados automáticamente aparecen como "Por confirmar". Abre FluxApp Finance, revisa el gasto y toca el botón ✓ para confirmarlo. También puedes confirmarlo directamente desde la lista deslizando la tarjeta.' },
     ],
   },
   compartidos: {
