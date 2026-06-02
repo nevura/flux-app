@@ -1057,6 +1057,7 @@ type SchedForm = {
   destination_account_id: string
   frequency_num: number
   frequency_unit: 'dia' | 'semana' | 'mes' | 'año'
+  next_charge_date: string
   payment_day: string
   notification_days: number
   status: 'ACTIVO' | 'PAUSADO'
@@ -1069,8 +1070,8 @@ type SchedForm = {
 const EMPTY_FORM: SchedForm = {
   name: '', type: 'TR-GASTO', amount: '',
   category_id: '', account_id: '', destination_account_id: '',
-  frequency_num: 1, frequency_unit: 'mes', payment_day: '',
-  notification_days: 1, status: 'ACTIVO',
+  frequency_num: 1, frequency_unit: 'mes', next_charge_date: '',
+  payment_day: '', notification_days: 1, status: 'ACTIVO',
   splitEnabled: false, quickMode: 'equal', splitSelected: [], manualAmounts: {},
 }
 
@@ -1130,8 +1131,12 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
       return sum + Number(s.amount) * (30 / daysPerCycle)
     }, 0)
 
+  function todayStr() {
+    return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' })
+  }
+
   function openNew() {
-    setEditing({ ...EMPTY_FORM, account_id: accounts[0]?.id ?? '' })
+    setEditing({ ...EMPTY_FORM, account_id: accounts[0]?.id ?? '', next_charge_date: todayStr() })
   }
 
   function openEdit(s: ScheduledTransaction) {
@@ -1146,6 +1151,7 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
       destination_account_id: s.destination_account_id ?? '',
       frequency_num: s.frequency_num,
       frequency_unit: s.frequency_unit,
+      next_charge_date: s.next_charge_date ?? '',
       payment_day: s.payment_day ? String(s.payment_day) : '',
       notification_days: s.notification_days,
       status: s.status === 'CANCELADO' ? 'PAUSADO' : s.status,
@@ -1191,6 +1197,7 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
         destination_account_id: snap.type === 'TR-TRANSFER' ? snap.destination_account_id || null : null,
         frequency_num: snap.frequency_num,
         frequency_unit: snap.frequency_unit,
+        next_charge_date: snap.next_charge_date || null,
         payment_day: snap.payment_day ? Number(snap.payment_day) : null,
         notification_days: snap.notification_days,
         status: snap.status,
@@ -1484,6 +1491,20 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
                     ))}
                   </div>
                 </div>
+              </div>
+
+              {/* Next / First charge date */}
+              <div>
+                <p className="text-[11px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>
+                  {editing.id ? 'Próxima fecha de cobro' : 'Primera fecha de cobro'}
+                </p>
+                <input
+                  type="date"
+                  value={editing.next_charge_date}
+                  onChange={e => setEditing({ ...editing, next_charge_date: e.target.value })}
+                  className="w-full rounded-[14px] px-4 py-3 text-[16px] font-bold text-white focus:outline-none"
+                  style={{ background: 'var(--f-bg-input)', border: `1px solid ${cfg.color}40`, colorScheme: 'dark' }}
+                />
               </div>
 
               {/* Payment day + notification days */}

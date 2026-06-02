@@ -50,9 +50,10 @@ interface Props {
   creditPayments: CreditPayment[]
   year: number
   month: number
+  onRefresh?: () => void
 }
 
-export default function DashboardClient({ user, accounts, transactions, loadedFrom, categories, scheduled, budget, creditPayments, year, month }: Props) {
+export default function DashboardClient({ user, accounts, transactions, loadedFrom, categories, scheduled, budget, creditPayments, year, month, onRefresh }: Props) {
   const [spendView, setSpendView] = useState<'daily' | 'weekly'>('daily')
   const [dayOffset, setDayOffset] = useState(0)
   const [weekOffset, setWeekOffset] = useState(0)
@@ -268,6 +269,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
       if (res.error) { toast.error(res.error); return }
       toast.success('Pago registrado')
       setTdcModal(null)
+      onRefresh?.()
     })
   }
 
@@ -278,6 +280,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
       if (res.error) { toast.error(res.error); return }
       toast.success('Pago removido')
       setTdcModal(null)
+      onRefresh?.()
     })
   }
 
@@ -294,6 +297,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
       if (res.error) { toast.error(res.error); return }
       toast.success('Ciclo omitido')
       setTdcModal(null)
+      onRefresh?.()
     })
   }
 

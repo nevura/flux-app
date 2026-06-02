@@ -140,6 +140,7 @@ export default function DashboardTab({ userId, fullName, email, active, refreshS
     <DashboardClient
       user={{ id: userId, email, full_name: fullName }}
       {...data}
+      onRefresh={load}
     />
   )
 }
