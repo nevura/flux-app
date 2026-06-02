@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { adjustmentFor, getMexicoNow, nextRecurringDate } from '@/lib/utils'
+import { adjustmentFor, getMexicoNow, nextRecurringDate, formatCurrency } from '@/lib/utils'
 import { sendTdcReminderEmail, sendMonthlyAdjustmentEmail } from '@/lib/email'
 
 export const maxDuration = 60
@@ -16,6 +16,9 @@ export async function GET(request: Request) {
   const today    = new Date(todayStr)
 
   const results = { recurring: 0, tdc: 0, adjustment: 0, errors: [] as string[] }
+
+  // Collect user emails for grouped recurring charge notification
+  const recurringByUser: Record<string, { email: string; items: { name: string; amount: number }[] }> = {}
 
   // ── 1. Transacciones recurrentes ──────────────────────────────────────────
   const { data: scheduled, error: schedErr } = await (admin
@@ -57,11 +60,57 @@ export async function GET(request: Request) {
           .update({ next_charge_date: next.toISOString().slice(0, 10), last_charge_date: todayStr })
           .eq('id', s.id)
 
+        // Collect for grouped email notification
+        if (!recurringByUser[s.user_id]) {
+          const { data: prof } = await (admin.from('profiles') as any)
+            .select('email').eq('id', s.user_id).eq('status', 'approved').single()
+          if (prof?.email) recurringByUser[s.user_id] = { email: prof.email, items: [] }
+        }
+        recurringByUser[s.user_id]?.items.push({ name: s.name, amount: Number(s.amount) })
+
         results.recurring++
       } catch (e) {
         results.errors.push(`recurring(${s.id}): ${String(e)}`)
       }
     }
+  }
+
+  // Send one grouped email per user for all their recurring charges today
+  for (const [, { email, items }] of Object.entries(recurringByUser)) {
+    if (!items.length) continue
+    const total = items.reduce((s, i) => s + i.amount, 0)
+    const firstName = items[0].name
+    const subject = items.length === 1
+      ? `Cobro registrado hoy: ${firstName}`
+      : `${items.length} cobros registrados hoy en Flux`
+    // Reuse sendScheduledDueEmail with a composite amount for single items,
+    // or build a multi-item message
+    const itemList = items.map(i => `<li style="margin:4px 0;color:#F8FAFC">${i.name} — <strong>${formatCurrency(i.amount)}</strong></li>`).join('')
+    const { Resend } = await import('resend')
+    const resend = new Resend(process.env.RESEND_API_KEY)
+    const fromAddr = 'Flux App <no-reply@send.fluxappfinance.com>'
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://fluxappfinance.com'
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#020617;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 20px">
+<table width="100%" style="max-width:480px" cellpadding="0" cellspacing="0">
+  <tr><td style="padding-bottom:20px"><span style="color:#007AFF;font-size:22px;font-weight:900">Flux</span></td></tr>
+  <tr><td style="background:#0F172A;border-radius:20px;padding:28px;border:1px solid #1E293B">
+    <h2 style="color:#F8FAFC;margin:0 0 12px;font-size:20px;font-weight:900">Cobros de hoy</h2>
+    <p style="color:#94A3B8;margin:0 0 16px">Se registraron automáticamente y requieren validación en la app.</p>
+    <ul style="margin:0 0 16px;padding-left:20px">${itemList}</ul>
+    <div style="background:#1C1C2E;border-radius:12px;padding:12px 16px">
+      <span style="color:#94A3B8;font-size:13px">Total hoy</span>
+      <span style="color:#FF453A;font-size:20px;font-weight:900;margin-left:12px">${formatCurrency(total)}</span>
+    </div>
+    <a href="${appUrl}" style="display:block;background:#007AFF;color:#fff;text-decoration:none;border-radius:12px;padding:14px;text-align:center;font-size:15px;font-weight:900;margin-top:20px">Validar en Flux</a>
+  </td></tr>
+  <tr><td style="padding-top:20px;text-align:center;color:#475569;font-size:12px">
+    Flux &middot; <a href="${appUrl}" style="color:#64748B;text-decoration:none">fluxappfinance.com</a>
+  </td></tr>
+</table></td></tr></table>
+</body></html>`
+    await resend.emails.send({ from: fromAddr, to: email, subject, html }).catch(() => {})
   }
 
   // ── 2. Recordatorios TDC ──────────────────────────────────────────────────
