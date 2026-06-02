@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { adjustmentFor, getMexicoNow, nextRecurringDate, formatCurrency } from '@/lib/utils'
-import { sendTdcReminderEmail, sendMonthlyAdjustmentEmail } from '@/lib/email'
+import { sendTdcReminderEmail, sendMonthlyAdjustmentEmail, sendTrialExpiryEmail } from '@/lib/email'
 
 export const maxDuration = 60
 
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   const todayStr = getMexicoNow().slice(0, 10) // 'YYYY-MM-DD'
   const today    = new Date(todayStr)
 
-  const results = { recurring: 0, tdc: 0, adjustment: 0, errors: [] as string[] }
+  const results = { recurring: 0, tdc: 0, adjustment: 0, trialWarnings: 0, errors: [] as string[] }
 
   // Collect user emails for grouped recurring charge notification
   const recurringByUser: Record<string, { email: string; items: { name: string; amount: number }[] }> = {}
@@ -207,6 +207,43 @@ export async function GET(request: Request) {
     .eq('subscription_status', 'grace')
     .not('subscription_ends_at', 'is', null)
     .lt('subscription_ends_at', graceCutoffStr)
+
+  // ── 5. Aviso de fin de trial (3-5 días antes) ─────────────────────────────
+  const in3Days = new Date(today); in3Days.setDate(in3Days.getDate() + 3)
+  const in5Days = new Date(today); in5Days.setDate(in5Days.getDate() + 5)
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://fluxappfinance.com'
+
+  const { data: expiringTrials } = await (admin.from('profiles') as any)
+    .select('id, email, trial_ends_at')
+    .eq('subscription_status', 'trialing')
+    .eq('status', 'approved')
+    .gte('trial_ends_at', in3Days.toISOString().slice(0, 10))
+    .lte('trial_ends_at', in5Days.toISOString().slice(0, 10))
+
+  for (const p of (expiringTrials ?? [])) {
+    try {
+      // Only notify once per user — check if notification already exists ever
+      const { data: alreadySent } = await (admin.from('notifications') as any)
+        .select('id').eq('user_id', p.id).eq('type', 'trial_expiring').maybeSingle()
+      if (alreadySent) continue
+
+      const daysLeft = Math.ceil((new Date(p.trial_ends_at).getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+
+      await (admin.from('notifications') as any).insert({
+        user_id: p.id,
+        type: 'trial_expiring',
+        data: { days_left: String(daysLeft) },
+      })
+
+      if (p.email) {
+        sendTrialExpiryEmail({ to: p.email, daysLeft, upgradeUrl: `${appUrl}/settings` }).catch(() => {})
+      }
+
+      results.trialWarnings++
+    } catch (e) {
+      results.errors.push(`trial_expiry(${p.id}): ${String(e)}`)
+    }
+  }
 
   return NextResponse.json({ ok: true, date: todayStr, ...results })
 }

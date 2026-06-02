@@ -93,6 +93,8 @@ export type NotificationType =
   | 'expense_settle_rejected'
   | 'scheduled_due'
   | 'tdc_due'
+  | 'budget_alert'
+  | 'trial_expiring'
 
 export interface Notification {
   id: string

@@ -123,6 +123,48 @@ export async function sendTdcDueEmail(opts: { to: string; accountName: string; d
   return send(opts.to, `Pago de ${opts.accountName} vence ${dueText}`, html)
 }
 
+// ── Budget alerts ────────────────────────────────────────────────────────────
+
+export async function sendBudgetAlertEmail(opts: { to: string; percent: number; spent: string; limit: string }) {
+  const isRed = opts.percent >= 100
+  const color = isRed ? '#FF453A' : '#FF9F0A'
+  const title = isRed ? 'Presupuesto agotado' : 'Presupuesto al 80%'
+  const html = base(
+    title,
+    `<p style="color:#94A3B8;margin:0 0 16px">Tu gasto mensual ha alcanzado el <strong style="color:${color}">${opts.percent}%</strong> del límite establecido.</p>
+     <div style="background:#1C1C2E;border-radius:12px;padding:16px">
+       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+         <span style="color:#94A3B8;font-size:13px">Gastado</span>
+         <span style="color:#F8FAFC;font-weight:900">${opts.spent}</span>
+       </div>
+       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+         <span style="color:#94A3B8;font-size:13px">Límite mensual</span>
+         <span style="color:#F8FAFC;font-weight:900">${opts.limit}</span>
+       </div>
+       <div style="background:#0F172A;border-radius:6px;overflow:hidden;height:8px">
+         <div style="background:${color};height:8px;width:${Math.min(opts.percent, 100)}%;border-radius:6px;transition:width 0.3s"></div>
+       </div>
+     </div>`,
+    { url: APP_URL, label: 'Ver mis gastos', color },
+  )
+  return send(opts.to, `${title} — ${opts.percent}% usado este mes`, html)
+}
+
+// ── Trial expiry ─────────────────────────────────────────────────────────────
+
+export async function sendTrialExpiryEmail(opts: { to: string; daysLeft: number; upgradeUrl: string }) {
+  const html = base(
+    `Tu prueba vence en ${opts.daysLeft} días`,
+    `<p style="color:#94A3B8;margin:0 0 16px">Tu período de prueba gratuita está por terminar. Suscríbete para seguir usando Flux sin interrupciones.</p>
+     <div style="background:#1C1C2E;border-radius:12px;padding:20px;text-align:center">
+       <span style="color:#FF9F0A;font-size:42px;font-weight:900;line-height:1">${opts.daysLeft}</span>
+       <p style="color:#94A3B8;margin:6px 0 0;font-size:13px">días restantes</p>
+     </div>`,
+    { url: opts.upgradeUrl, label: 'Ver planes de suscripción', color: '#007AFF' },
+  )
+  return send(opts.to, `Tu prueba de Flux vence en ${opts.daysLeft} días`, html)
+}
+
 // ── Friends ──────────────────────────────────────────────────────────────────
 
 export async function sendFriendRequestEmail(opts: {

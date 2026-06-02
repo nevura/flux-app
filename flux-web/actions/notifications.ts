@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { getMexicoNow, currentYearMonth, formatCurrency } from '@/lib/utils'
-import { sendScheduledDueEmail, sendTdcDueEmail } from '@/lib/email'
+import { sendScheduledDueEmail, sendTdcDueEmail, sendBudgetAlertEmail } from '@/lib/email'
 
 export async function generateSystemNotifications() {
   const supabase = await createClient()
@@ -12,11 +12,18 @@ export async function generateSystemNotifications() {
   const today = getMexicoNow().slice(0, 10)
   const { year, month } = currentYearMonth()
 
+  const monthStart = `${year}-${String(month).padStart(2, '0')}-01`
+  const nextMonthStart = month === 12 ? `${year + 1}-01-01` : `${year}-${String(month + 1).padStart(2, '0')}-01`
+
   const [
     { data: scheduled },
     { data: tdcAccounts },
     { data: existing },
     { data: creditPayments },
+    { data: budgetRow },
+    { data: profileRow },
+    { data: monthExpenses },
+    { data: budgetAlertsSent },
   ] = await Promise.all([
     supabase
       .from('scheduled_transactions')
@@ -43,6 +50,31 @@ export async function generateSystemNotifications() {
       .eq('user_id', user.id)
       .eq('year', year)
       .eq('month', month),
+    supabase
+      .from('budgets')
+      .select('amount')
+      .eq('user_id', user.id)
+      .eq('year', year)
+      .eq('month', month)
+      .maybeSingle(),
+    supabase
+      .from('profiles')
+      .select('default_monthly_budget')
+      .eq('id', user.id)
+      .single(),
+    supabase
+      .from('transactions')
+      .select('amount')
+      .eq('user_id', user.id)
+      .eq('type', 'TR-GASTO')
+      .gte('transaction_date', monthStart)
+      .lt('transaction_date', nextMonthStart),
+    supabase
+      .from('notifications')
+      .select('data')
+      .eq('user_id', user.id)
+      .eq('type', 'budget_alert')
+      .gte('created_at', monthStart + 'T00:00:00'),
   ])
 
   // Keys of notifications already created today — avoids duplicates
@@ -86,6 +118,29 @@ export async function generateSystemNotifications() {
     }
   }
 
+  // Budget alert
+  const budgetLimit = (budgetRow as any)?.amount ?? (profileRow as any)?.default_monthly_budget
+  if (budgetLimit && Number(budgetLimit) > 0) {
+    const spent = ((monthExpenses ?? []) as any[]).reduce((s: number, t: any) => s + Number(t.amount), 0)
+    const percent = Math.round((spent / Number(budgetLimit)) * 100)
+    const alertedLevels = new Set(((budgetAlertsSent ?? []) as any[]).map((n: any) => String((n.data as any)?.level)))
+    const period = `${year}-${String(month).padStart(2, '0')}`
+
+    if (percent >= 100 && !alertedLevels.has('100')) {
+      inserts.push({
+        user_id: user.id,
+        type: 'budget_alert',
+        data: { level: '100', period, spent: String(Math.round(spent)), limit: String(budgetLimit) },
+      })
+    } else if (percent >= 80 && !alertedLevels.has('80') && !alertedLevels.has('100')) {
+      inserts.push({
+        user_id: user.id,
+        type: 'budget_alert',
+        data: { level: '80', period, spent: String(Math.round(spent)), limit: String(budgetLimit) },
+      })
+    }
+  }
+
   if (inserts.length > 0) {
     await supabase.from('notifications').insert(inserts)
 
@@ -97,6 +152,13 @@ export async function generateSystemNotifications() {
           sendScheduledDueEmail({ to: email, name: n.data.name, amount: formatCurrency(Number(n.data.amount)) }).catch(() => {})
         } else if (n.type === 'tdc_due') {
           sendTdcDueEmail({ to: email, accountName: n.data.name, daysUntil: Number(n.data.days_until) }).catch(() => {})
+        } else if (n.type === 'budget_alert') {
+          sendBudgetAlertEmail({
+            to: email,
+            percent: Number(n.data.level),
+            spent: formatCurrency(Number(n.data.spent)),
+            limit: formatCurrency(Number(n.data.limit)),
+          }).catch(() => {})
         }
       }
     }

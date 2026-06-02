@@ -46,6 +46,22 @@ function notifLabel(n: Notification): { icon: string; iconColor: string; text: s
       const when = days === 0 ? 'hoy' : days === 1 ? 'mañana' : `en ${days} días`
       return { icon: 'fa-solid fa-credit-card', iconColor: 'var(--f-transfer)', text: `Pago TDC ${d.name} — vence ${when}` }
     }
+    case 'budget_alert': {
+      const isRed = d.level === '100'
+      return {
+        icon: 'fa-solid fa-chart-pie',
+        iconColor: isRed ? 'var(--f-expense)' : '#FF9F0A',
+        text: isRed
+          ? `Presupuesto agotado — ${formatCurrency(Number(d.spent))} de ${formatCurrency(Number(d.limit))}`
+          : `Presupuesto al 80% — ${formatCurrency(Number(d.spent))} de ${formatCurrency(Number(d.limit))}`,
+      }
+    }
+    case 'trial_expiring':
+      return {
+        icon: 'fa-solid fa-hourglass-half',
+        iconColor: '#FF9F0A',
+        text: `Tu prueba vence en ${d.days_left} ${Number(d.days_left) === 1 ? 'día' : 'días'} — ve a Ajustes`,
+      }
     default:
       return { icon: 'fa-solid fa-bell', iconColor: 'var(--f-text-3)', text: 'Notificación' }
   }
