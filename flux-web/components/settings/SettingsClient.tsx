@@ -482,7 +482,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
             <SupportTab />
           )}
           {section === 'datos' && (
-            <DataTab isActive={!isExpired} />
+            <DataTab isActive={!isExpired} categories={categories} accounts={accounts} />
           )}
         </div>
       </div>
@@ -1502,8 +1502,8 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
                   type="date"
                   value={editing.next_charge_date}
                   onChange={e => setEditing({ ...editing, next_charge_date: e.target.value })}
-                  className="w-full rounded-[14px] px-4 py-3 text-[16px] font-bold text-white focus:outline-none"
-                  style={{ background: 'var(--f-bg-input)', border: `1px solid ${cfg.color}40`, colorScheme: 'dark' }}
+                  className="w-full rounded-[14px] px-3 py-3 text-[14px] font-bold text-white focus:outline-none box-border"
+                  style={{ background: 'var(--f-bg-input)', border: `1px solid ${cfg.color}40`, colorScheme: 'dark', maxWidth: '100%' }}
                 />
               </div>
 
@@ -2267,44 +2267,97 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
 
 // ── Data Tab (Import / Export) ────────────────────────────────────────────────
 
-function DataTab({ isActive }: { isActive: boolean }) {
+const IMPORT_COLS: Record<string, keyof ImportRow> = {
+  'fecha': 'fecha', 'date': 'fecha',
+  'concepto': 'concepto', 'concept': 'concepto', 'descripción': 'concepto', 'description': 'concepto',
+  'tipo': 'tipo', 'type': 'tipo',
+  'monto': 'monto', 'amount': 'monto', 'importe': 'monto',
+  'categoría': 'categoria', 'categoria': 'categoria', 'category': 'categoria',
+  'cuenta': 'cuenta', 'account': 'cuenta',
+  'notas': 'notas', 'notes': 'notas', 'nota': 'notas',
+}
+
+function rowsToImportRows(header: string[], data: string[][]): ImportRow[] {
+  return data.map(vals => {
+    const row: Partial<ImportRow> = {}
+    header.forEach((h, idx) => {
+      const key = IMPORT_COLS[h]
+      if (key) (row as Record<string, string>)[key] = String(vals[idx] ?? '').trim()
+    })
+    return row as ImportRow
+  })
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url; a.download = filename; a.click()
+  URL.revokeObjectURL(url)
+}
+
+function DataTab({ isActive, categories, accounts }: { isActive: boolean; categories: Category[]; accounts: Account[] }) {
   const [exporting, setExporting] = useState(false)
+  const [exportFmt, setExportFmt] = useState<'csv' | 'xlsx'>('xlsx')
   const [importing, setImporting] = useState(false)
   const [importResult, setImportResult] = useState<{ imported: number; errors: string[] } | null>(null)
+  const [showRef, setShowRef] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  const catNames = categories.filter(c => c.id !== 'CAT-AUDIT').map(c => c.name)
+  const accNames = accounts.map(a => a.name)
 
   async function handleExport() {
     setExporting(true)
     try {
       const { csv, error } = await exportTransactionsCSV()
       if (error || !csv) { toast.error(error ?? 'Error al exportar'); return }
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `flux-movimientos-${new Date().toISOString().slice(0, 10)}.csv`
-      a.click()
-      URL.revokeObjectURL(url)
-      toast.success('Archivo descargado')
+      const dateStr = new Date().toISOString().slice(0, 10)
+
+      if (exportFmt === 'csv') {
+        downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8;' }), `flux-movimientos-${dateStr}.csv`)
+        toast.success('CSV descargado')
+      } else {
+        const { utils, write } = await import('xlsx')
+        const rows = csv.split('\n').map(l => parseCSVLine(l))
+        const wb = utils.book_new()
+        utils.book_append_sheet(wb, utils.aoa_to_sheet(rows), 'Movimientos')
+        downloadBlob(
+          new Blob([write(wb, { type: 'array', bookType: 'xlsx' })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+          `flux-movimientos-${dateStr}.xlsx`,
+        )
+        toast.success('Excel descargado')
+      }
     } finally {
       setExporting(false)
     }
   }
 
-  function downloadTemplate() {
-    const template = [
-      'Fecha,Concepto,Tipo,Monto,Categoría,Cuenta,Notas',
-      '2025-01-15,Netflix,Gasto,199,Entretenimiento,BBVA Débito,Suscripción mensual',
-      '2025-01-20,Sueldo,Ingreso,15000,,BBVA Débito,',
-      '2025-01-22,Pago tarjeta,Transferencia,5000,,BBVA Débito,',
-    ].join('\n')
-    const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'flux-machote-importacion.csv'
-    a.click()
-    URL.revokeObjectURL(url)
+  async function downloadTemplate() {
+    const { utils, write } = await import('xlsx')
+    const wb = utils.book_new()
+
+    // Sheet 1 — template rows
+    const templateRows = [
+      ['Fecha', 'Concepto', 'Tipo', 'Monto', 'Categoría', 'Cuenta', 'Notas'],
+      ['2025-01-15', 'Netflix', 'Gasto', 199, catNames[0] ?? 'Entretenimiento', accNames[0] ?? 'Mi cuenta', 'Suscripción mensual'],
+      ['2025-01-20', 'Sueldo', 'Ingreso', 15000, '', accNames[0] ?? 'Mi cuenta', ''],
+      ['2025-01-22', 'Pago tarjeta', 'Transferencia', 5000, '', accNames[0] ?? 'Mi cuenta', ''],
+    ]
+    utils.book_append_sheet(wb, utils.aoa_to_sheet(templateRows), 'Plantilla')
+
+    // Sheet 2 — reference: user's categories and accounts
+    const refRows: (string | number)[][] = [
+      ['CATEGORÍAS DISPONIBLES', '', 'CUENTAS DISPONIBLES'],
+      ...Array.from({ length: Math.max(catNames.length, accNames.length) }, (_, i) => [
+        catNames[i] ?? '', '', accNames[i] ?? '',
+      ]),
+    ]
+    utils.book_append_sheet(wb, utils.aoa_to_sheet(refRows), 'Referencia')
+
+    downloadBlob(
+      new Blob([write(wb, { type: 'array', bookType: 'xlsx' })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+      'flux-machote-importacion.xlsx',
+    )
   }
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -2313,38 +2366,45 @@ function DataTab({ isActive }: { isActive: boolean }) {
     setImportResult(null)
     setImporting(true)
     try {
-      const text = await file.text()
-      const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
-      if (lines.length < 2) { toast.error('El archivo está vacío o sin filas'); return }
+      let header: string[] = []
+      let dataRows: string[][] = []
 
-      const header = lines[0].split(',').map(h => h.replace(/"/g, '').trim().toLowerCase())
-      const COLS: Record<string, keyof ImportRow> = {
-        'fecha': 'fecha', 'date': 'fecha',
-        'concepto': 'concepto', 'concept': 'concepto', 'descripción': 'concepto', 'description': 'concepto',
-        'tipo': 'tipo', 'type': 'tipo',
-        'monto': 'monto', 'amount': 'monto', 'importe': 'monto',
-        'categoría': 'categoria', 'categoria': 'categoria', 'category': 'categoria',
-        'cuenta': 'cuenta', 'account': 'cuenta',
-        'notas': 'notas', 'notes': 'notas', 'nota': 'notas',
+      if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+        const { read, utils } = await import('xlsx')
+        const ab = await file.arrayBuffer()
+        const wb = read(ab, { type: 'array' })
+        const ws = wb.Sheets[wb.SheetNames[0]]
+        const all = utils.sheet_to_json<string[]>(ws, { header: 1, defval: '' })
+        if (all.length < 2) { toast.error('El archivo está vacío'); return }
+        header = all[0].map((h: string) => String(h).toLowerCase().trim())
+        dataRows = all.slice(1).map(r => r.map((v: unknown) => String(v ?? '').trim()))
+      } else {
+        // CSV
+        const text = await file.text()
+        const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+        if (lines.length < 2) { toast.error('El archivo está vacío o sin filas'); return }
+        header = parseCSVLine(lines[0]).map(h => h.replace(/"/g, '').toLowerCase().trim())
+        dataRows = lines.slice(1).map(l => parseCSVLine(l))
       }
 
-      const rows: ImportRow[] = lines.slice(1).map(line => {
-        const vals = parseCSVLine(line)
-        const row: Partial<ImportRow> = {}
-        header.forEach((h, idx) => {
-          const key = COLS[h]
-          if (key) (row as any)[key] = vals[idx] ?? ''
-        })
-        return row as ImportRow
-      })
+      // Validate header: must have at least fecha, concepto, tipo, monto
+      const required: (keyof ImportRow)[] = ['fecha', 'concepto', 'tipo', 'monto']
+      const mappedKeys = header.map(h => IMPORT_COLS[h]).filter(Boolean)
+      const missing = required.filter(k => !mappedKeys.includes(k))
+      if (missing.length) {
+        toast.error(`Columnas faltantes: ${missing.join(', ')}. Descarga la plantilla y úsala como base.`)
+        return
+      }
 
+      const rows = rowsToImportRows(header, dataRows)
       const { imported, errors, error } = await importTransactions(rows)
       if (error) { toast.error(error); return }
       setImportResult({ imported, errors })
       if (imported > 0) toast.success(`${imported} movimiento${imported !== 1 ? 's' : ''} importado${imported !== 1 ? 's' : ''}`)
-      if (errors.length && !imported) toast.error(`${errors.length} fila${errors.length !== 1 ? 's' : ''} con errores`)
-    } catch {
-      toast.error('Error al leer el archivo')
+      else if (errors.length) toast.error(`${errors.length} fila${errors.length !== 1 ? 's' : ''} con errores, ninguna importada`)
+    } catch (err) {
+      console.error(err)
+      toast.error('No se pudo leer el archivo. Verifica que sea un CSV o Excel válido.')
     } finally {
       setImporting(false)
       if (fileRef.current) fileRef.current.value = ''
@@ -2367,25 +2427,39 @@ function DataTab({ isActive }: { isActive: boolean }) {
 
   return (
     <div className="space-y-5">
+
+      {/* Export */}
       <div className="rounded-[20px] overflow-hidden" style={{ border: '1px solid var(--f-line)' }}>
-        <div className="px-4 py-4" style={{ background: 'var(--f-bg-card)' }}>
-          <div className="flex items-center gap-3 mb-3">
+        <div className="px-4 py-4 space-y-3" style={{ background: 'var(--f-bg-card)' }}>
+          <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(48,209,88,0.15)' }}>
               <i className="fa-solid fa-file-arrow-down text-sm" style={{ color: 'var(--f-income)' }} />
             </div>
             <div>
               <p className="text-[15px] font-black text-white">Exportar movimientos</p>
-              <p className="text-[13px]" style={{ color: 'var(--f-text-3)' }}>Descarga todos tus movimientos en CSV</p>
+              <p className="text-[13px]" style={{ color: 'var(--f-text-3)' }}>Descarga todos tus movimientos</p>
             </div>
+          </div>
+          <div className="flex gap-2">
+            {(['xlsx', 'csv'] as const).map(fmt => (
+              <button key={fmt} onClick={() => setExportFmt(fmt)}
+                className="flex-1 py-2 rounded-[10px] text-[13px] font-black uppercase tracking-wide transition-all"
+                style={exportFmt === fmt
+                  ? { background: 'rgba(48,209,88,0.15)', border: '1px solid rgba(48,209,88,0.4)', color: 'var(--f-income)' }
+                  : { background: 'var(--f-bg-input)', border: '1px solid var(--f-line)', color: 'var(--f-text-3)' }}>
+                {fmt === 'xlsx' ? 'Excel (.xlsx)' : 'CSV'}
+              </button>
+            ))}
           </div>
           <button onClick={handleExport} disabled={exporting}
             className="w-full py-3 rounded-[14px] text-[15px] font-black text-white disabled:opacity-50 transition-all active:scale-[0.98]"
             style={{ background: 'var(--f-income)' }}>
-            {exporting ? <><i className="fa-solid fa-spinner fa-spin mr-2" />Generando...</> : <><i className="fa-solid fa-download mr-2" />Descargar CSV</>}
+            {exporting ? <><i className="fa-solid fa-spinner fa-spin mr-2" />Generando...</> : <><i className="fa-solid fa-download mr-2" />Descargar {exportFmt === 'xlsx' ? 'Excel' : 'CSV'}</>}
           </button>
         </div>
       </div>
 
+      {/* Import */}
       <div className="rounded-[20px] overflow-hidden" style={{ border: '1px solid var(--f-line)' }}>
         <div className="px-4 py-4 space-y-3" style={{ background: 'var(--f-bg-card)' }}>
           <div className="flex items-center gap-3">
@@ -2394,29 +2468,62 @@ function DataTab({ isActive }: { isActive: boolean }) {
             </div>
             <div>
               <p className="text-[15px] font-black text-white">Importar movimientos</p>
-              <p className="text-[13px]" style={{ color: 'var(--f-text-3)' }}>Sube un CSV con el formato correcto</p>
+              <p className="text-[13px]" style={{ color: 'var(--f-text-3)' }}>CSV o Excel con el formato correcto</p>
             </div>
           </div>
 
           <button onClick={downloadTemplate}
             className="w-full py-2.5 rounded-[12px] text-[14px] font-bold transition-all active:scale-[0.98] flex items-center justify-center gap-2"
             style={{ background: 'var(--f-accent-bg)', border: '1px solid var(--f-accent-border)', color: 'var(--f-blue)' }}>
-            <i className="fa-solid fa-table text-[13px]" />
-            Descargar machote (plantilla)
+            <i className="fa-solid fa-table-cells text-[13px]" />
+            Descargar plantilla Excel
           </button>
 
+          {/* Reference: user's categories & accounts */}
+          <button onClick={() => setShowRef(v => !v)}
+            className="w-full flex items-center justify-between px-3 py-2.5 rounded-[12px] transition-all"
+            style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}>
+            <span className="text-[13px] font-bold" style={{ color: 'var(--f-text-2)' }}>
+              <i className="fa-solid fa-circle-info mr-2" style={{ color: 'var(--f-text-4)' }} />
+              Ver mis categorías y cuentas
+            </span>
+            <i className={`fa-solid fa-chevron-${showRef ? 'up' : 'down'} text-[11px]`} style={{ color: 'var(--f-text-4)' }} />
+          </button>
+
+          {showRef && (
+            <div className="rounded-[12px] px-3 py-3 space-y-3" style={{ background: 'var(--f-bg-input)' }}>
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-wider mb-1.5" style={{ color: 'var(--f-text-4)' }}>Categorías</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {catNames.map(n => (
+                    <span key={n} className="text-[12px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'var(--f-bg-card)', color: 'var(--f-text-2)' }}>{n}</span>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-wider mb-1.5" style={{ color: 'var(--f-text-4)' }}>Cuentas</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {accNames.map(n => (
+                    <span key={n} className="text-[12px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'var(--f-bg-card)', color: 'var(--f-text-2)' }}>{n}</span>
+                  ))}
+                </div>
+              </div>
+              <p className="text-[11px]" style={{ color: 'var(--f-text-4)' }}>Escribe estos nombres exactos en tu archivo. Si no coinciden, la fila se importa sin categoría o cuenta.</p>
+            </div>
+          )}
+
           <div className="rounded-[12px] px-3 py-2.5 space-y-1" style={{ background: 'var(--f-bg-input)' }}>
-            <p className="text-[12px] font-black uppercase tracking-wider" style={{ color: 'var(--f-text-4)' }}>Formato esperado</p>
-            <p className="text-[12px] font-mono" style={{ color: 'var(--f-text-3)' }}>Fecha, Concepto, Tipo, Monto, Categoría, Cuenta, Notas</p>
+            <p className="text-[12px] font-black uppercase tracking-wider" style={{ color: 'var(--f-text-4)' }}>Formato</p>
+            <p className="text-[12px] font-mono" style={{ color: 'var(--f-text-3)' }}>Fecha · Concepto · Tipo · Monto · Categoría · Cuenta · Notas</p>
             <p className="text-[12px]" style={{ color: 'var(--f-text-4)' }}>Tipo: <span style={{ color: 'var(--f-text-2)' }}>Gasto · Ingreso · Transferencia</span></p>
             <p className="text-[12px]" style={{ color: 'var(--f-text-4)' }}>Fecha: <span style={{ color: 'var(--f-text-2)' }}>YYYY-MM-DD</span></p>
           </div>
 
-          <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={handleFileChange} className="hidden" />
+          <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls,text/csv" onChange={handleFileChange} className="hidden" />
           <button onClick={() => fileRef.current?.click()} disabled={importing}
             className="w-full py-3 rounded-[14px] text-[15px] font-black text-white disabled:opacity-50 transition-all active:scale-[0.98]"
             style={{ background: 'var(--f-blue)' }}>
-            {importing ? <><i className="fa-solid fa-spinner fa-spin mr-2" />Importando...</> : <><i className="fa-solid fa-upload mr-2" />Seleccionar archivo CSV</>}
+            {importing ? <><i className="fa-solid fa-spinner fa-spin mr-2" />Importando...</> : <><i className="fa-solid fa-upload mr-2" />Seleccionar archivo (CSV o Excel)</>}
           </button>
         </div>
       </div>
