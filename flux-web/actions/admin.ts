@@ -136,7 +136,7 @@ export async function sendSupportMessage(message: string) {
     `<p><strong>De:</strong> ${userName} (${(profile as any)?.email ?? user.email})</p>
      <p><strong>Mensaje:</strong></p>
      <blockquote style="border-left:3px solid #007AFF;padding-left:12px;color:#555">${message.replace(/\n/g, '<br>')}</blockquote>
-     <p style="color:#888;font-size:12px">Responde desde el panel de admin en <a href="https://fluxapp.finance/admin">fluxapp.finance/admin</a></p>`,
+     <p style="color:#888;font-size:12px">Responde desde el panel de admin en <a href="https://fluxappfinance.com/admin">fluxappfinance.com/admin</a></p>`,
   )
 
   return { error: null }

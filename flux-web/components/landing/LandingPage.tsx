@@ -194,7 +194,7 @@ function Hero() {
                 <i className="fa-solid fa-arrow-right text-[15px]" />
               </Link>
               <a
-                href="https://www.instagram.com"
+                href="https://www.instagram.com/fluxapp.finance"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-3.5 rounded-[14px] text-[17px] font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
@@ -563,7 +563,7 @@ function Footer() {
               Privacidad
             </Link>
             <a
-              href="https://www.instagram.com"
+              href="https://www.instagram.com/fluxapp.finance"
               target="_blank"
               rel="noopener noreferrer"
               className="text-[14px] font-semibold transition-colors hover:text-white"

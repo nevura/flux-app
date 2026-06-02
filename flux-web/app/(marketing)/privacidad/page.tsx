@@ -73,7 +73,7 @@ export default function PrivacidadPage() {
           <li>Exportar tus datos financieros</li>
           <li>Retirar tu consentimiento en cualquier momento</li>
         </ul>
-        <p>Para ejercer cualquiera de estos derechos, contáctanos en <a href="mailto:hola@fluxapp.mx" style={{ color: BLUE }}>hola@fluxapp.mx</a></p>
+        <p>Para ejercer cualquiera de estos derechos, contáctanos en <a href="mailto:hola@fluxappfinance.com" style={{ color: BLUE }}>hola@fluxappfinance.com</a></p>
       </Section>
 
       <Section title="7. Retención de datos">
@@ -89,7 +89,7 @@ export default function PrivacidadPage() {
       </Section>
 
       <Section title="10. Contacto">
-        <p>Para cualquier duda sobre privacidad o para ejercer tus derechos: <a href="mailto:hola@fluxapp.mx" style={{ color: BLUE }}>hola@fluxapp.mx</a></p>
+        <p>Para cualquier duda sobre privacidad o para ejercer tus derechos: <a href="mailto:hola@fluxappfinance.com" style={{ color: BLUE }}>hola@fluxappfinance.com</a></p>
       </Section>
     </main>
   )

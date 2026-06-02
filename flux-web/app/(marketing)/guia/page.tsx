@@ -127,7 +127,7 @@ export default function GuiaPage() {
         <p className="text-[17px] font-bold mb-2" style={{ color: DARK }}>¿Necesitas más ayuda?</p>
         <p className="text-[15px] font-medium mb-4" style={{ color: GRAY }}>Escríbenos y te respondemos a la brevedad.</p>
         <a
-          href="mailto:hola@fluxapp.mx"
+          href="mailto:hola@fluxappfinance.com"
           className="inline-flex items-center gap-2 px-5 py-3 rounded-[12px] text-[15px] font-bold text-white"
           style={{ background: BLUE }}
         >

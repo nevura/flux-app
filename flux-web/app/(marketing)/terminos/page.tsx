@@ -68,7 +68,7 @@ export default function TerminosPage() {
       </Section>
 
       <Section title="9. Contacto">
-        <p>Para cualquier pregunta sobre estos términos, contáctanos en: <a href="mailto:hola@fluxapp.mx" style={{ color: BLUE }}>hola@fluxapp.mx</a></p>
+        <p>Para cualquier pregunta sobre estos términos, contáctanos en: <a href="mailto:hola@fluxappfinance.com" style={{ color: BLUE }}>hola@fluxappfinance.com</a></p>
       </Section>
     </main>
   )
