@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'bernardo.perezro06@gmail.com'
-const FROM_EMAIL = 'Flux App <no-reply@send.fluxappfinance.com>'
+const FROM_EMAIL = 'Flux App <no-reply@fluxappfinance.com>'
 
 async function sendAdminEmail(subject: string, html: string) {
   const key = process.env.RESEND_API_KEY
