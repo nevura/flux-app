@@ -55,7 +55,9 @@ export interface SupportTicket {
 }
 
 export async function getAdminProfiles(): Promise<AdminProfile[]> {
-  await verifyAdmin()
+  // Auth verified by app/admin/page.tsx before this is called —
+  // verifyAdmin() here re-reads cookies in a server-action context where
+  // they may not be available, causing false "No autorizado" errors.
   const admin = createAdminClient()
 
   const [{ data: profiles }, { data: txData }, { data: accData }] = await Promise.all([

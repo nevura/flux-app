@@ -141,7 +141,7 @@ export async function markReadByUser(conversationId: string) {
 
 // ── Admin actions ─────────────────────────────────────────────────────────────
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? ''
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'bernardo.perezro06@gmail.com'
 
 async function verifyAdmin() {
   const supabase = await createClient()
