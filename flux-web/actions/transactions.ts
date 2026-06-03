@@ -119,12 +119,14 @@ export async function addTransaction(form: TransactionForm) {
     })
     if (error) return { error: error.message }
   } else {
+    const isPayable = form.is_payable ?? false
     const { data: newTx, error } = await supabase.from('transactions').insert({
       user_id: user.id,
       concept,
       type: form.type,
       amount,
-      adjustment: adjustmentFor(form.type, amount),
+      // IOWE (is_payable): money hasn't left the account yet — adjustment = 0
+      adjustment: isPayable ? 0 : adjustmentFor(form.type, amount),
       category_id: form.category_id || null,
       account_id: form.account_id,
       transaction_date: date,
@@ -133,6 +135,7 @@ export async function addTransaction(form: TransactionForm) {
       split_data: form.split_data || null,
       exclude_mode: form.exclude_mode ?? 'none',
       notes: form.notes || null,
+      is_payable: isPayable,
     }).select('id').single()
     if (error) return { error: error.message }
 
@@ -1001,5 +1004,34 @@ export async function saveBudget(month: number, year: number, amount: number) {
   )
   if (error) return { error: error.message }
   revalidatePath('/home')
+  return { error: null }
+}
+
+// Settles an IOWE (is_payable) transaction: money actually leaves the account.
+export async function settlePayable(txId: string): Promise<{ error: string | null }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+
+  const { data: tx } = await supabase
+    .from('transactions')
+    .select('amount, type')
+    .eq('id', txId)
+    .eq('user_id', user.id)
+    .single()
+  if (!tx) return { error: 'No encontrado' }
+
+  const { error } = await supabase
+    .from('transactions')
+    .update({
+      is_payable: false,
+      adjustment: adjustmentFor(tx.type, Number(tx.amount)),
+      is_validated: true,
+    })
+    .eq('id', txId)
+    .eq('user_id', user.id)
+
+  if (error) return { error: error.message }
+  revalidatePath('/transactions')
   return { error: null }
 }

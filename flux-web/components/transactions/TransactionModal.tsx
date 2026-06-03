@@ -4,7 +4,7 @@ import { useState, useTransition, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { addTransaction, updateTransaction, deleteTransaction, confirmTransaction } from '@/actions/transactions'
+import { addTransaction, updateTransaction, deleteTransaction, confirmTransaction, settlePayable } from '@/actions/transactions'
 import { addPerson } from '@/actions/config'
 import { getCategoryDisplay, getMexicoNow } from '@/lib/utils'
 import { useBottomSheetSwipe } from '@/lib/hooks/useBottomSheetSwipe'
@@ -60,6 +60,9 @@ export default function TransactionModal({ transaction, accounts, categories, pe
   const [notes, setNotes] = useState(transaction?.notes ?? '')
 
   const initSplit = transaction?.split_data
+  const initIoweData = transaction?.is_payable && transaction?.split_data?.splitMode === 'IOWE'
+    ? transaction.split_data : null
+
   const [localPeople, setLocalPeople] = useState(people)
   const [newPersonName, setNewPersonName] = useState('')
   const [addingPerson, setAddingPerson] = useState(false)
@@ -82,16 +85,28 @@ export default function TransactionModal({ transaction, accounts, categories, pe
   }
   type QuickMode = 'equal' | 'manual'
 
-  const [splitEnabled, setSplitEnabled] = useState(initSplit != null)
+  const [splitEnabled, setSplitEnabled] = useState(initSplit != null && initSplit.splitMode !== 'IOWE')
   const [quickMode, setQuickMode] = useState<QuickMode>(
     initSplit?.splitMode === 'DIV' ? 'equal' : initSplit?.splitMode === 'THEY' ? 'manual' : 'equal'
   )
   const [splitSelected, setSplitSelected] = useState<Set<string>>(
-    new Set(initSplit?.data.filter(d => d.id !== 'PER-YO').map(d => d.id) ?? [])
+    new Set(initSplit?.splitMode !== 'IOWE' ? initSplit?.data.filter(d => d.id !== 'PER-YO').map(d => d.id) ?? [] : [])
   )
   const [manualAmounts, setManualAmounts] = useState<Record<string, string>>(
-    Object.fromEntries(initSplit?.data.filter(d => d.id !== 'PER-YO').map(d => [d.id, String(d.value)]) ?? [])
+    Object.fromEntries(initSplit?.splitMode !== 'IOWE' ? initSplit?.data.filter(d => d.id !== 'PER-YO').map(d => [d.id, String(d.value)]) ?? [] : [])
   )
+
+  // IOWE (I owe) state — someone else paid, I owe them
+  const [iOweEnabled, setIOweEnabled] = useState(!!initIoweData)
+  const [ioweSelected, setIoweSelected] = useState<Set<string>>(
+    new Set(initIoweData?.data.map(d => d.id) ?? [])
+  )
+  const [ioweAmounts, setIoweAmounts] = useState<Record<string, string>>(
+    Object.fromEntries(initIoweData?.data.map(d => [d.id, String(d.value)]) ?? [])
+  )
+  const ioweTotal = otherPeople
+    .filter(p => ioweSelected.has(p.id))
+    .reduce((s, p) => s + evalExpr(ioweAmounts[p.id] ?? '0'), 0)
 
   function evalExpr(s: string): number {
     const clean = s.replace(/[^0-9+\-*/.()]/g, '')
@@ -101,6 +116,23 @@ export default function TransactionModal({ transaction, accounts, categories, pe
       const result = Function(`"use strict"; return (${clean})`)()
       return typeof result === 'number' && isFinite(result) ? Math.max(0, Math.round(result * 100) / 100) : 0
     } catch { return 0 }
+  }
+
+  function buildIoweData(): SplitData | null {
+    if (!iOweEnabled || type !== 'TR-GASTO') return null
+    const selected = otherPeople.filter(p => ioweSelected.has(p.id))
+    if (selected.length === 0) return null
+    return {
+      mode: 'AMT',
+      splitMode: 'IOWE',
+      data: selected.map(p => ({
+        id: p.id,
+        nombre: p.name,
+        value: evalExpr(ioweAmounts[p.id] ?? '0'),
+        paidAmount: 0,
+        paidStatus: false,
+      })),
+    }
   }
 
   function buildSplitData(): SplitData | null {
@@ -148,13 +180,40 @@ export default function TransactionModal({ transaction, accounts, categories, pe
   })
 
   async function handleSubmit() {
-    const form = { concept, type, amount, category_id: catId, account_id: accId, destination_account_id: destId, transaction_date: date, exclude_mode: excludeMode, notes, split_data: buildSplitData() }
+    if (iOweEnabled && ioweTotal <= 0) {
+      toast.error('Agrega al menos una persona con el monto que debes')
+      return
+    }
+    const effectiveAmount = iOweEnabled ? String(ioweTotal) : amount
+    const form = {
+      concept, type,
+      amount: effectiveAmount,
+      category_id: catId,
+      account_id: accId,
+      destination_account_id: destId,
+      transaction_date: date,
+      exclude_mode: excludeMode,
+      notes,
+      split_data: iOweEnabled ? buildIoweData() : buildSplitData(),
+      is_payable: iOweEnabled,
+    }
     startTransition(async () => {
       const res = isEdit && transaction
         ? await updateTransaction(transaction.id, form)
         : await addTransaction(form)
       if (res.error) { toast.error(res.error); return }
       toast.success(isEdit ? 'Movimiento actualizado' : 'Movimiento guardado')
+      window.dispatchEvent(new CustomEvent('flux:refresh'))
+      onClose()
+    })
+  }
+
+  async function handleSettle() {
+    if (!transaction) return
+    startTransition(async () => {
+      const res = await settlePayable(transaction.id)
+      if (res.error) { toast.error(res.error); return }
+      toast.success('Deuda marcada como pagada')
       window.dispatchEvent(new CustomEvent('flux:refresh'))
       onClose()
     })
@@ -243,29 +302,38 @@ export default function TransactionModal({ transaction, accounts, categories, pe
             {/* Amount — big centered display */}
             <div className="text-center">
               <p className="text-[12px] font-black tracking-[3px] uppercase mb-3" style={{ color: 'var(--f-text-4)' }}>
-                Monto
+                {iOweEnabled ? 'Total que debo' : 'Monto'}
               </p>
-              <div className="flex items-center justify-center gap-1">
-                <span className="text-[28px] font-black" style={{ color: 'var(--f-text-3)' }}>$</span>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={amount}
-                  onChange={e => setAmount(e.target.value)}
-                  onBlur={() => {
-                    const v = evalExpr(amount)
-                    if (v > 0) setAmount(String(v))
-                  }}
-                  placeholder="0.00"
-                  className="bg-transparent border-none outline-none text-[44px] font-black tabular-nums text-center w-full max-w-[220px]"
-                  style={{ color: amount ? cfg.color : 'var(--f-text-4)' }}
-                />
-              </div>
+              {iOweEnabled ? (
+                <div className="flex items-center justify-center gap-1">
+                  <span className="text-[28px] font-black" style={{ color: 'var(--f-text-3)' }}>$</span>
+                  <span className="text-[44px] font-black tabular-nums" style={{ color: ioweTotal > 0 ? '#FF9F0A' : 'var(--f-text-4)' }}>
+                    {ioweTotal > 0 ? ioweTotal.toFixed(2) : '0.00'}
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center gap-1">
+                  <span className="text-[28px] font-black" style={{ color: 'var(--f-text-3)' }}>$</span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={amount}
+                    onChange={e => setAmount(e.target.value)}
+                    onBlur={() => {
+                      const v = evalExpr(amount)
+                      if (v > 0) setAmount(String(v))
+                    }}
+                    placeholder="0.00"
+                    className="bg-transparent border-none outline-none text-[44px] font-black tabular-nums text-center w-full max-w-[220px]"
+                    style={{ color: amount ? cfg.color : 'var(--f-text-4)' }}
+                  />
+                </div>
+              )}
               <div
                 className="h-0.5 rounded-full mt-2 mx-auto"
                 style={{
                   width: '160px',
-                  background: `linear-gradient(to right, transparent, ${cfg.color})`,
+                  background: `linear-gradient(to right, transparent, ${iOweEnabled ? '#FF9F0A' : cfg.color})`,
                 }}
               />
             </div>
@@ -336,7 +404,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
             {/* Account */}
             <div>
               <p className="text-[11px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>
-                {type === 'TR-TRANSFER' ? 'Cuenta origen' : 'Cuenta'}
+                {type === 'TR-TRANSFER' ? 'Cuenta origen' : iOweEnabled ? 'Pagaré con' : 'Cuenta'}
               </p>
               <select
                 value={accId}
@@ -477,8 +545,114 @@ export default function TransactionModal({ transaction, accounts, categories, pe
               </div>
             )}
 
-            {/* Split section — only for expenses with people */}
-            {type === 'TR-GASTO' && otherPeople.length > 0 && (
+            {/* IOWE section — "Lo pagó otra persona" */}
+            {type === 'TR-GASTO' && !splitEnabled && (
+              <div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIOweEnabled(v => !v)
+                    if (splitEnabled) setSplitEnabled(false)
+                  }}
+                  className="w-full flex items-center justify-between px-4 py-3.5 rounded-[14px] transition-all"
+                  style={{
+                    background: iOweEnabled ? 'rgba(255,149,0,0.08)' : 'var(--f-bg-input)',
+                    border: `1px solid ${iOweEnabled ? 'rgba(255,149,0,0.3)' : 'var(--f-line)'}`,
+                  }}
+                >
+                  <div>
+                    <p className="text-[15px] font-bold text-left" style={{ color: 'var(--f-text)' }}>
+                      Lo pagó otra persona
+                    </p>
+                    <p className="text-[13px] text-left mt-0.5" style={{ color: 'var(--f-text-3)' }}>
+                      Registro que les debo dinero
+                    </p>
+                  </div>
+                  <div
+                    className="w-10 h-6 rounded-full relative flex-shrink-0 transition-colors"
+                    style={{ background: iOweEnabled ? '#FF9F0A' : 'var(--f-line-strong)' }}
+                  >
+                    <div
+                      className="absolute top-1 w-4 h-4 rounded-full bg-white transition-transform"
+                      style={{ transform: iOweEnabled ? 'translateX(20px)' : 'translateX(4px)' }}
+                    />
+                  </div>
+                </button>
+
+                {iOweEnabled && (
+                  <div className="mt-3 space-y-1.5">
+                    {otherPeople.length === 0 ? (
+                      <p className="text-[14px] font-medium text-center py-3" style={{ color: 'var(--f-text-3)' }}>
+                        Agrega una persona en &quot;Compartir gasto&quot; primero
+                      </p>
+                    ) : (
+                      <>
+                        <p className="text-[11px] font-black tracking-[2px] uppercase px-1 mb-2" style={{ color: 'var(--f-text-4)' }}>
+                          ¿A quién le debo?
+                        </p>
+                        {otherPeople.map(person => {
+                          const selected = ioweSelected.has(person.id)
+                          return (
+                            <div
+                              key={person.id}
+                              className="flex items-center gap-3 px-3 py-2.5 rounded-[12px] transition-all"
+                              style={{
+                                background: selected ? 'rgba(255,149,0,0.08)' : 'var(--f-bg-input)',
+                                border: `1px solid ${selected ? 'rgba(255,149,0,0.3)' : 'var(--f-line)'}`,
+                              }}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => setIoweSelected(prev => {
+                                  const next = new Set(prev)
+                                  if (next.has(person.id)) next.delete(person.id)
+                                  else next.add(person.id)
+                                  return next
+                                })}
+                                className="flex items-center gap-2.5 flex-1 min-w-0"
+                              >
+                                <div
+                                  className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all"
+                                  style={{ background: selected ? '#FF9F0A' : 'var(--f-line-strong)' }}
+                                >
+                                  {selected && <i className="fa-solid fa-check text-[11px] text-white" />}
+                                </div>
+                                <span className="text-[15px] font-bold truncate" style={{ color: 'var(--f-text)' }}>
+                                  {person.name}
+                                </span>
+                              </button>
+                              {selected && (
+                                <input
+                                  type="text"
+                                  inputMode="decimal"
+                                  value={ioweAmounts[person.id] ?? ''}
+                                  onChange={e => setIoweAmounts(prev => ({ ...prev, [person.id]: e.target.value }))}
+                                  onBlur={e => {
+                                    const val = evalExpr(e.target.value)
+                                    setIoweAmounts(prev => ({ ...prev, [person.id]: val > 0 ? String(val) : '' }))
+                                  }}
+                                  placeholder="0.00"
+                                  className="w-24 rounded-[8px] px-2 py-1 text-[14px] font-black text-right outline-none"
+                                  style={{
+                                    background: 'var(--f-bg-elevated)',
+                                    border: '1px solid rgba(255,149,0,0.4)',
+                                    color: 'var(--f-text)',
+                                  }}
+                                  onClick={e => e.stopPropagation()}
+                                />
+                              )}
+                            </div>
+                          )
+                        })}
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Split section — only for expenses with people, mutually exclusive with IOWE */}
+            {type === 'TR-GASTO' && otherPeople.length > 0 && !iOweEnabled && (
               <div>
                 <button
                   type="button"
@@ -673,6 +847,19 @@ export default function TransactionModal({ transaction, accounts, categories, pe
             >
               <i className="fa-solid fa-check mr-2" />
               Confirmar movimiento
+            </button>
+          )}
+
+          {isEdit && transaction?.is_payable && !confirmDelete && (
+            <button
+              type="button"
+              onClick={handleSettle}
+              disabled={isPending}
+              className="w-full py-3 rounded-[14px] text-[15px] font-black transition-all active:scale-[0.98] disabled:opacity-50"
+              style={{ color: '#FF9F0A', background: 'rgba(255,149,0,0.1)', border: '1px solid rgba(255,149,0,0.3)' }}
+            >
+              <i className="fa-solid fa-circle-check mr-2" />
+              Ya pagué esta deuda
             </button>
           )}
 

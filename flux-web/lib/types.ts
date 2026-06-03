@@ -213,6 +213,7 @@ export interface TransactionForm {
   exclude_mode?: 'none' | 'all' | 'shared_only'
   notes?: string
   scheduled_id?: string
+  is_payable?: boolean
 }
 
 // ── UI / Computed types ────────────────────────────────────────────────────────

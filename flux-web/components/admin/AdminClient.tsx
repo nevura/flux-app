@@ -419,13 +419,19 @@ export default function AdminClient({ profiles }: { profiles: AdminProfile[] }) 
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [isPending, startTransition] = useTransition()
+  const [unreadTickets, setUnreadTickets] = useState(0)
+
+  useEffect(() => {
+    getAdminConversations().then(convs => {
+      setUnreadTickets(convs.filter(c => c.unread_admin > 0).length)
+    })
+  }, [])
 
   // Metrics
   const pending  = profiles.filter(p => p.status === 'pending').length
   const trialing = profiles.filter(p => p.subscription_status === 'trialing').length
   const active   = profiles.filter(p => p.subscription_status === 'active').length
   const expired  = profiles.filter(p => ['expired','grace','past_due','unpaid'].includes(p.subscription_status)).length
-  const unreadTickets = 0 // loaded dynamically in AdminInbox
 
   // Revenue (estimate: paying users × $89/mo, annual ≈ same since we don't know plan)
   const mrr = active * 89
