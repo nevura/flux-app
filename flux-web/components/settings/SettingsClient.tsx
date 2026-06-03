@@ -283,7 +283,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                         onChange={e => setNameInput(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') handleSaveName(); if (e.key === 'Escape') setEditingName(false) }}
                         placeholder="Tu nombre completo"
-                        className="flex-1 rounded-[12px] px-3 py-2.5 text-[17px] font-semibold text-white outline-none"
+                        className="flex-1 rounded-[12px] px-3 py-2.5 text-[17px] font-semibold [color:var(--f-text)] outline-none"
                         style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-glow)' }}
                       />
                       <button onClick={handleSaveName} disabled={isNamePending} className="px-3 py-2 rounded-[10px] text-[15px] font-black text-white disabled:opacity-50" style={{ background: 'var(--f-blue)' }}>
@@ -312,7 +312,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                           onChange={e => handleUsernameInput(e.target.value)}
                           onKeyDown={e => { if (e.key === 'Enter') handleSaveUsername(); if (e.key === 'Escape') setEditingUsername(false) }}
                           placeholder="tunombre"
-                          className="w-full rounded-[12px] pl-8 pr-10 py-2.5 text-[17px] font-semibold text-white outline-none"
+                          className="w-full rounded-[12px] pl-8 pr-10 py-2.5 text-[17px] font-semibold [color:var(--f-text)] outline-none"
                           style={{ background: 'var(--f-bg-input)', border: `1px solid ${usernameAvailable === false ? 'var(--f-expense)' : usernameAvailable === true ? 'var(--f-income)' : 'var(--f-accent-glow)'}` }}
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm">
@@ -359,7 +359,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                         onChange={e => setPhoneInput(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') handleSavePhone(); if (e.key === 'Escape') setEditingPhone(false) }}
                         placeholder="+52 55 0000 0000"
-                        className="flex-1 rounded-[12px] px-3 py-2.5 text-[17px] font-semibold text-white outline-none"
+                        className="flex-1 rounded-[12px] px-3 py-2.5 text-[17px] font-semibold [color:var(--f-text)] outline-none"
                         style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-glow)' }}
                       />
                       <button onClick={handleSavePhone} disabled={isPhonePending} className="px-3 py-2 rounded-[10px] text-[15px] font-black text-white disabled:opacity-50" style={{ background: 'var(--f-blue)' }}>
@@ -397,7 +397,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
             <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-accent-border)' }}>
               <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid var(--f-accent-bg)' }}>
                 <i className="fa-solid fa-chart-bar text-xl" style={{ color: 'var(--f-blue)' }} />
-                <p className="text-sm font-bold text-white">Presupuesto predeterminado</p>
+                <p className="text-sm font-bold" style={{ color: 'var(--f-text)' }}>Presupuesto predeterminado</p>
               </div>
               <div className="px-4 py-3">
                 {editingDefBudget ? (
@@ -408,7 +408,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                       onChange={e => setDefBudgetInput(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter') handleSaveDefBudget(); if (e.key === 'Escape') setEditingDefBudget(false) }}
                       placeholder="0.00 (vacío para quitar)"
-                      className="flex-1 rounded-lg px-3 py-2 text-sm font-bold text-white outline-none tabular-nums"
+                      className="flex-1 rounded-lg px-3 py-2 text-sm font-bold [color:var(--f-text)] outline-none tabular-nums"
                       style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-glow)' }}
                       inputMode="decimal"
                     />
@@ -419,7 +419,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                   </div>
                 ) : (
                   <div className="flex items-center justify-between">
-                    <p className="text-base font-bold" style={{ color: profile?.default_monthly_budget ? 'white' : 'var(--f-text-4)' }}>
+                    <p className="text-base font-bold" style={{ color: profile?.default_monthly_budget ? 'var(--f-text)' : 'var(--f-text-4)' }}>
                       {profile?.default_monthly_budget ? `${formatCurrency(profile.default_monthly_budget)} / mes` : 'Sin presupuesto predeterminado'}
                     </p>
                     <button onClick={() => setEditingDefBudget(true)} className="text-sm font-semibold flex items-center gap-1" style={{ color: 'var(--f-blue)' }}>
@@ -600,7 +600,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[16px] font-bold text-white">{s.label}</p>
+                  <p className="text-[16px] font-bold" style={{ color: 'var(--f-text)' }}>{s.label}</p>
                   <p className="text-[14px]" style={{ color: 'var(--f-text-4)' }}>
                     {isPlan && profile?.subscription_status === 'active'
                       ? 'Flux Pro · Activo'
@@ -683,7 +683,7 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-white">Mis categorías</p>
+        <p className="text-sm font-semibold" style={{ color: 'var(--f-text)' }}>Mis categorías</p>
         <button onClick={() => setEditing({})} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[15px] font-bold transition-all active:scale-95" style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)' }}>
           <i className="fa-solid fa-plus" /> Nueva
         </button>
@@ -701,7 +701,7 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
               <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${d.bg}`}>
                 <i className={`${d.icon} ${d.color} text-sm`} />
               </div>
-              <span className="flex-1 text-[17px] font-semibold text-white">{cat.name}</span>
+              <span className="flex-1 text-[17px] font-semibold" style={{ color: 'var(--f-text)' }}>{cat.name}</span>
               <button onClick={() => setEditing(cat)} className="px-2" style={{ color: 'var(--f-text-3)' }}>
                 <i className="fa-solid fa-pen text-xs" />
               </button>
@@ -742,7 +742,7 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
               value={editing.name ?? ''}
               onChange={e => setEditing({ ...editing, name: e.target.value })}
               placeholder="Nombre de la categoría"
-              className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder:opacity-30 focus:outline-none"
+              className="w-full rounded-xl px-4 py-3 text-sm [color:var(--f-text)] placeholder:opacity-30 focus:outline-none"
               style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
             />
             <div>
@@ -917,7 +917,7 @@ function AccountsTab({ accounts, isPending, startTransition }: {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-white">Cuentas</p>
+        <p className="text-sm font-semibold" style={{ color: 'var(--f-text)' }}>Cuentas</p>
         <button onClick={() => setEditing({})} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[15px] font-bold transition-all active:scale-95" style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)' }}>
           <i className="fa-solid fa-plus" /> Nueva
         </button>
@@ -964,7 +964,7 @@ function AccountsTab({ accounts, isPending, startTransition }: {
                 <i className={`${method.icon} text-sm`} style={{ color: 'var(--f-blue)' }} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white truncate">{acc.name}</p>
+                <p className="text-sm font-semibold truncate" style={{ color: 'var(--f-text)' }}>{acc.name}</p>
                 <p className="text-xs" style={{ color: 'var(--f-text-3)' }}>{method.nombre}</p>
               </div>
               <button onClick={() => setEditing(acc)} className="px-2 flex-shrink-0" style={{ color: 'var(--f-text-3)' }}>
@@ -994,7 +994,7 @@ function AccountsTab({ accounts, isPending, startTransition }: {
               value={editing.name ?? ''}
               onChange={e => setEditing({ ...editing, name: e.target.value })}
               placeholder="Nombre de la cuenta"
-              className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder:opacity-30 focus:outline-none"
+              className="w-full rounded-xl px-4 py-3 text-sm [color:var(--f-text)] placeholder:opacity-30 focus:outline-none"
               style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
             />
             {(editing.payment_method_id === 'MP-TDD' || editing.payment_method_id === 'MP-TDC') && (
@@ -1032,7 +1032,7 @@ function AccountsTab({ accounts, isPending, startTransition }: {
                   value={editing.payment_day ?? ''}
                   onChange={e => setEditing({ ...editing, payment_day: Number(e.target.value) })}
                   placeholder="Ej: 15"
-                  className="w-full rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
+                  className="w-full rounded-xl px-4 py-3 text-sm [color:var(--f-text)] focus:outline-none"
                   style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
                 />
               </div>
@@ -1068,6 +1068,10 @@ type SchedForm = {
   quickMode: 'equal' | 'manual'
   splitSelected: string[]
   manualAmounts: Record<string, string>
+  ioweEnabled: boolean
+  ioweMode: 'full' | 'custom'
+  ioweSelected: string[]
+  ioweAmounts: Record<string, string>
 }
 
 const EMPTY_FORM: SchedForm = {
@@ -1076,6 +1080,7 @@ const EMPTY_FORM: SchedForm = {
   frequency_num: 1, frequency_unit: 'mes', next_charge_date: '',
   payment_day: '', notification_days: 1, status: 'ACTIVO',
   splitEnabled: false, quickMode: 'equal', splitSelected: [], manualAmounts: {},
+  ioweEnabled: false, ioweMode: 'full', ioweSelected: [], ioweAmounts: {},
 }
 
 function evalExpr(s: string): number {
@@ -1158,10 +1163,14 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
       payment_day: s.payment_day ? String(s.payment_day) : '',
       notification_days: s.notification_days,
       status: s.status === 'CANCELADO' ? 'PAUSADO' : s.status,
-      splitEnabled: sd != null,
+      splitEnabled: sd != null && sd.splitMode !== 'IOWE',
       quickMode: sd?.splitMode === 'DIV' ? 'equal' : 'manual',
-      splitSelected: sd?.data?.filter(d => d.id !== 'PER-YO').map(d => d.id) ?? [],
-      manualAmounts: Object.fromEntries(sd?.data?.filter(d => d.id !== 'PER-YO').map(d => [d.id, String(d.value)]) ?? []),
+      splitSelected: sd?.splitMode !== 'IOWE' ? sd?.data?.filter(d => d.id !== 'PER-YO').map(d => d.id) ?? [] : [],
+      manualAmounts: Object.fromEntries(sd?.splitMode !== 'IOWE' ? sd?.data?.filter(d => d.id !== 'PER-YO').map(d => [d.id, String(d.value)]) ?? [] : []),
+      ioweEnabled: sd?.splitMode === 'IOWE',
+      ioweMode: sd?.splitMode === 'IOWE' && (sd.data?.length ?? 0) > 1 ? 'custom' : 'full',
+      ioweSelected: sd?.splitMode === 'IOWE' ? sd.data?.map(d => d.id) ?? [] : [],
+      ioweAmounts: Object.fromEntries(sd?.splitMode === 'IOWE' ? sd.data?.map(d => [d.id, String(d.value)]) ?? [] : []),
     })
   }
 
@@ -1173,7 +1182,21 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
     if (isNaN(amount) || amount <= 0) { toast.error('Monto inválido'); return }
 
     let split_data = null
-    if (editing.splitEnabled && editing.type === 'TR-GASTO' && editing.splitSelected.length > 0) {
+    if (editing.ioweEnabled && editing.type === 'TR-GASTO' && editing.ioweSelected.length > 0) {
+      const selected = otherPeople.filter(p => editing.ioweSelected.includes(p.id))
+      const perPerson = editing.ioweMode === 'full'
+        ? Math.round((amount / Math.max(selected.length, 1)) * 100) / 100
+        : 0
+      split_data = {
+        mode: 'AMT',
+        splitMode: 'IOWE',
+        data: selected.map(p => ({
+          id: p.id, nombre: p.name,
+          value: editing.ioweMode === 'full' ? perPerson : evalExpr(editing.ioweAmounts[p.id] ?? '0'),
+          paidAmount: 0, paidStatus: false,
+        })),
+      }
+    } else if (editing.splitEnabled && editing.type === 'TR-GASTO' && editing.splitSelected.length > 0) {
       const selected = otherPeople.filter(p => editing.splitSelected.includes(p.id))
       const n = selected.length
       const perPerson = Math.round((amount / (n + 1)) * 100) / 100
@@ -1245,7 +1268,7 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-white">Transacciones recurrentes</p>
+        <p className="text-sm font-semibold" style={{ color: 'var(--f-text)' }}>Transacciones recurrentes</p>
         <button onClick={openNew} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[15px] font-bold transition-all active:scale-95" style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)' }}>
           <i className="fa-solid fa-plus" /> Nueva
         </button>
@@ -1281,7 +1304,7 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
               <i className={`${d.icon} ${d.color} text-sm`} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-white truncate">{s.name}</p>
+              <p className="text-sm font-semibold truncate" style={{ color: 'var(--f-text)' }}>{s.name}</p>
               <p className="text-xs" style={{ color: 'var(--f-text-3)' }}>
                 Cada {s.frequency_num} {s.frequency_unit} · {formatCurrency(Number(s.amount))}
               </p>
@@ -1320,6 +1343,8 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
         })
         const splitCount = editing.splitSelected.length
         const splitAmt = splitCount > 0 ? Math.round((parseFloat(editing.amount || '0') / (splitCount + 1)) * 100) / 100 : 0
+        const ioweCustomTotal = editing.ioweSelected.reduce((s, id) => s + evalExpr(editing.ioweAmounts[id] ?? '0'), 0)
+        const ioweFullAmt = parseFloat(editing.amount || '0') || 0
         return (
           <BottomSheet title={editing.id ? 'Editar recurrente' : 'Nuevo recurrente'} onClose={() => setEditing(null)}>
             <div className="px-5 pb-2 space-y-5">
@@ -1380,7 +1405,7 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
                   value={editing.name}
                   onChange={e => setEditing({ ...editing, name: e.target.value })}
                   placeholder="Ej: Spotify, Netflix, Renta…"
-                  className="w-full rounded-[14px] px-4 py-3.5 text-[16px] font-bold text-white placeholder:font-medium outline-none transition-all"
+                  className="w-full rounded-[14px] px-4 py-3.5 text-[16px] font-bold [color:var(--f-text)] placeholder:font-medium outline-none transition-all"
                   style={{
                     background: 'var(--f-bg-input)',
                     border: '1px solid var(--f-bg-input)',
@@ -1437,7 +1462,7 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
                 <select
                   value={editing.account_id}
                   onChange={e => setEditing({ ...editing, account_id: e.target.value })}
-                  className="w-full rounded-[14px] px-4 py-3 text-[16px] font-bold text-white focus:outline-none"
+                  className="w-full rounded-[14px] px-4 py-3 text-[16px] font-bold [color:var(--f-text)] focus:outline-none"
                   style={{ background: 'var(--f-bg-input)', border: `1px solid ${cfg.color}40`, colorScheme: 'dark' }}
                 >
                   <option value="">Seleccionar cuenta</option>
@@ -1454,7 +1479,7 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
                   <select
                     value={editing.destination_account_id}
                     onChange={e => setEditing({ ...editing, destination_account_id: e.target.value })}
-                    className="w-full rounded-[14px] px-4 py-3 text-[16px] font-bold text-white focus:outline-none"
+                    className="w-full rounded-[14px] px-4 py-3 text-[16px] font-bold [color:var(--f-text)] focus:outline-none"
                     style={{ background: 'var(--f-bg-input)', border: '1px solid rgba(100,210,255,0.4)', colorScheme: 'dark' }}
                   >
                     <option value="">Seleccionar cuenta destino</option>
@@ -1475,7 +1500,7 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
                     max="365"
                     value={editing.frequency_num}
                     onChange={e => setEditing({ ...editing, frequency_num: Math.max(1, Number(e.target.value)) })}
-                    className="w-16 rounded-[14px] px-3 py-2.5 text-[15px] font-bold text-white text-center focus:outline-none"
+                    className="w-16 rounded-[14px] px-3 py-2.5 text-[15px] font-bold [color:var(--f-text)] text-center focus:outline-none"
                     style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
                   />
                   <div className="flex gap-1.5 flex-1">
@@ -1528,7 +1553,7 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
                     value={editing.payment_day}
                     onChange={e => setEditing({ ...editing, payment_day: e.target.value })}
                     placeholder="—"
-                    className="w-full rounded-[14px] px-3 py-2.5 text-[15px] font-bold text-white text-center focus:outline-none"
+                    className="w-full rounded-[14px] px-3 py-2.5 text-[15px] font-bold [color:var(--f-text)] text-center focus:outline-none"
                     style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
                   />
                 </div>
@@ -1539,38 +1564,111 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
                     min="0" max="30"
                     value={editing.notification_days}
                     onChange={e => setEditing({ ...editing, notification_days: Number(e.target.value) })}
-                    className="w-full rounded-[14px] px-3 py-2.5 text-[15px] font-bold text-white text-center focus:outline-none"
+                    className="w-full rounded-[14px] px-3 py-2.5 text-[15px] font-bold [color:var(--f-text)] text-center focus:outline-none"
                     style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
                   />
                 </div>
               </div>
 
-              {/* Split / Compartir — only for expenses with people */}
-              {editing.type === 'TR-GASTO' && otherPeople.length > 0 && (
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => setEditing({ ...editing, splitEnabled: !editing.splitEnabled })}
-                    className="w-full flex items-center justify-between px-4 py-3.5 rounded-[14px] transition-all"
-                    style={{
-                      background: editing.splitEnabled ? 'rgba(100,210,255,0.1)' : 'var(--f-bg-card)',
-                      border: `1px solid ${editing.splitEnabled ? 'rgba(100,210,255,0.3)' : 'var(--f-bg-input)'}`,
-                    }}
-                  >
-                    <div>
-                      <p className="text-[15px] font-bold text-white text-left">Compartir al cargar</p>
-                      <p className="text-[13px] text-left mt-0.5" style={{ color: 'var(--f-text-3)' }}>
-                        Asignar deuda al registrarse
-                      </p>
-                    </div>
-                    <div className="w-10 h-6 rounded-full relative flex-shrink-0 transition-colors" style={{ background: editing.splitEnabled ? 'var(--f-transfer)' : 'var(--f-line-strong)' }}>
-                      <div className="absolute top-1 w-4 h-4 rounded-full bg-white transition-transform" style={{ transform: editing.splitEnabled ? 'translateX(20px)' : 'translateX(4px)' }} />
-                    </div>
-                  </button>
+              {/* Split / IOWE — segmented control, only for expenses */}
+              {editing.type === 'TR-GASTO' && (
+                <div className="space-y-3">
+                  {/* Selector row */}
+                  <div className="flex gap-2">
+                    <button type="button"
+                      onClick={() => setEditing({ ...editing, splitEnabled: !editing.splitEnabled, ioweEnabled: false })}
+                      className="flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-[14px] transition-all"
+                      style={editing.splitEnabled
+                        ? { background: 'var(--f-transfer-bg)', border: '1px solid var(--f-transfer-border)' }
+                        : { background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}>
+                      <i className="fa-solid fa-users text-[17px]" style={{ color: editing.splitEnabled ? 'var(--f-transfer)' : 'var(--f-text-3)' }} />
+                      <span className="text-[12px] font-black leading-tight" style={{ color: editing.splitEnabled ? 'var(--f-transfer)' : 'var(--f-text-3)' }}>Compartir gasto</span>
+                      <span className="text-[11px] font-medium leading-tight text-center" style={{ color: editing.splitEnabled ? 'var(--f-transfer)' : 'var(--f-text-4)', opacity: 0.75 }}>Yo pagué, ellos me deben</span>
+                    </button>
+                    <button type="button"
+                      onClick={() => setEditing({ ...editing, ioweEnabled: !editing.ioweEnabled, splitEnabled: false })}
+                      className="flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-[14px] transition-all"
+                      style={editing.ioweEnabled
+                        ? { background: 'rgba(255,149,0,0.1)', border: '1px solid rgba(255,149,0,0.35)' }
+                        : { background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}>
+                      <i className="fa-solid fa-hand-holding-dollar text-[17px]" style={{ color: editing.ioweEnabled ? '#FF9F0A' : 'var(--f-text-3)' }} />
+                      <span className="text-[12px] font-black leading-tight" style={{ color: editing.ioweEnabled ? '#FF9F0A' : 'var(--f-text-3)' }}>Lo pagó otra persona</span>
+                      <span className="text-[11px] font-medium leading-tight text-center" style={{ color: editing.ioweEnabled ? '#FF9F0A' : 'var(--f-text-4)', opacity: 0.75 }}>Ellos pagaron, yo les debo</span>
+                    </button>
+                  </div>
 
+                  {/* IOWE expanded */}
+                  {editing.ioweEnabled && (
+                    <div className="space-y-2">
+                      <div className="flex gap-1.5">
+                        {([
+                          { id: 'full' as const, label: 'Todo a él/ella', sub: 'Usa el monto ingresado', icon: 'fa-solid fa-circle-dollar-to-slot' },
+                          { id: 'custom' as const, label: 'Personalizado', sub: 'Monto libre por persona', icon: 'fa-solid fa-sliders' },
+                        ]).map(opt => (
+                          <button key={opt.id} type="button" onClick={() => setEditing({ ...editing, ioweMode: opt.id })}
+                            className="flex-1 flex flex-col items-center gap-1 py-2.5 px-2 rounded-[12px] transition-all"
+                            style={editing.ioweMode === opt.id
+                              ? { background: 'rgba(255,149,0,0.12)', border: '1px solid rgba(255,149,0,0.4)' }
+                              : { background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}>
+                            <i className={`${opt.icon} text-[15px]`} style={{ color: editing.ioweMode === opt.id ? '#FF9F0A' : 'var(--f-text-3)' }} />
+                            <span className="text-[11px] font-black text-center leading-tight" style={{ color: editing.ioweMode === opt.id ? '#FF9F0A' : 'var(--f-text-3)' }}>{opt.label}</span>
+                            <span className="text-[10px] font-medium text-center leading-tight" style={{ color: editing.ioweMode === opt.id ? '#FF9F0A' : 'var(--f-text-4)', opacity: 0.75 }}>{opt.sub}</span>
+                          </button>
+                        ))}
+                      </div>
+                      {otherPeople.length === 0 ? (
+                        <p className="text-[13px] font-medium text-center py-2" style={{ color: 'var(--f-text-3)' }}>Agrega personas desde Personas</p>
+                      ) : (
+                        <div className="space-y-1.5">
+                          {otherPeople.map(person => {
+                            const sel = editing.ioweSelected.includes(person.id)
+                            const perShare = editing.ioweMode === 'full' && editing.ioweSelected.length > 0
+                              ? Math.round((ioweFullAmt / editing.ioweSelected.length) * 100) / 100 : 0
+                            return (
+                              <div key={person.id} className="flex items-center gap-3 px-3 py-2.5 rounded-[12px] transition-all"
+                                style={{ background: sel ? 'rgba(255,149,0,0.08)' : 'var(--f-bg-input)', border: `1px solid ${sel ? 'rgba(255,149,0,0.3)' : 'var(--f-line)'}` }}>
+                                <button type="button" className="flex items-center gap-2.5 flex-1 min-w-0"
+                                  onClick={() => setEditing({ ...editing, ioweSelected: sel ? editing.ioweSelected.filter(id => id !== person.id) : [...editing.ioweSelected, person.id] })}>
+                                  <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all" style={{ background: sel ? '#FF9F0A' : 'var(--f-line-strong)' }}>
+                                    {sel && <i className="fa-solid fa-check text-[11px] text-white" />}
+                                  </div>
+                                  <span className="text-[15px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{person.name}</span>
+                                </button>
+                                {sel && editing.ioweMode === 'full' && perShare > 0 && (
+                                  <span className="text-[14px] font-black tabular-nums flex-shrink-0" style={{ color: '#FF9F0A' }}>{formatCurrency(perShare)}</span>
+                                )}
+                                {sel && editing.ioweMode === 'custom' && (
+                                  <input type="text" inputMode="decimal"
+                                    value={editing.ioweAmounts[person.id] ?? ''}
+                                    onChange={e => setEditing({ ...editing, ioweAmounts: { ...editing.ioweAmounts, [person.id]: e.target.value } })}
+                                    onBlur={e => {
+                                      const val = evalExpr(e.target.value)
+                                      setEditing(prev => prev ? { ...prev, ioweAmounts: { ...prev.ioweAmounts, [person.id]: val > 0 ? String(val) : '' } } : prev)
+                                    }}
+                                    placeholder="0.00"
+                                    className="w-24 rounded-[8px] px-2 py-1 text-[14px] font-black [color:var(--f-text)] text-right outline-none"
+                                    style={{ background: 'var(--f-bg-input)', border: '1px solid rgba(255,149,0,0.4)' }}
+                                    onClick={e => e.stopPropagation()}
+                                  />
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+                      {editing.ioweMode === 'custom' && (
+                        <div className="flex items-center justify-between px-3 py-2 rounded-[10px]"
+                          style={{ background: 'rgba(255,149,0,0.06)', border: '1px solid rgba(255,149,0,0.2)' }}>
+                          <span className="text-[13px] font-bold" style={{ color: 'var(--f-text-3)' }}>Total que debo</span>
+                          <span className="text-[15px] font-black tabular-nums" style={{ color: '#FF9F0A' }}>{formatCurrency(ioweCustomTotal)}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Split expanded */}
                   {editing.splitEnabled && (
-                    <div className="mt-3 space-y-3">
-                      {/* Quick mode selector */}
+                    <div className="space-y-3">
                       <div className="flex gap-1.5">
                         {([
                           { id: 'equal' as const, label: 'Partes iguales', sub: 'Yo pagué todo — ellos me deben', icon: 'fa-solid fa-equals' },
@@ -1580,50 +1678,36 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
                             onClick={() => setEditing({ ...editing, quickMode: opt.id })}
                             className="flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-[12px] transition-all"
                             style={editing.quickMode === opt.id
-                              ? { background: 'rgba(100,210,255,0.15)', border: '1px solid rgba(100,210,255,0.35)', color: 'var(--f-transfer)' }
-                              : { background: 'var(--f-bg-card)', border: '1px solid var(--f-bg-input)', color: 'var(--f-text-4)' }}
-                          >
+                              ? { background: 'var(--f-transfer-bg)', border: '1px solid var(--f-transfer-border)', color: 'var(--f-transfer)' }
+                              : { background: 'var(--f-bg-input)', border: '1px solid var(--f-line)', color: 'var(--f-text-3)' }}>
                             <i className={`${opt.icon} text-[17px]`} />
                             <span className="text-[12px] font-black text-center leading-tight mt-0.5">{opt.label}</span>
                             <span className="text-[11px] font-medium text-center leading-tight mt-0.5" style={{ opacity: 0.65 }}>{opt.sub}</span>
                           </button>
                         ))}
                       </div>
-
-                      {/* My share pill — equal mode */}
                       {editing.quickMode === 'equal' && splitCount > 0 && (
                         <div className="flex items-center justify-between px-3 py-2 rounded-[10px]"
-                          style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-bg-input)' }}>
-                          <span className="text-[13px] font-bold" style={{ color: 'var(--f-text-3)' }}>
-                            <i className="fa-solid fa-user text-[11px] mr-1.5" />Tu parte
-                          </span>
-                          <span className="text-[15px] font-black tabular-nums" style={{ color: 'var(--f-transfer)' }}>
-                            {formatCurrency(splitAmt)}
-                          </span>
+                          style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}>
+                          <span className="text-[13px] font-bold" style={{ color: 'var(--f-text-3)' }}><i className="fa-solid fa-user text-[11px] mr-1.5" />Tu parte</span>
+                          <span className="text-[15px] font-black tabular-nums" style={{ color: 'var(--f-transfer)' }}>{formatCurrency(splitAmt)}</span>
                         </div>
                       )}
-
                       <div className="space-y-1.5">
                         {otherPeople.map(person => {
                           const sel = editing.splitSelected.includes(person.id)
                           return (
-                            <div key={person.id}
-                              className="flex items-center gap-3 px-3 py-2.5 rounded-[12px] transition-all"
-                              style={{ background: sel ? 'rgba(100,210,255,0.08)' : 'var(--f-bg-card)', border: `1px solid ${sel ? 'rgba(100,210,255,0.25)' : 'var(--f-line)'}` }}
-                            >
-                              <button type="button"
-                                className="flex items-center gap-2.5 flex-1 min-w-0"
-                                onClick={() => setEditing({ ...editing, splitSelected: sel ? editing.splitSelected.filter(id => id !== person.id) : [...editing.splitSelected, person.id] })}
-                              >
+                            <div key={person.id} className="flex items-center gap-3 px-3 py-2.5 rounded-[12px] transition-all"
+                              style={{ background: sel ? 'var(--f-transfer-bg)' : 'var(--f-bg-input)', border: `1px solid ${sel ? 'var(--f-transfer-border)' : 'var(--f-line)'}` }}>
+                              <button type="button" className="flex items-center gap-2.5 flex-1 min-w-0"
+                                onClick={() => setEditing({ ...editing, splitSelected: sel ? editing.splitSelected.filter(id => id !== person.id) : [...editing.splitSelected, person.id] })}>
                                 <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all" style={{ background: sel ? 'var(--f-transfer)' : 'var(--f-line-strong)' }}>
-                                  {sel && <i className="fa-solid fa-check text-[11px] text-black" />}
+                                  {sel && <i className="fa-solid fa-check text-[11px] text-white" />}
                                 </div>
-                                <span className="text-[15px] font-bold text-white truncate">{person.name}</span>
+                                <span className="text-[15px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{person.name}</span>
                               </button>
                               {sel && editing.quickMode === 'manual' ? (
-                                <input
-                                  type="text"
-                                  inputMode="decimal"
+                                <input type="text" inputMode="decimal"
                                   value={editing.manualAmounts[person.id] ?? ''}
                                   onChange={e => setEditing({ ...editing, manualAmounts: { ...editing.manualAmounts, [person.id]: e.target.value } })}
                                   onBlur={e => {
@@ -1631,14 +1715,12 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
                                     setEditing(prev => prev ? { ...prev, manualAmounts: { ...prev.manualAmounts, [person.id]: val > 0 ? String(val) : '' } } : prev)
                                   }}
                                   placeholder="0 ó 40+20"
-                                  className="w-24 rounded-[8px] px-2 py-1 text-[14px] font-black text-white text-right outline-none"
-                                  style={{ background: 'var(--f-bg-input)', border: '1px solid rgba(100,210,255,0.3)' }}
+                                  className="w-24 rounded-[8px] px-2 py-1 text-[14px] font-black [color:var(--f-text)] text-right outline-none"
+                                  style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-transfer-border)' }}
                                   onClick={e => e.stopPropagation()}
                                 />
                               ) : sel && splitAmt > 0 ? (
-                                <span className="text-[14px] font-black tabular-nums flex-shrink-0" style={{ color: 'var(--f-transfer)' }}>
-                                  {formatCurrency(splitAmt)}
-                                </span>
+                                <span className="text-[14px] font-black tabular-nums flex-shrink-0" style={{ color: 'var(--f-transfer)' }}>{formatCurrency(splitAmt)}</span>
                               ) : null}
                             </div>
                           )
@@ -1648,23 +1730,23 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
                             <input autoFocus value={newPersonName} onChange={e => setNewPersonName(e.target.value)}
                               onKeyDown={e => { if (e.key === 'Enter') handleAddPerson(); if (e.key === 'Escape') setAddingPerson(false) }}
                               placeholder="Nombre"
-                              className="flex-1 rounded-[10px] px-3 py-2 text-[15px] font-bold text-white outline-none"
-                              style={{ background: 'var(--f-bg-input)', border: '1px solid rgba(100,210,255,0.4)' }} />
+                              className="flex-1 rounded-[10px] px-3 py-2 text-[15px] font-bold [color:var(--f-text)] outline-none"
+                              style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-transfer-border)' }} />
                             <button type="button" onClick={handleAddPerson} disabled={isAddingPerson || !newPersonName.trim()}
                               className="px-3 rounded-[10px] text-[14px] font-black disabled:opacity-50"
-                              style={{ background: 'rgba(100,210,255,0.15)', border: '1px solid rgba(100,210,255,0.4)', color: 'var(--f-transfer)' }}>
+                              style={{ background: 'var(--f-transfer-bg)', border: '1px solid var(--f-transfer-border)', color: 'var(--f-transfer)' }}>
                               {isAddingPerson ? <i className="fa-solid fa-spinner fa-spin" /> : 'OK'}
                             </button>
                             <button type="button" onClick={() => setAddingPerson(false)} className="w-9 rounded-[10px] flex items-center justify-center" style={{ background: 'var(--f-line)' }}>
-                              <i className="fa-solid fa-xmark text-xs text-white" />
+                              <i className="fa-solid fa-xmark text-xs" style={{ color: 'var(--f-text-3)' }} />
                             </button>
                           </div>
                         ) : (
                           <button type="button" onClick={() => setAddingPerson(true)}
                             className="w-full flex items-center gap-2 px-3 py-2 rounded-[12px]"
-                            style={{ background: 'var(--f-bg-card)', border: '1px dashed var(--f-line-strong)' }}>
-                            <i className="fa-solid fa-plus text-[12px]" style={{ color: 'var(--f-text-4)' }} />
-                            <span className="text-[14px] font-bold" style={{ color: 'var(--f-text-4)' }}>Agregar persona</span>
+                            style={{ background: 'var(--f-bg-input)', border: '1px dashed var(--f-line-strong)' }}>
+                            <i className="fa-solid fa-plus text-[12px]" style={{ color: 'var(--f-text-3)' }} />
+                            <span className="text-[14px] font-bold" style={{ color: 'var(--f-text-3)' }}>Agregar persona</span>
                           </button>
                         )}
                       </div>
@@ -1676,7 +1758,7 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
               {/* Status / Active toggle */}
               <div className="flex items-center justify-between px-4 py-3.5 rounded-[14px]" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-bg-input)' }}>
                 <div>
-                  <p className="text-[15px] font-bold text-white">Activo</p>
+                  <p className="text-[15px] font-bold" style={{ color: 'var(--f-text)' }}>Activo</p>
                   <p className="text-[13px] mt-0.5" style={{ color: 'var(--f-text-3)' }}>
                     {editing.status === 'ACTIVO' ? 'Se ejecutará automáticamente' : 'Pausado — no se ejecutará'}
                   </p>
@@ -2160,7 +2242,7 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
               onChange={e => setEditing({ ...editing, name: e.target.value })}
               onKeyDown={e => { if (e.key === 'Enter') handleSave() }}
               placeholder="Nombre del contacto"
-              className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder:opacity-30 focus:outline-none"
+              className="w-full rounded-xl px-4 py-3 text-sm [color:var(--f-text)] placeholder:opacity-30 focus:outline-none"
               style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
             />
             <div className="flex gap-2 pt-1">

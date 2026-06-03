@@ -225,17 +225,20 @@ export async function updateTransaction(id: string, form: TransactionForm) {
   const { data: existingTx } = await supabase
     .from('transactions').select('split_data').eq('id', id).eq('user_id', user.id).single()
 
+  const isPayable = form.is_payable ?? false
   const { error } = await supabase
     .from('transactions')
     .update({
       concept: form.concept, type: form.type,
-      amount, adjustment: adjustmentFor(form.type, amount),
+      amount,
+      adjustment: isPayable ? 0 : adjustmentFor(form.type, amount),
       category_id: form.category_id || null,
       account_id: form.account_id,
       transaction_date: date,
       split_data: form.split_data || null,
       exclude_mode: form.exclude_mode ?? 'none',
       notes: form.notes || null,
+      is_payable: isPayable,
     })
     .eq('id', id)
     .eq('user_id', user.id)

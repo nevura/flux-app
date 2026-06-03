@@ -98,13 +98,18 @@ export default function TransactionModal({ transaction, accounts, categories, pe
 
   // IOWE (I owe) state — someone else paid, I owe them
   const [iOweEnabled, setIOweEnabled] = useState(!!initIoweData)
+  // 'full' = todo el monto a una o más personas (usa el campo amount principal)
+  // 'custom' = monto libre por persona
+  const [ioweMode, setIoweMode] = useState<'full' | 'custom'>(
+    initIoweData && initIoweData.data.length > 1 ? 'custom' : 'full'
+  )
   const [ioweSelected, setIoweSelected] = useState<Set<string>>(
     new Set(initIoweData?.data.map(d => d.id) ?? [])
   )
   const [ioweAmounts, setIoweAmounts] = useState<Record<string, string>>(
     Object.fromEntries(initIoweData?.data.map(d => [d.id, String(d.value)]) ?? [])
   )
-  const ioweTotal = otherPeople
+  const ioweCustomTotal = otherPeople
     .filter(p => ioweSelected.has(p.id))
     .reduce((s, p) => s + evalExpr(ioweAmounts[p.id] ?? '0'), 0)
 
@@ -122,15 +127,22 @@ export default function TransactionModal({ transaction, accounts, categories, pe
     if (!iOweEnabled || type !== 'TR-GASTO') return null
     const selected = otherPeople.filter(p => ioweSelected.has(p.id))
     if (selected.length === 0) return null
+    if (ioweMode === 'full') {
+      const amt = parseFloat(amount) || 0
+      const perPerson = Math.round((amt / Math.max(selected.length, 1)) * 100) / 100
+      return {
+        mode: 'AMT',
+        splitMode: 'IOWE',
+        data: selected.map(p => ({ id: p.id, nombre: p.name, value: perPerson, paidAmount: 0, paidStatus: false })),
+      }
+    }
     return {
       mode: 'AMT',
       splitMode: 'IOWE',
       data: selected.map(p => ({
-        id: p.id,
-        nombre: p.name,
+        id: p.id, nombre: p.name,
         value: evalExpr(ioweAmounts[p.id] ?? '0'),
-        paidAmount: 0,
-        paidStatus: false,
+        paidAmount: 0, paidStatus: false,
       })),
     }
   }
@@ -180,11 +192,12 @@ export default function TransactionModal({ transaction, accounts, categories, pe
   })
 
   async function handleSubmit() {
-    if (iOweEnabled && ioweTotal <= 0) {
-      toast.error('Agrega al menos una persona con el monto que debes')
-      return
+    if (iOweEnabled) {
+      if (ioweSelected.size === 0) { toast.error('Selecciona a quién le debes'); return }
+      if (ioweMode === 'custom' && ioweCustomTotal <= 0) { toast.error('Agrega el monto que debes'); return }
+      if (ioweMode === 'full' && (parseFloat(amount) || 0) <= 0) { toast.error('Agrega el monto que debes'); return }
     }
-    const effectiveAmount = iOweEnabled ? String(ioweTotal) : amount
+    const effectiveAmount = iOweEnabled && ioweMode === 'custom' ? String(ioweCustomTotal) : amount
     const form = {
       concept, type,
       amount: effectiveAmount,
@@ -214,6 +227,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
       const res = await settlePayable(transaction.id)
       if (res.error) { toast.error(res.error); return }
       toast.success('Deuda marcada como pagada')
+      router.refresh()
       window.dispatchEvent(new CustomEvent('flux:refresh'))
       onClose()
     })
@@ -304,11 +318,11 @@ export default function TransactionModal({ transaction, accounts, categories, pe
               <p className="text-[12px] font-black tracking-[3px] uppercase mb-3" style={{ color: 'var(--f-text-4)' }}>
                 {iOweEnabled ? 'Total que debo' : 'Monto'}
               </p>
-              {iOweEnabled ? (
+              {iOweEnabled && ioweMode === 'custom' ? (
                 <div className="flex items-center justify-center gap-1">
                   <span className="text-[28px] font-black" style={{ color: 'var(--f-text-3)' }}>$</span>
-                  <span className="text-[44px] font-black tabular-nums" style={{ color: ioweTotal > 0 ? '#FF9F0A' : 'var(--f-text-4)' }}>
-                    {ioweTotal > 0 ? ioweTotal.toFixed(2) : '0.00'}
+                  <span className="text-[44px] font-black tabular-nums" style={{ color: ioweCustomTotal > 0 ? '#FF9F0A' : 'var(--f-text-4)' }}>
+                    {ioweCustomTotal > 0 ? ioweCustomTotal.toFixed(2) : '0.00'}
                   </span>
                 </div>
               ) : (
@@ -588,51 +602,80 @@ export default function TransactionModal({ transaction, accounts, categories, pe
 
                 {/* IOWE expanded */}
                 {iOweEnabled && (
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
+                    {/* Quick mode buttons */}
+                    <div className="flex gap-1.5">
+                      {([
+                        { id: 'full' as const, label: 'Todo a él/ella', sub: 'Usa el monto ingresado', icon: 'fa-solid fa-circle-dollar-to-slot' },
+                        { id: 'custom' as const, label: 'Personalizado', sub: 'Monto libre por persona', icon: 'fa-solid fa-sliders' },
+                      ]).map(opt => (
+                        <button key={opt.id} type="button" onClick={() => setIoweMode(opt.id)}
+                          className="flex-1 flex flex-col items-center gap-1 py-2.5 px-2 rounded-[12px] transition-all"
+                          style={ioweMode === opt.id
+                            ? { background: 'rgba(255,149,0,0.12)', border: '1px solid rgba(255,149,0,0.4)' }
+                            : { background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}>
+                          <i className={`${opt.icon} text-[15px]`} style={{ color: ioweMode === opt.id ? '#FF9F0A' : 'var(--f-text-3)' }} />
+                          <span className="text-[11px] font-black text-center leading-tight" style={{ color: ioweMode === opt.id ? '#FF9F0A' : 'var(--f-text-3)' }}>{opt.label}</span>
+                          <span className="text-[10px] font-medium text-center leading-tight" style={{ color: ioweMode === opt.id ? '#FF9F0A' : 'var(--f-text-4)', opacity: 0.75 }}>{opt.sub}</span>
+                        </button>
+                      ))}
+                    </div>
+
                     {otherPeople.length === 0 ? (
                       <p className="text-[14px] font-medium text-center py-3" style={{ color: 'var(--f-text-3)' }}>
                         Agrega personas desde Configuración → Personas
                       </p>
                     ) : (
-                      <>
-                        <p className="text-[11px] font-black tracking-[2px] uppercase px-1 mb-2" style={{ color: 'var(--f-text-4)' }}>
-                          ¿A quién le debo y cuánto?
+                      <div className="space-y-1.5">
+                        <p className="text-[11px] font-black tracking-[2px] uppercase px-1" style={{ color: 'var(--f-text-4)' }}>
+                          {ioweMode === 'full' ? '¿A quién le debes?' : '¿A quién le debes y cuánto?'}
                         </p>
                         {otherPeople.map(person => {
                           const selected = ioweSelected.has(person.id)
+                          const amt = parseFloat(amount) || 0
+                          const fullShare = ioweMode === 'full' && ioweSelected.size > 0
+                            ? Math.round((amt / ioweSelected.size) * 100) / 100
+                            : amt
                           return (
-                            <div
-                              key={person.id}
+                            <div key={person.id}
                               className="flex items-center gap-3 px-3 py-2.5 rounded-[12px] transition-all"
                               style={{
                                 background: selected ? 'rgba(255,149,0,0.08)' : 'var(--f-bg-input)',
                                 border: `1px solid ${selected ? 'rgba(255,149,0,0.3)' : 'var(--f-line)'}`,
-                              }}
-                            >
-                              <button
-                                type="button"
-                                onClick={() => setIoweSelected(prev => {
-                                  const next = new Set(prev)
-                                  if (next.has(person.id)) next.delete(person.id)
-                                  else next.add(person.id)
-                                  return next
-                                })}
-                                className="flex items-center gap-2.5 flex-1 min-w-0"
-                              >
-                                <div
-                                  className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all"
-                                  style={{ background: selected ? '#FF9F0A' : 'var(--f-line-strong)' }}
-                                >
+                              }}>
+                              <button type="button"
+                                onClick={() => {
+                                  if (ioweMode === 'full') {
+                                    // multi-select in full mode (split equally)
+                                    setIoweSelected(prev => {
+                                      const next = new Set(prev)
+                                      if (next.has(person.id)) next.delete(person.id)
+                                      else next.add(person.id)
+                                      return next
+                                    })
+                                  } else {
+                                    setIoweSelected(prev => {
+                                      const next = new Set(prev)
+                                      if (next.has(person.id)) next.delete(person.id)
+                                      else next.add(person.id)
+                                      return next
+                                    })
+                                  }
+                                }}
+                                className="flex items-center gap-2.5 flex-1 min-w-0">
+                                <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all"
+                                  style={{ background: selected ? '#FF9F0A' : 'var(--f-line-strong)' }}>
                                   {selected && <i className="fa-solid fa-check text-[11px] text-white" />}
                                 </div>
-                                <span className="text-[15px] font-bold truncate" style={{ color: 'var(--f-text)' }}>
-                                  {person.name}
-                                </span>
+                                <span className="text-[15px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{person.name}</span>
                               </button>
-                              {selected && (
-                                <input
-                                  type="text"
-                                  inputMode="decimal"
+                              {selected && ioweMode === 'full' && (
+                                <span className="text-[14px] font-black tabular-nums flex-shrink-0" style={{ color: '#FF9F0A' }}>
+                                  ${fullShare.toFixed(2)}
+                                </span>
+                              )}
+                              {selected && ioweMode === 'custom' && (
+                                <input type="text" inputMode="decimal"
                                   value={ioweAmounts[person.id] ?? ''}
                                   onChange={e => setIoweAmounts(prev => ({ ...prev, [person.id]: e.target.value }))}
                                   onBlur={e => {
@@ -641,18 +684,14 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                                   }}
                                   placeholder="0.00"
                                   className="w-24 rounded-[8px] px-2 py-1 text-[14px] font-black text-right outline-none"
-                                  style={{
-                                    background: 'var(--f-bg-elevated)',
-                                    border: '1px solid rgba(255,149,0,0.4)',
-                                    color: 'var(--f-text)',
-                                  }}
+                                  style={{ background: 'var(--f-bg-elevated)', border: '1px solid rgba(255,149,0,0.4)', color: 'var(--f-text)' }}
                                   onClick={e => e.stopPropagation()}
                                 />
                               )}
                             </div>
                           )
                         })}
-                      </>
+                      </div>
                     )}
                   </div>
                 )}
