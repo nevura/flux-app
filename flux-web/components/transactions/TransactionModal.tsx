@@ -545,50 +545,58 @@ export default function TransactionModal({ transaction, accounts, categories, pe
               </div>
             )}
 
-            {/* IOWE section — "Lo pagó otra persona" */}
-            {type === 'TR-GASTO' && !splitEnabled && (
-              <div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIOweEnabled(v => !v)
-                    if (splitEnabled) setSplitEnabled(false)
-                  }}
-                  className="w-full flex items-center justify-between px-4 py-3.5 rounded-[14px] transition-all"
-                  style={{
-                    background: iOweEnabled ? 'rgba(255,149,0,0.08)' : 'var(--f-bg-input)',
-                    border: `1px solid ${iOweEnabled ? 'rgba(255,149,0,0.3)' : 'var(--f-line)'}`,
-                  }}
-                >
-                  <div>
-                    <p className="text-[15px] font-bold text-left" style={{ color: 'var(--f-text)' }}>
-                      Lo pagó otra persona
-                    </p>
-                    <p className="text-[13px] text-left mt-0.5" style={{ color: 'var(--f-text-3)' }}>
-                      Registro que les debo dinero
-                    </p>
-                  </div>
-                  <div
-                    className="w-10 h-6 rounded-full relative flex-shrink-0 transition-colors"
-                    style={{ background: iOweEnabled ? '#FF9F0A' : 'var(--f-line-strong)' }}
-                  >
-                    <div
-                      className="absolute top-1 w-4 h-4 rounded-full bg-white transition-transform"
-                      style={{ transform: iOweEnabled ? 'translateX(20px)' : 'translateX(4px)' }}
-                    />
-                  </div>
-                </button>
+            {/* Split / IOWE — segmented control, mutually exclusive */}
+            {type === 'TR-GASTO' && (
+              <div className="space-y-3">
 
+                {/* Selector row */}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setSplitEnabled(v => !v); setIOweEnabled(false) }}
+                    className="flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-[14px] transition-all"
+                    style={splitEnabled
+                      ? { background: 'var(--f-transfer-bg)', border: '1px solid var(--f-transfer-border)' }
+                      : { background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
+                  >
+                    <i className="fa-solid fa-users text-[17px]" style={{ color: splitEnabled ? 'var(--f-transfer)' : 'var(--f-text-3)' }} />
+                    <span className="text-[12px] font-black leading-tight" style={{ color: splitEnabled ? 'var(--f-transfer)' : 'var(--f-text-3)' }}>
+                      Compartir gasto
+                    </span>
+                    <span className="text-[11px] font-medium leading-tight text-center" style={{ color: splitEnabled ? 'var(--f-transfer)' : 'var(--f-text-4)', opacity: 0.75 }}>
+                      Yo pagué, ellos me deben
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setIOweEnabled(v => !v); setSplitEnabled(false) }}
+                    className="flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-[14px] transition-all"
+                    style={iOweEnabled
+                      ? { background: 'rgba(255,149,0,0.1)', border: '1px solid rgba(255,149,0,0.35)' }
+                      : { background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
+                  >
+                    <i className="fa-solid fa-hand-holding-dollar text-[17px]" style={{ color: iOweEnabled ? '#FF9F0A' : 'var(--f-text-3)' }} />
+                    <span className="text-[12px] font-black leading-tight" style={{ color: iOweEnabled ? '#FF9F0A' : 'var(--f-text-3)' }}>
+                      Lo pagó otra persona
+                    </span>
+                    <span className="text-[11px] font-medium leading-tight text-center" style={{ color: iOweEnabled ? '#FF9F0A' : 'var(--f-text-4)', opacity: 0.75 }}>
+                      Ellos pagaron, yo les debo
+                    </span>
+                  </button>
+                </div>
+
+                {/* IOWE expanded */}
                 {iOweEnabled && (
-                  <div className="mt-3 space-y-1.5">
+                  <div className="space-y-1.5">
                     {otherPeople.length === 0 ? (
                       <p className="text-[14px] font-medium text-center py-3" style={{ color: 'var(--f-text-3)' }}>
-                        Agrega una persona en &quot;Compartir gasto&quot; primero
+                        Agrega personas desde Configuración → Personas
                       </p>
                     ) : (
                       <>
                         <p className="text-[11px] font-black tracking-[2px] uppercase px-1 mb-2" style={{ color: 'var(--f-text-4)' }}>
-                          ¿A quién le debo?
+                          ¿A quién le debo y cuánto?
                         </p>
                         {otherPeople.map(person => {
                           const selected = ioweSelected.has(person.id)
@@ -648,35 +656,9 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                     )}
                   </div>
                 )}
-              </div>
-            )}
 
-            {/* Split section — only for expenses with people, mutually exclusive with IOWE */}
-            {type === 'TR-GASTO' && otherPeople.length > 0 && !iOweEnabled && (
-              <div>
-                <button
-                  type="button"
-                  onClick={() => setSplitEnabled(v => !v)}
-                  className="w-full flex items-center justify-between px-4 py-3.5 rounded-[14px] transition-all"
-                  style={{
-                    background: splitEnabled ? 'var(--f-transfer-bg)' : 'var(--f-bg-input)',
-                    border: `1px solid ${splitEnabled ? 'var(--f-transfer-border)' : 'var(--f-line)'}`,
-                  }}
-                >
-                  <div>
-                    <p className="text-[15px] font-bold text-left" style={{ color: 'var(--f-text)' }}>Compartir gasto</p>
-                    <p className="text-[13px] text-left mt-0.5" style={{ color: 'var(--f-text-3)' }}>
-                      Asignar a personas
-                    </p>
-                  </div>
-                  <div className="w-10 h-6 rounded-full relative flex-shrink-0 transition-colors"
-                    style={{ background: splitEnabled ? 'var(--f-transfer)' : 'var(--f-line-strong)' }}>
-                    <div className="absolute top-1 w-4 h-4 rounded-full bg-white transition-transform"
-                      style={{ transform: splitEnabled ? 'translateX(20px)' : 'translateX(4px)' }} />
-                  </div>
-                </button>
-
-                {splitEnabled && (
+                {/* Split expanded */}
+                {splitEnabled && otherPeople.length > 0 && (
                   <div className="mt-3 space-y-3">
 
                     {/* Quick mode selector */}
