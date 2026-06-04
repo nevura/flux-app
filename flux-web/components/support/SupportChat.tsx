@@ -223,6 +223,7 @@ export default function SupportChat({ onBack }: Props = {}) {
             e.target.style.height = 'auto'
             e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'
           }}
+          onFocus={() => setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 350)}
           onKeyDown={handleKeyDown}
           placeholder="Escribe un mensaje…"
           className="flex-1 resize-none outline-none text-[15px] font-medium bg-transparent"
@@ -253,7 +254,8 @@ export default function SupportChat({ onBack }: Props = {}) {
         className="flex flex-col"
         style={{
           position: 'fixed',
-          inset: 0,
+          top: 0, left: 0, right: 0,
+          height: '100dvh',
           zIndex: 200,
           background: 'var(--f-bg)',
         }}
@@ -302,7 +304,7 @@ export default function SupportChat({ onBack }: Props = {}) {
             <i className="fa-solid fa-spinner fa-spin text-2xl" style={{ color: 'var(--f-text-4)' }} />
           </div>
         ) : (
-          <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px', overscrollBehavior: 'contain' }}>
+          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '0 16px', overscrollBehavior: 'contain' }}>
             {contactHeader}
             {messageList}
           </div>
@@ -313,7 +315,7 @@ export default function SupportChat({ onBack }: Props = {}) {
           style={{
             flexShrink: 0,
             padding: '12px 16px',
-            paddingBottom: 'calc(12px + var(--safe-bottom))',
+            paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 12px)',
             background: 'var(--f-bg)',
             borderTop: '1px solid var(--f-line)',
           }}

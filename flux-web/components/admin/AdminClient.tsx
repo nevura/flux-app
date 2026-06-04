@@ -339,8 +339,13 @@ function AdminInbox() {
   // ── Thread view: fixed full-screen overlay for proper PWA/mobile chat ──────
   if (selected) return (
     <div
-      className="fixed inset-0 z-50 flex flex-col"
-      style={{ background: '#fff', paddingTop: 'env(safe-area-inset-top, 0px)' }}
+      className="z-50 flex flex-col"
+      style={{
+        position: 'fixed', top: 0, left: 0, right: 0,
+        height: '100dvh',
+        background: '#fff',
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+      }}
     >
       {/* Header */}
       <div className="flex-shrink-0 flex items-center gap-3 px-4 py-3"
@@ -358,7 +363,7 @@ function AdminInbox() {
       </div>
 
       {/* Messages — scrollable area that fills remaining space */}
-      <div ref={msgsRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-1">
+      <div ref={msgsRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-1" style={{ overscrollBehavior: 'contain', minHeight: 0 }}>
         {messages.map(msg => {
           const isAdmin = msg.sender === 'admin'
           return (
@@ -387,7 +392,7 @@ function AdminInbox() {
         className="flex-shrink-0 flex items-end gap-2 px-4 pt-3"
         style={{
           borderTop: '1px solid rgba(0,0,0,0.08)',
-          paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
+          paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 12px)',
           background: '#fff',
         }}
       >
@@ -396,10 +401,10 @@ function AdminInbox() {
           value={reply}
           onChange={e => {
             setReply(e.target.value)
-            // Auto-grow textarea
             e.target.style.height = 'auto'
             e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'
           }}
+          onFocus={() => setTimeout(() => msgsRef.current?.scrollTo({ top: msgsRef.current.scrollHeight, behavior: 'smooth' }), 350)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
           placeholder="Escribe tu respuesta…"
           className="flex-1 rounded-[16px] px-4 py-3 text-[14px] font-medium outline-none resize-none"
