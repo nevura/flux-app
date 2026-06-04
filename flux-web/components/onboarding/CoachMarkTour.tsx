@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { COACH_MARKS } from '@/lib/coach-marks'
 import CoachMarkOverlay from './CoachMarkOverlay'
+import { markCoachMarkDone } from '@/actions/config'
 
 const LS_KEY = (page: string) => `flux_coach_${page}`
 
@@ -33,6 +34,7 @@ export default function CoachMarkTour({ pageKey, force, onDone }: Props) {
     localStorage.setItem(LS_KEY(pageKey), '1')
     setShow(false)
     onDone?.()
+    markCoachMarkDone(pageKey).catch(() => {})
   }
 
   if (!show) return null

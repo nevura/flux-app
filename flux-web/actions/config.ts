@@ -125,6 +125,17 @@ export async function completeOnboarding() {
   return { error: null }
 }
 
+export async function markCoachMarkDone(pageKey: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+  const { data: profile } = await supabase.from('profiles').select('coach_marks_seen').eq('id', user.id).single()
+  const seen: string[] = (profile as any)?.coach_marks_seen ?? []
+  if (!seen.includes(pageKey)) {
+    await supabase.from('profiles').update({ coach_marks_seen: [...seen, pageKey] }).eq('id', user.id)
+  }
+}
+
 export async function updateProfile(fullName: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

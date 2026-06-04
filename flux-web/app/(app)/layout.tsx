@@ -6,6 +6,7 @@ import ThemeSync from '@/components/layout/ThemeSync'
 import WakeOnFocus from '@/components/layout/WakeOnFocus'
 import UsernameSetupModal from '@/components/onboarding/UsernameSetupModal'
 import OnboardingWrapper from '@/components/onboarding/OnboardingWrapper'
+import CoachMarkSeeder from '@/components/onboarding/CoachMarkSeeder'
 import AppShell from '@/components/layout/AppShell'
 import { getSubscriptionInfo } from '@/lib/subscription'
 
@@ -23,7 +24,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const [sub, { data: profile }] = await Promise.all([
     getSubscriptionInfo(),
-    supabase.from('profiles').select('theme_preference, username, full_name, email, onboarding_completed').eq('id', user.id).single(),
+    supabase.from('profiles').select('theme_preference, username, full_name, email, onboarding_completed, coach_marks_seen').eq('id', user.id).single(),
   ])
 
   const needsSetup = !profile?.username || !profile?.full_name
@@ -42,6 +43,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         />
       )}
       {needsOnboarding && <OnboardingWrapper />}
+      <CoachMarkSeeder seen={(profile as any)?.coach_marks_seen ?? []} />
 
       {/* AppShell persists across tab navigations — all tabs stay mounted */}
       <AppShell

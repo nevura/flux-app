@@ -56,7 +56,7 @@ export const COACH_MARKS: Record<string, CoachMarkStep[]> = {
     {
       target: 'tx-filter-bar',
       title: 'Filtros rápidos',
-      description: 'Filtra por tipo (gastos, ingresos, transferencias) o por categoría. Combínalos para búsquedas precisas.',
+      description: 'Filtra por tipo (gastos, ingresos, transferencias, por pagar, por cobrar). Combínalos para búsquedas precisas.',
     },
     {
       target: 'tx-search',
@@ -75,12 +75,22 @@ export const COACH_MARKS: Record<string, CoachMarkStep[]> = {
       title: 'Agregar amigos',
       description: 'Busca a alguien por su @usuario para compartir gastos directamente en Flux.',
     },
+    {
+      target: 'global-fab',
+      title: 'Registrar deuda (IOWE)',
+      description: 'Al agregar un gasto, toca "Lo pagó otra persona" para registrar una deuda sin que salga dinero de tu cuenta. Cuando pagues, marca "Ya pagué" y el saldo se ajusta.',
+    },
   ],
   settings: [
     {
       target: 'settings-profile-header',
       title: 'Tu perfil',
       description: 'Toca aquí para editar tu nombre, @usuario y teléfono.',
+    },
+    {
+      target: 'settings-atajos',
+      title: 'Atajos de iPhone ⚡',
+      description: 'Instala el Atajo de Apple Pay y registra gastos automáticamente al pagar. Solo toma 2 minutos configurarlo.',
     },
     {
       target: 'settings-list',
