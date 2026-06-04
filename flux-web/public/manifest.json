@@ -1,7 +1,7 @@
 {
-  "name": "Flux — Finanzas personales",
-  "short_name": "Flux",
-  "description": "Controla tus finanzas personales con Flux",
+  "name": "FluxApp Finance",
+  "short_name": "FluxApp Finance",
+  "description": "Controla tus finanzas personales con FluxApp Finance",
   "start_url": "/home",
   "display": "standalone",
   "background_color": "#0C0C0E",

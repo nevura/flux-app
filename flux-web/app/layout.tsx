@@ -7,10 +7,10 @@ const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
 const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Flux — Finanzas personales',
-  description: 'Controla tus finanzas personales con Flux',
+  title: 'FluxApp Finance',
+  description: 'Controla tus finanzas personales con FluxApp Finance',
   manifest: '/manifest.json',
-  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Flux' },
+  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'FluxApp Finance' },
   icons: {
     icon: [
       { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
