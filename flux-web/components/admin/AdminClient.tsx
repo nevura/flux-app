@@ -680,29 +680,27 @@ export default function AdminClient({ profiles }: { profiles: AdminProfile[] }) 
         {/* ── Title + view tabs ── */}
         <div className="pt-8 pb-5">
           <p className="text-[12px] font-black uppercase tracking-[4px] mb-2" style={{ color: BLUE }}>Panel de control</p>
-          <div className="flex items-end justify-between">
-            <div>
-              <h1 className="text-[32px] font-black tracking-tight leading-tight" style={{ color: DARK }}>
-                {view === 'users' ? 'Usuarios' : view === 'inbox' ? 'Buzón' : 'Métricas'}
-              </h1>
-              <p className="text-[15px] font-medium mt-0.5" style={{ color: GRAY }}>
-                {view === 'users'
-                  ? `${profiles.length} ${profiles.length === 1 ? 'usuario' : 'usuarios'} registrados`
-                  : view === 'inbox'
-                  ? 'Conversaciones de soporte'
-                  : 'Estadísticas y retención'}
-              </p>
-            </div>
-            {/* View switcher */}
-            <div className="flex gap-2 mb-1">
+          {/* Title row */}
+          <h1 className="text-[32px] font-black tracking-tight leading-tight mb-0.5" style={{ color: DARK }}>
+            {view === 'users' ? 'Usuarios' : view === 'inbox' ? 'Buzón' : 'Métricas'}
+          </h1>
+          <p className="text-[14px] font-medium mb-4" style={{ color: GRAY }}>
+            {view === 'users'
+              ? `${profiles.length} ${profiles.length === 1 ? 'usuario' : 'usuarios'} registrados`
+              : view === 'inbox'
+              ? 'Conversaciones de soporte'
+              : 'Estadísticas y retención'}
+          </p>
+          {/* View switcher — own row, full width */}
+          <div className="flex gap-2">
               <button onClick={() => setView('users')}
-                className="relative px-4 py-2 rounded-[12px] text-[13px] font-bold transition-all"
-                style={view === 'users' ? { background: BLUE, color: '#fff' } : { background: LIGHT, color: GRAY }}>
+                className="relative flex-1 py-2.5 rounded-[12px] text-[13px] font-bold transition-all"
+                style={view === 'users' ? { background: BLUE, color: '#fff' } : { background: LIGHT, color: GRAY, border: '1px solid rgba(0,0,0,0.07)' }}>
                 <i className="fa-solid fa-users mr-1.5" />Usuarios
               </button>
               <button onClick={() => setView('inbox')}
-                className="relative px-4 py-2 rounded-[12px] text-[13px] font-bold transition-all"
-                style={view === 'inbox' ? { background: BLUE, color: '#fff' } : { background: LIGHT, color: GRAY }}>
+                className="relative flex-1 py-2.5 rounded-[12px] text-[13px] font-bold transition-all"
+                style={view === 'inbox' ? { background: BLUE, color: '#fff' } : { background: LIGHT, color: GRAY, border: '1px solid rgba(0,0,0,0.07)' }}>
                 <i className="fa-solid fa-inbox mr-1.5" />Buzón
                 {unreadTickets > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] rounded-full text-[10px] font-black text-white flex items-center justify-center px-1"
@@ -710,11 +708,10 @@ export default function AdminClient({ profiles }: { profiles: AdminProfile[] }) 
                 )}
               </button>
               <button onClick={() => setView('metrics')}
-                className="relative px-4 py-2 rounded-[12px] text-[13px] font-bold transition-all"
-                style={view === 'metrics' ? { background: BLUE, color: '#fff' } : { background: LIGHT, color: GRAY }}>
+                className="relative flex-1 py-2.5 rounded-[12px] text-[13px] font-bold transition-all"
+                style={view === 'metrics' ? { background: BLUE, color: '#fff' } : { background: LIGHT, color: GRAY, border: '1px solid rgba(0,0,0,0.07)' }}>
                 <i className="fa-solid fa-chart-line mr-1.5" />Métricas
               </button>
-            </div>
           </div>
         </div>
 
