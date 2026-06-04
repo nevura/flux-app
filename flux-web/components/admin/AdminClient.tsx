@@ -101,11 +101,14 @@ function UserCard({ profile, isPending, onApprove, onReject, onExtend, onSetSub 
   onSetSub: (id: string, status: string) => void
 }) {
   const [open, setOpen] = useState(profile.status === 'pending')
-  const ab = accountBadge(profile.status)
   const sb = subBadge(profile.subscription_status)
   const trialLeft = daysLeft(profile.trial_ends_at)
   const subLeft   = daysLeft(profile.subscription_ends_at)
   const relevantDays = profile.subscription_status === 'trialing' ? trialLeft : subLeft
+
+  const avatarBg = profile.subscription_status === 'active' ? GREEN
+    : profile.subscription_status === 'trialing' ? BLUE
+    : GRAY
 
   return (
     <div
@@ -115,36 +118,36 @@ function UserCard({ profile, isPending, onApprove, onReject, onExtend, onSetSub 
       <button className="w-full text-left p-5 flex items-start gap-4" onClick={() => setOpen(o => !o)}>
         <div
           className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 text-[17px] font-black text-white"
-          style={{ background: profile.status === 'approved' ? BLUE : profile.status === 'pending' ? ORANGE : GRAY }}
+          style={{ background: avatarBg }}
         >
           {initials(profile)}
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-[16px] font-bold leading-tight" style={{ color: DARK }}>
-              {profile.full_name || '(sin nombre)'}
-            </p>
-            <span className="text-[11px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide" style={{ background: ab.bg, color: ab.color }}>
-              {ab.label}
-            </span>
-          </div>
+          {/* Row 1: Nombre */}
+          <p className="text-[16px] font-bold leading-tight" style={{ color: DARK }}>
+            {profile.full_name || '(sin nombre)'}
+          </p>
 
+          {/* Row 2: Correo · @username */}
           <p className="text-[13px] font-medium mt-0.5 truncate" style={{ color: GRAY }}>
             {profile.email}
             {profile.username && <> · <span style={{ color: BLUE }}>@{profile.username}</span></>}
           </p>
 
-          <div className="flex items-center gap-2 mt-2 flex-wrap">
+          {/* Row 3: Resumen */}
+          <p className="text-[12px] font-medium mt-1.5" style={{ color: GRAY }}>
+            {profile.tx_count} mov · {profile.acc_count} ctas
+            {profile.friend_count > 0 && <> · {profile.friend_count} {profile.friend_count === 1 ? 'amigo' : 'amigos'}</>}
+          </p>
+
+          {/* Row 4: Estado + Atajos */}
+          <div className="flex items-center gap-1.5 mt-2 flex-wrap">
             <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: sb.bg, color: sb.color }}>
               {sb.label}
               {relevantDays !== null && (
                 <> · {relevantDays > 0 ? `${relevantDays}d` : 'vencido'}</>
               )}
-            </span>
-            <span className="text-[12px] font-medium" style={{ color: GRAY }}>
-              {profile.tx_count} mov · {profile.acc_count} ctas
-              {profile.friend_count > 0 && <> · {profile.friend_count} {profile.friend_count === 1 ? 'amigo' : 'amigos'}</>}
             </span>
             {profile.shortcut_apple_pay_at && (
               <span className="text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
@@ -169,7 +172,7 @@ function UserCard({ profile, isPending, onApprove, onReject, onExtend, onSetSub 
             {profile.shortcut_ever_used && !profile.shortcut_apple_pay_at && !profile.shortcut_quick_register_at && (
               <span className="text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
                 style={{ background: 'rgba(191,90,242,0.12)', color: '#bf5af2' }}
-                title="Atajo usado pero sin source — atajo antiguo">
+                title="Atajo usado — fuente no identificada">
                 <i className="fa-solid fa-bolt text-[9px]" /> Atajo ✓
               </span>
             )}

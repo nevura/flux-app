@@ -61,6 +61,9 @@ export async function POST(req: NextRequest) {
   }
   await supabaseAdmin.from('shortcut_tokens').update(sourceUpdate).eq('token', token)
 
+  // Derive transaction-level source from which column was set
+  const txSource = sourceUpdate.apple_pay_last_used_at ? 'apple_pay' : 'quick_register'
+
   // Accept many common Spanish variants for field names
   const body: ShortcutPayload = {
     amount:      raw.amount      ?? raw.cantidad   ?? raw.monto,
@@ -164,6 +167,7 @@ export async function POST(req: NextRequest) {
       category_id: null, account_id: accountId,
       destination_account_id: destId,
       transaction_date: date, is_validated: false,
+      source: txSource,
     })
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   } else {
@@ -176,8 +180,9 @@ export async function POST(req: NextRequest) {
       category_id: categoryId,
       account_id: accountId,
       transaction_date: date,
-      is_validated: false, // Apple Pay always requires manual confirmation
+      is_validated: false,
       notes: body.notes ?? null,
+      source: txSource,
     })
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   }

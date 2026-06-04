@@ -126,7 +126,7 @@ export async function addTransaction(form: TransactionForm) {
       type: form.type,
       amount,
       // IOWE (is_payable): money hasn't left the account yet — adjustment = 0
-      adjustment: isPayable ? 0 : adjustmentFor(form.type, amount),
+      adjustment: adjustmentFor(form.type, amount),
       category_id: form.category_id || null,
       account_id: form.account_id,
       transaction_date: date,
@@ -231,7 +231,7 @@ export async function updateTransaction(id: string, form: TransactionForm) {
     .update({
       concept: form.concept, type: form.type,
       amount,
-      adjustment: isPayable ? 0 : adjustmentFor(form.type, amount),
+      adjustment: adjustmentFor(form.type, amount),
       category_id: form.category_id || null,
       account_id: form.account_id,
       transaction_date: date,
@@ -1010,27 +1010,16 @@ export async function saveBudget(month: number, year: number, amount: number) {
   return { error: null }
 }
 
-// Settles an IOWE (is_payable) transaction: money actually leaves the account.
+// Marks an IOWE (is_payable) transaction as settled.
+// Adjustment was already applied at creation — only the flag changes here.
 export async function settlePayable(txId: string): Promise<{ error: string | null }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autorizado' }
 
-  const { data: tx } = await supabase
-    .from('transactions')
-    .select('amount, type')
-    .eq('id', txId)
-    .eq('user_id', user.id)
-    .single()
-  if (!tx) return { error: 'No encontrado' }
-
   const { error } = await supabase
     .from('transactions')
-    .update({
-      is_payable: false,
-      adjustment: adjustmentFor(tx.type, Number(tx.amount)),
-      is_validated: true,
-    })
+    .update({ is_payable: false, is_validated: true })
     .eq('id', txId)
     .eq('user_id', user.id)
 
