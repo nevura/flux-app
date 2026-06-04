@@ -257,11 +257,12 @@ export default function SupportChat({ onBack }: Props = {}) {
           position: 'fixed',
           top: 0, left: 0, right: 0,
           height: '100dvh',
+          overflow: 'hidden',
           zIndex: 200,
           background: 'var(--f-bg)',
         }}
       >
-        {/* Header */}
+        {/* Nav header — always fixed */}
         <header
           style={{
             flexShrink: 0,
@@ -297,16 +298,17 @@ export default function SupportChat({ onBack }: Props = {}) {
               Soporte
             </h1>
           </div>
+          {/* Contact info — fixed below nav, not scrollable */}
+          {contactHeader}
         </header>
 
-        {/* Messages */}
+        {/* Messages — scrollable only */}
         {loading ? (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <i className="fa-solid fa-spinner fa-spin text-2xl" style={{ color: 'var(--f-text-4)' }} />
           </div>
         ) : (
           <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '0 16px', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column' }}>
-            {contactHeader}
             {messageList}
           </div>
         )}
