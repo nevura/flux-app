@@ -98,6 +98,65 @@ export async function getAdminProfiles(): Promise<AdminProfile[]> {
   })) as AdminProfile[]
 }
 
+export interface AdminMetrics {
+  users: { total: number; approved: number; pending: number; rejected: number }
+  subs: { trialing: number; active: number; expired: number; grace: number }
+  shortcuts: { ever_used: number; never_used: number; total_approved: number }
+  activity: { active_7d: number; inactive_7d: number }
+  emails: { trial_expiring: number; shortcut_reminder: number; reengagement: number }
+}
+
+export async function getAdminMetrics(): Promise<AdminMetrics> {
+  const admin = createAdminClient()
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+
+  const [{ data: profiles }, { data: recentTx }, { data: tokenData }, { data: notifData }] = await Promise.all([
+    (admin.from('profiles') as any).select('id, status, subscription_status'),
+    (admin.from('transactions') as any).select('user_id').gte('created_at', sevenDaysAgo),
+    (admin.from('shortcut_tokens') as any).select('user_id, last_used_at'),
+    (admin.from('notifications') as any)
+      .select('user_id, type')
+      .in('type', ['trial_expiring', 'shortcut_reminder', 'reengagement']),
+  ])
+
+  const allProfiles: any[] = profiles ?? []
+  const approvedIds = new Set(allProfiles.filter(p => p.status === 'approved').map(p => p.id))
+
+  // User counts
+  const total     = allProfiles.length
+  const approved  = allProfiles.filter(p => p.status === 'approved').length
+  const pending   = allProfiles.filter(p => p.status === 'pending').length
+  const rejected  = allProfiles.filter(p => p.status === 'rejected').length
+  const trialing  = allProfiles.filter(p => p.subscription_status === 'trialing').length
+  const active    = allProfiles.filter(p => p.subscription_status === 'active').length
+  const expired   = allProfiles.filter(p => ['expired', 'past_due', 'unpaid', 'incomplete', 'incomplete_expired'].includes(p.subscription_status)).length
+  const grace     = allProfiles.filter(p => p.subscription_status === 'grace').length
+
+  // Shortcut usage (only approved users)
+  const usedSet = new Set((tokenData ?? []).filter((t: any) => t.last_used_at).map((t: any) => t.user_id))
+  const shortcutEverUsed  = [...approvedIds].filter(id => usedSet.has(id)).length
+  const shortcutNeverUsed = [...approvedIds].filter(id => !usedSet.has(id)).length
+
+  // Activity last 7 days (approved users with at least one tx)
+  const activeUserIds = new Set((recentTx ?? []).map((t: any) => t.user_id))
+  const active7d   = [...approvedIds].filter(id => activeUserIds.has(id)).length
+  const inactive7d = [...approvedIds].filter(id => !activeUserIds.has(id)).length
+
+  // Notification / email counts
+  const notifs: any[] = notifData ?? []
+  const trialExpiring   = new Set(notifs.filter(n => n.type === 'trial_expiring').map(n => n.user_id)).size
+  const shortcutReminder = new Set(notifs.filter(n => n.type === 'shortcut_reminder').map(n => n.user_id)).size
+  const reengagement    = new Set(notifs.filter(n => n.type === 'reengagement').map(n => n.user_id)).size
+
+  return {
+    users: { total, approved, pending, rejected },
+    subs: { trialing, active, expired, grace },
+    shortcuts: { ever_used: shortcutEverUsed, never_used: shortcutNeverUsed, total_approved: approved },
+    activity: { active_7d: active7d, inactive_7d: inactive7d },
+    emails: { trial_expiring: trialExpiring, shortcut_reminder: shortcutReminder, reengagement },
+  }
+}
+
 export async function setUserAccountStatus(userId: string, status: 'approved' | 'rejected') {
   await verifyAdmin()
   const admin = createAdminClient()
