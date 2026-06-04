@@ -192,6 +192,38 @@ export async function sendSupportReplyEmail(opts: { to: string; userName: string
   return send(opts.to, 'Respuesta a tu mensaje de soporte — FluxApp Finance', html)
 }
 
+// ── Re-engagement & shortcut reminder ───────────────────────────────────────
+
+export async function sendReengagementEmail(opts: { to: string; userName: string; daysSince: number; hasShortcut: boolean }) {
+  const days = opts.daysSince
+  const dayLabel = days === 1 ? 'ayer' : `hace ${days} días`
+  const html = base(
+    `¿Cómo van tus finanzas?`,
+    `<p style="color:#6E6E73;margin:0 0 16px">Hola <strong style="color:#1D1D1F">${opts.userName}</strong>, tu último movimiento fue ${dayLabel}.</p>
+     <p style="color:#6E6E73;margin:0 0 16px">Registrar tus gastos consistentemente es lo que hace que FluxApp Finance funcione — entre más datos tienes, mejor ves a dónde va tu dinero.</p>
+     ${!opts.hasShortcut ? `<div style="background:#F5F5F7;border-radius:12px;padding:16px;border:1px solid rgba(0,0,0,0.06);margin-bottom:16px">
+       <p style="color:#1D1D1F;font-size:14px;font-weight:700;margin:0 0 6px">💡 Truco: instala el Atajo de Apple Pay</p>
+       <p style="color:#6E6E73;font-size:13px;margin:0">Registra gastos automáticamente al pagar — sin abrir la app. Ve a Configuración → Atajos.</p>
+     </div>` : ''}`,
+    { url: APP_URL, label: 'Registrar un movimiento' },
+  )
+  return send(opts.to, `¿Cómo van tus finanzas, ${opts.userName}?`, html)
+}
+
+export async function sendShortcutReminderEmail(opts: { to: string; userName: string }) {
+  const html = base(
+    'Registra gastos sin abrir la app ⚡',
+    `<p style="color:#6E6E73;margin:0 0 16px">Hola <strong style="color:#1D1D1F">${opts.userName}</strong>, aún no has instalado el Atajo de Apple Pay.</p>
+     ${card(`<p style="color:#1D1D1F;font-size:15px;font-weight:700;margin:0 0 8px">¿Qué hace el Atajo?</p>
+             <p style="color:#6E6E73;font-size:14px;margin:0 0 6px">• Cada vez que pagas con Apple Pay, Flux registra el gasto automáticamente</p>
+             <p style="color:#6E6E73;font-size:14px;margin:0 0 6px">• No tienes que abrir la app ni recordar el monto</p>
+             <p style="color:#6E6E73;font-size:14px;margin:0">• Tarda menos de 2 minutos en configurar</p>`)}
+     <p style="color:#6E6E73;font-size:13px;margin:16px 0 0">Ve a <strong style="color:#1D1D1F">Configuración → Atajos</strong> dentro de la app para instalarlo.</p>`,
+    { url: `${APP_URL}/settings`, label: 'Instalar Atajo de Apple Pay', color: '#bf5af2' },
+  )
+  return send(opts.to, 'Registra gastos sin abrir la app — Atajo de Apple Pay', html)
+}
+
 // ── Friends ──────────────────────────────────────────────────────────────────
 
 export async function sendFriendRequestEmail(opts: {

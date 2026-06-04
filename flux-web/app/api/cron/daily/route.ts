@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { adjustmentFor, getMexicoNow, nextRecurringDate, formatCurrency } from '@/lib/utils'
-import { sendTdcReminderEmail, sendMonthlyAdjustmentEmail, sendTrialExpiryEmail } from '@/lib/email'
+import { sendTdcReminderEmail, sendMonthlyAdjustmentEmail, sendTrialExpiryEmail, sendShortcutReminderEmail, sendReengagementEmail } from '@/lib/email'
 
 export const maxDuration = 60
 
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   const todayStr = getMexicoNow().slice(0, 10) // 'YYYY-MM-DD'
   const today    = new Date(todayStr)
 
-  const results = { recurring: 0, tdc: 0, adjustment: 0, trialWarnings: 0, errors: [] as string[] }
+  const results = { recurring: 0, tdc: 0, adjustment: 0, trialWarnings: 0, shortcutReminders: 0, reengagements: 0, errors: [] as string[] }
 
   // Collect user emails for grouped recurring charge notification
   const recurringByUser: Record<string, { email: string; items: { name: string; amount: number }[] }> = {}
@@ -242,6 +242,153 @@ export async function GET(request: Request) {
       results.trialWarnings++
     } catch (e) {
       results.errors.push(`trial_expiry(${p.id}): ${String(e)}`)
+    }
+  }
+
+  // ── 6. Recordatorio de Atajo (usuarios que nunca lo han usado) ───────────────
+  // Only run on Tuesdays (day 2) to keep a predictable weekly cadence
+  if (today.getDay() === 2) {
+    const threeDaysAgo = new Date(today)
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
+
+    // Get approved active users who signed up at least 3 days ago
+    const { data: candidates } = await (admin.from('profiles') as any)
+      .select('id, email, full_name')
+      .eq('status', 'approved')
+      .in('subscription_status', ['trialing', 'active'])
+      .lte('created_at', threeDaysAgo.toISOString())
+      .not('email', 'is', null)
+
+    // Get which of those users have EVER used a shortcut
+    const candidateIds: string[] = (candidates ?? []).map((p: any) => p.id)
+    const { data: usedTokens } = candidateIds.length > 0
+      ? await (admin.from('shortcut_tokens') as any)
+          .select('user_id')
+          .in('user_id', candidateIds)
+          .not('last_used_at', 'is', null)
+      : { data: [] }
+
+    const usedSet = new Set((usedTokens ?? []).map((t: any) => t.user_id))
+
+    // 14-day dedup window
+    const dedup14dAgo = new Date(today)
+    dedup14dAgo.setDate(dedup14dAgo.getDate() - 14)
+
+    for (const p of (candidates ?? [])) {
+      if (usedSet.has(p.id)) continue  // already using shortcuts
+
+      try {
+        const { data: alreadySent } = await (admin.from('notifications') as any)
+          .select('id')
+          .eq('user_id', p.id)
+          .eq('type', 'shortcut_reminder')
+          .gte('created_at', dedup14dAgo.toISOString())
+          .maybeSingle()
+
+        if (alreadySent) continue
+
+        await (admin.from('notifications') as any).insert({
+          user_id: p.id,
+          type: 'shortcut_reminder',
+          data: {},
+        })
+
+        const userName = p.full_name ?? p.email?.split('@')[0] ?? 'ahí'
+        sendShortcutReminderEmail({ to: p.email, userName }).catch(() => {})
+        results.shortcutReminders++
+      } catch (e) {
+        results.errors.push(`shortcut_reminder(${p.id}): ${String(e)}`)
+      }
+    }
+  }
+
+  // ── 7. Re-engagement para usuarios inactivos (sin movimientos en 7+ días) ───
+  // Run every day — dedup prevents over-sending
+  {
+    const sevenDaysAgo = new Date(today)
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+    const threeDaysAgo = new Date(today)
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
+
+    const { data: activeUsers } = await (admin.from('profiles') as any)
+      .select('id, email, full_name')
+      .eq('status', 'approved')
+      .in('subscription_status', ['trialing', 'active'])
+      .lte('created_at', threeDaysAgo.toISOString())
+      .not('email', 'is', null)
+
+    if ((activeUsers ?? []).length > 0) {
+      const activeIds: string[] = (activeUsers ?? []).map((p: any) => p.id)
+
+      // Get latest transaction per user (just user_id + created_at)
+      const { data: recentTx } = await (admin.from('transactions') as any)
+        .select('user_id, created_at')
+        .in('user_id', activeIds)
+        .gte('created_at', sevenDaysAgo.toISOString())
+
+      const activeUserIds = new Set((recentTx ?? []).map((t: any) => t.user_id))
+
+      // Get all transactions to compute last date for inactive users
+      const { data: lastTxAll } = await (admin.from('transactions') as any)
+        .select('user_id, created_at')
+        .in('user_id', activeIds)
+        .order('created_at', { ascending: false })
+        .limit(activeIds.length * 2)
+
+      const lastTxMap: Record<string, string> = {}
+      for (const t of (lastTxAll ?? [])) {
+        if (!lastTxMap[t.user_id]) lastTxMap[t.user_id] = t.created_at
+      }
+
+      // shortcut usage map for inactive users
+      const { data: shortcutTokens } = await (admin.from('shortcut_tokens') as any)
+        .select('user_id, last_used_at')
+        .in('user_id', activeIds)
+
+      const shortcutUsedMap: Record<string, boolean> = {}
+      for (const tok of (shortcutTokens ?? [])) {
+        if (tok.last_used_at) shortcutUsedMap[tok.user_id] = true
+      }
+
+      const dedup7dAgo = new Date(today)
+      dedup7dAgo.setDate(dedup7dAgo.getDate() - 7)
+
+      for (const p of (activeUsers ?? [])) {
+        if (activeUserIds.has(p.id)) continue  // had recent activity
+
+        try {
+          const { data: alreadySent } = await (admin.from('notifications') as any)
+            .select('id')
+            .eq('user_id', p.id)
+            .eq('type', 'reengagement')
+            .gte('created_at', dedup7dAgo.toISOString())
+            .maybeSingle()
+
+          if (alreadySent) continue
+
+          const lastTxAt = lastTxMap[p.id]
+          const daysSince = lastTxAt
+            ? Math.floor((today.getTime() - new Date(lastTxAt).getTime()) / (1000 * 60 * 60 * 24))
+            : 7
+
+          await (admin.from('notifications') as any).insert({
+            user_id: p.id,
+            type: 'reengagement',
+            data: { days_since: String(daysSince) },
+          })
+
+          const userName = p.full_name ?? p.email?.split('@')[0] ?? 'ahí'
+          sendReengagementEmail({
+            to: p.email,
+            userName,
+            daysSince,
+            hasShortcut: !!shortcutUsedMap[p.id],
+          }).catch(() => {})
+          results.reengagements++
+        } catch (e) {
+          results.errors.push(`reengagement(${p.id}): ${String(e)}`)
+        }
+      }
     }
   }
 

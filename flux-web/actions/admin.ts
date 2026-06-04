@@ -41,6 +41,8 @@ export interface AdminProfile {
   updated_at: string
   tx_count: number
   acc_count: number
+  shortcut_ever_used: boolean
+  shortcut_last_used_at: string | null
 }
 
 export interface SupportTicket {
@@ -61,10 +63,11 @@ export async function getAdminProfiles(): Promise<AdminProfile[]> {
   // they may not be available, causing false "No autorizado" errors.
   const admin = createAdminClient()
 
-  const [{ data: profiles }, { data: txData }, { data: accData }] = await Promise.all([
+  const [{ data: profiles }, { data: txData }, { data: accData }, { data: tokenData }] = await Promise.all([
     (admin.from('profiles') as any).select('id, email, full_name, username, phone, status, subscription_status, stripe_customer_id, trial_ends_at, subscription_ends_at, onboarding_completed, created_at, updated_at').order('created_at', { ascending: false }),
     (admin.from('transactions') as any).select('user_id'),
     (admin.from('accounts') as any).select('user_id, is_active'),
+    (admin.from('shortcut_tokens') as any).select('user_id, last_used_at'),
   ])
 
   const txMap: Record<string, number> = {}
@@ -75,10 +78,23 @@ export async function getAdminProfiles(): Promise<AdminProfile[]> {
     if (a.is_active) accMap[a.user_id] = (accMap[a.user_id] ?? 0) + 1
   }
 
+  // shortcut: track if user has ever used any of their tokens
+  const shortcutUsedMap: Record<string, string | null> = {}
+  for (const tok of tokenData ?? []) {
+    if (tok.last_used_at) {
+      const prev = shortcutUsedMap[tok.user_id]
+      if (!prev || tok.last_used_at > prev) shortcutUsedMap[tok.user_id] = tok.last_used_at
+    } else if (!(tok.user_id in shortcutUsedMap)) {
+      shortcutUsedMap[tok.user_id] = null
+    }
+  }
+
   return (profiles ?? []).map((p: any) => ({
     ...p,
     tx_count: txMap[p.id] ?? 0,
     acc_count: accMap[p.id] ?? 0,
+    shortcut_ever_used: !!shortcutUsedMap[p.id],
+    shortcut_last_used_at: shortcutUsedMap[p.id] ?? null,
   })) as AdminProfile[]
 }
 

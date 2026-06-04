@@ -143,6 +143,18 @@ function UserCard({ profile, isPending, onApprove, onReject, onExtend, onSetSub 
             <span className="text-[12px] font-medium" style={{ color: GRAY }}>
               {profile.tx_count} mov · {profile.acc_count} ctas
             </span>
+            <span
+              className="text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
+              style={profile.shortcut_ever_used
+                ? { background: 'rgba(191,90,242,0.12)', color: '#bf5af2' }
+                : { background: 'rgba(0,0,0,0.06)', color: GRAY }}
+              title={profile.shortcut_ever_used
+                ? `Atajo usado ${profile.shortcut_last_used_at ? fmtDate(profile.shortcut_last_used_at) : ''}`
+                : 'Atajo no instalado'}
+            >
+              <i className="fa-solid fa-bolt text-[9px]" />
+              {profile.shortcut_ever_used ? 'Atajo ✓' : 'Sin atajo'}
+            </span>
           </div>
         </div>
 

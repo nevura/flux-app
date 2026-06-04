@@ -95,6 +95,8 @@ export type NotificationType =
   | 'tdc_due'
   | 'budget_alert'
   | 'trial_expiring'
+  | 'shortcut_reminder'
+  | 'reengagement'
 
 export interface Notification {
   id: string
