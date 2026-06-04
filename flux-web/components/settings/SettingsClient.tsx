@@ -10,6 +10,7 @@ import { getCategoryDisplay, getPaymentMethod, formatCurrency } from '@/lib/util
 import { STATIC_ICONS, STATIC_COLORS, PAYMENT_METHODS, SHORTCUT_LINKS } from '@/lib/constants'
 import { saveCategory, deleteCategory, saveAccount, deleteAccount, reorderAccounts, saveScheduled, deleteScheduled, updateProfile, saveDefaultBudget, updateThemePreference, addPerson, updatePerson, deletePerson } from '@/actions/config'
 import SupportChat from '@/components/support/SupportChat'
+import { getUserUnreadCount } from '@/actions/support-chat'
 import { exportTransactionsCSV, importTransactions, type ImportRow } from '@/actions/data'
 import { setUsername, updatePhone, checkUsernameAvailable, linkPersonToUser } from '@/actions/friends'
 import type { Profile, Category, Account, ScheduledTransaction, Person, PublicProfile } from '@/lib/types'
@@ -117,6 +118,8 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
   })
   const [isPending, startTransition] = useTransition()
   const [theme, setTheme] = useState<'dark' | 'light'>(profile?.theme_preference ?? 'dark')
+  const [supportUnread, setSupportUnread] = useState(0)
+  useEffect(() => { getUserUnreadCount().then(setSupportUnread) }, [])
 
   function applyTheme(t: 'dark' | 'light') {
     setTheme(t)
@@ -606,9 +609,14 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                       ? 'Flux Pro · Activo'
                       : isPlan && trialDaysLeft !== null
                         ? `${trialDaysLeft} días de prueba`
-                        : s.description}
+                        : s.key === 'soporte' && supportUnread > 0
+                          ? 'Tienes una respuesta nueva'
+                          : s.description}
                   </p>
                 </div>
+                {s.key === 'soporte' && supportUnread > 0 && (
+                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0 mr-1" style={{ background: 'var(--f-blue)' }} />
+                )}
                 <i className="fa-solid fa-chevron-right text-xs" style={{ color: 'var(--f-line-strong)' }} />
               </button>
             )

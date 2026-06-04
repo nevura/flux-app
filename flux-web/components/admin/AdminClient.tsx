@@ -300,7 +300,13 @@ function AdminInbox() {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_messages', filter: `conversation_id=eq.${conv.id}` },
         (payload) => {
           const msg = payload.new as SupportMessage
-          setMessages(prev => prev.find(m => m.id === msg.id) ? prev : [...prev, msg])
+          setMessages(prev => {
+            const withoutOpt = prev.filter(m =>
+              !(m.id.startsWith('opt-') && m.sender === msg.sender && m.body === msg.body)
+            )
+            if (withoutOpt.find(m => m.id === msg.id)) return withoutOpt
+            return [...withoutOpt, msg]
+          })
           setTimeout(() => msgsRef.current?.scrollTo({ top: msgsRef.current.scrollHeight, behavior: 'smooth' }), 80)
         }
       )
@@ -441,23 +447,11 @@ function AdminInbox() {
   )
 }
 
-// ── Filter tabs ───────────────────────────────────────────────────────────────
-const USER_FILTERS = [
-  { id: 'all',      label: 'Todos' },
-  { id: 'pending',  label: 'Pendientes' },
-  { id: 'trialing', label: 'En prueba' },
-  { id: 'active',   label: 'Activos' },
-  { id: 'expired',  label: 'Expirados' },
-  { id: 'rejected', label: 'Rechazados' },
-]
-
 function applyFilter(profiles: AdminProfile[], filter: string) {
   switch (filter) {
-    case 'pending':  return profiles.filter(p => p.status === 'pending')
-    case 'trialing': return profiles.filter(p => p.status === 'approved' && p.subscription_status === 'trialing')
-    case 'active':   return profiles.filter(p => p.status === 'approved' && p.subscription_status === 'active')
-    case 'expired':  return profiles.filter(p => p.status === 'approved' && ['expired','grace','past_due','unpaid','incomplete','incomplete_expired'].includes(p.subscription_status))
-    case 'rejected': return profiles.filter(p => p.status === 'rejected')
+    case 'trialing': return profiles.filter(p => p.subscription_status === 'trialing')
+    case 'active':   return profiles.filter(p => p.subscription_status === 'active')
+    case 'expired':  return profiles.filter(p => ['expired','grace','past_due','unpaid','incomplete','incomplete_expired'].includes(p.subscription_status))
     default:         return profiles
   }
 }
@@ -508,38 +502,16 @@ function MetricsView() {
   return (
     <div className="space-y-8">
 
-      {/* ── Usuarios ── */}
+      {/* ── Usuarios + Suscripciones (fusionados) ── */}
       <section>
         <p className="text-[11px] font-black uppercase tracking-[3px] mb-3" style={{ color: GRAY }}>Usuarios</p>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 mb-3">
           <MetricCard label="Total registrados" value={metrics.users.total} color={DARK} />
-          <MetricCard label="Aprobados" value={metrics.users.approved} color={BLUE} />
-          <MetricCard label="Pendientes" value={metrics.users.pending} color={ORANGE} />
-          <MetricCard label="Rechazados" value={metrics.users.rejected} color={RED} />
+          <MetricCard label="En prueba" value={metrics.subs.trialing} color={BLUE} />
+          <MetricCard label="Activos (pagando)" value={metrics.subs.active} color={GREEN} />
+          <MetricCard label="Gracia" value={metrics.subs.grace} color={ORANGE} />
         </div>
-      </section>
-
-      {/* ── Suscripciones ── */}
-      <section>
-        <p className="text-[11px] font-black uppercase tracking-[3px] mb-3" style={{ color: GRAY }}>Suscripciones</p>
-        <div className="rounded-[20px] p-5 space-y-4" style={{ background: LIGHT, border: '1px solid rgba(0,0,0,0.06)' }}>
-          <div className="flex justify-between items-center">
-            <span className="text-[14px] font-bold" style={{ color: DARK }}>En prueba</span>
-            <span className="text-[20px] font-black tabular-nums" style={{ color: BLUE }}>{metrics.subs.trialing}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-[14px] font-bold" style={{ color: DARK }}>Activos (pagando)</span>
-            <span className="text-[20px] font-black tabular-nums" style={{ color: GREEN }}>{metrics.subs.active}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-[14px] font-bold" style={{ color: DARK }}>Gracia</span>
-            <span className="text-[20px] font-black tabular-nums" style={{ color: ORANGE }}>{metrics.subs.grace}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-[14px] font-bold" style={{ color: DARK }}>Expirados</span>
-            <span className="text-[20px] font-black tabular-nums" style={{ color: RED }}>{metrics.subs.expired}</span>
-          </div>
-        </div>
+        <MetricCard label="Expirados" value={metrics.subs.expired} color={RED} />
       </section>
 
       {/* ── Atajos ── */}
@@ -671,10 +643,10 @@ export default function AdminClient({ profiles }: { profiles: AdminProfile[] }) 
   }, [])
 
   // Metrics
-  const pending  = profiles.filter(p => p.status === 'pending').length
+  const total    = profiles.length
   const trialing = profiles.filter(p => p.subscription_status === 'trialing').length
   const active   = profiles.filter(p => p.subscription_status === 'active').length
-  const expired  = profiles.filter(p => ['expired','grace','past_due','unpaid'].includes(p.subscription_status)).length
+  const expired  = profiles.filter(p => ['expired','grace','past_due','unpaid','incomplete','incomplete_expired'].includes(p.subscription_status)).length
 
   // Revenue (estimate: paying users × $89/mo, annual ≈ same since we don't know plan)
   const mrr = active * 89
@@ -777,7 +749,7 @@ export default function AdminClient({ profiles }: { profiles: AdminProfile[] }) 
           <>
             {/* ── Stats 2×2 grid ── */}
             <div className="grid grid-cols-2 gap-3 mb-5">
-              <StatCard label="Pendientes" value={pending} color={ORANGE} active={filter === 'pending'} onClick={() => setFilter(f => f === 'pending' ? 'all' : 'pending')} />
+              <StatCard label="Total"      value={total}    color={DARK}  active={filter === 'all'}      onClick={() => setFilter('all')} />
               <StatCard label="En prueba"  value={trialing} color={BLUE}  active={filter === 'trialing'} onClick={() => setFilter(f => f === 'trialing' ? 'all' : 'trialing')} />
               <StatCard label="Activos"    value={active}   color={GREEN} active={filter === 'active'}   onClick={() => setFilter(f => f === 'active' ? 'all' : 'active')} />
               <StatCard label="Expirados"  value={expired}  color={RED}   active={filter === 'expired'}  onClick={() => setFilter(f => f === 'expired' ? 'all' : 'expired')} />
@@ -799,27 +771,6 @@ export default function AdminClient({ profiles }: { profiles: AdminProfile[] }) 
               <p className="text-[11px] font-medium mt-3" style={{ color: 'rgba(0,0,0,0.35)' }}>
                 Estimado con plan mensual $89 · Revisa el total real en el Dashboard de Stripe
               </p>
-            </div>
-
-            {/* ── Filter tabs ── */}
-            <div className="-mx-5 px-5 mb-5">
-              <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-                {USER_FILTERS.map(f => {
-                  const isActive = filter === f.id
-                  return (
-                    <button key={f.id} onClick={() => setFilter(f.id)}
-                      className="flex-shrink-0 px-4 py-2 rounded-[10px] text-[13px] font-bold transition-all"
-                      style={isActive ? { background: BLUE, color: '#fff' } : { background: LIGHT, color: GRAY, border: '1px solid rgba(0,0,0,0.07)' }}>
-                      {f.label}
-                      {f.id === 'pending' && pending > 0 && !isActive && (
-                        <span className="ml-1.5 inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-black text-white" style={{ background: ORANGE }}>
-                          {pending}
-                        </span>
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
             </div>
 
             {/* ── Search ── */}

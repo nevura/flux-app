@@ -130,6 +130,24 @@ export async function sendUserMessage(conversationId: string, body: string): Pro
   return { error: null }
 }
 
+/** Get count of unread admin messages for the current user (without creating a conversation). */
+export async function getUserUnreadCount(): Promise<number> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return 0
+
+  const { data } = await supabase
+    .from('support_conversations' as any)
+    .select('unread_user')
+    .eq('user_id', user.id)
+    .eq('status', 'open')
+    .order('last_message_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  return (data as any)?.unread_user ?? 0
+}
+
 /** Mark the user's unread messages as read. */
 export async function markReadByUser(conversationId: string) {
   const supabase = await createClient()

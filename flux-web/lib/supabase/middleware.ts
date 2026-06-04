@@ -27,7 +27,7 @@ export async function updateSession(request: NextRequest) {
   const isAuthRoute     = path.startsWith('/login') || path.startsWith('/signup')
   const isAuthCallback  = path.startsWith('/auth/')
   const isApiRoute      = path.startsWith('/api/')
-  const isStatusRoute   = path.startsWith('/pending') || path.startsWith('/rejected')
+  const isStatusRoute   = path.startsWith('/pending') || path.startsWith('/rejected') || path.startsWith('/expired')
   const isMarketingRoute = path === '/' || path.startsWith('/terminos') || path.startsWith('/privacidad') || path.startsWith('/guia')
 
   if (!user && !isAuthRoute && !isAuthCallback && !isApiRoute && !isMarketingRoute) {
@@ -53,6 +53,12 @@ export async function updateSession(request: NextRequest) {
     if (profile?.status === 'rejected') {
       const url = request.nextUrl.clone()
       url.pathname = '/rejected'
+      return NextResponse.redirect(url)
+    }
+
+    if (profile?.subscription_status === 'expired') {
+      const url = request.nextUrl.clone()
+      url.pathname = '/expired'
       return NextResponse.redirect(url)
     }
 
