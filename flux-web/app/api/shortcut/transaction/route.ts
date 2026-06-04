@@ -49,6 +49,15 @@ export async function POST(req: NextRequest) {
     sourceUpdate.apple_pay_last_used_at = now
   } else if (source === 'quick_register' || source === 'rapido' || source === 'quick') {
     sourceUpdate.quick_register_last_used_at = now
+  } else {
+    // Fallback for old shortcuts without source field:
+    // detect Apple Pay by its characteristic note, otherwise assume quick_register
+    const notesVal = ((raw?.notes ?? raw?.notas ?? '') as string).toLowerCase()
+    if (notesVal.includes('apple pay')) {
+      sourceUpdate.apple_pay_last_used_at = now
+    } else {
+      sourceUpdate.quick_register_last_used_at = now
+    }
   }
   await supabaseAdmin.from('shortcut_tokens').update(sourceUpdate).eq('token', token)
 

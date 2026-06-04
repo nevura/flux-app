@@ -125,8 +125,8 @@ export const MONTHS_ES = [
   'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre',
 ]
 
-// Shortcut iCloud share links (update once shortcuts are published)
+// Shortcut iCloud share links
 export const SHORTCUT_LINKS = {
-  applePay: 'https://www.icloud.com/shortcuts/02c308c935ca4c8585352671f07a58f1',
-  quickEntry: 'https://www.icloud.com/shortcuts/bff349263a9b4ee89cb097d6dc658e5b',
+  applePay: 'https://www.icloud.com/shortcuts/8ed8c9e88af8415e92ef6caebba4cb12',
+  quickEntry: 'https://www.icloud.com/shortcuts/ceb9ed9baada4f5ebc77fc66af545e33',
 }
