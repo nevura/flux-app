@@ -161,6 +161,7 @@ export default function SupportChat({ onBack }: Props = {}) {
 
   const messageList = (
     <>
+      <div style={{ flex: 1 }} />
       {messages.length === 0 && emptyState}
       {grouped.map(group => (
         <div key={group.date}>
@@ -304,7 +305,7 @@ export default function SupportChat({ onBack }: Props = {}) {
             <i className="fa-solid fa-spinner fa-spin text-2xl" style={{ color: 'var(--f-text-4)' }} />
           </div>
         ) : (
-          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '0 16px', overscrollBehavior: 'contain' }}>
+          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '0 16px', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column' }}>
             {contactHeader}
             {messageList}
           </div>

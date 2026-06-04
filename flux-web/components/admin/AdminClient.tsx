@@ -362,8 +362,9 @@ function AdminInbox() {
         </div>
       </div>
 
-      {/* Messages — scrollable area that fills remaining space */}
-      <div ref={msgsRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-1" style={{ overscrollBehavior: 'contain', minHeight: 0 }}>
+      {/* Messages — scrollable, messages anchored to bottom (WhatsApp style) */}
+      <div ref={msgsRef} style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', display: 'flex', flexDirection: 'column', padding: '12px 16px' }}>
+        <div style={{ flex: 1 }} />
         {messages.map(msg => {
           const isAdmin = msg.sender === 'admin'
           return (
@@ -690,7 +691,7 @@ export default function AdminClient({ profiles }: { profiles: AdminProfile[] }) 
     <div style={{ background: '#fff', minHeight: '100vh', color: DARK }}>
       {/* ── Top bar ── */}
       <header className="sticky top-0 z-40"
-        style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+        style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(0,0,0,0.08)', paddingTop: 'env(safe-area-inset-top, 0px)' }}>
         <div className="max-w-3xl mx-auto px-5 h-[56px] flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <span className="text-[20px] font-black tracking-tight" style={{ color: BLUE }}>fluxapp</span>
