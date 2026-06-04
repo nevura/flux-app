@@ -505,13 +505,13 @@ function MetricsView() {
       {/* ── Usuarios + Suscripciones (fusionados) ── */}
       <section>
         <p className="text-[11px] font-black uppercase tracking-[3px] mb-3" style={{ color: GRAY }}>Usuarios</p>
-        <div className="grid grid-cols-2 gap-3 mb-3">
-          <MetricCard label="Total registrados" value={metrics.users.total} color={DARK} />
+        <MetricCard label="Total registrados" value={metrics.users.total} color={DARK} />
+        <div className="grid grid-cols-2 gap-3 mt-3">
           <MetricCard label="En prueba" value={metrics.subs.trialing} color={BLUE} />
           <MetricCard label="Activos (pagando)" value={metrics.subs.active} color={GREEN} />
           <MetricCard label="Gracia" value={metrics.subs.grace} color={ORANGE} />
+          <MetricCard label="Expirados" value={metrics.subs.expired} color={RED} />
         </div>
-        <MetricCard label="Expirados" value={metrics.subs.expired} color={RED} />
       </section>
 
       {/* ── Atajos ── */}
