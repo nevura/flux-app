@@ -85,17 +85,32 @@ export const COACH_MARKS: Record<string, CoachMarkStep[]> = {
     {
       target: 'settings-profile-header',
       title: 'Tu perfil',
-      description: 'Toca aquí para editar tu nombre, @usuario y teléfono.',
+      description: 'Toca aquí para editar tu nombre, @usuario y foto. Tu @usuario permite que amigos te encuentren para dividir gastos.',
     },
     {
-      target: 'settings-atajos',
-      title: 'Atajos de iPhone ⚡',
-      description: 'Instala el Atajo de Apple Pay y registra gastos automáticamente al pagar. Solo toma 2 minutos configurarlo.',
+      target: 'settings-section-shortcuts',
+      title: '⚡ Instala los Atajos de iPhone',
+      description: 'El Atajo de Apple Pay registra tus gastos automáticamente cada vez que pagas. Toma menos de 2 minutos instalar. ¡Es la función más útil de Flux!',
     },
     {
-      target: 'settings-list',
-      title: 'Secciones de configuración',
-      description: 'Cuentas, categorías, recurrentes, personas, presupuesto, apariencia, plan y guía — todo aquí.',
+      target: 'settings-section-cuentas',
+      title: 'Configura tus cuentas',
+      description: 'Agrega cada tarjeta o fuente de dinero. El nombre debe coincidir EXACTAMENTE con el nombre en Wallet para que el Atajo funcione.',
+    },
+    {
+      target: 'settings-section-planificados',
+      title: 'Transacciones recurrentes',
+      description: 'Configura Netflix, renta, nómina — todo lo que se repite. Flux los registra automáticamente. Toca "Nuevo" y define la fecha de cobro y la frecuencia.',
+    },
+    {
+      target: 'settings-section-suscripcion',
+      title: 'Tu plan',
+      description: 'Gestiona tu suscripción y período de prueba. Puedes cancelar en cualquier momento — conservas acceso hasta el final del período pagado.',
+    },
+    {
+      target: 'settings-section-soporte',
+      title: 'Soporte',
+      description: '¿Tienes alguna duda o problema? Escríbenos aquí y te respondemos directo en la app y por correo.',
     },
   ],
 }

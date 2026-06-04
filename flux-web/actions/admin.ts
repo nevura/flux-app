@@ -45,6 +45,7 @@ export interface AdminProfile {
   shortcut_last_used_at: string | null
   shortcut_apple_pay_at: string | null
   shortcut_quick_register_at: string | null
+  friend_count: number
 }
 
 export interface SupportTicket {
@@ -65,11 +66,12 @@ export async function getAdminProfiles(): Promise<AdminProfile[]> {
   // they may not be available, causing false "No autorizado" errors.
   const admin = createAdminClient()
 
-  const [{ data: profiles }, { data: txData }, { data: accData }, { data: tokenData }] = await Promise.all([
+  const [{ data: profiles }, { data: txData }, { data: accData }, { data: tokenData }, { data: friendData }] = await Promise.all([
     (admin.from('profiles') as any).select('id, email, full_name, username, phone, status, subscription_status, stripe_customer_id, trial_ends_at, subscription_ends_at, onboarding_completed, created_at, updated_at').order('created_at', { ascending: false }),
     (admin.from('transactions') as any).select('user_id'),
     (admin.from('accounts') as any).select('user_id, is_active'),
     (admin.from('shortcut_tokens') as any).select('user_id, last_used_at, apple_pay_last_used_at, quick_register_last_used_at'),
+    (admin.from('friendships') as any).select('requester_id, addressee_id').eq('status', 'accepted'),
   ])
 
   const txMap: Record<string, number> = {}
@@ -93,6 +95,12 @@ export async function getAdminProfiles(): Promise<AdminProfile[]> {
       shortcutMap[uid].quick_register = tok.quick_register_last_used_at
   }
 
+  const friendMap: Record<string, number> = {}
+  for (const f of friendData ?? []) {
+    friendMap[f.requester_id] = (friendMap[f.requester_id] ?? 0) + 1
+    friendMap[f.addressee_id] = (friendMap[f.addressee_id] ?? 0) + 1
+  }
+
   return (profiles ?? []).map((p: any) => ({
     ...p,
     tx_count: txMap[p.id] ?? 0,
@@ -101,6 +109,7 @@ export async function getAdminProfiles(): Promise<AdminProfile[]> {
     shortcut_last_used_at: shortcutMap[p.id]?.last ?? null,
     shortcut_apple_pay_at: shortcutMap[p.id]?.apple_pay ?? null,
     shortcut_quick_register_at: shortcutMap[p.id]?.quick_register ?? null,
+    friend_count: friendMap[p.id] ?? 0,
   })) as AdminProfile[]
 }
 

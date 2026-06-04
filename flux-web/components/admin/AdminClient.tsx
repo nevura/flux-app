@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import {
@@ -143,6 +144,7 @@ function UserCard({ profile, isPending, onApprove, onReject, onExtend, onSetSub 
             </span>
             <span className="text-[12px] font-medium" style={{ color: GRAY }}>
               {profile.tx_count} mov · {profile.acc_count} ctas
+              {profile.friend_count > 0 && <> · {profile.friend_count} {profile.friend_count === 1 ? 'amigo' : 'amigos'}</>}
             </span>
             {profile.shortcut_apple_pay_at && (
               <span className="text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
@@ -645,11 +647,19 @@ function MetricsView() {
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function AdminClient({ profiles }: { profiles: AdminProfile[] }) {
+  const router = useRouter()
   const [view, setView]     = useState<'users' | 'inbox' | 'metrics'>('users')
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [isPending, startTransition] = useTransition()
   const [unreadTickets, setUnreadTickets] = useState(0)
+  const [refreshing, setRefreshing] = useState(false)
+
+  function handleRefresh() {
+    setRefreshing(true)
+    router.refresh()
+    setTimeout(() => setRefreshing(false), 1200)
+  }
 
   useEffect(() => {
     getAdminConversations().then(convs => {
@@ -706,8 +716,14 @@ export default function AdminClient({ profiles }: { profiles: AdminProfile[] }) 
             <span className="text-[20px] font-black tracking-tight" style={{ color: BLUE }}>fluxapp</span>
             <span className="text-[13px] font-black px-2.5 py-0.5 rounded-full" style={{ background: 'rgba(0,122,255,0.10)', color: BLUE }}>admin</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {isPending && <i className="fa-solid fa-spinner fa-spin text-sm" style={{ color: BLUE }} />}
+            <button onClick={handleRefresh}
+              className="w-9 h-9 rounded-[10px] flex items-center justify-center transition-all active:scale-90"
+              style={{ background: LIGHT, color: GRAY }}
+              title="Actualizar datos">
+              <i className={`fa-solid fa-rotate-right text-[14px] ${refreshing ? 'animate-spin' : ''}`} />
+            </button>
             <Link href="/home" className="text-[13px] font-bold px-3 py-1.5 rounded-[10px]"
               style={{ background: LIGHT, color: GRAY }}>← App</Link>
           </div>

@@ -10,6 +10,7 @@ import { getCategoryDisplay, getMexicoNow } from '@/lib/utils'
 import { useBottomSheetSwipe } from '@/lib/hooks/useBottomSheetSwipe'
 import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock'
 import type { Transaction, AccountWithBalance, Category, Person, SplitData } from '@/lib/types'
+import ModalTip from './ModalTip'
 
 interface Props {
   transaction: Transaction | null
@@ -503,6 +504,18 @@ export default function TransactionModal({ transaction, accounts, categories, pe
               />
             </div>
 
+            {/* First-use tip for exclude */}
+            {type === 'TR-GASTO' && excludeMode !== 'none' && (
+              <ModalTip
+                tipKey="exclude_budget"
+                icon="fa-solid fa-eye-slash"
+                iconColor="#FF9F0A"
+                iconBg="rgba(255,159,10,0.08)"
+                title="Excluido del presupuesto"
+                body="Este gasto no contará en tu límite mensual ni en las estadísticas. Ideal para gastos extraordinarios como viajes o médicos."
+              />
+            )}
+
             {/* Exclude toggle */}
             {type === 'TR-GASTO' && (
               <div className="space-y-2">
@@ -599,6 +612,18 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                     </span>
                   </button>
                 </div>
+
+                {/* First-use tips for shared features */}
+                {!splitEnabled && !iOweEnabled && (
+                  <ModalTip
+                    tipKey="share_iowe"
+                    icon="fa-solid fa-lightbulb"
+                    iconColor="var(--f-transfer)"
+                    iconBg="var(--f-transfer-bg)"
+                    title="Divide gastos con otras personas"
+                    body="'Compartir gasto' registra lo que cada quien te debe. 'Lo pagó otra persona' guarda una deuda tuya sin mover tu saldo hasta que pagues."
+                  />
+                )}
 
                 {/* IOWE expanded */}
                 {iOweEnabled && (

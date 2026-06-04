@@ -570,7 +570,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
             return (
               <button
                 key={s.key}
-                {...(i === 0 ? { 'data-coach': 'settings-list' } : {})}
+                data-coach={i === 0 ? 'settings-list' : `settings-section-${s.key}`}
                 onClick={() => { setSection(s.key); window.scrollTo({ top: 0 }) }}
                 className="w-full flex items-center gap-4 px-4 py-4 text-left transition-all active:scale-[0.99]"
                 style={{
