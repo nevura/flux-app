@@ -38,10 +38,27 @@ export default function SupportChat({ onBack }: Props = {}) {
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const bottomRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const bottomRef    = useRef<HTMLDivElement>(null)
+  const inputRef     = useRef<HTMLTextAreaElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { setMounted(true) }, [])
+
+  // Keep overlay sized to visual viewport so iOS keyboard doesn't scroll the header off-screen
+  useEffect(() => {
+    if (onBack === undefined) return
+    const vv = window.visualViewport
+    if (!vv) return
+    function update() {
+      if (!containerRef.current) return
+      containerRef.current.style.height = vv!.height + 'px'
+      containerRef.current.style.top    = vv!.offsetTop + 'px'
+    }
+    update()
+    vv.addEventListener('resize', update)
+    vv.addEventListener('scroll', update)
+    return () => { vv.removeEventListener('resize', update); vv.removeEventListener('scroll', update) }
+  }, [onBack])
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
@@ -252,6 +269,7 @@ export default function SupportChat({ onBack }: Props = {}) {
 
     const overlay = (
       <div
+        ref={containerRef}
         className="flex flex-col"
         style={{
           position: 'fixed',

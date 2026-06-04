@@ -277,12 +277,29 @@ function AdminInbox() {
   const [reply, setReply] = useState('')
   const [sending, setSending] = useState(false)
   const [loading, setLoading] = useState(true)
-  const bottomRef = useRef<HTMLDivElement>(null)
-  const msgsRef   = useRef<HTMLDivElement>(null)
+  const bottomRef    = useRef<HTMLDivElement>(null)
+  const msgsRef      = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     getAdminConversations().then(c => { setConvs(c); setLoading(false) })
   }, [])
+
+  // Keep the chat overlay sized to the visual viewport (fixes iOS keyboard pushing header off-screen)
+  useEffect(() => {
+    if (!selected) return
+    const vv = window.visualViewport
+    if (!vv) return
+    function update() {
+      if (!containerRef.current) return
+      containerRef.current.style.height = vv!.height + 'px'
+      containerRef.current.style.top    = vv!.offsetTop + 'px'
+    }
+    update()
+    vv.addEventListener('resize', update)
+    vv.addEventListener('scroll', update)
+    return () => { vv.removeEventListener('resize', update); vv.removeEventListener('scroll', update) }
+  }, [selected])
 
   async function openConv(conv: SupportConversation) {
     setSelected(conv)
@@ -339,6 +356,7 @@ function AdminInbox() {
   // ── Thread view: fixed full-screen overlay for proper PWA/mobile chat ──────
   if (selected) return (
     <div
+      ref={containerRef}
       className="z-50 flex flex-col"
       style={{
         position: 'fixed', top: 0, left: 0, right: 0,
