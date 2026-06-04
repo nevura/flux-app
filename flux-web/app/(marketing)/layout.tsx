@@ -19,7 +19,7 @@ export default async function MarketingLayout({ children }: { children: React.Re
       >
         <div className="max-w-4xl mx-auto px-6 flex items-center justify-between h-[56px]">
           <Link href="/" className="text-[20px] font-black tracking-tight" style={{ color: '#007AFF' }}>
-            flux
+            fluxapp finance
           </Link>
           <Link
             href={user ? '/home' : '/login'}
@@ -36,7 +36,7 @@ export default async function MarketingLayout({ children }: { children: React.Re
       {/* Footer */}
       <footer style={{ background: '#1D1D1F', marginTop: '80px' }}>
         <div className="max-w-4xl mx-auto px-6 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="text-[18px] font-black tracking-tight" style={{ color: '#007AFF' }}>flux</span>
+          <span className="text-[18px] font-black tracking-tight" style={{ color: '#007AFF' }}>fluxapp finance</span>
           <div className="flex gap-5 flex-wrap justify-center">
             {[{ label: 'Inicio', href: '/' }, { label: 'Términos', href: '/terminos' }, { label: 'Privacidad', href: '/privacidad' }, { label: 'Guía', href: '/guia' }].map(l => (
               <Link key={l.href} href={l.href} className="text-[13px] font-semibold hover:text-white transition-colors" style={{ color: 'rgba(255,255,255,0.4)' }}>

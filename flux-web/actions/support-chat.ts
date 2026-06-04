@@ -155,11 +155,13 @@ async function verifyAdmin() {
 export async function getAdminConversations(): Promise<SupportConversation[]> {
   await verifyAdmin()
   const admin = createAdminClient()
-  const { data } = await (admin.from('support_conversations') as any)
+  const { data, error } = await (admin.from('support_conversations') as any)
     .select('*, profiles(email, full_name)')
     .order('unread_admin', { ascending: false })
     .order('last_message_at', { ascending: false })
     .limit(100)
+
+  if (error) console.error('[getAdminConversations]', error)
 
   return ((data ?? []) as any[]).map((c: any) => ({
     ...c,
