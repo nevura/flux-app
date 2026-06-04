@@ -259,4 +259,7 @@ export interface ShortcutPayload {
   date?: string
   validated?: 0 | 1
   notes?: string
+  // Identifies which shortcut made the call: 'apple_pay' | 'quick_register'
+  // Add this field to both iCloud shortcuts so usage can be tracked separately.
+  source?: string
 }

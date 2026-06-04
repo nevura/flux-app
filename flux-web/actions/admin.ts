@@ -43,6 +43,8 @@ export interface AdminProfile {
   acc_count: number
   shortcut_ever_used: boolean
   shortcut_last_used_at: string | null
+  shortcut_apple_pay_at: string | null
+  shortcut_quick_register_at: string | null
 }
 
 export interface SupportTicket {
@@ -67,7 +69,7 @@ export async function getAdminProfiles(): Promise<AdminProfile[]> {
     (admin.from('profiles') as any).select('id, email, full_name, username, phone, status, subscription_status, stripe_customer_id, trial_ends_at, subscription_ends_at, onboarding_completed, created_at, updated_at').order('created_at', { ascending: false }),
     (admin.from('transactions') as any).select('user_id'),
     (admin.from('accounts') as any).select('user_id, is_active'),
-    (admin.from('shortcut_tokens') as any).select('user_id, last_used_at'),
+    (admin.from('shortcut_tokens') as any).select('user_id, last_used_at, apple_pay_last_used_at, quick_register_last_used_at'),
   ])
 
   const txMap: Record<string, number> = {}
@@ -78,30 +80,37 @@ export async function getAdminProfiles(): Promise<AdminProfile[]> {
     if (a.is_active) accMap[a.user_id] = (accMap[a.user_id] ?? 0) + 1
   }
 
-  // shortcut: track if user has ever used any of their tokens
-  const shortcutUsedMap: Record<string, string | null> = {}
+  // shortcut: track general + per-source usage
+  const shortcutMap: Record<string, { last: string | null; apple_pay: string | null; quick_register: string | null }> = {}
   for (const tok of tokenData ?? []) {
-    if (tok.last_used_at) {
-      const prev = shortcutUsedMap[tok.user_id]
-      if (!prev || tok.last_used_at > prev) shortcutUsedMap[tok.user_id] = tok.last_used_at
-    } else if (!(tok.user_id in shortcutUsedMap)) {
-      shortcutUsedMap[tok.user_id] = null
-    }
+    const uid = tok.user_id
+    if (!shortcutMap[uid]) shortcutMap[uid] = { last: null, apple_pay: null, quick_register: null }
+    if (tok.last_used_at && (!shortcutMap[uid].last || tok.last_used_at > shortcutMap[uid].last!))
+      shortcutMap[uid].last = tok.last_used_at
+    if (tok.apple_pay_last_used_at && (!shortcutMap[uid].apple_pay || tok.apple_pay_last_used_at > shortcutMap[uid].apple_pay!))
+      shortcutMap[uid].apple_pay = tok.apple_pay_last_used_at
+    if (tok.quick_register_last_used_at && (!shortcutMap[uid].quick_register || tok.quick_register_last_used_at > shortcutMap[uid].quick_register!))
+      shortcutMap[uid].quick_register = tok.quick_register_last_used_at
   }
 
   return (profiles ?? []).map((p: any) => ({
     ...p,
     tx_count: txMap[p.id] ?? 0,
     acc_count: accMap[p.id] ?? 0,
-    shortcut_ever_used: !!shortcutUsedMap[p.id],
-    shortcut_last_used_at: shortcutUsedMap[p.id] ?? null,
+    shortcut_ever_used: !!(shortcutMap[p.id]?.last),
+    shortcut_last_used_at: shortcutMap[p.id]?.last ?? null,
+    shortcut_apple_pay_at: shortcutMap[p.id]?.apple_pay ?? null,
+    shortcut_quick_register_at: shortcutMap[p.id]?.quick_register ?? null,
   })) as AdminProfile[]
 }
 
 export interface AdminMetrics {
   users: { total: number; approved: number; pending: number; rejected: number }
   subs: { trialing: number; active: number; expired: number; grace: number }
-  shortcuts: { ever_used: number; never_used: number; total_approved: number }
+  shortcuts: {
+    ever_used: number; never_used: number; total_approved: number
+    apple_pay: number; quick_register: number; unknown_source: number
+  }
   activity: { active_7d: number; inactive_7d: number }
   emails: { trial_expiring: number; shortcut_reminder: number; reengagement: number }
 }
@@ -113,7 +122,7 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
   const [{ data: profiles }, { data: recentTx }, { data: tokenData }, { data: notifData }] = await Promise.all([
     (admin.from('profiles') as any).select('id, status, subscription_status'),
     (admin.from('transactions') as any).select('user_id').gte('created_at', sevenDaysAgo),
-    (admin.from('shortcut_tokens') as any).select('user_id, last_used_at'),
+    (admin.from('shortcut_tokens') as any).select('user_id, last_used_at, apple_pay_last_used_at, quick_register_last_used_at'),
     (admin.from('notifications') as any)
       .select('user_id, type')
       .in('type', ['trial_expiring', 'shortcut_reminder', 'reengagement']),
@@ -133,9 +142,22 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
   const grace     = allProfiles.filter(p => p.subscription_status === 'grace').length
 
   // Shortcut usage (only approved users)
-  const usedSet = new Set((tokenData ?? []).filter((t: any) => t.last_used_at).map((t: any) => t.user_id))
-  const shortcutEverUsed  = [...approvedIds].filter(id => usedSet.has(id)).length
-  const shortcutNeverUsed = [...approvedIds].filter(id => !usedSet.has(id)).length
+  const shortcutByUser: Record<string, { any: boolean; apple_pay: boolean; quick_register: boolean }> = {}
+  for (const tok of (tokenData ?? [])) {
+    if (!approvedIds.has(tok.user_id)) continue
+    if (!shortcutByUser[tok.user_id]) shortcutByUser[tok.user_id] = { any: false, apple_pay: false, quick_register: false }
+    if (tok.last_used_at) shortcutByUser[tok.user_id].any = true
+    if (tok.apple_pay_last_used_at) shortcutByUser[tok.user_id].apple_pay = true
+    if (tok.quick_register_last_used_at) shortcutByUser[tok.user_id].quick_register = true
+  }
+  const shortcutEverUsed  = [...approvedIds].filter(id => shortcutByUser[id]?.any).length
+  const shortcutNeverUsed = [...approvedIds].filter(id => !shortcutByUser[id]?.any).length
+  const shortcutApplePay  = [...approvedIds].filter(id => shortcutByUser[id]?.apple_pay).length
+  const shortcutQuickReg  = [...approvedIds].filter(id => shortcutByUser[id]?.quick_register).length
+  // used shortcut but source not yet identified (old shortcut without source field)
+  const shortcutUnknown   = [...approvedIds].filter(id =>
+    shortcutByUser[id]?.any && !shortcutByUser[id]?.apple_pay && !shortcutByUser[id]?.quick_register
+  ).length
 
   // Activity last 7 days (approved users with at least one tx)
   const activeUserIds = new Set((recentTx ?? []).map((t: any) => t.user_id))
@@ -151,7 +173,7 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
   return {
     users: { total, approved, pending, rejected },
     subs: { trialing, active, expired, grace },
-    shortcuts: { ever_used: shortcutEverUsed, never_used: shortcutNeverUsed, total_approved: approved },
+    shortcuts: { ever_used: shortcutEverUsed, never_used: shortcutNeverUsed, total_approved: approved, apple_pay: shortcutApplePay, quick_register: shortcutQuickReg, unknown_source: shortcutUnknown },
     activity: { active_7d: active7d, inactive_7d: inactive7d },
     emails: { trial_expiring: trialExpiring, shortcut_reminder: shortcutReminder, reengagement },
   }

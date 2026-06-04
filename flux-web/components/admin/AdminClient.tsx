@@ -144,18 +144,33 @@ function UserCard({ profile, isPending, onApprove, onReject, onExtend, onSetSub 
             <span className="text-[12px] font-medium" style={{ color: GRAY }}>
               {profile.tx_count} mov · {profile.acc_count} ctas
             </span>
-            <span
-              className="text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
-              style={profile.shortcut_ever_used
-                ? { background: 'rgba(191,90,242,0.12)', color: '#bf5af2' }
-                : { background: 'rgba(0,0,0,0.06)', color: GRAY }}
-              title={profile.shortcut_ever_used
-                ? `Atajo usado ${profile.shortcut_last_used_at ? fmtDate(profile.shortcut_last_used_at) : ''}`
-                : 'Atajo no instalado'}
-            >
-              <i className="fa-solid fa-bolt text-[9px]" />
-              {profile.shortcut_ever_used ? 'Atajo ✓' : 'Sin atajo'}
-            </span>
+            {profile.shortcut_apple_pay_at && (
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
+                style={{ background: 'rgba(0,0,0,0.07)', color: DARK }}
+                title={`Apple Pay: ${fmtDate(profile.shortcut_apple_pay_at)}`}>
+                <i className="fa-brands fa-apple text-[10px]" /> Pay ✓
+              </span>
+            )}
+            {profile.shortcut_quick_register_at && (
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
+                style={{ background: 'rgba(191,90,242,0.12)', color: '#bf5af2' }}
+                title={`Registro Rápido: ${fmtDate(profile.shortcut_quick_register_at)}`}>
+                <i className="fa-solid fa-bolt text-[9px]" /> Rápido ✓
+              </span>
+            )}
+            {!profile.shortcut_ever_used && (
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full"
+                style={{ background: 'rgba(0,0,0,0.06)', color: GRAY }}>
+                Sin atajo
+              </span>
+            )}
+            {profile.shortcut_ever_used && !profile.shortcut_apple_pay_at && !profile.shortcut_quick_register_at && (
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
+                style={{ background: 'rgba(191,90,242,0.12)', color: '#bf5af2' }}
+                title="Atajo usado pero sin source — atajo antiguo">
+                <i className="fa-solid fa-bolt text-[9px]" /> Atajo ✓
+              </span>
+            )}
           </div>
         </div>
 
@@ -524,25 +539,48 @@ function MetricsView() {
 
       {/* ── Atajos ── */}
       <section>
-        <p className="text-[11px] font-black uppercase tracking-[3px] mb-3" style={{ color: GRAY }}>Atajos de iPhone (Apple Pay)</p>
+        <p className="text-[11px] font-black uppercase tracking-[3px] mb-3" style={{ color: GRAY }}>Atajos de iPhone</p>
         <div className="rounded-[20px] p-5 space-y-4" style={{ background: LIGHT, border: '1px solid rgba(0,0,0,0.06)' }}>
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[14px] font-bold" style={{ color: DARK }}>Adopción</span>
+          {/* Overall adoption */}
+          <div className="flex items-center justify-between">
+            <span className="text-[14px] font-bold" style={{ color: DARK }}>Adopción total</span>
             <span className="text-[22px] font-black tabular-nums" style={{ color: '#bf5af2' }}>
               {totalApproved > 0 ? Math.round((metrics.shortcuts.ever_used / totalApproved) * 100) : 0}%
             </span>
           </div>
+          <PctBar value={metrics.shortcuts.ever_used} total={totalApproved} color="#bf5af2" />
+
+          {/* Divider */}
+          <div style={{ height: 1, background: 'rgba(0,0,0,0.07)' }} />
+
+          {/* Apple Pay breakdown */}
           <div className="space-y-2.5">
             <div>
               <p className="text-[12px] font-bold mb-1.5 flex items-center gap-1.5">
-                <i className="fa-solid fa-bolt text-[11px]" style={{ color: '#bf5af2' }} />
-                <span style={{ color: DARK }}>Instalado y usado — {metrics.shortcuts.ever_used}</span>
+                <i className="fa-brands fa-apple text-[12px]" style={{ color: DARK }} />
+                <span style={{ color: DARK }}>Apple Pay — {metrics.shortcuts.apple_pay} usuarios</span>
               </p>
-              <PctBar value={metrics.shortcuts.ever_used} total={totalApproved} color="#bf5af2" />
+              <PctBar value={metrics.shortcuts.apple_pay} total={totalApproved} color={DARK} />
             </div>
             <div>
+              <p className="text-[12px] font-bold mb-1.5 flex items-center gap-1.5">
+                <i className="fa-solid fa-bolt text-[11px]" style={{ color: '#bf5af2' }} />
+                <span style={{ color: DARK }}>Registro Rápido — {metrics.shortcuts.quick_register} usuarios</span>
+              </p>
+              <PctBar value={metrics.shortcuts.quick_register} total={totalApproved} color="#bf5af2" />
+            </div>
+            {metrics.shortcuts.unknown_source > 0 && (
+              <div>
+                <p className="text-[12px] font-bold mb-1.5" style={{ color: GRAY }}>
+                  Sin fuente identificada — {metrics.shortcuts.unknown_source}
+                  <span className="font-normal ml-1">(atajo antiguo sin campo source)</span>
+                </p>
+                <PctBar value={metrics.shortcuts.unknown_source} total={totalApproved} color={GRAY} />
+              </div>
+            )}
+            <div>
               <p className="text-[12px] font-bold mb-1.5" style={{ color: GRAY }}>Sin usar — {metrics.shortcuts.never_used}</p>
-              <PctBar value={metrics.shortcuts.never_used} total={totalApproved} color="rgba(0,0,0,0.2)" />
+              <PctBar value={metrics.shortcuts.never_used} total={totalApproved} color="rgba(0,0,0,0.15)" />
             </div>
           </div>
         </div>

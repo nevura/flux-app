@@ -30,8 +30,7 @@ export async function POST(req: NextRequest) {
 
   const userId = tokenRow.user_id
 
-  // Update last_used_at
-  await supabaseAdmin.from('shortcut_tokens').update({ last_used_at: new Date().toISOString() }).eq('token', token)
+  // Update last_used_at (source update happens after body parse below)
 
   // Parse body — accept both English and Spanish field names
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -41,6 +40,17 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: 'JSON inválido', hint: 'Asegúrate de que el cuerpo de solicitud sea tipo JSON (no Formulario)' }, { status: 400 })
   }
+
+  // Update last_used_at + per-source columns
+  const now = new Date().toISOString()
+  const sourceUpdate: Record<string, string> = { last_used_at: now }
+  const source = ((raw?.source ?? raw?.fuente ?? '') as string).toLowerCase()
+  if (source === 'apple_pay' || source === 'applepay' || source === 'apple') {
+    sourceUpdate.apple_pay_last_used_at = now
+  } else if (source === 'quick_register' || source === 'rapido' || source === 'quick') {
+    sourceUpdate.quick_register_last_used_at = now
+  }
+  await supabaseAdmin.from('shortcut_tokens').update(sourceUpdate).eq('token', token)
 
   // Accept many common Spanish variants for field names
   const body: ShortcutPayload = {
