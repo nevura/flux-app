@@ -152,7 +152,6 @@ function Hero() {
               <i className="fa-brands fa-apple text-[12px]" />
               Integrado con Apple Pay
             </div>
-
             <h1
               className="text-[40px] sm:text-[58px] lg:text-[64px] font-black leading-[1.05] tracking-[-2px] mb-6"
               style={{ color: DARK }}
@@ -163,11 +162,9 @@ function Hero() {
               <br />
               Automáticamente.
             </h1>
-
             <p className="text-[18px] sm:text-[20px] font-medium leading-relaxed mb-8 max-w-lg" style={{ color: GRAY }}>
               Registra gastos automáticamente con Apple Pay, divide cuentas con amigos y mantén el control real de tu dinero — sin esfuerzo.
             </p>
-
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/login"
@@ -178,12 +175,10 @@ function Hero() {
                 <i className="fa-solid fa-arrow-right text-[15px]" />
               </Link>
             </div>
-
             <p className="text-[13px] font-semibold mt-5" style={{ color: 'rgba(0,0,0,0.35)' }}>
               Gratis durante 20 días · Sin tarjeta de crédito
             </p>
           </div>
-
           <div className="flex justify-center lg:justify-end">
             <div style={{ animation: 'heroFloat 6s ease-in-out infinite', display: 'inline-block' }}>
               <PhoneMockup />
@@ -191,7 +186,6 @@ function Hero() {
           </div>
         </div>
       </div>
-
       <style>{`
         @keyframes heroFloat {
           0%, 100% { transform: translateY(0px); }
@@ -232,19 +226,17 @@ function PainSection() {
         <div className="grid sm:grid-cols-2 gap-5">
           <RevealWrapper direction="left" delay={80}>
             <div className="rounded-[24px] p-7 h-full" style={{ background: LIGHT_GRAY, border: '1px solid rgba(0,0,0,0.06)' }}>
-              <div className="flex items-center gap-2 mb-5">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,69,58,0.1)' }}>
-                  <i className="fa-solid fa-xmark" style={{ color: '#FF453A', fontSize: 13 }} />
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-[16px] flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'rgba(255,69,58,0.12)' }}>
+                  <i className="fa-solid fa-triangle-exclamation" style={{ color: '#FF453A', fontSize: 20 }} />
                 </div>
-                <p className="text-[15px] font-black" style={{ color: DARK }}>Sin FluxApp</p>
+                <p className="text-[17px] font-black" style={{ color: DARK }}>Sin FluxApp</p>
               </div>
               <ul className="space-y-4">
                 {before.map((item, i) => (
                   <li key={i} className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
-                      style={{ background: 'rgba(255,69,58,0.1)' }}>
-                      <i className="fa-solid fa-xmark" style={{ color: '#FF453A', fontSize: 9 }} />
-                    </div>
+                    <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-2" style={{ background: '#FF453A' }} />
                     <span className="text-[15px] font-semibold leading-snug" style={{ color: GRAY }}>{item}</span>
                   </li>
                 ))}
@@ -254,19 +246,17 @@ function PainSection() {
 
           <RevealWrapper direction="right" delay={160}>
             <div className="rounded-[24px] p-7 h-full" style={{ background: '#F0FFF4', border: '1px solid rgba(48,209,88,0.2)' }}>
-              <div className="flex items-center gap-2 mb-5">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(48,209,88,0.15)' }}>
-                  <i className="fa-solid fa-check" style={{ color: '#30D158', fontSize: 13 }} />
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-[16px] flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'rgba(48,209,88,0.2)' }}>
+                  <i className="fa-solid fa-shield-halved" style={{ color: '#30D158', fontSize: 20 }} />
                 </div>
-                <p className="text-[15px] font-black" style={{ color: DARK }}>Con FluxApp Finance</p>
+                <p className="text-[17px] font-black" style={{ color: DARK }}>Con FluxApp Finance</p>
               </div>
               <ul className="space-y-4">
                 {after.map((item, i) => (
                   <li key={i} className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
-                      style={{ background: 'rgba(48,209,88,0.15)' }}>
-                      <i className="fa-solid fa-check" style={{ color: '#30D158', fontSize: 9 }} />
-                    </div>
+                    <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-2" style={{ background: '#30D158' }} />
                     <span className="text-[15px] font-semibold leading-snug" style={{ color: '#1A4731' }}>{item}</span>
                   </li>
                 ))}
@@ -279,20 +269,21 @@ function PainSection() {
   )
 }
 
-/* ── Showcase phone frame ────────────────────────────────────────────────── */
+/* ── Showcase phone frame (silver/titanium) ──────────────────────────────── */
 function PhoneFrame({ children, glow = false }: { children: ReactNode; glow?: boolean }) {
   return (
     <div className="relative mx-auto flex-shrink-0" style={{ width: 216, height: 468 }}>
       <div
         className="absolute inset-0 rounded-[46px]"
         style={{
-          background: '#0A0A0A',
+          background: 'linear-gradient(160deg, #CECECE 0%, #B8B8BE 50%, #C4C4CA 100%)',
           boxShadow: glow
-            ? '0 40px 80px rgba(0,0,0,0.50), 0 0 0 1.5px rgba(255,255,255,0.12) inset, 0 0 80px rgba(0,122,255,0.18)'
-            : '0 24px 50px rgba(0,0,0,0.35), 0 0 0 1.5px rgba(255,255,255,0.07) inset',
+            ? '0 36px 72px rgba(0,0,0,0.32), 0 1.5px 0 rgba(255,255,255,0.6) inset, 0 0 60px rgba(0,122,255,0.22)'
+            : '0 16px 48px rgba(0,0,0,0.22), 0 1.5px 0 rgba(255,255,255,0.45) inset',
         }}
       >
-        <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-[60px] h-[20px] rounded-full z-10" style={{ background: '#000' }} />
+        <div className="absolute left-1/2 -translate-x-1/2 rounded-full z-10"
+          style={{ top: 11, width: 60, height: 20, background: '#111' }} />
         <div className="absolute inset-[3px] rounded-[43px] overflow-hidden" style={{ background: '#020617' }}>
           {children}
         </div>
@@ -331,7 +322,6 @@ function PhoneTransactions() {
         </div>
         <i className="fa-solid fa-chevron-right" style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }} />
       </div>
-
       <div className="grid grid-cols-2 gap-1.5 mx-3 mb-2">
         {[
           { label: 'INGRESOS', val: '+$15,000', color: '#30D158', bg: 'rgba(48,209,88,0.1)', border: 'rgba(48,209,88,0.2)' },
@@ -343,7 +333,6 @@ function PhoneTransactions() {
           </div>
         ))}
       </div>
-
       <div className="flex items-center gap-1.5 mx-3 mb-2">
         {['Tipo', 'Categoría'].map(f => (
           <div key={f} className="flex items-center gap-1 rounded-[8px] px-2 py-1"
@@ -353,7 +342,6 @@ function PhoneTransactions() {
           </div>
         ))}
       </div>
-
       <p className="mx-3 font-black uppercase mb-1.5" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.35)' }}>HOY</p>
       {[
         { name: 'Starbucks', cat: 'Café', amt: '-$115', color: '#FF453A', bg: '#00704A', icon: 'fa-mug-hot' },
@@ -371,7 +359,6 @@ function PhoneTransactions() {
           <p className="font-black tabular-nums flex-shrink-0" style={{ fontSize: 10, color: tx.color }}>{tx.amt}</p>
         </div>
       ))}
-
       <p className="mx-3 font-black uppercase mb-1.5 mt-1" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.35)' }}>AYER</p>
       {[
         { name: 'OXXO', cat: 'Mercado', amt: '-$68', color: '#FF453A', bg: '#E83526', icon: 'fa-store' },
@@ -390,7 +377,6 @@ function PhoneTransactions() {
           <p className="font-black tabular-nums flex-shrink-0" style={{ fontSize: 10, color: tx.color }}>{tx.amt}</p>
         </div>
       ))}
-
       <ShowcaseBottomNav active={1} />
     </PhoneFrame>
   )
@@ -415,12 +401,10 @@ function PhoneDashboard() {
           <i className="fa-regular fa-bell text-white" style={{ fontSize: 10 }} />
         </div>
       </div>
-
       <div className="mx-3 mb-2 rounded-[18px] p-3.5" style={{ background: '#007AFF', boxShadow: '0 6px 20px rgba(0,122,255,0.4)' }}>
         <p className="font-black uppercase leading-none mb-1" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.65)' }}>SALDO ACTUAL</p>
         <p className="font-black text-white leading-none tabular-nums" style={{ fontSize: 24 }}>$12,480.50</p>
       </div>
-
       <div className="mx-3 mb-2 rounded-[12px] p-2.5" style={{ background: 'rgba(0,122,255,0.08)', border: '1px solid rgba(0,122,255,0.2)' }}>
         <div className="flex items-center justify-between mb-0.5">
           <p className="font-black uppercase" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.40)' }}>PRESUPUESTO DEL MES</p>
@@ -434,7 +418,6 @@ function PhoneDashboard() {
           <div className="h-full rounded-full" style={{ width: '32%', background: '#30D158' }} />
         </div>
       </div>
-
       <div className="mx-3 mb-2 rounded-[12px] overflow-hidden"
         style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
         <div className="flex" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
@@ -452,12 +435,11 @@ function PhoneDashboard() {
           </div>
         </div>
       </div>
-
       <div className="mx-3 rounded-[12px] p-2.5" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
         <p className="font-black uppercase mb-2" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.35)' }}>PRÓXIMOS RECURRENTES</p>
         {[
-          { name: 'Netflix', date: 'Mié, 10', amt: '-$209', bg: '#E50914' },
-          { name: 'Spotify', date: 'Vie, 12', amt: '-$89', bg: '#1ED760' },
+          { name: 'Netflix', date: 'Mié, 10', amt: '-$209', bg: '#E50914', green: false },
+          { name: 'Spotify', date: 'Vie, 12', amt: '-$89', bg: '#1ED760', green: false },
           { name: 'Sueldo', date: 'Lun, 15', amt: '+$15,000', bg: '#1B4332', green: true },
         ].map((item, i) => (
           <div key={i} className="flex items-center gap-2 mb-1.5">
@@ -472,7 +454,6 @@ function PhoneDashboard() {
           </div>
         ))}
       </div>
-
       <ShowcaseBottomNav active={0} />
     </PhoneFrame>
   )
@@ -493,7 +474,6 @@ function PhoneShared() {
           <p className="font-bold" style={{ fontSize: 7, color: '#007AFF' }}>Amigos</p>
         </div>
       </div>
-
       <div className="grid grid-cols-2 gap-1.5 mx-3 mb-2">
         {[
           { label: 'ME DEBEN', val: '+$1,200', color: '#30D158', bg: 'rgba(48,209,88,0.1)', border: 'rgba(48,209,88,0.2)' },
@@ -505,7 +485,6 @@ function PhoneShared() {
           </div>
         ))}
       </div>
-
       {[
         { name: 'Fernando', sub: '4 gastos pendientes', amt: '+$650', color: '#30D158', initials: 'F', positive: true },
         { name: 'Santi', sub: '2 gastos · @santi_m', amt: '+$550', color: '#30D158', initials: 'S', positive: true },
@@ -515,11 +494,7 @@ function PhoneShared() {
           style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
           <div className="flex items-center gap-2 mb-2">
             <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 font-black"
-              style={{
-                background: p.positive ? 'rgba(48,209,88,0.15)' : 'rgba(255,69,58,0.15)',
-                color: p.positive ? '#30D158' : '#FF453A',
-                fontSize: 10,
-              }}>
+              style={{ background: p.positive ? 'rgba(48,209,88,0.15)' : 'rgba(255,69,58,0.15)', color: p.positive ? '#30D158' : '#FF453A', fontSize: 10 }}>
               {p.initials}
             </div>
             <div className="flex-1 min-w-0">
@@ -538,8 +513,173 @@ function PhoneShared() {
           </div>
         </div>
       ))}
-
       <ShowcaseBottomNav active={4} />
+    </PhoneFrame>
+  )
+}
+
+/* ── Showcase screen: Gastos por Categoría ──────────────────────────────── */
+function PhoneCategoryChart() {
+  const categories = [
+    { name: 'Entretenimiento', amt: '$1,624', pct: '38%', color: '#FF9500', w: '38%' },
+    { name: 'Comida', amt: '$1,245', pct: '29%', color: '#FF453A', w: '29%' },
+    { name: 'Transporte', amt: '$900', pct: '21%', color: '#007AFF', w: '21%' },
+    { name: 'Otros', amt: '$511', pct: '12%', color: '#5E5CE6', w: '12%' },
+  ]
+  return (
+    <PhoneFrame>
+      <div className="px-3 pt-9 pb-2 flex items-center justify-between">
+        <i className="fa-solid fa-chevron-left" style={{ fontSize: 10, color: '#007AFF' }} />
+        <div className="flex items-center gap-1">
+          <p className="font-black text-white" style={{ fontSize: 13 }}>Junio 2026</p>
+          <i className="fa-solid fa-chevron-down" style={{ fontSize: 7, color: 'rgba(255,255,255,0.4)' }} />
+        </div>
+        <i className="fa-solid fa-chevron-right" style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }} />
+      </div>
+
+      {/* Tabs */}
+      <div className="flex mx-3 mb-3 rounded-[10px] overflow-hidden"
+        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
+        <div className="flex-1 py-1.5 text-center font-black uppercase"
+          style={{ fontSize: 7, letterSpacing: 1, background: '#007AFF', color: '#fff' }}>CATEGORÍAS</div>
+        <div className="flex-1 py-1.5 text-center font-black uppercase"
+          style={{ fontSize: 7, letterSpacing: 1, color: 'rgba(255,255,255,0.35)' }}>TENDENCIA</div>
+      </div>
+
+      {/* Donut chart */}
+      <div className="flex flex-col items-center mb-3">
+        <p className="font-black uppercase mb-2" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.4)' }}>
+          GASTOS POR CATEGORÍA
+        </p>
+        <div className="relative" style={{ width: 96, height: 96 }}>
+          <div style={{
+            width: 96, height: 96, borderRadius: '50%',
+            background: 'conic-gradient(#FF9500 0% 38%, #FF453A 38% 67%, #007AFF 67% 88%, #5E5CE6 88% 100%)',
+          }} />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="flex flex-col items-center justify-center rounded-full"
+              style={{ width: 56, height: 56, background: '#020617' }}>
+              <p className="font-black leading-none" style={{ fontSize: 5.5, color: 'rgba(255,255,255,0.5)' }}>TOTAL</p>
+              <p className="font-black text-white leading-tight" style={{ fontSize: 13 }}>$4,280</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Desglose */}
+      <div className="mx-3">
+        <p className="font-black uppercase mb-2" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.4)' }}>DESGLOSE</p>
+        {categories.map((cat, i) => (
+          <div key={i} className="mb-2.5">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: cat.color }} />
+                <p className="font-bold text-white" style={{ fontSize: 9 }}>{cat.name}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <p className="font-black text-white" style={{ fontSize: 9 }}>{cat.amt}</p>
+                <p className="font-bold" style={{ fontSize: 8, color: cat.color }}>{cat.pct}</p>
+              </div>
+            </div>
+            <div className="h-[3px] rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
+              <div className="h-full rounded-full" style={{ width: cat.w, background: cat.color }} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <ShowcaseBottomNav active={3} />
+    </PhoneFrame>
+  )
+}
+
+/* ── Showcase screen: Tendencia ──────────────────────────────────────────── */
+function PhoneTrends() {
+  const bars = [
+    { m: 'ENE', i: 52, g: 40 },
+    { m: 'FEB', i: 60, g: 48 },
+    { m: 'MAR', i: 56, g: 36 },
+    { m: 'ABR', i: 72, g: 55 },
+    { m: 'MAY', i: 90, g: 68 },
+    { m: 'JUN', i: 22, g: 18 },
+  ]
+  return (
+    <PhoneFrame>
+      <div className="px-3 pt-9 pb-2 flex items-center justify-between">
+        <i className="fa-solid fa-chevron-left" style={{ fontSize: 10, color: '#007AFF' }} />
+        <div className="flex items-center gap-1">
+          <p className="font-black text-white" style={{ fontSize: 13 }}>Junio 2026</p>
+          <i className="fa-solid fa-chevron-down" style={{ fontSize: 7, color: 'rgba(255,255,255,0.4)' }} />
+        </div>
+        <i className="fa-solid fa-chevron-right" style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }} />
+      </div>
+
+      {/* Tabs */}
+      <div className="flex mx-3 mb-2 rounded-[10px] overflow-hidden"
+        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
+        <div className="flex-1 py-1.5 text-center font-black uppercase"
+          style={{ fontSize: 7, letterSpacing: 1, color: 'rgba(255,255,255,0.35)' }}>CATEGORÍAS</div>
+        <div className="flex-1 py-1.5 text-center font-black uppercase"
+          style={{ fontSize: 7, letterSpacing: 1, background: '#007AFF', color: '#fff' }}>TENDENCIA</div>
+      </div>
+
+      {/* Income/Expense summary */}
+      <div className="grid grid-cols-2 gap-1.5 mx-3 mb-2">
+        {[
+          { label: 'INGRESOS', val: '+$15,000', color: '#30D158', bg: 'rgba(48,209,88,0.1)', border: 'rgba(48,209,88,0.2)' },
+          { label: 'GASTOS', val: '-$4,280', color: '#FF453A', bg: 'rgba(255,69,58,0.1)', border: 'rgba(255,69,58,0.2)' },
+        ].map((c, i) => (
+          <div key={i} className="rounded-[11px] px-3 py-2" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
+            <p className="font-black uppercase" style={{ fontSize: 6, letterSpacing: 2, color: c.color }}>{c.label}</p>
+            <p className="font-black tabular-nums" style={{ fontSize: 12, color: c.color }}>{c.val}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Metric cards 2x2 */}
+      <div className="grid grid-cols-2 gap-1.5 mx-3 mb-2">
+        {[
+          { label: 'TASA DE GASTO', val: '$1,120', sub: 'por día', color: '#FF453A' },
+          { label: 'FLUJO NETO', val: '+$10,720', sub: 'este mes', color: '#30D158' },
+          { label: 'PROM. MENSUAL', val: '$8,540', sub: 'de gasto', color: 'rgba(255,255,255,0.7)' },
+          { label: 'TASA DE AHORRO', val: '30%', sub: 'de ingresos', color: '#5E5CE6' },
+        ].map((m, i) => (
+          <div key={i} className="rounded-[11px] px-2.5 py-2"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
+            <p className="font-black uppercase" style={{ fontSize: 5.5, letterSpacing: 1.5, color: 'rgba(255,255,255,0.4)' }}>{m.label}</p>
+            <p className="font-black leading-tight" style={{ fontSize: 11, color: m.color }}>{m.val}</p>
+            <p className="font-semibold" style={{ fontSize: 7, color: 'rgba(255,255,255,0.35)' }}>{m.sub}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Bar chart */}
+      <div className="mx-3 rounded-[12px] p-2.5" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <p className="font-black uppercase mb-2" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.35)' }}>TENDENCIA</p>
+        <div className="flex items-end gap-1" style={{ height: 44 }}>
+          {bars.map((bar, i) => (
+            <div key={i} className="flex-1 flex flex-col items-center gap-0.5">
+              <div className="flex items-end gap-0.5 w-full justify-center" style={{ height: 38 }}>
+                <div style={{ width: 5, height: `${bar.i}%`, background: '#30D158', borderRadius: 2 }} />
+                <div style={{ width: 5, height: `${bar.g}%`, background: '#FF453A', borderRadius: 2 }} />
+              </div>
+              <p className="font-black" style={{ fontSize: 5, color: 'rgba(255,255,255,0.35)' }}>{bar.m}</p>
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center gap-3 mt-1.5">
+          <div className="flex items-center gap-1">
+            <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#30D158' }} />
+            <p className="font-semibold" style={{ fontSize: 7, color: 'rgba(255,255,255,0.5)' }}>Ingresos</p>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#FF453A' }} />
+            <p className="font-semibold" style={{ fontSize: 7, color: 'rgba(255,255,255,0.5)' }}>Gastos</p>
+          </div>
+        </div>
+      </div>
+
+      <ShowcaseBottomNav active={3} />
     </PhoneFrame>
   )
 }
@@ -549,6 +689,8 @@ function AppShowcaseSection() {
   const screens = [
     { key: 'dashboard', node: <PhoneDashboard /> },
     { key: 'transactions', node: <PhoneTransactions /> },
+    { key: 'categories', node: <PhoneCategoryChart /> },
+    { key: 'trends', node: <PhoneTrends /> },
     { key: 'shared', node: <PhoneShared /> },
   ]
 
@@ -566,7 +708,7 @@ function AppShowcaseSection() {
             Diseñada para vivir<br />en tu bolsillo.
           </h2>
           <p className="text-[17px] font-medium mt-4 max-w-lg mx-auto" style={{ color: 'rgba(255,255,255,0.5)' }}>
-            Dashboard, movimientos y gastos compartidos — todo en una app que cabe en tu pantalla de inicio.
+            Dashboard, movimientos, analítica y gastos compartidos — todo en una app que cabe en tu pantalla de inicio.
           </p>
         </RevealWrapper>
 
@@ -604,18 +746,18 @@ function AppShowcaseSection() {
           </div>
         </div>
 
-        {/* Desktop: 3 phones side by side */}
+        {/* Desktop: CategoryChart + Dashboard (center, featured) + Trends */}
         <RevealWrapper className="hidden md:block">
           <div className="flex items-end justify-center gap-5 lg:gap-8">
-            <div className="flex-shrink-0" style={{ opacity: 0.6, transform: 'translateY(44px)' }}>
+            <div className="flex-shrink-0" style={{ opacity: 0.65, transform: 'translateY(44px)' }}>
               <div style={{ transform: 'scale(0.88)', transformOrigin: 'bottom center' }}>
-                <PhoneTransactions />
+                <PhoneCategoryChart />
               </div>
             </div>
             <PhoneDashboard />
-            <div className="flex-shrink-0" style={{ opacity: 0.6, transform: 'translateY(44px)' }}>
+            <div className="flex-shrink-0" style={{ opacity: 0.65, transform: 'translateY(44px)' }}>
               <div style={{ transform: 'scale(0.88)', transformOrigin: 'bottom center' }}>
-                <PhoneShared />
+                <PhoneTrends />
               </div>
             </div>
           </div>
@@ -650,54 +792,150 @@ function TrustBar() {
   )
 }
 
+/* ── Apple Pay Phone mockup ──────────────────────────────────────────────── */
+function PhoneApplePay() {
+  return (
+    <PhoneFrame glow>
+      <div className="h-full relative" style={{ background: 'linear-gradient(180deg, #0A1424 0%, #060D1A 100%)' }}>
+        {/* Time */}
+        <div className="text-center pt-11">
+          <p className="font-black text-white tracking-tight" style={{ fontSize: 48, lineHeight: 1 }}>9:41</p>
+          <p className="font-semibold mt-1" style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)' }}>
+            Jueves, 5 de junio
+          </p>
+        </div>
+
+        {/* Wallet card */}
+        <div className="mx-3 mt-4 rounded-[18px] overflow-hidden">
+          <div className="relative p-4 overflow-hidden" style={{
+            background: 'linear-gradient(135deg, #1B4A8C 0%, #0B2250 60%, #0D2856 100%)',
+            height: 115,
+          }}>
+            <div className="absolute" style={{ right: -20, top: -20, width: 100, height: 100, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
+            <div className="absolute" style={{ right: 10, top: 15, width: 60, height: 60, borderRadius: '50%', background: 'rgba(255,255,255,0.03)' }} />
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <p className="font-black uppercase" style={{ fontSize: 7, letterSpacing: 1, color: 'rgba(255,255,255,0.6)' }}>DÉBITO SANTANDER</p>
+                <p className="font-black text-white" style={{ fontSize: 9 }}>**** 4821</p>
+              </div>
+              <i className="fa-brands fa-apple text-white/70" style={{ fontSize: 17 }} />
+            </div>
+            <div className="absolute bottom-3 left-4 right-4 flex justify-between items-end">
+              <p className="font-black text-white/85" style={{ fontSize: 11, letterSpacing: 3 }}>**** **** **** 4821</p>
+              <div className="flex">
+                <div className="w-5 h-5 rounded-full" style={{ background: 'rgba(235,0,27,0.85)' }} />
+                <div className="w-5 h-5 rounded-full -ml-2.5" style={{ background: 'rgba(255,163,0,0.85)' }} />
+              </div>
+            </div>
+          </div>
+
+          {/* Payment done row */}
+          <div className="flex items-center gap-2.5 px-3 py-2.5"
+            style={{ background: 'rgba(18,18,22,0.95)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#30D158' }}>
+              <i className="fa-solid fa-check text-white" style={{ fontSize: 10 }} />
+            </div>
+            <div className="flex-1">
+              <p className="font-black text-white" style={{ fontSize: 10 }}>Pago completado</p>
+              <p className="font-medium" style={{ fontSize: 8, color: 'rgba(255,255,255,0.5)' }}>$89.00 · OXXO</p>
+            </div>
+            <i className="fa-brands fa-apple text-white/50" style={{ fontSize: 16 }} />
+          </div>
+        </div>
+
+        {/* FluxApp Finance notification */}
+        <div className="mx-3 mt-3 rounded-[14px] p-3 flex items-center gap-2.5"
+          style={{ background: 'rgba(18,18,24,0.88)', border: '1px solid rgba(255,255,255,0.09)' }}>
+          <div className="w-8 h-8 rounded-[10px] flex items-center justify-center flex-shrink-0"
+            style={{ background: '#007AFF', boxShadow: '0 4px 12px rgba(0,122,255,0.4)' }}>
+            <i className="fa-solid fa-bolt text-white" style={{ fontSize: 11 }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-0.5">
+              <p className="font-bold text-white" style={{ fontSize: 10 }}>FluxApp Finance</p>
+              <p className="font-medium" style={{ fontSize: 8, color: 'rgba(255,255,255,0.4)' }}>ahora</p>
+            </div>
+            <p className="font-medium" style={{ fontSize: 9, color: 'rgba(255,255,255,0.65)' }}>
+              Registrado: <span className="font-black text-white">−$89</span> · OXXO · Efectivo ✓
+            </p>
+          </div>
+        </div>
+
+        {/* Unlock hint */}
+        <div className="absolute bottom-16 left-0 right-0 flex justify-center">
+          <p className="font-semibold" style={{ fontSize: 9, color: 'rgba(255,255,255,0.25)' }}>
+            <i className="fa-solid fa-lock mr-1" style={{ fontSize: 8 }} />
+            Desliza para desbloquear
+          </p>
+        </div>
+      </div>
+    </PhoneFrame>
+  )
+}
+
 /* ── Apple Pay section ───────────────────────────────────────────────────── */
 function ApplePaySection() {
   return (
     <section className="relative overflow-hidden" style={{ background: '#000' }}>
       <div className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 100%, rgba(0,122,255,0.12) 0%, transparent 70%)' }} />
+        style={{ background: 'radial-gradient(ellipse 60% 60% at 80% 50%, rgba(0,122,255,0.10) 0%, transparent 70%)' }} />
 
-      <div className="max-w-5xl mx-auto px-6 py-24 text-center relative">
-        <RevealWrapper>
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-[20px] mb-6"
-            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <i className="fa-brands fa-apple text-white text-[32px]" />
-          </div>
-        </RevealWrapper>
-
-        <RevealWrapper delay={80}>
-          <p className="text-[12px] font-black uppercase tracking-[4px] mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>
-            Apple Pay · iPhone Shortcuts
-          </p>
-        </RevealWrapper>
-
-        <RevealWrapper delay={160}>
-          <h2 className="text-[42px] sm:text-[58px] font-black leading-[1.05] tracking-[-1.5px] text-white mb-6">
-            Cada compra,<br />registrada sola.
-          </h2>
-        </RevealWrapper>
-
-        <RevealWrapper delay={240}>
-          <p className="text-[18px] font-medium leading-relaxed max-w-xl mx-auto mb-10" style={{ color: 'rgba(255,255,255,0.55)' }}>
-            Nunca más olvides registrar un gasto. FluxApp Finance se conecta con Atajos de iPhone y captura cada pago con Apple Pay en el momento exacto en que lo haces — sin abrir ninguna app.
-          </p>
-        </RevealWrapper>
-
-        <RevealWrapper delay={320}>
-          <div className="inline-flex items-center gap-3 rounded-[16px] px-5 py-4"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div className="w-8 h-8 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#007AFF' }}>
-              <i className="fa-solid fa-bolt text-white text-[14px]" />
-            </div>
-            <div className="text-left">
-              <p className="text-[14px] font-bold text-white">Pagas con Apple Pay en OXXO</p>
-              <p className="text-[13px] font-medium" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                FluxApp registra: -$89 · OXXO · Automático ✓
+      <div className="max-w-6xl mx-auto px-6 py-24 relative">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+          {/* Text */}
+          <div>
+            <RevealWrapper>
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-[18px] mb-6"
+                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <i className="fa-brands fa-apple text-white text-[28px]" />
+              </div>
+            </RevealWrapper>
+            <RevealWrapper delay={80}>
+              <p className="text-[12px] font-black uppercase tracking-[4px] mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                Apple Pay · iPhone Shortcuts
               </p>
-            </div>
+            </RevealWrapper>
+            <RevealWrapper delay={160}>
+              <h2 className="text-[38px] sm:text-[52px] font-black leading-[1.05] tracking-[-1.5px] text-white mb-6">
+                Cada compra,<br />registrada sola.
+              </h2>
+            </RevealWrapper>
+            <RevealWrapper delay={240}>
+              <p className="text-[17px] font-medium leading-relaxed mb-8" style={{ color: 'rgba(255,255,255,0.55)' }}>
+                FluxApp Finance se conecta con Atajos de iPhone y captura cada pago con Apple Pay en el momento exacto en que lo haces — sin abrir ninguna app.
+              </p>
+            </RevealWrapper>
+            <RevealWrapper delay={320}>
+              <div className="inline-flex items-center gap-3 rounded-[16px] px-5 py-4"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div className="w-8 h-8 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#007AFF' }}>
+                  <i className="fa-solid fa-bolt text-white text-[14px]" />
+                </div>
+                <div className="text-left">
+                  <p className="text-[14px] font-bold text-white">Pagas con Apple Pay en OXXO</p>
+                  <p className="text-[13px] font-medium" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                    FluxApp registra: −$89 · OXXO · Automático ✓
+                  </p>
+                </div>
+              </div>
+            </RevealWrapper>
           </div>
-        </RevealWrapper>
+
+          {/* Phone */}
+          <RevealWrapper direction="right" delay={160} className="flex justify-center lg:justify-end">
+            <div style={{ animation: 'appleFloat 5s ease-in-out infinite', display: 'inline-block' }}>
+              <PhoneApplePay />
+            </div>
+          </RevealWrapper>
+        </div>
       </div>
+
+      <style>{`
+        @keyframes appleFloat {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+      `}</style>
     </section>
   )
 }
@@ -710,7 +948,6 @@ function FeaturesSection() {
     { icon: 'fa-bullseye', title: 'Presupuestos', desc: 'Define cuánto quieres gastar por categoría. Flux te avisa cuando te acercas al límite.', color: '#FF9500' },
     { icon: 'fa-wallet', title: 'Multi-cuenta', desc: 'Maneja efectivo, tarjeta de débito y crédito en un solo lugar. Saldos actualizados al instante.', color: '#5E5CE6' },
   ]
-
   return (
     <section style={{ background: WHITE }}>
       <div className="max-w-6xl mx-auto px-6 py-24">
@@ -720,7 +957,6 @@ function FeaturesSection() {
             Todo lo que necesitas,<br />nada que no.
           </h2>
         </RevealWrapper>
-
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {features.map((f, i) => (
             <RevealWrapper key={i} delay={i * 70}>
@@ -817,7 +1053,6 @@ function HowItWorks() {
     { n: '02', title: 'Instala el Atajo', desc: 'Descarga el Atajo de iPhone con un tap. Lo configuras una sola vez.', icon: 'fa-mobile-screen' },
     { n: '03', title: 'Paga y olvídate', desc: 'Cada compra con Apple Pay queda registrada automáticamente en FluxApp Finance.', icon: 'fa-bolt' },
   ]
-
   return (
     <section style={{ background: WHITE }}>
       <div className="max-w-5xl mx-auto px-6 py-24">
@@ -827,7 +1062,6 @@ function HowItWorks() {
             Tres pasos.<br />Listo.
           </h2>
         </RevealWrapper>
-
         <div className="grid sm:grid-cols-3 gap-6 relative">
           <div className="hidden sm:block absolute left-[calc(16.66%+16px)] right-[calc(16.66%+16px)] h-[2px]"
             style={{ top: 92, background: 'rgba(0,122,255,0.15)' }} />
@@ -860,7 +1094,6 @@ function PricingSection() {
     'Presupuestos y reportes',
     'Soporte por chat',
   ]
-
   return (
     <section style={{ background: LIGHT_GRAY }}>
       <div className="max-w-4xl mx-auto px-6 py-24">
@@ -873,9 +1106,7 @@ function PricingSection() {
             20 días gratis · Sin tarjeta · Cancela cuando quieras.
           </p>
         </RevealWrapper>
-
         <div className="grid sm:grid-cols-2 gap-5 mb-8">
-          {/* Monthly */}
           <RevealWrapper delay={80}>
             <div className="rounded-[24px] p-8 h-full flex flex-col"
               style={{ background: WHITE, border: '1px solid rgba(0,0,0,0.07)' }}>
@@ -903,16 +1134,12 @@ function PricingSection() {
               </Link>
             </div>
           </RevealWrapper>
-
-          {/* Annual */}
           <RevealWrapper delay={160}>
             <div className="rounded-[24px] p-8 h-full flex flex-col relative overflow-hidden"
               style={{ background: 'linear-gradient(140deg, #007AFF 0%, #0056CC 100%)', boxShadow: '0 20px 60px rgba(0,122,255,0.35)' }}>
               <div className="absolute top-5 right-5">
                 <div className="px-3 py-1 rounded-full text-[11px] font-black"
-                  style={{ background: 'rgba(255,255,255,0.2)', color: WHITE }}>
-                  Mejor valor ✦
-                </div>
+                  style={{ background: 'rgba(255,255,255,0.2)', color: WHITE }}>Mejor valor ✦</div>
               </div>
               <p className="text-[13px] font-black uppercase tracking-[2px] mb-4" style={{ color: 'rgba(255,255,255,0.7)' }}>Anual</p>
               <div className="flex items-end gap-1.5 mb-1">
@@ -944,8 +1171,6 @@ function PricingSection() {
             </div>
           </RevealWrapper>
         </div>
-
-        {/* Early adopter banner */}
         <RevealWrapper delay={240}>
           <div className="rounded-[20px] px-7 py-6 flex flex-col sm:flex-row items-start sm:items-center gap-4"
             style={{ background: 'rgba(0,122,255,0.06)', border: '1px solid rgba(0,122,255,0.15)' }}>
@@ -979,7 +1204,7 @@ function FAQSection() {
     },
     {
       q: '¿Tengo que abrir el navegador cada vez que la uso?',
-      a: 'No. Instálala en tu pantalla de inicio y se abre como una app nativa — sin barra del navegador, a pantalla completa.\n\niPhone · Safari: toca el botón Compartir → "Agregar a inicio"\nAndroid · Chrome: toca el menú (⋮) → "Añadir a pantalla de inicio"',
+      a: 'No. Instálala en tu pantalla de inicio y se abre directamente como una app nativa — sin barra del navegador, a pantalla completa.\n\niPhone · Safari: toca el botón Compartir → "Agregar a inicio"\nAndroid · Chrome: toca el menú (⋮) → "Añadir a pantalla de inicio"',
     },
     {
       q: '¿Cómo instalo el Atajo de iPhone?',
@@ -987,7 +1212,7 @@ function FAQSection() {
     },
     {
       q: '¿Cómo cancelo mi suscripción?',
-      a: 'Puedes cancelar en cualquier momento desde la misma app: ve a Ajustes → Suscripción. Se abre el portal de Stripe donde gestionas o cancelas tu plan.\n\nTambién puedes escribirnos a hola@fluxappfinance.com. Sin contratos ni permanencia mínima — tu acceso continúa hasta el final del periodo pagado.',
+      a: 'Puedes cancelar en cualquier momento directamente desde la misma app: ve a Ajustes → Suscripción. Se abre el portal de Stripe donde puedes gestionar o cancelar tu plan.\n\nTambién puedes escribirnos a hola@fluxappfinance.com. Sin contratos ni permanencia mínima — tu acceso continúa hasta el final del periodo pagado.',
     },
     {
       q: '¿Mis datos financieros están seguros?',
@@ -1004,7 +1229,6 @@ function FAQSection() {
             Preguntas<br />frecuentes.
           </h2>
         </RevealWrapper>
-
         <div className="space-y-2">
           {faqs.map((faq, i) => (
             <RevealWrapper key={i} delay={i * 40}>
