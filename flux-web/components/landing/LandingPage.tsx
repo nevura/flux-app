@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, type ReactNode } from 'react'
+import { useState, useEffect, useRef, type ReactNode } from 'react'
 import Link from 'next/link'
 import { RevealWrapper } from './RevealWrapper'
 
@@ -803,6 +803,16 @@ function PhoneTrends() {
 
 /* ── App Showcase Section ────────────────────────────────────────────────── */
 function AppShowcaseSection() {
+  const [activeSlide, setActiveSlide] = useState(0)
+  const carouselRef = useRef<HTMLDivElement>(null)
+
+  function handleCarouselScroll() {
+    const el = carouselRef.current
+    if (!el) return
+    const idx = Math.round(el.scrollLeft / (216 + 20))
+    setActiveSlide(Math.max(0, Math.min(idx, screens.length - 1)))
+  }
+
   const screens = [
     { key: 'dashboard', node: <PhoneDashboard /> },
     { key: 'accounts', node: <PhoneAccounts /> },
@@ -833,6 +843,8 @@ function AppShowcaseSection() {
 
         {/* Mobile: swipeable carousel */}
         <div
+          ref={carouselRef}
+          onScroll={handleCarouselScroll}
           className="flux-carousel flex md:hidden"
           style={{
             overflowX: 'auto',
@@ -856,10 +868,17 @@ function AppShowcaseSection() {
             Desliza para explorar
             <i className="fa-solid fa-arrow-right text-[9px]" />
           </p>
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5 items-center">
             {screens.map((s, i) => (
-              <div key={s.key} className="rounded-full"
-                style={{ width: i === 0 ? 16 : 6, height: 6, background: i === 0 ? BLUE : 'rgba(255,255,255,0.2)' }} />
+              <div
+                key={s.key}
+                className="rounded-full transition-all duration-300"
+                style={{
+                  width: i === activeSlide ? 16 : 6,
+                  height: 6,
+                  background: i === activeSlide ? BLUE : 'rgba(255,255,255,0.2)',
+                }}
+              />
             ))}
           </div>
         </div>
@@ -914,110 +933,100 @@ function TrustBar() {
 function PhoneApplePay() {
   return (
     <PhoneFrame glow>
-      {/* Apple Wallet tap-to-pay screen */}
-      <div className="h-full relative overflow-hidden" style={{ background: '#000' }}>
+      <div className="h-full flex flex-col" style={{ background: '#000' }}>
 
-        {/* Status bar area */}
-        <div className="flex items-center justify-between px-4" style={{ paddingTop: 36, paddingBottom: 4 }}>
+        {/* Status bar */}
+        <div className="flex items-center justify-between px-4 flex-shrink-0"
+          style={{ paddingTop: 36, paddingBottom: 6 }}>
           <p className="font-semibold text-white" style={{ fontSize: 9 }}>12:00</p>
           <div className="flex items-center gap-1">
             <i className="fa-solid fa-signal text-white" style={{ fontSize: 7 }} />
             <i className="fa-solid fa-wifi text-white" style={{ fontSize: 7 }} />
-            <div className="flex items-center gap-0.5">
-              <div className="rounded-sm text-white font-black" style={{ fontSize: 7, lineHeight: 1 }}>87</div>
-              <i className="fa-solid fa-battery-three-quarters text-white" style={{ fontSize: 8 }} />
+            <i className="fa-solid fa-battery-three-quarters text-white" style={{ fontSize: 8 }} />
+          </div>
+        </div>
+
+        {/* FluxApp notification — sits ABOVE the card, not overlapping */}
+        <div className="mx-2 mb-2 rounded-[13px] flex items-center gap-2 px-2.5 py-2 flex-shrink-0"
+          style={{
+            background: 'rgba(44,44,48,0.96)',
+            border: '1px solid rgba(255,255,255,0.10)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+          }}>
+          <div className="w-7 h-7 rounded-[9px] flex items-center justify-center flex-shrink-0"
+            style={{ background: '#007AFF' }}>
+            <i className="fa-solid fa-wallet text-white" style={{ fontSize: 10 }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <p className="font-bold text-white" style={{ fontSize: 8.5 }}>Flux Apple Pay</p>
+              <p className="font-medium" style={{ fontSize: 7, color: 'rgba(255,255,255,0.38)' }}>ahora</p>
             </div>
+            <p className="font-medium" style={{ fontSize: 8, color: 'rgba(255,255,255,0.58)', lineHeight: 1.3 }}>
+              Pagaste <span className="font-black text-white">$450.00</span> con TDD Principal
+            </p>
           </div>
         </div>
 
         {/* Bank card */}
-        <div className="mx-3 mt-1 rounded-[18px] overflow-hidden relative" style={{ height: 148 }}>
+        <div className="mx-3 rounded-[18px] overflow-hidden relative flex-shrink-0" style={{ height: 126 }}>
           <div className="absolute inset-0" style={{
-            background: 'linear-gradient(145deg, #1A3A7C 0%, #0D2356 50%, #0A1B44 100%)',
+            background: 'linear-gradient(145deg, #1E4496 0%, #0D2356 55%, #091840 100%)',
           }} />
-          {/* Card watermark */}
-          <div className="absolute" style={{
-            right: -10, top: -10,
-            width: 100, height: 100,
-            border: '18px solid rgba(255,255,255,0.06)',
-            borderRadius: '50%',
+          {/* Subtle card sheen */}
+          <div className="absolute inset-0" style={{
+            background: 'linear-gradient(110deg, rgba(255,255,255,0.07) 0%, transparent 50%)',
           }} />
-          <div className="absolute" style={{
-            right: 10, top: 10,
-            width: 65, height: 65,
-            border: '14px solid rgba(255,255,255,0.04)',
-            borderRadius: '50%',
-          }} />
-          <div className="absolute inset-0 p-4 flex flex-col justify-between">
+          {/* Circular watermark rings */}
+          <div className="absolute" style={{ right: -14, top: -14, width: 90, height: 90, border: '16px solid rgba(255,255,255,0.05)', borderRadius: '50%' }} />
+          <div className="absolute" style={{ right: 8, top: 8, width: 58, height: 58, border: '12px solid rgba(255,255,255,0.04)', borderRadius: '50%' }} />
+          <div className="absolute inset-0 p-3.5 flex flex-col justify-between">
             <div className="flex items-start justify-between">
-              <p className="font-black text-white" style={{ fontSize: 14, letterSpacing: 0.5 }}>Banco</p>
+              <p className="font-black text-white" style={{ fontSize: 13, letterSpacing: 0.3 }}>Banco</p>
               <div className="flex items-center">
-                <div className="w-5 h-5 rounded-full" style={{ background: 'rgba(235,0,27,0.8)' }} />
-                <div className="w-5 h-5 rounded-full -ml-2.5" style={{ background: 'rgba(255,163,0,0.8)' }} />
+                <div className="w-4 h-4 rounded-full" style={{ background: 'rgba(235,0,27,0.85)' }} />
+                <div className="w-4 h-4 rounded-full -ml-2" style={{ background: 'rgba(255,163,0,0.85)' }} />
               </div>
             </div>
-            {/* Chip + card number row */}
             <div>
-              <div className="flex items-center gap-1 mb-2">
-                <div className="rounded" style={{ width: 18, height: 14, background: 'rgba(255,220,100,0.5)', border: '1px solid rgba(255,220,100,0.3)' }} />
-                <p className="font-mono text-white" style={{ fontSize: 9, letterSpacing: 2, color: 'rgba(255,255,255,0.8)' }}>
-                  ···· ···· ···· 3724
-                </p>
-              </div>
+              {/* Chip */}
+              <div className="rounded-[3px] mb-2" style={{ width: 20, height: 15, background: 'linear-gradient(135deg, rgba(255,215,100,0.7) 0%, rgba(200,160,60,0.6) 100%)', border: '1px solid rgba(255,210,80,0.4)' }} />
               <div className="flex items-end justify-between">
-                <p className="font-bold" style={{ fontSize: 8, color: 'rgba(255,255,255,0.55)', letterSpacing: 2 }}>DÉBITO</p>
-                <p className="font-black text-white" style={{ fontSize: 13, fontStyle: 'italic', letterSpacing: 1 }}>VISA</p>
+                <div>
+                  <p className="font-mono text-white" style={{ fontSize: 9, letterSpacing: 1.5, color: 'rgba(255,255,255,0.75)' }}>···· 3724</p>
+                  <p className="font-semibold" style={{ fontSize: 7, color: 'rgba(255,255,255,0.45)', letterSpacing: 1.5, marginTop: 2 }}>DÉBITO</p>
+                </div>
+                <p className="font-black text-white" style={{ fontSize: 14, fontStyle: 'italic', letterSpacing: 0.5, textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>VISA</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* NFC icon + "Acercar al lector" */}
-        <div className="flex flex-col items-center mt-5 mb-3">
-          <div className="relative flex items-center justify-center" style={{ width: 52, height: 52 }}>
-            <div className="absolute rounded-full" style={{ inset: 0, border: '2px solid #007AFF', opacity: 0.5 }} />
+        <div className="flex flex-col items-center flex-1 justify-center">
+          <div className="relative flex items-center justify-center" style={{ width: 58, height: 58 }}>
+            {/* Outer pulse ring */}
+            <div className="absolute rounded-full" style={{ inset: 0, border: '1.5px solid rgba(0,122,255,0.45)' }} />
+            {/* Inner circle */}
             <div className="rounded-full flex items-center justify-center" style={{
-              width: 36, height: 36,
-              background: 'rgba(0,122,255,0.12)',
-              border: '1.5px solid rgba(0,122,255,0.6)',
+              width: 40, height: 40,
+              background: 'rgba(0,122,255,0.10)',
+              border: '1.5px solid rgba(0,122,255,0.65)',
             }}>
-              <i className="fa-solid fa-mobile-screen-button text-white" style={{ fontSize: 14 }} />
+              <i className="fa-solid fa-mobile-screen-button text-white" style={{ fontSize: 15 }} />
             </div>
           </div>
-          <p className="font-semibold mt-2" style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)' }}>
+          <p className="font-medium mt-2" style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)' }}>
             Acercar al lector
           </p>
         </div>
 
-        {/* Other cards peeking at bottom */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <div className="mx-3 rounded-t-[14px] h-10 flex items-center px-3 justify-between"
-            style={{ background: 'linear-gradient(135deg,#0F4C81 0%,#0A3260 100%)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        {/* Other cards stacked at bottom */}
+        <div className="flex-shrink-0">
+          <div className="mx-3 rounded-t-[13px] h-9 flex items-center px-3 justify-between"
+            style={{ background: 'linear-gradient(135deg,#0F4C81 0%,#0A3260 100%)' }}>
             <p className="font-bold text-white" style={{ fontSize: 9 }}>TDC Gold</p>
             <i className="fa-solid fa-chevron-down" style={{ fontSize: 8, color: 'rgba(255,255,255,0.4)' }} />
-          </div>
-        </div>
-
-        {/* FluxApp notification banner */}
-        <div className="absolute left-2 right-2 rounded-[14px] flex items-center gap-2 px-3 py-2.5"
-          style={{
-            top: 60,
-            background: 'rgba(28,28,32,0.92)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            backdropFilter: 'blur(20px)',
-          }}>
-          <div className="w-8 h-8 rounded-[10px] flex items-center justify-center flex-shrink-0"
-            style={{ background: '#007AFF', boxShadow: '0 2px 8px rgba(0,122,255,0.5)' }}>
-            <i className="fa-solid fa-wallet text-white" style={{ fontSize: 12 }} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-0.5">
-              <p className="font-bold text-white" style={{ fontSize: 9 }}>Flux Apple Pay</p>
-              <p className="font-medium" style={{ fontSize: 7.5, color: 'rgba(255,255,255,0.4)' }}>ahora</p>
-            </div>
-            <p className="font-medium leading-tight" style={{ fontSize: 8.5, color: 'rgba(255,255,255,0.65)' }}>
-              Pagaste <span className="font-black text-white">$450.00</span> con TDD Principal
-            </p>
           </div>
         </div>
       </div>
@@ -1263,7 +1272,10 @@ function PricingSection() {
               <p className="text-[13px] font-black uppercase tracking-[2px] mb-4" style={{ color: GRAY }}>Mensual</p>
               <div className="flex items-end gap-1.5 mb-2">
                 <span className="font-black leading-none tracking-[-2px]" style={{ fontSize: 52, color: DARK }}>$89</span>
-                <span className="font-bold mb-2" style={{ fontSize: 16, color: GRAY }}>/mes</span>
+                <div className="flex flex-col mb-2" style={{ gap: 1 }}>
+                  <span className="font-black" style={{ fontSize: 10, color: GRAY, letterSpacing: 1 }}>MXN</span>
+                  <span className="font-bold" style={{ fontSize: 14, color: GRAY }}>/mes</span>
+                </div>
               </div>
               <p className="text-[14px] font-medium mb-6" style={{ color: GRAY }}>Pago mensual, cancela cuando quieras.</p>
               <ul className="space-y-3 mb-8 flex-1">
@@ -1294,9 +1306,12 @@ function PricingSection() {
               <p className="text-[13px] font-black uppercase tracking-[2px] mb-4" style={{ color: 'rgba(255,255,255,0.7)' }}>Anual</p>
               <div className="flex items-end gap-1.5 mb-1">
                 <span className="font-black leading-none tracking-[-2px] text-white" style={{ fontSize: 52 }}>$829</span>
-                <span className="font-bold mb-2" style={{ fontSize: 16, color: 'rgba(255,255,255,0.7)' }}>/año</span>
+                <div className="flex flex-col mb-2" style={{ gap: 1 }}>
+                  <span className="font-black" style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', letterSpacing: 1 }}>MXN</span>
+                  <span className="font-bold" style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)' }}>/año</span>
+                </div>
               </div>
-              <p className="font-bold mb-3" style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>equivale a $69/mes</p>
+              <p className="font-bold mb-3" style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>equivale a $69 MXN/mes</p>
               <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full mb-6"
                 style={{ background: 'rgba(255,255,255,0.15)', width: 'fit-content' }}>
                 <i className="fa-solid fa-tag text-white" style={{ fontSize: 10 }} />
