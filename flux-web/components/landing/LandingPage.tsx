@@ -486,71 +486,85 @@ function PhoneDashboard() {
 
 /* ── Showcase screen: Estado de Cuentas ─────────────────────────────────── */
 /* ── Showcase screen: Cuentas + Pagos TDC (combined) ────────────────────── */
+/* ── Showcase screen: Cuentas + Pagos TDC ───────────────────────────────── */
 function PhoneAccountsAndTDC() {
+  // Credit cards (salmon) are paired 1:1 with TDC payment entries
   const accounts = [
-    { name: 'EFECTIVO', type: 'cash', amt: '$5,240', positive: true },
-    { name: 'TDD DIGITAL', type: 'debit', amt: '$1,820', positive: true },
-    { name: 'TDD AHORRO', type: 'debit', amt: '$9,140', positive: true },
-    { name: 'TDC GOLD', type: 'credit', amt: '-$8,140', positive: false },
+    { name: 'CARTERA', type: 'cash', amt: '$5,240.00' },
+    { name: 'DÉBITO DIGITAL', type: 'debit', amt: '$1,820.50' },
+    { name: 'TDC LIKEU', type: 'credit', amt: '-$4,280.00', tdcLabel: 'TDC LikeU', daysLeft: 8 },
+    { name: 'DÉBITO NUBE', type: 'debit', amt: '$13,440.00' },
+    { name: 'TDC GOLD', type: 'credit', amt: '-$6,150.00', tdcLabel: 'TDC Gold', daysLeft: 13 },
+    { name: 'DÉBITO AHORRO', type: 'debit', amt: '$320.80' },
   ]
-  const tdcCards = [
-    { name: 'TDC Gold', due: 'Vence en 8 días', urgency: '#FF453A' },
-    { name: 'TDC Crédito 1', due: 'Vence en 13 días', urgency: '#FF9500' },
-    { name: 'TDC Store', due: 'Vence en 22 días', urgency: '#30D158' },
-  ]
-  const cardBg = (a: typeof accounts[0]) =>
-    a.type === 'cash'
-      ? 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)'
-      : a.positive
-      ? 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)'
-      : 'linear-gradient(135deg, #FB7185 0%, #F43F5E 100%)'
+  const creditCards = accounts.filter(a => a.type === 'credit') as (typeof accounts[0] & { tdcLabel: string; daysLeft: number })[]
+
+  const cardBg = (type: string) =>
+    type === 'cash'
+      ? 'linear-gradient(160deg, #22C55E 0%, #15803D 100%)'
+      : type === 'debit'
+      ? 'linear-gradient(160deg, #3B82F6 0%, #1D4ED8 100%)'
+      : 'linear-gradient(160deg, #F87171 0%, #DC2626 100%)'
 
   return (
     <PhoneFrame>
-      {/* Header */}
-      <div className="px-3 pt-9 pb-1.5 flex items-center justify-between">
-        <div>
-          <p className="font-black uppercase leading-none" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.4)' }}>JUNIO 2026</p>
-          <p className="font-black text-white leading-tight" style={{ fontSize: 13 }}>Hola, Carlos</p>
+      {/* Header — matches real app */}
+      <div className="flex items-center gap-2 px-3 pt-9 pb-2">
+        <div className="w-7 h-7 rounded-[10px] flex items-center justify-center flex-shrink-0"
+          style={{ background: 'rgba(255,255,255,0.07)' }}>
+          <i className="fa-solid fa-bars text-white" style={{ fontSize: 10 }} />
         </div>
-        <div className="flex items-center gap-1 rounded-[8px] px-2 py-1"
-          style={{ background: 'rgba(0,122,255,0.15)', border: '1px solid rgba(0,122,255,0.25)' }}>
-          <i className="fa-solid fa-sliders" style={{ fontSize: 7, color: '#007AFF' }} />
-          <p className="font-black" style={{ fontSize: 7, color: '#007AFF' }}>AUDITAR</p>
+        <div className="flex-1">
+          <p className="font-black uppercase leading-none" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.4)' }}>JUNIO 2026</p>
+          <p className="font-black text-white leading-tight" style={{ fontSize: 14 }}>Hola, Carlos</p>
+        </div>
+        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <i className="fa-regular fa-bell text-white" style={{ fontSize: 10 }} />
         </div>
       </div>
 
-      {/* Accounts 2×2 grid */}
-      <p className="mx-3 font-black uppercase mb-1" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.35)' }}>ESTADO DE CUENTAS</p>
-      <div className="grid grid-cols-2 gap-1.5 mx-3 mb-2.5">
+      {/* ESTADO DE CUENTAS label + actions */}
+      <div className="flex items-center gap-1.5 mx-3 mb-1.5">
+        <p className="flex-1 font-black uppercase" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.38)' }}>ESTADO DE CUENTAS</p>
+        <div className="w-5 h-5 rounded-full flex items-center justify-center"
+          style={{ background: 'rgba(0,122,255,0.15)', border: '1px solid rgba(0,122,255,0.35)' }}>
+          <i className="fa-solid fa-plus" style={{ fontSize: 7, color: '#007AFF' }} />
+        </div>
+        <div className="flex items-center gap-1 rounded-[7px] px-1.5 py-1"
+          style={{ background: 'rgba(0,122,255,0.12)', border: '1px solid rgba(0,122,255,0.3)' }}>
+          <i className="fa-solid fa-sliders" style={{ fontSize: 6, color: '#007AFF' }} />
+          <p className="font-black" style={{ fontSize: 6, color: '#007AFF' }}>AUDITAR</p>
+        </div>
+      </div>
+
+      {/* Accounts 2-col grid — 3 rows */}
+      <div className="grid grid-cols-2 gap-1.5 mx-3 mb-2">
         {accounts.map((a, i) => (
-          <div key={i} className="rounded-[12px] p-2.5" style={{ background: cardBg(a) }}>
-            <div className="flex items-start justify-between mb-1">
-              <p className="font-black uppercase leading-tight" style={{ fontSize: 6, letterSpacing: 1, color: 'rgba(255,255,255,0.75)', maxWidth: 55 }}>{a.name}</p>
+          <div key={i} className="rounded-[12px] p-2.5 relative overflow-hidden" style={{ background: cardBg(a.type) }}>
+            <div className="flex items-start justify-between mb-1.5">
+              <p className="font-black uppercase leading-tight" style={{ fontSize: 6, letterSpacing: 1, color: 'rgba(255,255,255,0.85)', maxWidth: 54 }}>{a.name}</p>
               <i className={`fa-solid ${a.type === 'cash' ? 'fa-money-bill-wave' : 'fa-credit-card'}`}
-                style={{ fontSize: 7, color: 'rgba(255,255,255,0.5)', flexShrink: 0 }} />
+                style={{ fontSize: 8, color: 'rgba(255,255,255,0.5)', flexShrink: 0 }} />
             </div>
-            <p className="font-black text-white leading-none tabular-nums" style={{ fontSize: 11 }}>{a.amt}</p>
+            <p className="font-black text-white leading-none tabular-nums" style={{ fontSize: i === 0 ? 12 : 10 }}>{a.amt}</p>
           </div>
         ))}
       </div>
 
-      {/* TDC payments */}
-      <p className="mx-3 font-black uppercase mb-1" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.35)' }}>PAGOS TDC</p>
+      {/* PAGOS TDC — exactly 1 entry per credit card */}
+      <p className="mx-3 font-black uppercase mb-1" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.38)' }}>PAGOS TDC</p>
       <div className="mx-3 rounded-[12px] overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
-        {tdcCards.map((c, i) => (
+        {creditCards.map((c, i) => (
           <div key={i} className="flex items-center gap-2 px-2.5 py-2"
-            style={{ borderBottom: i < tdcCards.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
-            <div className="w-6 h-6 rounded-[7px] flex items-center justify-center flex-shrink-0"
-              style={{ background: `${c.urgency}22` }}>
-              <i className="fa-solid fa-credit-card" style={{ fontSize: 8, color: c.urgency }} />
+            style={{ borderBottom: i < creditCards.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+            <div className="w-6 h-6 rounded-[8px] flex items-center justify-center flex-shrink-0"
+              style={{ background: 'rgba(248,113,113,0.15)' }}>
+              <i className="fa-solid fa-credit-card" style={{ fontSize: 8, color: '#F87171' }} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-white leading-none" style={{ fontSize: 9 }}>{c.name}</p>
-              <div className="flex items-center gap-1 mt-0.5">
-                <div className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: c.urgency }} />
-                <p style={{ fontSize: 6.5, color: 'rgba(255,255,255,0.4)' }}>{c.due}</p>
-              </div>
+              <p className="font-bold text-white leading-none" style={{ fontSize: 9 }}>{c.tdcLabel}</p>
+              <p style={{ fontSize: 6.5, color: 'rgba(255,255,255,0.4)' }}>Vence en {c.daysLeft} días</p>
             </div>
             <div className="rounded-full px-2 py-0.5 font-black flex-shrink-0"
               style={{ background: '#007AFF', fontSize: 7, color: '#fff' }}>
@@ -560,7 +574,22 @@ function PhoneAccountsAndTDC() {
         ))}
       </div>
 
-      <ShowcaseBottomNav active={0} />
+      {/* Sticky bottom: first upcoming TDC */}
+      <div className="absolute bottom-0 left-0 right-0 flex items-center gap-2 px-3 py-2"
+        style={{ background: 'rgba(8,10,18,0.98)', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+        <div className="w-6 h-6 rounded-[8px] flex items-center justify-center flex-shrink-0"
+          style={{ background: 'rgba(248,113,113,0.15)' }}>
+          <i className="fa-solid fa-credit-card" style={{ fontSize: 8, color: '#F87171' }} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-white leading-none" style={{ fontSize: 8.5 }}>TDC LikeU</p>
+          <p style={{ fontSize: 6.5, color: 'rgba(255,255,255,0.38)' }}>Vence en 8 días</p>
+        </div>
+        <div className="rounded-full px-2.5 py-1 font-black"
+          style={{ background: '#007AFF', fontSize: 8, color: '#fff' }}>
+          Pagar
+        </div>
+      </div>
     </PhoneFrame>
   )
 }
@@ -926,12 +955,26 @@ function PhoneApplePay() {
           <div className="absolute inset-0" style={{
             background: 'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, transparent 45%)',
           }} />
-          {/* Big "A" watermark — BBVA style */}
-          <div className="absolute" style={{
-            right: 6, top: -6, fontSize: 108,
-            fontWeight: 100, color: 'rgba(255,255,255,0.065)',
-            lineHeight: 1, userSelect: 'none', fontFamily: 'Georgia, serif',
-          }}>A</div>
+          {/* Geometric "A" watermark — CSS angular strokes, no font */}
+          <div className="absolute" style={{ right: -2, top: 4, width: 96, height: 104, opacity: 0.07, pointerEvents: 'none' }}>
+            {/* Left diagonal leg */}
+            <div style={{
+              position: 'absolute', width: 7, height: 90, background: '#fff',
+              borderRadius: 4, left: '30%', top: 8,
+              transform: 'rotate(-17deg)', transformOrigin: 'bottom center',
+            }} />
+            {/* Right diagonal leg */}
+            <div style={{
+              position: 'absolute', width: 7, height: 90, background: '#fff',
+              borderRadius: 4, right: '16%', top: 8,
+              transform: 'rotate(17deg)', transformOrigin: 'bottom center',
+            }} />
+            {/* Crossbar */}
+            <div style={{
+              position: 'absolute', height: 7, background: '#fff',
+              borderRadius: 4, left: '27%', right: '22%', top: '48%',
+            }} />
+          </div>
 
           <div className="absolute inset-0 p-4 flex flex-col justify-between">
             {/* Bank name + network */}
@@ -1056,6 +1099,55 @@ function ApplePaySection() {
             </div>
           </RevealWrapper>
         </div>
+
+        {/* ── "Así de fácil" step flow ───────────────────────── */}
+        <RevealWrapper delay={200} className="mt-20">
+          <p className="text-center font-black text-white mb-10" style={{ fontSize: 22, letterSpacing: -0.5 }}>
+            Así de fácil funciona Flux
+          </p>
+          <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-8 sm:gap-0">
+            {[
+              { icon: 'fa-mobile-screen', label: 'Pagas con\nApple Pay', n: 1 },
+              { icon: 'fa-bolt', label: 'Flux detecta\nel movimiento', n: 2 },
+              { icon: 'fa-receipt', label: 'El gasto se registra\ny categoriza', n: 3 },
+              { icon: 'fa-chart-bar', label: 'Tu presupuesto\nse actualiza', n: 4 },
+            ].map((step, i, arr) => (
+              <div key={i} className="flex sm:flex-col items-center sm:items-center flex-1 relative">
+                {/* Dotted connector — desktop: right side; hidden for last */}
+                {i < arr.length - 1 && (
+                  <div className="hidden sm:block absolute left-1/2 top-[28px]"
+                    style={{
+                      width: '100%', height: 1,
+                      borderTop: '2px dashed rgba(255,255,255,0.15)',
+                      zIndex: 0,
+                    }}
+                  />
+                )}
+                {/* Circle + icon */}
+                <div className="relative flex-shrink-0 z-10" style={{ width: 56, height: 56 }}>
+                  <div className="absolute inset-0 rounded-full flex items-center justify-center"
+                    style={{ border: '1.5px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.04)' }}>
+                    <i className={`fa-solid ${step.icon}`} style={{ fontSize: 20, color: 'rgba(255,255,255,0.65)' }} />
+                  </div>
+                  {/* Number badge */}
+                  <div className="absolute flex items-center justify-center rounded-full font-black"
+                    style={{
+                      width: 18, height: 18, bottom: -2, left: -2,
+                      background: '#007AFF', fontSize: 9, color: '#fff',
+                      boxShadow: '0 0 0 2px #000',
+                    }}>
+                    {step.n}
+                  </div>
+                </div>
+                {/* Label */}
+                <p className="sm:mt-3 ml-4 sm:ml-0 sm:text-center font-semibold whitespace-pre-line leading-snug"
+                  style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', maxWidth: 110 }}>
+                  {step.label}
+                </p>
+              </div>
+            ))}
+          </div>
+        </RevealWrapper>
       </div>
 
       <style>{`
