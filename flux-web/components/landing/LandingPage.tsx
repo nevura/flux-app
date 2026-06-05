@@ -175,9 +175,18 @@ function Hero() {
                 <i className="fa-solid fa-arrow-right text-[15px]" />
               </Link>
             </div>
-            <p className="text-[13px] font-semibold mt-5" style={{ color: 'rgba(0,0,0,0.35)' }}>
-              Gratis durante 20 días · Sin tarjeta de crédito
-            </p>
+            <div className="flex flex-col gap-1.5 mt-5">
+              {[
+                'Empieza en segundos',
+                'No requiere instalación',
+                '20 días gratis · Sin tarjeta',
+              ].map((item) => (
+                <p key={item} className="flex items-center gap-2 text-[14px] font-semibold" style={{ color: 'rgba(0,0,0,0.45)' }}>
+                  <i className="fa-solid fa-check" style={{ color: BLUE, fontSize: 11, flexShrink: 0 }} />
+                  {item}
+                </p>
+              ))}
+            </div>
           </div>
           <div className="flex justify-center lg:justify-end">
             <div style={{ animation: 'heroFloat 6s ease-in-out infinite', display: 'inline-block' }}>
@@ -476,14 +485,18 @@ function PhoneDashboard() {
 }
 
 /* ── Showcase screen: Estado de Cuentas ─────────────────────────────────── */
-function PhoneAccounts() {
+/* ── Showcase screen: Cuentas + Pagos TDC (combined) ────────────────────── */
+function PhoneAccountsAndTDC() {
   const accounts = [
-    { name: 'EFECTIVO', type: 'cash', amt: '$5,240.00', positive: true },
-    { name: 'TDD PRINCIPAL', type: 'debit', amt: '$1,820.50', positive: true },
-    { name: 'TDC CRÉDITO 1', type: 'credit', amt: '-$4,280.00', positive: false },
-    { name: 'TDD DIGITAL', type: 'debit', amt: '$320.80', positive: true },
-    { name: 'TDC GOLD', type: 'credit', amt: '-$8,140.00', positive: false },
-    { name: 'TDD AHORRO', type: 'debit', amt: '$9,140.00', positive: true },
+    { name: 'EFECTIVO', type: 'cash', amt: '$5,240', positive: true },
+    { name: 'TDD DIGITAL', type: 'debit', amt: '$1,820', positive: true },
+    { name: 'TDD AHORRO', type: 'debit', amt: '$9,140', positive: true },
+    { name: 'TDC GOLD', type: 'credit', amt: '-$8,140', positive: false },
+  ]
+  const tdcCards = [
+    { name: 'TDC Gold', due: 'Vence en 8 días', urgency: '#FF453A' },
+    { name: 'TDC Crédito 1', due: 'Vence en 13 días', urgency: '#FF9500' },
+    { name: 'TDC Store', due: 'Vence en 22 días', urgency: '#30D158' },
   ]
   const cardBg = (a: typeof accounts[0]) =>
     a.type === 'cash'
@@ -494,101 +507,59 @@ function PhoneAccounts() {
 
   return (
     <PhoneFrame>
-      <div className="px-3 pt-9 pb-2 flex items-center justify-between">
+      {/* Header */}
+      <div className="px-3 pt-9 pb-1.5 flex items-center justify-between">
         <div>
-          <p className="font-black uppercase leading-none" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.4)' }}>ESTADO DE</p>
-          <p className="font-black text-white leading-tight" style={{ fontSize: 14 }}>Cuentas</p>
+          <p className="font-black uppercase leading-none" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.4)' }}>JUNIO 2026</p>
+          <p className="font-black text-white leading-tight" style={{ fontSize: 13 }}>Hola, Carlos</p>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-6 h-6 rounded-full flex items-center justify-center"
-            style={{ background: 'rgba(0,122,255,0.15)', border: '1px solid rgba(0,122,255,0.3)' }}>
-            <i className="fa-solid fa-plus" style={{ fontSize: 8, color: '#007AFF' }} />
-          </div>
-          <div className="flex items-center gap-1 rounded-[8px] px-2 py-1"
-            style={{ background: 'rgba(0,122,255,0.15)', border: '1px solid rgba(0,122,255,0.3)' }}>
-            <i className="fa-solid fa-sliders" style={{ fontSize: 7, color: '#007AFF' }} />
-            <p className="font-black" style={{ fontSize: 7, color: '#007AFF' }}>AUDITAR</p>
-          </div>
+        <div className="flex items-center gap-1 rounded-[8px] px-2 py-1"
+          style={{ background: 'rgba(0,122,255,0.15)', border: '1px solid rgba(0,122,255,0.25)' }}>
+          <i className="fa-solid fa-sliders" style={{ fontSize: 7, color: '#007AFF' }} />
+          <p className="font-black" style={{ fontSize: 7, color: '#007AFF' }}>AUDITAR</p>
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-1.5 mx-3 pb-14">
+
+      {/* Accounts 2×2 grid */}
+      <p className="mx-3 font-black uppercase mb-1" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.35)' }}>ESTADO DE CUENTAS</p>
+      <div className="grid grid-cols-2 gap-1.5 mx-3 mb-2.5">
         {accounts.map((a, i) => (
-          <div key={i} className="rounded-[14px] p-3 relative overflow-hidden" style={{ background: cardBg(a) }}>
-            <div className="flex items-start justify-between mb-2">
-              <p className="font-black uppercase leading-tight" style={{ fontSize: 7, letterSpacing: 1, color: 'rgba(255,255,255,0.75)', maxWidth: 58 }}>{a.name}</p>
+          <div key={i} className="rounded-[12px] p-2.5" style={{ background: cardBg(a) }}>
+            <div className="flex items-start justify-between mb-1">
+              <p className="font-black uppercase leading-tight" style={{ fontSize: 6, letterSpacing: 1, color: 'rgba(255,255,255,0.75)', maxWidth: 55 }}>{a.name}</p>
               <i className={`fa-solid ${a.type === 'cash' ? 'fa-money-bill-wave' : 'fa-credit-card'}`}
-                style={{ fontSize: 9, color: 'rgba(255,255,255,0.5)', flexShrink: 0 }} />
+                style={{ fontSize: 7, color: 'rgba(255,255,255,0.5)', flexShrink: 0 }} />
             </div>
-            <p className="font-black text-white leading-none tabular-nums" style={{ fontSize: i === 0 ? 14 : 11 }}>{a.amt}</p>
-          </div>
-        ))}
-      </div>
-      <ShowcaseBottomNav active={0} />
-    </PhoneFrame>
-  )
-}
-
-/* ── Showcase screen: Pagos TDC ──────────────────────────────────────────── */
-function PhoneTDCPayments() {
-  const cards = [
-    { name: 'TDC Gold', due: 'Vence en 8 días', amt: '-$8,140', urgency: '#FF453A' },
-    { name: 'TDC Crédito 1', due: 'Vence en 13 días', amt: '-$4,280', urgency: '#FF9500' },
-    { name: 'TDC Store', due: 'Vence en 17 días', amt: '-$2,150', urgency: '#FFCC00' },
-    { name: 'TDC Platino', due: 'Vence en 22 días', amt: '-$1,480', urgency: '#30D158' },
-  ]
-  return (
-    <PhoneFrame>
-      <div className="px-3 pt-9 pb-2 flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <div className="w-6 h-6 rounded-[8px] flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.07)' }}>
-            <i className="fa-solid fa-bars text-white" style={{ fontSize: 9 }} />
-          </div>
-          <div>
-            <p className="font-black uppercase leading-none" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.35)' }}>JUNIO 2026</p>
-            <p className="font-black text-white leading-tight" style={{ fontSize: 13 }}>Hola, Carlos</p>
-          </div>
-        </div>
-      </div>
-
-      {/* mini account strip */}
-      <div className="flex gap-1.5 mx-3 mb-3 overflow-hidden">
-        {[
-          { name: 'Efectivo', amt: '$5,240', bg: 'linear-gradient(135deg,#22C55E,#16A34A)' },
-          { name: 'TDD Principal', amt: '$1,820', bg: 'linear-gradient(135deg,#3B82F6,#2563EB)' },
-        ].map((a, i) => (
-          <div key={i} className="flex-1 rounded-[10px] p-2" style={{ background: a.bg }}>
-            <p className="font-black uppercase" style={{ fontSize: 5.5, letterSpacing: 1, color: 'rgba(255,255,255,0.7)' }}>{a.name}</p>
-            <p className="font-black text-white" style={{ fontSize: 11 }}>{a.amt}</p>
+            <p className="font-black text-white leading-none tabular-nums" style={{ fontSize: 11 }}>{a.amt}</p>
           </div>
         ))}
       </div>
 
-      <p className="mx-3 font-black uppercase mb-2" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.4)' }}>PAGOS TDC</p>
-      <div className="mx-3 rounded-[14px] overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
-        {cards.map((c, i) => (
-          <div key={i} className="flex items-center gap-2.5 px-3 py-2.5"
-            style={{ borderBottom: i < cards.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
-            <div className="w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0"
+      {/* TDC payments */}
+      <p className="mx-3 font-black uppercase mb-1" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.35)' }}>PAGOS TDC</p>
+      <div className="mx-3 rounded-[12px] overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
+        {tdcCards.map((c, i) => (
+          <div key={i} className="flex items-center gap-2 px-2.5 py-2"
+            style={{ borderBottom: i < tdcCards.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+            <div className="w-6 h-6 rounded-[7px] flex items-center justify-center flex-shrink-0"
               style={{ background: `${c.urgency}22` }}>
-              <i className="fa-solid fa-credit-card" style={{ fontSize: 10, color: c.urgency }} />
+              <i className="fa-solid fa-credit-card" style={{ fontSize: 8, color: c.urgency }} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-white leading-none" style={{ fontSize: 10 }}>{c.name}</p>
+              <p className="font-bold text-white leading-none" style={{ fontSize: 9 }}>{c.name}</p>
               <div className="flex items-center gap-1 mt-0.5">
-                <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: c.urgency }} />
-                <p className="font-medium" style={{ fontSize: 7, color: 'rgba(255,255,255,0.45)' }}>{c.due}</p>
+                <div className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: c.urgency }} />
+                <p style={{ fontSize: 6.5, color: 'rgba(255,255,255,0.4)' }}>{c.due}</p>
               </div>
             </div>
-            <div>
-              <p className="font-black tabular-nums text-right" style={{ fontSize: 9, color: '#FF453A' }}>{c.amt}</p>
-              <div className="rounded-full px-2 py-0.5 text-center font-black"
-                style={{ background: '#007AFF', fontSize: 7, color: '#fff', marginTop: 2 }}>
-                Pagar
-              </div>
+            <div className="rounded-full px-2 py-0.5 font-black flex-shrink-0"
+              style={{ background: '#007AFF', fontSize: 7, color: '#fff' }}>
+              Pagar
             </div>
           </div>
         ))}
       </div>
+
       <ShowcaseBottomNav active={0} />
     </PhoneFrame>
   )
@@ -815,8 +786,7 @@ function AppShowcaseSection() {
 
   const screens = [
     { key: 'dashboard', node: <PhoneDashboard /> },
-    { key: 'accounts', node: <PhoneAccounts /> },
-    { key: 'tdc', node: <PhoneTDCPayments /> },
+    { key: 'accounts-tdc', node: <PhoneAccountsAndTDC /> },
     { key: 'transactions', node: <PhoneTransactions /> },
     { key: 'categories', node: <PhoneCategoryChart /> },
     { key: 'trends', node: <PhoneTrends /> },
@@ -883,18 +853,18 @@ function AppShowcaseSection() {
           </div>
         </div>
 
-        {/* Desktop: Accounts + Dashboard (center, featured) + TDC */}
+        {/* Desktop: AccountsAndTDC + Dashboard (center, featured) + Transactions */}
         <RevealWrapper className="hidden md:block">
           <div className="flex items-end justify-center gap-5 lg:gap-8">
             <div className="flex-shrink-0" style={{ opacity: 0.65, transform: 'translateY(44px)' }}>
               <div style={{ transform: 'scale(0.88)', transformOrigin: 'bottom center' }}>
-                <PhoneAccounts />
+                <PhoneAccountsAndTDC />
               </div>
             </div>
             <PhoneDashboard />
             <div className="flex-shrink-0" style={{ opacity: 0.65, transform: 'translateY(44px)' }}>
               <div style={{ transform: 'scale(0.88)', transformOrigin: 'bottom center' }}>
-                <PhoneTDCPayments />
+                <PhoneTransactions />
               </div>
             </div>
           </div>
@@ -937,7 +907,7 @@ function PhoneApplePay() {
 
         {/* Status bar */}
         <div className="flex items-center justify-between px-4 flex-shrink-0"
-          style={{ paddingTop: 36, paddingBottom: 6 }}>
+          style={{ paddingTop: 36, paddingBottom: 8 }}>
           <p className="font-semibold text-white" style={{ fontSize: 9 }}>12:00</p>
           <div className="flex items-center gap-1">
             <i className="fa-solid fa-signal text-white" style={{ fontSize: 7 }} />
@@ -946,12 +916,48 @@ function PhoneApplePay() {
           </div>
         </div>
 
-        {/* FluxApp notification — sits ABOVE the card, not overlapping */}
-        <div className="mx-2 mb-2 rounded-[13px] flex items-center gap-2 px-2.5 py-2 flex-shrink-0"
+        {/* BBVA-style card */}
+        <div className="mx-3 rounded-[18px] overflow-hidden relative flex-shrink-0" style={{ height: 138 }}>
+          {/* Navy gradient base */}
+          <div className="absolute inset-0" style={{
+            background: 'linear-gradient(150deg, #1C4299 0%, #0D2560 55%, #091A46 100%)',
+          }} />
+          {/* Top-left sheen */}
+          <div className="absolute inset-0" style={{
+            background: 'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, transparent 45%)',
+          }} />
+          {/* Big "A" watermark — BBVA style */}
+          <div className="absolute" style={{
+            right: 6, top: -6, fontSize: 108,
+            fontWeight: 100, color: 'rgba(255,255,255,0.065)',
+            lineHeight: 1, userSelect: 'none', fontFamily: 'Georgia, serif',
+          }}>A</div>
+
+          <div className="absolute inset-0 p-4 flex flex-col justify-between">
+            {/* Bank name + network */}
+            <div className="flex items-start justify-between">
+              <p className="font-black text-white" style={{ fontSize: 16, letterSpacing: -0.3 }}>BBVA</p>
+              <div className="flex items-center">
+                <div className="w-5 h-5 rounded-full" style={{ background: 'rgba(235,0,27,0.85)' }} />
+                <div className="w-5 h-5 rounded-full -ml-2.5" style={{ background: 'rgba(255,163,0,0.85)' }} />
+              </div>
+            </div>
+            {/* Bottom row */}
+            <div className="flex items-end justify-between">
+              <p className="font-mono text-white" style={{ fontSize: 10, letterSpacing: 2, color: 'rgba(255,255,255,0.8)' }}>
+                ···· 1826
+              </p>
+              <p className="font-black text-white" style={{ fontSize: 17, fontStyle: 'italic', letterSpacing: 0.5 }}>VISA</p>
+            </div>
+          </div>
+        </div>
+
+        {/* FluxApp notification — directly below card */}
+        <div className="mx-3 mt-2.5 rounded-[13px] flex items-center gap-2 px-2.5 py-2 flex-shrink-0"
           style={{
-            background: 'rgba(44,44,48,0.96)',
-            border: '1px solid rgba(255,255,255,0.10)',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+            background: 'rgba(36,36,40,0.98)',
+            border: '1px solid rgba(255,255,255,0.09)',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.5)',
           }}>
           <div className="w-7 h-7 rounded-[9px] flex items-center justify-center flex-shrink-0"
             style={{ background: '#007AFF' }}>
@@ -960,73 +966,36 @@ function PhoneApplePay() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
               <p className="font-bold text-white" style={{ fontSize: 8.5 }}>Flux Apple Pay</p>
-              <p className="font-medium" style={{ fontSize: 7, color: 'rgba(255,255,255,0.38)' }}>ahora</p>
+              <p style={{ fontSize: 7, color: 'rgba(255,255,255,0.35)' }}>mié 13:50</p>
             </div>
-            <p className="font-medium" style={{ fontSize: 8, color: 'rgba(255,255,255,0.58)', lineHeight: 1.3 }}>
-              Pagaste <span className="font-black text-white">$450.00</span> con TDD Principal
+            <p style={{ fontSize: 8, color: 'rgba(255,255,255,0.58)', lineHeight: 1.3 }}>
+              Pagaste <span className="font-black text-white">$450.00</span> con TDC Azul
             </p>
           </div>
         </div>
 
-        {/* Bank card */}
-        <div className="mx-3 rounded-[18px] overflow-hidden relative flex-shrink-0" style={{ height: 126 }}>
-          <div className="absolute inset-0" style={{
-            background: 'linear-gradient(145deg, #1E4496 0%, #0D2356 55%, #091840 100%)',
-          }} />
-          {/* Subtle card sheen */}
-          <div className="absolute inset-0" style={{
-            background: 'linear-gradient(110deg, rgba(255,255,255,0.07) 0%, transparent 50%)',
-          }} />
-          {/* Circular watermark rings */}
-          <div className="absolute" style={{ right: -14, top: -14, width: 90, height: 90, border: '16px solid rgba(255,255,255,0.05)', borderRadius: '50%' }} />
-          <div className="absolute" style={{ right: 8, top: 8, width: 58, height: 58, border: '12px solid rgba(255,255,255,0.04)', borderRadius: '50%' }} />
-          <div className="absolute inset-0 p-3.5 flex flex-col justify-between">
-            <div className="flex items-start justify-between">
-              <p className="font-black text-white" style={{ fontSize: 13, letterSpacing: 0.3 }}>Banco</p>
-              <div className="flex items-center">
-                <div className="w-4 h-4 rounded-full" style={{ background: 'rgba(235,0,27,0.85)' }} />
-                <div className="w-4 h-4 rounded-full -ml-2" style={{ background: 'rgba(255,163,0,0.85)' }} />
-              </div>
-            </div>
-            <div>
-              {/* Chip */}
-              <div className="rounded-[3px] mb-2" style={{ width: 20, height: 15, background: 'linear-gradient(135deg, rgba(255,215,100,0.7) 0%, rgba(200,160,60,0.6) 100%)', border: '1px solid rgba(255,210,80,0.4)' }} />
-              <div className="flex items-end justify-between">
-                <div>
-                  <p className="font-mono text-white" style={{ fontSize: 9, letterSpacing: 1.5, color: 'rgba(255,255,255,0.75)' }}>···· 3724</p>
-                  <p className="font-semibold" style={{ fontSize: 7, color: 'rgba(255,255,255,0.45)', letterSpacing: 1.5, marginTop: 2 }}>DÉBITO</p>
-                </div>
-                <p className="font-black text-white" style={{ fontSize: 14, fontStyle: 'italic', letterSpacing: 0.5, textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>VISA</p>
-              </div>
-            </div>
+        {/* Success indicator */}
+        <div className="flex flex-col items-center flex-1 justify-center gap-1.5">
+          <div className="rounded-full flex items-center justify-center"
+            style={{ width: 46, height: 46, background: '#007AFF', boxShadow: '0 4px 20px rgba(0,122,255,0.55)' }}>
+            <i className="fa-solid fa-check text-white" style={{ fontSize: 20 }} />
           </div>
+          <p className="font-semibold text-white" style={{ fontSize: 12 }}>Listo</p>
         </div>
 
-        {/* NFC icon + "Acercar al lector" */}
-        <div className="flex flex-col items-center flex-1 justify-center">
-          <div className="relative flex items-center justify-center" style={{ width: 58, height: 58 }}>
-            {/* Outer pulse ring */}
-            <div className="absolute rounded-full" style={{ inset: 0, border: '1.5px solid rgba(0,122,255,0.45)' }} />
-            {/* Inner circle */}
-            <div className="rounded-full flex items-center justify-center" style={{
-              width: 40, height: 40,
-              background: 'rgba(0,122,255,0.10)',
-              border: '1.5px solid rgba(0,122,255,0.65)',
-            }}>
-              <i className="fa-solid fa-mobile-screen-button text-white" style={{ fontSize: 15 }} />
-            </div>
-          </div>
-          <p className="font-medium mt-2" style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)' }}>
-            Acercar al lector
-          </p>
-        </div>
-
-        {/* Other cards stacked at bottom */}
-        <div className="flex-shrink-0">
-          <div className="mx-3 rounded-t-[13px] h-9 flex items-center px-3 justify-between"
-            style={{ background: 'linear-gradient(135deg,#0F4C81 0%,#0A3260 100%)' }}>
-            <p className="font-bold text-white" style={{ fontSize: 9 }}>TDC Gold</p>
-            <i className="fa-solid fa-chevron-down" style={{ fontSize: 8, color: 'rgba(255,255,255,0.4)' }} />
+        {/* Stacked cards at bottom (3 visible) */}
+        <div className="flex-shrink-0 relative" style={{ height: 52 }}>
+          {/* Back card */}
+          <div className="absolute bottom-0 left-4 right-4 h-8 rounded-t-[10px]"
+            style={{ background: '#E0E0E0' }} />
+          {/* Middle card */}
+          <div className="absolute bottom-0 left-2.5 right-2.5 h-9 rounded-t-[11px]"
+            style={{ background: 'linear-gradient(135deg, #B91C1C 0%, #DC2626 100%)' }} />
+          {/* Front card (dark, AWS-style) */}
+          <div className="absolute bottom-0 left-0 right-0 h-11 rounded-t-[13px] flex items-center px-3 justify-between overflow-hidden"
+            style={{ background: 'linear-gradient(135deg, #111 0%, #1e1e1e 100%)' }}>
+            <p className="font-black text-white" style={{ fontSize: 9 }}>aws</p>
+            <p style={{ fontSize: 6.5, color: 'rgba(255,255,255,0.4)', letterSpacing: 0.5 }}>FECHA DE INICIO</p>
           </div>
         </div>
       </div>
