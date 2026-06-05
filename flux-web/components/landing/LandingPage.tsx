@@ -205,16 +205,16 @@ function Hero() {
 /* ── Pain Section ────────────────────────────────────────────────────────── */
 function PainSection() {
   const before = [
-    '¿En qué se fue el dinero este mes?',
-    'Revisas el banco dos días después de gastar',
-    'La hoja de cálculo lleva semanas sin actualizar',
-    'Fin de mes: ni idea de qué pasó con tu sueldo',
+    'Gastas sin saber cuánto tienes realmente disponible',
+    'Revisas el extracto del banco cuando ya es demasiado tarde',
+    'Los gastos pequeños se acumulan sin que te des cuenta',
+    'Cada fin de mes: la misma historia, sin ninguna explicación',
   ]
   const after = [
-    'Cada gasto registrado al instante, sin abrir ninguna app',
-    'Presupuesto siempre actualizado en tiempo real',
-    'Sabes exactamente lo que debes y te deben',
-    'Fin de mes: ya sabías lo que iba a pasar',
+    'Cada pago con Apple Pay se registra solo, al instante',
+    'Sabes cuánto puedes gastar hoy antes de gastar',
+    'Controlas lo que te deben y lo que debes, sin drama',
+    'El mes termina igual que empezó: con claridad total',
   ]
   return (
     <section style={{ background: WHITE }}>
@@ -238,11 +238,14 @@ function PainSection() {
                 </div>
                 <p className="text-[15px] font-black" style={{ color: DARK }}>Sin FluxApp</p>
               </div>
-              <ul className="space-y-3.5">
+              <ul className="space-y-4">
                 {before.map((item, i) => (
                   <li key={i} className="flex items-start gap-3">
-                    <span className="text-[17px] mt-0.5 flex-shrink-0">😩</span>
-                    <span className="text-[15px] font-medium leading-snug" style={{ color: GRAY }}>{item}</span>
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                      style={{ background: 'rgba(255,69,58,0.1)' }}>
+                      <i className="fa-solid fa-xmark" style={{ color: '#FF453A', fontSize: 9 }} />
+                    </div>
+                    <span className="text-[15px] font-semibold leading-snug" style={{ color: GRAY }}>{item}</span>
                   </li>
                 ))}
               </ul>
@@ -257,11 +260,14 @@ function PainSection() {
                 </div>
                 <p className="text-[15px] font-black" style={{ color: DARK }}>Con FluxApp Finance</p>
               </div>
-              <ul className="space-y-3.5">
+              <ul className="space-y-4">
                 {after.map((item, i) => (
                   <li key={i} className="flex items-start gap-3">
-                    <span className="text-[17px] mt-0.5 flex-shrink-0">✅</span>
-                    <span className="text-[15px] font-medium leading-snug" style={{ color: '#1A4731' }}>{item}</span>
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                      style={{ background: 'rgba(48,209,88,0.15)' }}>
+                      <i className="fa-solid fa-check" style={{ color: '#30D158', fontSize: 9 }} />
+                    </div>
+                    <span className="text-[15px] font-semibold leading-snug" style={{ color: '#1A4731' }}>{item}</span>
                   </li>
                 ))}
               </ul>
@@ -540,8 +546,19 @@ function PhoneShared() {
 
 /* ── App Showcase Section ────────────────────────────────────────────────── */
 function AppShowcaseSection() {
+  const screens = [
+    { key: 'dashboard', node: <PhoneDashboard /> },
+    { key: 'transactions', node: <PhoneTransactions /> },
+    { key: 'shared', node: <PhoneShared /> },
+  ]
+
   return (
     <section style={{ background: DARK, overflow: 'hidden' }}>
+      <style>{`
+        .flux-carousel { -ms-overflow-style: none; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+        .flux-carousel::-webkit-scrollbar { display: none; }
+      `}</style>
+
       <div className="max-w-6xl mx-auto px-6 py-24">
         <RevealWrapper className="text-center mb-16">
           <p className="text-[12px] font-black uppercase tracking-[4px] mb-4" style={{ color: BLUE }}>La app</p>
@@ -549,41 +566,59 @@ function AppShowcaseSection() {
             Diseñada para vivir<br />en tu bolsillo.
           </h2>
           <p className="text-[17px] font-medium mt-4 max-w-lg mx-auto" style={{ color: 'rgba(255,255,255,0.5)' }}>
-            Dashboard, movimientos, reportes y gastos compartidos — todo en una app que cabe en tu pantalla de inicio.
+            Dashboard, movimientos y gastos compartidos — todo en una app que cabe en tu pantalla de inicio.
           </p>
         </RevealWrapper>
 
-        <RevealWrapper>
+        {/* Mobile: swipeable carousel */}
+        <div
+          className="flux-carousel flex md:hidden"
+          style={{
+            overflowX: 'auto',
+            scrollSnapType: 'x mandatory',
+            gap: 20,
+            paddingLeft: 'calc(50% - 108px)',
+            paddingRight: 'calc(50% - 108px)',
+            paddingBottom: 20,
+          }}
+        >
+          {screens.map(s => (
+            <div key={s.key} style={{ scrollSnapAlign: 'center', flexShrink: 0 }}>
+              {s.node}
+            </div>
+          ))}
+        </div>
+
+        {/* Swipe hint + dots — mobile only */}
+        <div className="flex md:hidden flex-col items-center gap-2 mb-2">
+          <p className="flex items-center gap-1.5 text-[12px] font-semibold" style={{ color: 'rgba(255,255,255,0.3)' }}>
+            <i className="fa-solid fa-arrow-left text-[9px]" />
+            Desliza para explorar
+            <i className="fa-solid fa-arrow-right text-[9px]" />
+          </p>
+          <div className="flex gap-1.5">
+            {screens.map((s, i) => (
+              <div key={s.key} className="rounded-full"
+                style={{ width: i === 0 ? 16 : 6, height: 6, background: i === 0 ? BLUE : 'rgba(255,255,255,0.2)' }} />
+            ))}
+          </div>
+        </div>
+
+        {/* Desktop: 3 phones side by side */}
+        <RevealWrapper className="hidden md:block">
           <div className="flex items-end justify-center gap-5 lg:gap-8">
-            <div className="hidden sm:block flex-shrink-0" style={{ opacity: 0.6, transform: 'translateY(44px)' }}>
+            <div className="flex-shrink-0" style={{ opacity: 0.6, transform: 'translateY(44px)' }}>
               <div style={{ transform: 'scale(0.88)', transformOrigin: 'bottom center' }}>
                 <PhoneTransactions />
               </div>
             </div>
             <PhoneDashboard />
-            <div className="hidden sm:block flex-shrink-0" style={{ opacity: 0.6, transform: 'translateY(44px)' }}>
+            <div className="flex-shrink-0" style={{ opacity: 0.6, transform: 'translateY(44px)' }}>
               <div style={{ transform: 'scale(0.88)', transformOrigin: 'bottom center' }}>
                 <PhoneShared />
               </div>
             </div>
           </div>
-        </RevealWrapper>
-
-        <RevealWrapper delay={200} className="flex flex-wrap justify-center gap-3 mt-14">
-          {[
-            'Dashboard · Saldo en tiempo real',
-            'Movimientos por categoría',
-            'Gastos compartidos',
-            'Presupuestos mensuales',
-            'Recurrentes automáticos',
-            'Reportes de tendencia',
-          ].map((label, i) => (
-            <span key={i}
-              className="text-[13px] font-semibold px-4 py-2 rounded-full"
-              style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }}>
-              {label}
-            </span>
-          ))}
         </RevealWrapper>
       </div>
     </section>
@@ -933,26 +968,26 @@ function PricingSection() {
 function FAQSection() {
   const [open, setOpen] = useState<number | null>(null)
 
-  const faqs = [
+  const faqs: { q: string; a: string }[] = [
     {
       q: '¿Funciona en Android?',
-      a: 'Sí. FluxApp Finance funciona en Android. La única función exclusiva de iPhone es el registro automático con Apple Pay a través de Atajos. El resto de la app — movimientos, presupuestos, gastos compartidos y reportes — funciona igual en cualquier dispositivo.',
+      a: 'Sí. FluxApp funciona en cualquier dispositivo con navegador — iPhone, Android o computadora.\n\nLa única función exclusiva de iPhone es el registro automático con Apple Pay a través de Atajos de iPhone. Todo lo demás — movimientos, presupuestos, gastos compartidos y reportes — funciona igual en Android.',
     },
     {
       q: '¿Está en la App Store?',
-      a: 'Todavía no. FluxApp Finance es una Progressive Web App (PWA): se instala directamente desde el navegador sin pasar por la App Store. Sin actualizaciones manuales, sin ocupar espacio de almacenamiento.',
+      a: 'Todavía no. FluxApp Finance es una Progressive Web App (PWA): se instala desde el navegador sin pasar por la App Store ni Google Play.\n\nSin actualizaciones manuales y sin ocupar espacio de almacenamiento — siempre tienes la versión más reciente.',
     },
     {
-      q: '¿Tengo que abrir Safari cada vez que la uso?',
-      a: 'No. Al agregarla a tu pantalla de inicio se abre como una app nativa — sin barra de Safari, a pantalla completa. En iPhone: Safari → botón Compartir → "Agregar a inicio". En Android: Chrome → menú (3 puntos) → "Añadir a pantalla de inicio".',
+      q: '¿Tengo que abrir el navegador cada vez que la uso?',
+      a: 'No. Instálala en tu pantalla de inicio y se abre como una app nativa — sin barra del navegador, a pantalla completa.\n\niPhone · Safari: toca el botón Compartir → "Agregar a inicio"\nAndroid · Chrome: toca el menú (⋮) → "Añadir a pantalla de inicio"',
     },
     {
       q: '¿Cómo instalo el Atajo de iPhone?',
-      a: 'Entra a Ajustes en FluxApp → toca "Atajos de iPhone" → copia tu token personal y descarga el Atajo desde el enlace de iCloud que aparece ahí. Se configura una sola vez y funciona automáticamente cada vez que pagas con Apple Pay.',
+      a: 'Más fácil de lo que suena:\n\n1. Abre FluxApp → Ajustes → "Atajos de iPhone"\n2. Copia tu token personal\n3. Descarga el Atajo desde el enlace de iCloud que aparece ahí\n\nSe configura una sola vez y se activa automáticamente cada vez que pagas con Apple Pay.',
     },
     {
       q: '¿Cómo cancelo mi suscripción?',
-      a: 'Cancela cuando quieras escribiéndonos a hola@fluxappfinance.com. Sin contratos, sin periodos de permanencia. Tu acceso continúa hasta el final del periodo pagado.',
+      a: 'Puedes cancelar en cualquier momento desde la misma app: ve a Ajustes → Suscripción. Se abre el portal de Stripe donde gestionas o cancelas tu plan.\n\nTambién puedes escribirnos a hola@fluxappfinance.com. Sin contratos ni permanencia mínima — tu acceso continúa hasta el final del periodo pagado.',
     },
     {
       q: '¿Mis datos financieros están seguros?',
@@ -994,7 +1029,7 @@ function FAQSection() {
                 </button>
                 {open === i && (
                   <div className="px-6 pb-5">
-                    <p className="text-[15px] font-medium leading-relaxed" style={{ color: GRAY }}>{faq.a}</p>
+                    <p className="text-[15px] font-medium leading-relaxed" style={{ color: GRAY, whiteSpace: 'pre-line' }}>{faq.a}</p>
                   </div>
                 )}
               </div>
