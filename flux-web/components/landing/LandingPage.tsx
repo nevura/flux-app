@@ -346,62 +346,80 @@ function ShowcaseBottomNav({ active }: { active: number }) {
 
 /* ── Showcase screen: Transactions ──────────────────────────────────────── */
 function PhoneTransactions() {
+  const txRow = (tx: { name: string; cat: string; amt: string; color: string; bg: string; icon: string }) => (
+    <div className="flex items-center gap-2 mx-3 mb-1 rounded-[13px] px-2.5 py-2"
+      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.06)' }}>
+      <div className="w-7 h-7 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: tx.bg }}>
+        <i className={`fa-solid ${tx.icon}`} style={{ fontSize: 10, color: '#fff' }} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="font-bold text-white leading-none truncate" style={{ fontSize: 10 }}>{tx.name}</p>
+        <p className="font-medium leading-none mt-0.5" style={{ fontSize: 7, color: 'rgba(255,255,255,0.4)' }}>{tx.cat}</p>
+      </div>
+      <p className="font-black tabular-nums flex-shrink-0" style={{ fontSize: 10, color: tx.color }}>{tx.amt}</p>
+      <i className="fa-solid fa-chevron-right flex-shrink-0" style={{ fontSize: 6, color: 'rgba(255,255,255,0.2)' }} />
+    </div>
+  )
   return (
     <PhoneFrame>
+      {/* Header: < Junio 2026 > */}
       <div className="px-3 pt-9 pb-2 flex items-center justify-between">
-        <i className="fa-solid fa-chevron-left" style={{ fontSize: 10, color: '#007AFF' }} />
+        <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.07)' }}>
+          <i className="fa-solid fa-chevron-left" style={{ fontSize: 8, color: '#007AFF' }} />
+        </div>
         <div className="flex items-center gap-1">
           <p className="font-black text-white" style={{ fontSize: 13 }}>Junio 2026</p>
           <i className="fa-solid fa-chevron-down" style={{ fontSize: 7, color: 'rgba(255,255,255,0.4)' }} />
         </div>
-        <i className="fa-solid fa-chevron-right" style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }} />
+        <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.04)' }}>
+          <i className="fa-solid fa-chevron-right" style={{ fontSize: 8, color: 'rgba(255,255,255,0.3)' }} />
+        </div>
       </div>
+
+      {/* INGRESOS / GASTOS summary */}
       <div className="grid grid-cols-2 gap-1.5 mx-3 mb-2">
         {[
-          { label: 'INGRESOS', val: '+$15,000', color: '#30D158', bg: 'rgba(48,209,88,0.1)', border: 'rgba(48,209,88,0.2)' },
-          { label: 'GASTOS', val: '-$4,280', color: '#FF453A', bg: 'rgba(255,69,58,0.1)', border: 'rgba(255,69,58,0.2)' },
+          { label: 'INGRESOS', val: '+$2,547.00', color: '#30D158', bg: 'rgba(48,209,88,0.12)', border: 'rgba(48,209,88,0.25)' },
+          { label: 'GASTOS', val: '-$1,882.78', color: '#FF453A', bg: 'rgba(255,69,58,0.12)', border: 'rgba(255,69,58,0.25)' },
         ].map((c, i) => (
-          <div key={i} className="rounded-[12px] px-3 py-2" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
+          <div key={i} className="rounded-[13px] px-3 py-2.5" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
             <p className="font-black uppercase" style={{ fontSize: 6, letterSpacing: 2, color: c.color }}>{c.label}</p>
             <p className="font-black tabular-nums" style={{ fontSize: 13, color: c.color }}>{c.val}</p>
           </div>
         ))}
       </div>
-      <p className="mx-3 font-black uppercase mb-1.5" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.35)' }}>HOY</p>
-      {[
-        { name: 'Starbucks', cat: 'Café', amt: '-$115', color: '#FF453A', bg: '#00704A', icon: 'fa-mug-hot' },
-        { name: 'Uber', cat: 'Transporte', amt: '-$87', color: '#FF453A', bg: '#1a1a1a', icon: 'fa-car' },
-      ].map((tx, i) => (
-        <div key={i} className="flex items-center gap-2 mx-3 mb-1.5 rounded-[11px] px-2.5 py-2"
-          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.06)' }}>
-          <div className="w-6 h-6 rounded-[8px] flex items-center justify-center flex-shrink-0" style={{ background: tx.bg }}>
-            <i className={`fa-solid ${tx.icon}`} style={{ fontSize: 9, color: '#fff' }} />
+
+      {/* Filter pills */}
+      <div className="flex items-center gap-1.5 mx-3 mb-2">
+        {['Tipo', 'Categoría'].map(f => (
+          <div key={f} className="flex items-center gap-1 rounded-[8px] px-2 py-1"
+            style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <p className="font-semibold text-white" style={{ fontSize: 8 }}>{f}</p>
+            <i className="fa-solid fa-chevron-down" style={{ fontSize: 5, color: 'rgba(255,255,255,0.4)' }} />
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-white leading-none truncate" style={{ fontSize: 10 }}>{tx.name}</p>
-            <p className="font-medium leading-none mt-0.5" style={{ fontSize: 7, color: 'rgba(255,255,255,0.4)' }}>{tx.cat}</p>
-          </div>
-          <p className="font-black tabular-nums flex-shrink-0" style={{ fontSize: 10, color: tx.color }}>{tx.amt}</p>
+        ))}
+        <div className="flex items-center gap-1 rounded-[8px] px-2 py-1"
+          style={{ background: 'rgba(0,122,255,0.12)', border: '1px solid rgba(0,122,255,0.3)' }}>
+          <i className="fa-solid fa-users" style={{ fontSize: 7, color: '#007AFF' }} />
+          <p className="font-semibold" style={{ fontSize: 8, color: '#007AFF' }}>Compartidos</p>
         </div>
-      ))}
-      <p className="mx-3 font-black uppercase mb-1.5 mt-1" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.35)' }}>AYER</p>
-      {[
-        { name: 'OXXO', cat: 'Mercado', amt: '-$68', color: '#FF453A', bg: '#E83526', icon: 'fa-store' },
-        { name: 'Netflix', cat: 'Entretenimiento', amt: '-$209', color: '#FF453A', bg: '#E50914', icon: 'fa-tv' },
-        { name: 'Sueldo', cat: 'Ingreso', amt: '+$9,000', color: '#30D158', bg: '#1B4332', icon: 'fa-briefcase' },
-      ].map((tx, i) => (
-        <div key={i} className="flex items-center gap-2 mx-3 mb-1.5 rounded-[11px] px-2.5 py-2"
-          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.06)' }}>
-          <div className="w-6 h-6 rounded-[8px] flex items-center justify-center flex-shrink-0" style={{ background: tx.bg }}>
-            <i className={`fa-solid ${tx.icon}`} style={{ fontSize: 9, color: '#fff' }} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-white leading-none truncate" style={{ fontSize: 10 }}>{tx.name}</p>
-            <p className="font-medium leading-none mt-0.5" style={{ fontSize: 7, color: 'rgba(255,255,255,0.4)' }}>{tx.cat}</p>
-          </div>
-          <p className="font-black tabular-nums flex-shrink-0" style={{ fontSize: 10, color: tx.color }}>{tx.amt}</p>
+        <div className="ml-auto w-6 h-6 rounded-[8px] flex items-center justify-center"
+          style={{ background: 'rgba(255,255,255,0.07)' }}>
+          <i className="fa-solid fa-magnifying-glass" style={{ fontSize: 8, color: 'rgba(255,255,255,0.5)' }} />
         </div>
-      ))}
+      </div>
+
+      {/* AYER */}
+      <p className="mx-3 font-black uppercase mb-1" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.35)' }}>AYER</p>
+      {txRow({ name: 'Xbox Game Pass', cat: 'Videojuegos', amt: '-$209.00', color: '#FF453A', bg: '#107C10', icon: 'fa-gamepad' })}
+      {txRow({ name: 'Cobro global: Ana', cat: 'Otro', amt: '+$297.00', color: '#30D158', bg: '#2B2B2E', icon: 'fa-shuffle' })}
+
+      {/* 3 JUN */}
+      <p className="mx-3 font-black uppercase mb-1 mt-1" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.35)' }}>3 JUN</p>
+      {txRow({ name: 'Transferencia', cat: 'Débito Digital → Ahorro', amt: '$11,500.00', color: '#007AFF', bg: '#1E3A5F', icon: 'fa-shuffle' })}
+      {txRow({ name: 'Mercado Libre', cat: 'Compras', amt: '-$520.75', color: '#FF453A', bg: '#FFE600', icon: 'fa-bag-shopping' })}
+      {txRow({ name: 'Oxxo Garibaldi', cat: 'Alimentos', amt: '-$32.00', color: '#FF453A', bg: '#E83526', icon: 'fa-utensils' })}
+
       <ShowcaseBottomNav active={1} />
     </PhoneFrame>
   )
@@ -411,74 +429,112 @@ function PhoneTransactions() {
 function PhoneDashboard() {
   return (
     <PhoneFrame glow>
-      <div className="px-3.5 pt-9 pb-2 flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <div className="w-6 h-6 rounded-[8px] flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.07)' }}>
-            <i className="fa-solid fa-bars text-white" style={{ fontSize: 9 }} />
-          </div>
-          <div>
-            <p className="font-black uppercase leading-none" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.35)' }}>JUNIO 2026</p>
-            <p className="font-black text-white leading-tight" style={{ fontSize: 13 }}>Hola, Carlos</p>
-          </div>
+      {/* Header */}
+      <div className="flex items-center gap-2 px-3 pt-9 pb-2">
+        <div className="w-7 h-7 rounded-[10px] flex items-center justify-center flex-shrink-0"
+          style={{ background: 'rgba(255,255,255,0.07)' }}>
+          <i className="fa-solid fa-bars text-white" style={{ fontSize: 10 }} />
         </div>
-        <div className="w-6 h-6 rounded-full flex items-center justify-center"
+        <div className="flex-1">
+          <p className="font-black uppercase leading-none" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.4)' }}>JUNIO 2026</p>
+          <p className="font-black text-white leading-tight" style={{ fontSize: 14 }}>Hola, Carlos</p>
+        </div>
+        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
           style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <i className="fa-regular fa-bell text-white" style={{ fontSize: 10 }} />
+          <i className="fa-regular fa-bell text-white" style={{ fontSize: 11 }} />
         </div>
       </div>
-      <div className="mx-3 mb-2 rounded-[18px] p-3.5" style={{ background: '#007AFF', boxShadow: '0 6px 20px rgba(0,122,255,0.4)' }}>
+
+      {/* SALDO ACTUAL */}
+      <div className="mx-3 mb-2 rounded-[18px] px-4 py-3" style={{ background: '#007AFF', boxShadow: '0 6px 24px rgba(0,122,255,0.45)' }}>
         <p className="font-black uppercase leading-none mb-1" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.65)' }}>SALDO ACTUAL</p>
-        <p className="font-black text-white leading-none tabular-nums" style={{ fontSize: 24 }}>$12,480.50</p>
+        <p className="font-black text-white leading-none tabular-nums" style={{ fontSize: 26 }}>$8,452.50</p>
       </div>
-      <div className="mx-3 mb-2 rounded-[12px] p-2.5" style={{ background: 'rgba(0,122,255,0.08)', border: '1px solid rgba(0,122,255,0.2)' }}>
+
+      {/* PRESUPUESTO DEL MES */}
+      <div className="mx-3 mb-2 rounded-[14px] px-3 py-2.5"
+        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
         <div className="flex items-center justify-between mb-0.5">
-          <p className="font-black uppercase" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.40)' }}>PRESUPUESTO DEL MES</p>
-          <i className="fa-solid fa-pen" style={{ fontSize: 6, color: 'rgba(255,255,255,0.3)' }} />
+          <p className="font-black uppercase" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.4)' }}>PRESUPUESTO DEL MES</p>
+          <div className="w-5 h-5 rounded-full flex items-center justify-center"
+            style={{ background: 'rgba(255,255,255,0.08)' }}>
+            <i className="fa-solid fa-pen" style={{ fontSize: 6, color: 'rgba(255,255,255,0.5)' }} />
+          </div>
         </div>
-        <p className="font-black text-white tabular-nums leading-none" style={{ fontSize: 14 }}>$3,240.00</p>
-        <p className="font-semibold mb-1" style={{ fontSize: 6, color: 'rgba(255,255,255,0.35)' }}>
-          de $10,000.00 · <span style={{ color: '#30D158' }}>te quedan $6,760.00</span>
+        <p className="font-black text-white tabular-nums leading-none" style={{ fontSize: 16 }}>$1,585.78</p>
+        <p className="font-semibold mb-1.5" style={{ fontSize: 6, color: 'rgba(255,255,255,0.35)' }}>
+          de $18,000.00 · <span style={{ color: '#30D158' }}>te quedan $16,414.22</span>
         </p>
         <div className="h-[3px] rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
-          <div className="h-full rounded-full" style={{ width: '32%', background: '#30D158' }} />
+          <div className="h-full rounded-full" style={{ width: '9%', background: '#30D158' }} />
         </div>
       </div>
-      <div className="mx-3 mb-2 rounded-[12px] overflow-hidden"
+
+      {/* HOY / SEMANA tabs */}
+      <div className="mx-3 mb-2 rounded-[14px] overflow-hidden"
         style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
         <div className="flex" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-          <div className="flex-1 py-1.5 text-center font-black uppercase"
+          <div className="flex-1 py-1.5 text-center font-black uppercase rounded-[13px]"
             style={{ fontSize: 8, letterSpacing: 1, background: '#007AFF', color: '#fff' }}>HOY</div>
           <div className="flex-1 py-1.5 text-center font-black uppercase"
             style={{ fontSize: 8, letterSpacing: 1, color: 'rgba(255,255,255,0.35)' }}>SEMANA</div>
         </div>
         <div className="px-3 py-2">
-          <p className="text-center font-bold mb-0.5" style={{ fontSize: 7, color: 'rgba(255,255,255,0.35)' }}>Hoy</p>
+          <p className="text-center font-bold mb-0.5" style={{ fontSize: 7, color: 'rgba(255,255,255,0.4)' }}>Hoy</p>
           <div className="flex items-center justify-between">
-            <i className="fa-solid fa-chevron-left" style={{ fontSize: 7, color: 'rgba(255,255,255,0.3)' }} />
-            <p className="font-black text-white tabular-nums" style={{ fontSize: 18 }}>$450.00</p>
-            <i className="fa-solid fa-chevron-right" style={{ fontSize: 7, color: 'rgba(255,255,255,0.15)' }} />
+            <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)' }}>
+              <i className="fa-solid fa-chevron-left" style={{ fontSize: 6, color: 'rgba(255,255,255,0.5)' }} />
+            </div>
+            <p className="font-black text-white tabular-nums" style={{ fontSize: 20 }}>$0.00</p>
+            <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.05)' }}>
+              <i className="fa-solid fa-chevron-right" style={{ fontSize: 6, color: 'rgba(255,255,255,0.2)' }} />
+            </div>
           </div>
         </div>
       </div>
-      <div className="mx-3 rounded-[12px] p-2.5" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-        <p className="font-black uppercase mb-2" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.35)' }}>PRÓXIMOS RECURRENTES</p>
+
+      {/* PRÓXIMOS RECURRENTES */}
+      <div className="mx-3 rounded-[14px] px-3 py-2.5"
+        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+        <p className="font-black uppercase mb-2" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.38)' }}>PRÓXIMOS RECURRENTES</p>
+        {/* Progress bars */}
+        <div className="mb-2 flex flex-col gap-1.5">
+          {[
+            { label: 'INGRESOS', val: '$0.00 / $9,000.00', pct: 0, color: '#30D158' },
+            { label: 'GASTOS', val: '$808.00 / $1,408.00', pct: 57, color: '#FF453A' },
+          ].map((b, i) => (
+            <div key={i}>
+              <div className="flex items-center justify-between mb-0.5">
+                <p className="font-black uppercase" style={{ fontSize: 6, letterSpacing: 1.5, color: b.color }}>{b.label}</p>
+                <p style={{ fontSize: 5.5, color: 'rgba(255,255,255,0.35)' }}>{b.val}</p>
+              </div>
+              <div className="h-[3px] rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                <div className="h-full rounded-full" style={{ width: `${b.pct}%`, background: b.color }} />
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Items */}
         {[
-          { name: 'Netflix', date: 'Mié, 10', amt: '-$209', bg: '#E50914', green: false },
-          { name: 'Spotify', date: 'Vie, 12', amt: '-$89', bg: '#1ED760', green: false },
-          { name: 'Sueldo', date: 'Lun, 15', amt: '+$15,000', bg: '#1B4332', green: true },
+          { name: 'AT&T', date: 'Mié, 10', amt: '-$399', bg: '#4B5B2A', icon: 'fa-wrench', green: false },
+          { name: 'Apple One', date: 'Jue, 11', amt: '-$81', bg: '#4A3A20', icon: 'fa-rotate', green: false },
+          { name: 'iBoost', date: 'Lun, 15', amt: '+$9,000', bg: '#1B2E38', icon: 'fa-briefcase', green: true },
         ].map((item, i) => (
           <div key={i} className="flex items-center gap-2 mb-1.5">
-            <div className="w-5 h-5 rounded-[6px] flex items-center justify-center flex-shrink-0" style={{ background: item.bg }}>
-              <i className="fa-solid fa-rotate" style={{ fontSize: 7, color: '#fff' }} />
+            <div className="w-6 h-6 rounded-[8px] flex items-center justify-center flex-shrink-0"
+              style={{ background: item.bg }}>
+              <i className={`fa-solid ${item.icon}`} style={{ fontSize: 8, color: '#fff' }} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-bold text-white leading-none" style={{ fontSize: 9 }}>{item.name}</p>
               <p className="font-medium" style={{ fontSize: 7, color: 'rgba(255,255,255,0.4)' }}>{item.date}</p>
             </div>
             <p className="font-black tabular-nums" style={{ fontSize: 9, color: item.green ? '#30D158' : '#FF453A' }}>{item.amt}</p>
+            <i className="fa-solid fa-chevron-right flex-shrink-0" style={{ fontSize: 6, color: 'rgba(255,255,255,0.2)' }} />
           </div>
         ))}
       </div>
+
       <ShowcaseBottomNav active={0} />
     </PhoneFrame>
   )
@@ -596,58 +652,75 @@ function PhoneAccountsAndTDC() {
 
 /* ── Showcase screen: Gastos Compartidos ─────────────────────────────────── */
 function PhoneShared() {
+  const people = [
+    { name: 'Miguel', sub: '4 gastos pendientes', handle: '', amt: '+$860.00', color: '#30D158', positive: true },
+    { name: 'Anita', sub: '7 gastos pendientes', handle: '@anita.rl', amt: '+$390.00', color: '#30D158', positive: true },
+    { name: 'Pablo', sub: '4 gastos pendientes', handle: '', amt: '-$292.00', color: '#FF453A', positive: false },
+  ]
   return (
     <PhoneFrame>
-      <div className="px-3 pt-9 pb-2 flex items-center justify-between">
+      {/* Header */}
+      <div className="px-3 pt-9 pb-3 flex items-center justify-between">
         <div>
           <p className="font-black uppercase" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.4)' }}>GASTOS</p>
-          <p className="font-black text-white" style={{ fontSize: 15 }}>Compartidos</p>
+          <p className="font-black text-white" style={{ fontSize: 16 }}>Compartidos</p>
         </div>
-        <div className="flex items-center gap-1 rounded-[10px] px-2 py-1.5"
-          style={{ background: 'rgba(0,122,255,0.15)', border: '1px solid rgba(0,122,255,0.25)' }}>
-          <i className="fa-solid fa-user-plus" style={{ fontSize: 7, color: '#007AFF' }} />
-          <p className="font-bold" style={{ fontSize: 7, color: '#007AFF' }}>Amigos</p>
+        <div className="flex items-center gap-1.5 rounded-[10px] px-2.5 py-1.5"
+          style={{ background: 'rgba(0,122,255,0.15)', border: '1px solid rgba(0,122,255,0.3)' }}>
+          <i className="fa-solid fa-user-plus" style={{ fontSize: 8, color: '#007AFF' }} />
+          <p className="font-bold" style={{ fontSize: 8, color: '#007AFF' }}>Amigos</p>
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-1.5 mx-3 mb-2">
+
+      {/* ME DEBEN / DEBO summary */}
+      <div className="grid grid-cols-2 gap-1.5 mx-3 mb-3">
         {[
-          { label: 'ME DEBEN', val: '+$1,200', color: '#30D158', bg: 'rgba(48,209,88,0.1)', border: 'rgba(48,209,88,0.2)' },
-          { label: 'DEBO', val: '-$350', color: '#FF453A', bg: 'rgba(255,69,58,0.1)', border: 'rgba(255,69,58,0.2)' },
+          { label: 'ME DEBEN', val: '+$1,250.00', color: '#30D158', bg: 'rgba(48,209,88,0.12)', border: 'rgba(48,209,88,0.25)' },
+          { label: 'DEBO', val: '-$292.00', color: '#FF453A', bg: 'rgba(255,69,58,0.12)', border: 'rgba(255,69,58,0.25)' },
         ].map((c, i) => (
-          <div key={i} className="rounded-[12px] px-3 py-2" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
+          <div key={i} className="rounded-[13px] px-3 py-2.5" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
             <p className="font-black uppercase" style={{ fontSize: 6, letterSpacing: 2, color: c.color }}>{c.label}</p>
-            <p className="font-black tabular-nums" style={{ fontSize: 14, color: c.color }}>{c.val}</p>
+            <p className="font-black tabular-nums" style={{ fontSize: 13, color: c.color }}>{c.val}</p>
           </div>
         ))}
       </div>
-      {[
-        { name: 'Fernando', sub: '4 gastos pendientes', amt: '+$650', color: '#30D158', initials: 'F', positive: true },
-        { name: 'Santi', sub: '2 gastos · @santi_m', amt: '+$550', color: '#30D158', initials: 'S', positive: true },
-        { name: 'Ale', sub: '1 gasto pendiente', amt: '-$350', color: '#FF453A', initials: 'A', positive: false },
-      ].map((p, i) => (
-        <div key={i} className="mx-3 mb-2 rounded-[13px] p-2.5"
+
+      {/* Person cards */}
+      {people.map((p, i) => (
+        <div key={i} className="mx-3 mb-2 rounded-[14px] p-2.5"
           style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 font-black"
-              style={{ background: p.positive ? 'rgba(48,209,88,0.15)' : 'rgba(255,69,58,0.15)', color: p.positive ? '#30D158' : '#FF453A', fontSize: 10 }}>
-              {p.initials}
+            <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{ background: p.positive ? 'rgba(48,209,88,0.15)' : 'rgba(255,69,58,0.15)' }}>
+              <i className="fa-solid fa-user" style={{ fontSize: 10, color: p.positive ? '#30D158' : '#FF453A' }} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-white leading-none" style={{ fontSize: 10 }}>{p.name}</p>
-              <p className="font-medium" style={{ fontSize: 7, color: 'rgba(255,255,255,0.4)' }}>{p.sub}</p>
+              <p className="font-bold text-white leading-none" style={{ fontSize: 11 }}>{p.name}</p>
+              <p className="font-medium" style={{ fontSize: 7, color: 'rgba(255,255,255,0.38)' }}>
+                {p.sub}{p.handle ? ` · ` : ''}{p.handle && <span style={{ color: '#007AFF' }}>{p.handle}</span>}
+              </p>
             </div>
-            <p className="font-black tabular-nums flex-shrink-0" style={{ fontSize: 10, color: p.color }}>{p.amt}</p>
+            <div className="flex-shrink-0 text-right">
+              <p className="font-black tabular-nums" style={{ fontSize: 11, color: p.color }}>{p.amt}</p>
+              <p style={{ fontSize: 7, color: 'rgba(255,255,255,0.35)' }}>{p.positive ? 'me debe' : 'les debo'}</p>
+            </div>
+            <i className="fa-solid fa-chevron-right flex-shrink-0" style={{ fontSize: 6, color: 'rgba(255,255,255,0.2)' }} />
           </div>
           <div className="flex gap-1.5">
-            {['Abonar', 'Saldar todo'].map(label => (
-              <div key={label} className="flex-1 rounded-[8px] py-1 text-center font-bold"
-                style={{ background: 'rgba(255,255,255,0.07)', fontSize: 7, color: 'rgba(255,255,255,0.65)' }}>
-                {label}
+            {[
+              { label: 'Abonar', icon: 'fa-layer-group' },
+              { label: 'Saldar todo', icon: 'fa-check-double' },
+            ].map(btn => (
+              <div key={btn.label} className="flex-1 flex items-center justify-center gap-1 rounded-[9px] py-1.5"
+                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <i className={`fa-solid ${btn.icon}`} style={{ fontSize: 7, color: 'rgba(255,255,255,0.5)' }} />
+                <span className="font-bold" style={{ fontSize: 8, color: 'rgba(255,255,255,0.65)' }}>{btn.label}</span>
               </div>
             ))}
           </div>
         </div>
       ))}
+
       <ShowcaseBottomNav active={4} />
     </PhoneFrame>
   )
@@ -655,22 +728,30 @@ function PhoneShared() {
 
 /* ── Showcase screen: Gastos por Categoría ──────────────────────────────── */
 function PhoneCategoryChart() {
+  // Gym 38%, Amor 37%, Videojuegos 13%, Otro 12%
   const categories = [
-    { name: 'Entretenimiento', amt: '$1,624', pct: '38%', color: '#FF9500', w: '38%' },
-    { name: 'Comida', amt: '$1,245', pct: '29%', color: '#FF453A', w: '29%' },
-    { name: 'Transporte', amt: '$900', pct: '21%', color: '#007AFF', w: '21%' },
-    { name: 'Otros', amt: '$511', pct: '12%', color: '#5E5CE6', w: '12%' },
+    { name: 'Gym', amt: '$599.00', pct: '38%', color: '#FF9500', w: '38%', icon: 'fa-dumbbell', bg: '#4A3A20' },
+    { name: 'Amor', amt: '$588.50', pct: '37%', color: '#FF453A', w: '37%', icon: 'fa-heart', bg: '#4A1A1A' },
+    { name: 'Videojuegos', amt: '$209.00', pct: '13%', color: '#30D158', w: '13%', icon: 'fa-gamepad', bg: '#107C10' },
+    { name: 'Otro', amt: '$189.28', pct: '12%', color: '#5E5CE6', w: '12%', icon: 'fa-ellipsis', bg: '#2B2356' },
   ]
   return (
     <PhoneFrame>
+      {/* Header */}
       <div className="px-3 pt-9 pb-2 flex items-center justify-between">
-        <i className="fa-solid fa-chevron-left" style={{ fontSize: 10, color: '#007AFF' }} />
+        <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.07)' }}>
+          <i className="fa-solid fa-chevron-left" style={{ fontSize: 8, color: '#007AFF' }} />
+        </div>
         <div className="flex items-center gap-1">
           <p className="font-black text-white" style={{ fontSize: 13 }}>Junio 2026</p>
           <i className="fa-solid fa-chevron-down" style={{ fontSize: 7, color: 'rgba(255,255,255,0.4)' }} />
         </div>
-        <i className="fa-solid fa-chevron-right" style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }} />
+        <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.04)' }}>
+          <i className="fa-solid fa-chevron-right" style={{ fontSize: 8, color: 'rgba(255,255,255,0.3)' }} />
+        </div>
       </div>
+
+      {/* CATEGORÍAS / TENDENCIA tabs */}
       <div className="flex mx-3 mb-3 rounded-[10px] overflow-hidden"
         style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
         <div className="flex-1 py-1.5 text-center font-black uppercase"
@@ -678,42 +759,48 @@ function PhoneCategoryChart() {
         <div className="flex-1 py-1.5 text-center font-black uppercase"
           style={{ fontSize: 7, letterSpacing: 1, color: 'rgba(255,255,255,0.35)' }}>TENDENCIA</div>
       </div>
+
+      {/* Donut chart */}
       <div className="flex flex-col items-center mb-3">
-        <p className="font-black uppercase mb-2" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.4)' }}>GASTOS POR CATEGORÍA</p>
-        <div className="relative" style={{ width: 96, height: 96 }}>
+        <p className="font-black uppercase mb-2" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.38)' }}>GASTOS POR CATEGORÍA</p>
+        <div className="relative" style={{ width: 108, height: 108 }}>
           <div style={{
-            width: 96, height: 96, borderRadius: '50%',
-            background: 'conic-gradient(#FF9500 0% 38%, #FF453A 38% 67%, #007AFF 67% 88%, #5E5CE6 88% 100%)',
+            width: 108, height: 108, borderRadius: '50%',
+            background: 'conic-gradient(#FF9500 0% 38%, #FF453A 38% 75%, #30D158 75% 88%, #5E5CE6 88% 100%)',
           }} />
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="flex flex-col items-center justify-center rounded-full"
-              style={{ width: 56, height: 56, background: '#020617' }}>
-              <p className="font-black leading-none" style={{ fontSize: 5.5, color: 'rgba(255,255,255,0.5)' }}>TOTAL</p>
-              <p className="font-black text-white leading-tight" style={{ fontSize: 13 }}>$4,280</p>
+              style={{ width: 66, height: 66, background: '#020617' }}>
+              <p className="font-black leading-none" style={{ fontSize: 5.5, color: 'rgba(255,255,255,0.45)' }}>TOTAL</p>
+              <p className="font-black text-white leading-tight tabular-nums" style={{ fontSize: 11 }}>$1,585.78</p>
             </div>
           </div>
         </div>
       </div>
-      <div className="mx-3">
-        <p className="font-black uppercase mb-2" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.4)' }}>DESGLOSE</p>
+
+      {/* DESGLOSE */}
+      <div className="mx-3 rounded-[13px] px-3 py-2"
+        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+        <p className="font-black uppercase mb-2" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.38)' }}>DESGLOSE</p>
         {categories.map((cat, i) => (
-          <div key={i} className="mb-2.5">
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: cat.color }} />
-                <p className="font-bold text-white" style={{ fontSize: 9 }}>{cat.name}</p>
+          <div key={i} className="mb-2">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-6 h-6 rounded-[8px] flex items-center justify-center flex-shrink-0" style={{ background: cat.bg }}>
+                <i className={`fa-solid ${cat.icon}`} style={{ fontSize: 8, color: cat.color }} />
               </div>
-              <div className="flex items-center gap-2">
-                <p className="font-black text-white" style={{ fontSize: 9 }}>{cat.amt}</p>
-                <p className="font-bold" style={{ fontSize: 8, color: cat.color }}>{cat.pct}</p>
+              <p className="flex-1 font-bold text-white" style={{ fontSize: 9 }}>{cat.name}</p>
+              <p className="font-black text-white tabular-nums" style={{ fontSize: 9 }}>{cat.amt}</p>
+            </div>
+            <div className="h-[3px] rounded-full ml-8" style={{ background: 'rgba(255,255,255,0.08)' }}>
+              <div className="h-full rounded-full flex items-center justify-end pr-1"
+                style={{ width: cat.w, background: '#007AFF' }}>
               </div>
             </div>
-            <div className="h-[3px] rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
-              <div className="h-full rounded-full" style={{ width: cat.w, background: cat.color }} />
-            </div>
+            <p className="text-right mt-0.5" style={{ fontSize: 6.5, color: '#007AFF' }}>{cat.pct}</p>
           </div>
         ))}
       </div>
+
       <ShowcaseBottomNav active={3} />
     </PhoneFrame>
   )
@@ -748,10 +835,10 @@ function PhoneTrends() {
       </div>
       <div className="grid grid-cols-2 gap-1.5 mx-3 mb-2">
         {[
-          { label: 'INGRESOS', val: '+$15,000', color: '#30D158', bg: 'rgba(48,209,88,0.1)', border: 'rgba(48,209,88,0.2)' },
-          { label: 'GASTOS', val: '-$4,280', color: '#FF453A', bg: 'rgba(255,69,58,0.1)', border: 'rgba(255,69,58,0.2)' },
+          { label: 'INGRESOS', val: '+$2,547.00', color: '#30D158', bg: 'rgba(48,209,88,0.12)', border: 'rgba(48,209,88,0.25)' },
+          { label: 'GASTOS', val: '-$1,585.78', color: '#FF453A', bg: 'rgba(255,69,58,0.12)', border: 'rgba(255,69,58,0.25)' },
         ].map((c, i) => (
-          <div key={i} className="rounded-[11px] px-3 py-2" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
+          <div key={i} className="rounded-[13px] px-3 py-2.5" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
             <p className="font-black uppercase" style={{ fontSize: 6, letterSpacing: 2, color: c.color }}>{c.label}</p>
             <p className="font-black tabular-nums" style={{ fontSize: 12, color: c.color }}>{c.val}</p>
           </div>
@@ -759,15 +846,15 @@ function PhoneTrends() {
       </div>
       <div className="grid grid-cols-2 gap-1.5 mx-3 mb-2">
         {[
-          { label: 'TASA DE GASTO', val: '$1,120', sub: 'por día', color: '#FF453A' },
-          { label: 'FLUJO NETO', val: '+$10,720', sub: 'este mes', color: '#30D158' },
-          { label: 'PROM. MENSUAL', val: '$8,540', sub: 'de gasto', color: 'rgba(255,255,255,0.7)' },
-          { label: 'TASA DE AHORRO', val: '30%', sub: 'de ingresos', color: '#5E5CE6' },
+          { label: 'TASA DE GASTO', val: '$317.16', sub: 'por día', color: '#F87171' },
+          { label: 'FLUJO NETO', val: '+$961.22', sub: 'este mes', color: '#30D158' },
+          { label: 'PROM. MENSUAL', val: '$13,858.68', sub: 'de gasto', color: '#60A5FA' },
+          { label: 'TASA DE AHORRO', val: '38%', sub: 'de ingresos', color: '#A78BFA' },
         ].map((m, i) => (
-          <div key={i} className="rounded-[11px] px-2.5 py-2"
+          <div key={i} className="rounded-[13px] px-2.5 py-2"
             style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
             <p className="font-black uppercase" style={{ fontSize: 5.5, letterSpacing: 1.5, color: 'rgba(255,255,255,0.4)' }}>{m.label}</p>
-            <p className="font-black leading-tight" style={{ fontSize: 11, color: m.color }}>{m.val}</p>
+            <p className="font-black leading-tight tabular-nums" style={{ fontSize: 10, color: m.color }}>{m.val}</p>
             <p className="font-semibold" style={{ fontSize: 7, color: 'rgba(255,255,255,0.35)' }}>{m.sub}</p>
           </div>
         ))}
@@ -932,7 +1019,7 @@ function TrustBar() {
 function PhoneApplePay() {
   return (
     <PhoneFrame glow>
-      <div className="h-full flex flex-col" style={{ background: '#000' }}>
+      <div className="h-full flex flex-col relative" style={{ background: '#000' }}>
 
         {/* Status bar */}
         <div className="flex items-center justify-between px-4 flex-shrink-0"
@@ -945,100 +1032,85 @@ function PhoneApplePay() {
           </div>
         </div>
 
-        {/* BBVA-style card */}
-        <div className="mx-3 rounded-[18px] overflow-hidden relative flex-shrink-0" style={{ height: 138 }}>
-          {/* Navy gradient base */}
+        {/* BBVA card */}
+        <div className="mx-3 rounded-[18px] overflow-hidden relative flex-shrink-0" style={{ height: 144 }}>
           <div className="absolute inset-0" style={{
             background: 'linear-gradient(150deg, #1C4299 0%, #0D2560 55%, #091A46 100%)',
           }} />
-          {/* Top-left sheen */}
           <div className="absolute inset-0" style={{
             background: 'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, transparent 45%)',
           }} />
-          {/* Geometric "A" watermark — CSS angular strokes, no font */}
-          <div className="absolute" style={{ right: -2, top: 4, width: 96, height: 104, opacity: 0.07, pointerEvents: 'none' }}>
-            {/* Left diagonal leg */}
-            <div style={{
-              position: 'absolute', width: 7, height: 90, background: '#fff',
-              borderRadius: 4, left: '30%', top: 8,
-              transform: 'rotate(-17deg)', transformOrigin: 'bottom center',
-            }} />
-            {/* Right diagonal leg */}
-            <div style={{
-              position: 'absolute', width: 7, height: 90, background: '#fff',
-              borderRadius: 4, right: '16%', top: 8,
-              transform: 'rotate(17deg)', transformOrigin: 'bottom center',
-            }} />
-            {/* Crossbar */}
-            <div style={{
-              position: 'absolute', height: 7, background: '#fff',
-              borderRadius: 4, left: '27%', right: '22%', top: '48%',
-            }} />
+          {/* Geometric BBVA "A" watermark */}
+          <div className="absolute" style={{ right: 4, top: 0, width: 120, height: 144, opacity: 0.12, pointerEvents: 'none' }}>
+            <div style={{ position: 'absolute', width: 8, height: 110, background: 'rgba(180,200,255,1)',
+              borderRadius: 5, left: '32%', top: 8, transform: 'rotate(-18deg)', transformOrigin: 'bottom center' }} />
+            <div style={{ position: 'absolute', width: 8, height: 110, background: 'rgba(180,200,255,1)',
+              borderRadius: 5, right: '18%', top: 8, transform: 'rotate(18deg)', transformOrigin: 'bottom center' }} />
+            <div style={{ position: 'absolute', height: 8, background: 'rgba(180,200,255,1)',
+              borderRadius: 4, left: '29%', right: '23%', top: '48%' }} />
           </div>
-
           <div className="absolute inset-0 p-4 flex flex-col justify-between">
-            {/* Bank name + network */}
             <div className="flex items-start justify-between">
-              <p className="font-black text-white" style={{ fontSize: 16, letterSpacing: -0.3 }}>BBVA</p>
+              <p className="font-black text-white" style={{ fontSize: 18, letterSpacing: -0.5 }}>BBVA</p>
               <div className="flex items-center">
-                <div className="w-5 h-5 rounded-full" style={{ background: 'rgba(235,0,27,0.85)' }} />
-                <div className="w-5 h-5 rounded-full -ml-2.5" style={{ background: 'rgba(255,163,0,0.85)' }} />
+                <div className="w-6 h-6 rounded-full" style={{ background: 'rgba(235,0,27,0.85)' }} />
+                <div className="w-6 h-6 rounded-full -ml-3" style={{ background: 'rgba(255,163,0,0.85)' }} />
               </div>
             </div>
-            {/* Bottom row */}
             <div className="flex items-end justify-between">
-              <p className="font-mono text-white" style={{ fontSize: 10, letterSpacing: 2, color: 'rgba(255,255,255,0.8)' }}>
-                ···· 1826
+              <p className="font-mono text-white" style={{ fontSize: 11, letterSpacing: 2.5, color: 'rgba(255,255,255,0.85)' }}>
+                ···· 3742
               </p>
-              <p className="font-black text-white" style={{ fontSize: 17, fontStyle: 'italic', letterSpacing: 0.5 }}>VISA</p>
+              <p className="font-black text-white" style={{ fontSize: 19, fontStyle: 'italic', letterSpacing: 0.5 }}>VISA</p>
             </div>
           </div>
         </div>
 
-        {/* FluxApp notification — directly below card */}
-        <div className="mx-3 mt-2.5 rounded-[13px] flex items-center gap-2 px-2.5 py-2 flex-shrink-0"
+        {/* NFC / Acercar al lector — center of empty space */}
+        <div className="flex-1 flex flex-col items-center justify-center gap-2">
+          <div className="rounded-full flex items-center justify-center"
+            style={{ width: 44, height: 44, border: '2px solid #007AFF' }}>
+            <i className="fa-solid fa-mobile-screen text-white" style={{ fontSize: 18 }} />
+          </div>
+          <p className="font-semibold" style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)' }}>Acercar al lector</p>
+        </div>
+
+        {/* Flux notification — absolute, overlaid at top of phone content */}
+        <div className="absolute left-2.5 right-2.5 rounded-[13px] flex items-center gap-2 px-2.5 py-2"
           style={{
-            background: 'rgba(36,36,40,0.98)',
-            border: '1px solid rgba(255,255,255,0.09)',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.5)',
+            top: 110,
+            background: 'rgba(44,44,46,0.97)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
           }}>
-          <div className="w-7 h-7 rounded-[9px] flex items-center justify-center flex-shrink-0"
+          <div className="w-8 h-8 rounded-[11px] flex items-center justify-center flex-shrink-0"
             style={{ background: '#007AFF' }}>
-            <i className="fa-solid fa-wallet text-white" style={{ fontSize: 10 }} />
+            <i className="fa-solid fa-wallet text-white" style={{ fontSize: 12 }} />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
-              <p className="font-bold text-white" style={{ fontSize: 8.5 }}>Flux Apple Pay</p>
-              <p style={{ fontSize: 7, color: 'rgba(255,255,255,0.35)' }}>mié 13:50</p>
+              <p className="font-bold text-white" style={{ fontSize: 9 }}>Flux Apple Pay</p>
+              <p style={{ fontSize: 7.5, color: 'rgba(255,255,255,0.38)' }}>mié 13:50</p>
             </div>
-            <p style={{ fontSize: 8, color: 'rgba(255,255,255,0.58)', lineHeight: 1.3 }}>
-              Pagaste <span className="font-black text-white">$450.00</span> con TDC Azul
+            <p style={{ fontSize: 8.5, color: 'rgba(255,255,255,0.65)', lineHeight: 1.3 }}>
+              Pagaste <span className="font-black text-white">$450.00</span> con Santander LikeU
             </p>
           </div>
         </div>
 
-        {/* Success indicator */}
-        <div className="flex flex-col items-center flex-1 justify-center gap-1.5">
-          <div className="rounded-full flex items-center justify-center"
-            style={{ width: 46, height: 46, background: '#007AFF', boxShadow: '0 4px 20px rgba(0,122,255,0.55)' }}>
-            <i className="fa-solid fa-check text-white" style={{ fontSize: 20 }} />
-          </div>
-          <p className="font-semibold text-white" style={{ fontSize: 12 }}>Listo</p>
-        </div>
-
-        {/* Stacked cards at bottom (3 visible) */}
-        <div className="flex-shrink-0 relative" style={{ height: 52 }}>
-          {/* Back card */}
-          <div className="absolute bottom-0 left-4 right-4 h-8 rounded-t-[10px]"
-            style={{ background: '#E0E0E0' }} />
-          {/* Middle card */}
-          <div className="absolute bottom-0 left-2.5 right-2.5 h-9 rounded-t-[11px]"
+        {/* Stacked cards at bottom */}
+        <div className="flex-shrink-0 relative" style={{ height: 54 }}>
+          <div className="absolute bottom-0 left-5 right-5 h-7 rounded-t-[10px]"
+            style={{ background: '#34d1c5' }} />
+          <div className="absolute bottom-0 left-2.5 right-2.5 h-9 rounded-t-[12px]"
             style={{ background: 'linear-gradient(135deg, #B91C1C 0%, #DC2626 100%)' }} />
-          {/* Front card (dark, AWS-style) */}
-          <div className="absolute bottom-0 left-0 right-0 h-11 rounded-t-[13px] flex items-center px-3 justify-between overflow-hidden"
-            style={{ background: 'linear-gradient(135deg, #111 0%, #1e1e1e 100%)' }}>
-            <p className="font-black text-white" style={{ fontSize: 9 }}>aws</p>
-            <p style={{ fontSize: 6.5, color: 'rgba(255,255,255,0.4)', letterSpacing: 0.5 }}>FECHA DE INICIO</p>
+          <div className="absolute bottom-0 left-0 right-0 h-11 rounded-t-[14px] flex items-center px-3 gap-2 overflow-hidden"
+            style={{ background: 'linear-gradient(135deg, #0D1117 0%, #1e2124 100%)' }}>
+            <p className="font-black text-white" style={{ fontSize: 9, letterSpacing: -0.5 }}>aws</p>
+            <p className="flex-1" />
+            <p style={{ fontSize: 6, color: 'rgba(255,255,255,0.35)', letterSpacing: 0.5 }}>FECHA DE INICIO</p>
           </div>
         </div>
       </div>
@@ -1105,22 +1177,18 @@ function ApplePaySection() {
           <p className="text-center font-black text-white mb-10" style={{ fontSize: 22, letterSpacing: -0.5 }}>
             Así de fácil funciona Flux
           </p>
-          <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-8 sm:gap-0">
+          <div className="relative flex flex-row items-start gap-0">
             {[
-              { icon: 'fa-mobile-screen', label: 'Pagas con\nApple Pay', n: 1 },
-              { icon: 'fa-bolt', label: 'Flux detecta\nel movimiento', n: 2 },
-              { icon: 'fa-receipt', label: 'El gasto se registra\ny categoriza', n: 3 },
-              { icon: 'fa-chart-bar', label: 'Tu presupuesto\nse actualiza', n: 4 },
+              { icon: 'fa-mobile-screen', label: 'Pagas con Apple Pay', n: 1 },
+              { icon: 'fa-bolt', label: 'Flux detecta el movimiento', n: 2 },
+              { icon: 'fa-receipt', label: 'El gasto se registra', n: 3 },
+              { icon: 'fa-chart-bar', label: 'Tu presupuesto se actualiza', n: 4 },
             ].map((step, i, arr) => (
-              <div key={i} className="flex sm:flex-col items-center sm:items-center flex-1 relative">
-                {/* Dotted connector — desktop: right side; hidden for last */}
+              <div key={i} className="flex flex-col items-center flex-1 relative">
+                {/* Dotted connector — hidden for last */}
                 {i < arr.length - 1 && (
-                  <div className="hidden sm:block absolute left-1/2 top-[28px]"
-                    style={{
-                      width: '100%', height: 1,
-                      borderTop: '2px dashed rgba(255,255,255,0.15)',
-                      zIndex: 0,
-                    }}
+                  <div className="absolute left-1/2 top-[28px] z-0"
+                    style={{ width: '100%', height: 1, borderTop: '2px dashed rgba(255,255,255,0.15)' }}
                   />
                 )}
                 {/* Circle + icon */}
@@ -1129,19 +1197,15 @@ function ApplePaySection() {
                     style={{ border: '1.5px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.04)' }}>
                     <i className={`fa-solid ${step.icon}`} style={{ fontSize: 20, color: 'rgba(255,255,255,0.65)' }} />
                   </div>
-                  {/* Number badge */}
                   <div className="absolute flex items-center justify-center rounded-full font-black"
-                    style={{
-                      width: 18, height: 18, bottom: -2, left: -2,
-                      background: '#007AFF', fontSize: 9, color: '#fff',
-                      boxShadow: '0 0 0 2px #000',
-                    }}>
+                    style={{ width: 18, height: 18, bottom: -2, left: -2,
+                      background: '#007AFF', fontSize: 9, color: '#fff', boxShadow: '0 0 0 2px #000' }}>
                     {step.n}
                   </div>
                 </div>
                 {/* Label */}
-                <p className="sm:mt-3 ml-4 sm:ml-0 sm:text-center font-semibold whitespace-pre-line leading-snug"
-                  style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', maxWidth: 110 }}>
+                <p className="mt-3 text-center font-semibold leading-snug px-1"
+                  style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>
                   {step.label}
                 </p>
               </div>
