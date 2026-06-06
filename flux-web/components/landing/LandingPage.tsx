@@ -555,11 +555,7 @@ function PhoneAccountsAndTDC() {
   const creditCards = accounts.filter(a => a.type === 'credit') as (typeof accounts[0] & { tdcLabel: string; daysLeft: number })[]
 
   const cardBg = (type: string) =>
-    type === 'cash'
-      ? 'linear-gradient(135deg, #34D058 0%, #16A34A 100%)'
-      : type === 'debit'
-        ? 'linear-gradient(135deg, #60A5FA 0%, #2563EB 100%)'
-        : 'linear-gradient(135deg, #FB7185 0%, #DC2626 100%)'
+    type === 'cash' ? '#00AD40' : type === 'debit' ? '#007AFF' : '#FF8A80'
 
   return (
     <PhoneFrame>
@@ -629,23 +625,6 @@ function PhoneAccountsAndTDC() {
             </div>
           </div>
         ))}
-      </div>
-
-      {/* Sticky TDC reminder — sits just above the bottom nav */}
-      <div className="absolute left-0 right-0 flex items-center gap-2 px-3 py-1.5"
-        style={{ bottom: 42, background: 'rgba(8,10,18,0.97)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <div className="w-5 h-5 rounded-[7px] flex items-center justify-center flex-shrink-0"
-          style={{ background: 'rgba(251,113,133,0.2)' }}>
-          <i className="fa-solid fa-credit-card" style={{ fontSize: 7, color: '#FB7185' }} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-bold text-white leading-none" style={{ fontSize: 8 }}>TDC LikeU</p>
-          <p style={{ fontSize: 6, color: 'rgba(255,255,255,0.38)' }}>Vence en 8 días</p>
-        </div>
-        <div className="rounded-full px-2 py-0.5 font-black flex-shrink-0"
-          style={{ background: '#007AFF', fontSize: 7, color: '#fff' }}>
-          Pagar
-        </div>
       </div>
 
       <ShowcaseBottomNav active={0} />
@@ -891,6 +870,106 @@ function PhoneTrends() {
   )
 }
 
+/* ── Showcase screen: Nuevo Movimiento modal ─────────────────────────────── */
+function PhoneNewTransaction() {
+  const cats = [
+    { icon: 'fa-utensils', label: 'ALIMENTOS' },
+    { icon: 'fa-bag-shopping', label: 'COMPRAS' },
+    { icon: 'fa-tv', label: 'ENTRETE.' },
+    { icon: 'fa-gas-pump', label: 'GASOLINA' },
+    { icon: 'fa-house', label: 'HOGAR' },
+    { icon: 'fa-heart-pulse', label: 'SALUD' },
+    { icon: 'fa-wrench', label: 'SERVICIOS' },
+    { icon: 'fa-arrows-rotate', label: 'RECURRENT.' },
+    { icon: 'fa-bus', label: 'TRANSPORTE' },
+    { icon: 'fa-chart-line', label: 'INVERSIONES' },
+    { icon: 'fa-briefcase', label: 'HONORARIOS' },
+    { icon: 'fa-heart', label: 'AMOR' },
+    { icon: 'fa-hand-holding-dollar', label: 'VENTAS' },
+    { icon: 'fa-square-parking', label: 'ESTACION.' },
+    { icon: 'fa-shuffle', label: 'OTRO' },
+    { icon: 'fa-scissors', label: 'BARBERÍA' },
+  ]
+  return (
+    <PhoneFrame>
+      <div className="h-full flex flex-col overflow-hidden" style={{ background: '#111113' }}>
+        {/* Drag handle */}
+        <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
+          <div className="rounded-full" style={{ width: 32, height: 4, background: 'rgba(255,255,255,0.2)' }} />
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-3 pt-1 pb-2 flex-shrink-0">
+          <p className="font-black text-white" style={{ fontSize: 16 }}>Nuevo movimiento</p>
+          <div className="w-6 h-6 rounded-full flex items-center justify-center"
+            style={{ background: 'rgba(255,255,255,0.12)' }}>
+            <i className="fa-solid fa-xmark" style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)' }} />
+          </div>
+        </div>
+
+        {/* Separator */}
+        <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', flexShrink: 0 }} />
+
+        {/* Type tabs */}
+        <div className="flex gap-1.5 px-3 py-2.5 flex-shrink-0">
+          <div className="flex-1 py-1.5 rounded-[10px] flex items-center justify-center"
+            style={{ background: 'rgba(185,28,28,0.9)', border: '1px solid rgba(239,68,68,0.4)' }}>
+            <p className="font-black text-white" style={{ fontSize: 9 }}>Gasto</p>
+          </div>
+          <div className="flex-1 py-1.5 rounded-[10px] flex items-center justify-center"
+            style={{ background: 'rgba(255,255,255,0.08)' }}>
+            <p className="font-semibold" style={{ fontSize: 9, color: 'rgba(255,255,255,0.5)' }}>Ingreso</p>
+          </div>
+          <div className="flex-[1.3] py-1.5 rounded-[10px] flex items-center justify-center gap-1"
+            style={{ background: 'rgba(255,255,255,0.08)' }}>
+            <i className="fa-solid fa-shuffle" style={{ fontSize: 7, color: 'rgba(255,255,255,0.45)' }} />
+            <p className="font-semibold" style={{ fontSize: 8.5, color: 'rgba(255,255,255,0.5)' }}>Transferencia</p>
+          </div>
+        </div>
+
+        {/* Amount */}
+        <div className="text-center px-3 pb-2 flex-shrink-0">
+          <p className="font-black uppercase" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.3)', marginBottom: 4 }}>MONTO</p>
+          <div className="flex items-baseline justify-center gap-1.5">
+            <p className="font-black" style={{ fontSize: 22, color: 'rgba(255,255,255,0.22)' }}>$</p>
+            <p className="font-black tabular-nums" style={{ fontSize: 34, color: 'rgba(255,255,255,0.25)', lineHeight: 1 }}>0.00</p>
+          </div>
+          <div className="mx-auto mt-1.5" style={{ height: 2, width: 120, background: 'linear-gradient(90deg, #DC2626 0%, #F87171 100%)', borderRadius: 1 }} />
+        </div>
+
+        {/* Concepto */}
+        <div className="px-3 pb-2 flex-shrink-0">
+          <p className="font-black uppercase mb-1" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.3)' }}>CONCEPTO</p>
+          <div className="w-full rounded-[10px] px-3 py-2" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.25)' }}>Ej: Súper, Uber...</p>
+          </div>
+        </div>
+
+        {/* Category grid */}
+        <div className="px-3 flex-1 min-h-0 flex flex-col overflow-hidden">
+          <p className="font-black uppercase mb-1.5 flex-shrink-0" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.3)' }}>CATEGORÍA</p>
+          <div className="grid grid-cols-4 gap-y-2.5">
+            {cats.map((c, i) => (
+              <div key={i} className="flex flex-col items-center gap-0.5">
+                <i className={`fa-solid ${c.icon}`} style={{ fontSize: 15, color: 'rgba(255,255,255,0.38)' }} />
+                <p style={{ fontSize: 5.5, color: 'rgba(255,255,255,0.28)', letterSpacing: 0.3, textAlign: 'center' }}>{c.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* CTA button */}
+        <div className="px-3 pt-2 pb-4 flex-shrink-0">
+          <div className="w-full py-3 rounded-[14px] flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, #C62222 0%, #EF4444 100%)', boxShadow: '0 6px 20px rgba(220,38,38,0.4)' }}>
+            <p className="font-black text-white" style={{ fontSize: 12 }}>Agregar movimiento</p>
+          </div>
+        </div>
+      </div>
+    </PhoneFrame>
+  )
+}
+
 /* ── App Showcase Section ────────────────────────────────────────────────── */
 function AppShowcaseSection() {
   const [activeSlide, setActiveSlide] = useState(0)
@@ -906,6 +985,7 @@ function AppShowcaseSection() {
   const screens = [
     { key: 'dashboard', node: <PhoneDashboard /> },
     { key: 'accounts-tdc', node: <PhoneAccountsAndTDC /> },
+    { key: 'new-transaction', node: <PhoneNewTransaction /> },
     { key: 'transactions', node: <PhoneTransactions /> },
     { key: 'categories', node: <PhoneCategoryChart /> },
     { key: 'trends', node: <PhoneTrends /> },
@@ -1022,64 +1102,20 @@ function TrustBar() {
 function PhoneApplePay() {
   return (
     <PhoneFrame glow>
-      <div className="h-full flex flex-col relative" style={{ background: '#000' }}>
+      <div className="h-full relative overflow-hidden" style={{ background: '#000' }}>
+        {/* Real Apple Pay wallet screenshot — place applepay.png in flux-web/public/ */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/applepay.png"
+          alt=""
+          className="absolute inset-0 w-full h-full"
+          style={{ objectFit: 'cover', objectPosition: 'top' }}
+        />
 
-        {/* Status bar */}
-        <div className="flex items-center justify-between px-4 flex-shrink-0"
-          style={{ paddingTop: 36, paddingBottom: 8 }}>
-          <p className="font-semibold text-white" style={{ fontSize: 9 }}>12:00</p>
-          <div className="flex items-center gap-1">
-            <i className="fa-solid fa-signal text-white" style={{ fontSize: 7 }} />
-            <i className="fa-solid fa-wifi text-white" style={{ fontSize: 7 }} />
-            <i className="fa-solid fa-battery-three-quarters text-white" style={{ fontSize: 8 }} />
-          </div>
-        </div>
-
-        {/* BBVA card */}
-        <div className="mx-3 rounded-[18px] overflow-hidden relative flex-shrink-0" style={{ height: 140 }}>
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, #1A3F96 0%, #0E2660 50%, #091848 100%)' }} />
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(130deg, rgba(255,255,255,0.07) 0%, transparent 50%)' }} />
-          {/* BBVA "A" watermark — centered, more prominent */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ opacity: 0.2 }}>
-            <div className="relative" style={{ width: 96, height: 108 }}>
-              <div style={{ position: 'absolute', width: 9, height: 98, background: 'rgba(210,225,255,1)',
-                borderRadius: 5, left: '28%', bottom: 0, transform: 'rotate(-16deg)', transformOrigin: 'bottom center' }} />
-              <div style={{ position: 'absolute', width: 9, height: 98, background: 'rgba(210,225,255,1)',
-                borderRadius: 5, right: '18%', bottom: 0, transform: 'rotate(16deg)', transformOrigin: 'bottom center' }} />
-              <div style={{ position: 'absolute', height: 9, background: 'rgba(210,225,255,1)',
-                borderRadius: 4, left: '22%', right: '16%', top: '43%' }} />
-            </div>
-          </div>
-          <div className="absolute inset-0 p-4 flex flex-col justify-between">
-            <div className="flex items-start justify-between">
-              <p className="font-black text-white" style={{ fontSize: 17, letterSpacing: -0.3 }}>BBVA</p>
-              <div className="flex items-center">
-                <div className="w-5 h-5 rounded-full" style={{ background: 'rgba(220,0,20,0.9)' }} />
-                <div className="w-5 h-5 rounded-full -ml-2.5" style={{ background: 'rgba(255,160,0,0.9)' }} />
-              </div>
-            </div>
-            <div className="flex items-end justify-between">
-              <p className="text-white" style={{ fontSize: 11, letterSpacing: 2, fontFamily: 'monospace', color: 'rgba(255,255,255,0.88)' }}>
-                ···· 1826
-              </p>
-              <p className="font-black text-white" style={{ fontSize: 15, fontStyle: 'italic', letterSpacing: 0.5, color: 'rgba(255,255,255,0.85)' }}>VISA</p>
-            </div>
-          </div>
-        </div>
-
-        {/* NFC / "Listo, puedes hacerlo" — center of empty space */}
-        <div className="flex-1 flex flex-col items-center justify-center gap-2">
-          <div className="rounded-full flex items-center justify-center"
-            style={{ width: 48, height: 48, border: '2px solid #007AFF', background: 'rgba(0,122,255,0.08)' }}>
-            <i className="fa-solid fa-mobile-screen text-white" style={{ fontSize: 20 }} />
-          </div>
-          <p className="font-semibold" style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)' }}>Listo, puedes hacerlo</p>
-        </div>
-
-        {/* Flux notification — absolute, overlaid at top of phone content */}
+        {/* Flux notification — overlaid on the card area */}
         <div className="absolute left-2.5 right-2.5 rounded-[13px] flex items-center gap-2 px-2.5 py-2"
           style={{
-            top: 110,
+            top: 112,
             background: 'rgba(44,44,46,0.97)',
             border: '1px solid rgba(255,255,255,0.1)',
             boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
@@ -1096,22 +1132,8 @@ function PhoneApplePay() {
               <p style={{ fontSize: 7.5, color: 'rgba(255,255,255,0.38)' }}>mié 13:50</p>
             </div>
             <p style={{ fontSize: 8.5, color: 'rgba(255,255,255,0.65)', lineHeight: 1.3 }}>
-              Pagaste <span className="font-black text-white">$450.00</span> con Santander LikeU
+              Pagaste <span className="font-black text-white">$450.00</span> con TDC Azul
             </p>
-          </div>
-        </div>
-
-        {/* Stacked cards at bottom */}
-        <div className="flex-shrink-0 relative" style={{ height: 54 }}>
-          <div className="absolute bottom-0 left-5 right-5 h-7 rounded-t-[10px]"
-            style={{ background: '#34d1c5' }} />
-          <div className="absolute bottom-0 left-2.5 right-2.5 h-9 rounded-t-[12px]"
-            style={{ background: 'linear-gradient(135deg, #B91C1C 0%, #DC2626 100%)' }} />
-          <div className="absolute bottom-0 left-0 right-0 h-11 rounded-t-[14px] flex items-center px-3 gap-2 overflow-hidden"
-            style={{ background: 'linear-gradient(135deg, #0D1117 0%, #1e2124 100%)' }}>
-            <p className="font-black text-white" style={{ fontSize: 9, letterSpacing: -0.5 }}>aws</p>
-            <p className="flex-1" />
-            <p style={{ fontSize: 6, color: 'rgba(255,255,255,0.35)', letterSpacing: 0.5 }}>FECHA DE INICIO</p>
           </div>
         </div>
       </div>
@@ -1150,9 +1172,9 @@ function ApplePaySection() {
                 FluxApp Finance se conecta con Atajos de iPhone y captura cada pago con Apple Pay en el momento exacto en que lo haces — sin abrir ninguna app.
               </p>
             </RevealWrapper>
-            <RevealWrapper delay={320}>
+            <RevealWrapper delay={320} className="flex sm:block">
               {/* iOS notification widget — frosted glass, matches real Flux notification */}
-              <div className="inline-flex items-center gap-2.5 rounded-[16px] px-3.5 py-3 max-w-xs"
+              <div className="inline-flex items-center gap-2.5 rounded-[16px] px-3.5 py-3 max-w-xs mx-auto sm:mx-0"
                 style={{
                   background: 'rgba(44,44,46,0.92)',
                   border: '1px solid rgba(255,255,255,0.12)',
@@ -1170,7 +1192,7 @@ function ApplePaySection() {
                     <p className="font-medium flex-shrink-0" style={{ fontSize: 11, color: 'rgba(255,255,255,0.38)' }}>mié 13:50</p>
                   </div>
                   <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', lineHeight: 1.4 }}>
-                    Pagaste <span className="font-black text-white">$450.00</span> con Santander LikeU
+                    Pagaste <span className="font-black text-white">$450.00</span> con TDC Azul
                   </p>
                 </div>
               </div>
