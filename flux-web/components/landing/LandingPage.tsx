@@ -346,17 +346,17 @@ function ShowcaseBottomNav({ active }: { active: number }) {
 
 /* ── Showcase screen: Transactions ──────────────────────────────────────── */
 function PhoneTransactions() {
-  const txRow = (tx: { name: string; cat: string; amt: string; color: string; bg: string; icon: string }) => (
+  const txRow = (tx: { name: string; cat: string; amt: string; color: string; bg: string; icon: string; iconColor?: string }) => (
     <div className="flex items-center gap-2 mx-3 mb-1 rounded-[13px] px-2.5 py-2"
       style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.06)' }}>
       <div className="w-7 h-7 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: tx.bg }}>
-        <i className={`fa-solid ${tx.icon}`} style={{ fontSize: 10, color: '#fff' }} />
+        <i className={`fa-solid ${tx.icon}`} style={{ fontSize: 10, color: tx.iconColor ?? '#fff' }} />
       </div>
       <div className="flex-1 min-w-0">
         <p className="font-bold text-white leading-none truncate" style={{ fontSize: 10 }}>{tx.name}</p>
-        <p className="font-medium leading-none mt-0.5" style={{ fontSize: 7, color: 'rgba(255,255,255,0.4)' }}>{tx.cat}</p>
+        <p className="font-medium leading-none mt-0.5 truncate" style={{ fontSize: 7, color: 'rgba(255,255,255,0.4)' }}>{tx.cat}</p>
       </div>
-      <p className="font-black tabular-nums flex-shrink-0" style={{ fontSize: 10, color: tx.color }}>{tx.amt}</p>
+      <p className="font-black tabular-nums flex-shrink-0" style={{ fontSize: 10, color: tx.color, whiteSpace: 'nowrap' }}>{tx.amt}</p>
       <i className="fa-solid fa-chevron-right flex-shrink-0" style={{ fontSize: 6, color: 'rgba(255,255,255,0.2)' }} />
     </div>
   )
@@ -364,14 +364,14 @@ function PhoneTransactions() {
     <PhoneFrame>
       {/* Header: < Junio 2026 > */}
       <div className="px-3 pt-9 pb-2 flex items-center justify-between">
-        <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.07)' }}>
+        <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.07)' }}>
           <i className="fa-solid fa-chevron-left" style={{ fontSize: 8, color: '#007AFF' }} />
         </div>
         <div className="flex items-center gap-1">
           <p className="font-black text-white" style={{ fontSize: 13 }}>Junio 2026</p>
           <i className="fa-solid fa-chevron-down" style={{ fontSize: 7, color: 'rgba(255,255,255,0.4)' }} />
         </div>
-        <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.04)' }}>
+        <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.04)' }}>
           <i className="fa-solid fa-chevron-right" style={{ fontSize: 8, color: 'rgba(255,255,255,0.3)' }} />
         </div>
       </div>
@@ -382,9 +382,9 @@ function PhoneTransactions() {
           { label: 'INGRESOS', val: '+$2,547.00', color: '#30D158', bg: 'rgba(48,209,88,0.12)', border: 'rgba(48,209,88,0.25)' },
           { label: 'GASTOS', val: '-$1,882.78', color: '#FF453A', bg: 'rgba(255,69,58,0.12)', border: 'rgba(255,69,58,0.25)' },
         ].map((c, i) => (
-          <div key={i} className="rounded-[13px] px-3 py-2.5" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
+          <div key={i} className="rounded-[13px] px-3 py-2.5 overflow-hidden" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
             <p className="font-black uppercase" style={{ fontSize: 6, letterSpacing: 2, color: c.color }}>{c.label}</p>
-            <p className="font-black tabular-nums" style={{ fontSize: 13, color: c.color }}>{c.val}</p>
+            <p className="font-black tabular-nums" style={{ fontSize: 13, color: c.color, whiteSpace: 'nowrap' }}>{c.val}</p>
           </div>
         ))}
       </div>
@@ -392,18 +392,18 @@ function PhoneTransactions() {
       {/* Filter pills */}
       <div className="flex items-center gap-1.5 mx-3 mb-2">
         {['Tipo', 'Categoría'].map(f => (
-          <div key={f} className="flex items-center gap-1 rounded-[8px] px-2 py-1"
+          <div key={f} className="flex items-center gap-1 rounded-[8px] px-2 py-1 flex-shrink-0"
             style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
             <p className="font-semibold text-white" style={{ fontSize: 8 }}>{f}</p>
             <i className="fa-solid fa-chevron-down" style={{ fontSize: 5, color: 'rgba(255,255,255,0.4)' }} />
           </div>
         ))}
-        <div className="flex items-center gap-1 rounded-[8px] px-2 py-1"
+        <div className="flex items-center gap-1 rounded-[8px] px-2 py-1 flex-shrink-0"
           style={{ background: 'rgba(0,122,255,0.12)', border: '1px solid rgba(0,122,255,0.3)' }}>
           <i className="fa-solid fa-users" style={{ fontSize: 7, color: '#007AFF' }} />
           <p className="font-semibold" style={{ fontSize: 8, color: '#007AFF' }}>Compartidos</p>
         </div>
-        <div className="ml-auto w-6 h-6 rounded-[8px] flex items-center justify-center"
+        <div className="ml-auto w-6 h-6 rounded-[8px] flex items-center justify-center flex-shrink-0"
           style={{ background: 'rgba(255,255,255,0.07)' }}>
           <i className="fa-solid fa-magnifying-glass" style={{ fontSize: 8, color: 'rgba(255,255,255,0.5)' }} />
         </div>
@@ -412,13 +412,12 @@ function PhoneTransactions() {
       {/* AYER */}
       <p className="mx-3 font-black uppercase mb-1" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.35)' }}>AYER</p>
       {txRow({ name: 'Xbox Game Pass', cat: 'Videojuegos', amt: '-$209.00', color: '#FF453A', bg: '#107C10', icon: 'fa-gamepad' })}
-      {txRow({ name: 'Cobro global: Ana', cat: 'Otro', amt: '+$297.00', color: '#30D158', bg: '#2B2B2E', icon: 'fa-shuffle' })}
+      {txRow({ name: 'Cobro global: Ana', cat: 'Cobro', amt: '+$297.00', color: '#30D158', bg: '#2B2B2E', icon: 'fa-shuffle' })}
 
       {/* 3 JUN */}
       <p className="mx-3 font-black uppercase mb-1 mt-1" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.35)' }}>3 JUN</p>
-      {txRow({ name: 'Transferencia', cat: 'Débito Digital → Ahorro', amt: '$11,500.00', color: '#007AFF', bg: '#1E3A5F', icon: 'fa-shuffle' })}
-      {txRow({ name: 'Mercado Libre', cat: 'Compras', amt: '-$520.75', color: '#FF453A', bg: '#FFE600', icon: 'fa-bag-shopping' })}
-      {txRow({ name: 'Oxxo Garibaldi', cat: 'Alimentos', amt: '-$32.00', color: '#FF453A', bg: '#E83526', icon: 'fa-utensils' })}
+      {txRow({ name: 'Transferencia', cat: 'Débito → Ahorro', amt: '$11,500.00', color: '#007AFF', bg: '#1E3A5F', icon: 'fa-shuffle' })}
+      {txRow({ name: 'Mercado Libre', cat: 'Compras', amt: '-$520.75', color: '#FF453A', bg: '#FFE600', icon: 'fa-bag-shopping', iconColor: '#333' })}
 
       <ShowcaseBottomNav active={1} />
     </PhoneFrame>
@@ -435,7 +434,7 @@ function PhoneDashboard() {
           style={{ background: 'rgba(255,255,255,0.07)' }}>
           <i className="fa-solid fa-bars text-white" style={{ fontSize: 10 }} />
         </div>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <p className="font-black uppercase leading-none" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.4)' }}>JUNIO 2026</p>
           <p className="font-black text-white leading-tight" style={{ fontSize: 14 }}>Hola, Carlos</p>
         </div>
@@ -448,7 +447,7 @@ function PhoneDashboard() {
       {/* SALDO ACTUAL */}
       <div className="mx-3 mb-2 rounded-[18px] px-4 py-3" style={{ background: '#007AFF', boxShadow: '0 6px 24px rgba(0,122,255,0.45)' }}>
         <p className="font-black uppercase leading-none mb-1" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.65)' }}>SALDO ACTUAL</p>
-        <p className="font-black text-white leading-none tabular-nums" style={{ fontSize: 26 }}>$8,452.50</p>
+        <p className="font-black text-white leading-none tabular-nums" style={{ fontSize: 26, whiteSpace: 'nowrap' }}>$8,452.50</p>
       </div>
 
       {/* PRESUPUESTO DEL MES */}
@@ -456,14 +455,14 @@ function PhoneDashboard() {
         style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
         <div className="flex items-center justify-between mb-0.5">
           <p className="font-black uppercase" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.4)' }}>PRESUPUESTO DEL MES</p>
-          <div className="w-5 h-5 rounded-full flex items-center justify-center"
+          <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
             style={{ background: 'rgba(255,255,255,0.08)' }}>
             <i className="fa-solid fa-pen" style={{ fontSize: 6, color: 'rgba(255,255,255,0.5)' }} />
           </div>
         </div>
-        <p className="font-black text-white tabular-nums leading-none" style={{ fontSize: 16 }}>$1,585.78</p>
-        <p className="font-semibold mb-1.5" style={{ fontSize: 6, color: 'rgba(255,255,255,0.35)' }}>
-          de $18,000.00 · <span style={{ color: '#30D158' }}>te quedan $16,414.22</span>
+        <p className="font-black text-white tabular-nums leading-none" style={{ fontSize: 16, whiteSpace: 'nowrap' }}>$1,585.78</p>
+        <p className="font-semibold mb-1.5 truncate" style={{ fontSize: 6, color: 'rgba(255,255,255,0.35)' }}>
+          de $18,000 · <span style={{ color: '#30D158' }}>quedan $16,414.22</span>
         </p>
         <div className="h-[3px] rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
           <div className="h-full rounded-full" style={{ width: '9%', background: '#30D158' }} />
@@ -482,11 +481,11 @@ function PhoneDashboard() {
         <div className="px-3 py-2">
           <p className="text-center font-bold mb-0.5" style={{ fontSize: 7, color: 'rgba(255,255,255,0.4)' }}>Hoy</p>
           <div className="flex items-center justify-between">
-            <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)' }}>
+            <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.1)' }}>
               <i className="fa-solid fa-chevron-left" style={{ fontSize: 6, color: 'rgba(255,255,255,0.5)' }} />
             </div>
-            <p className="font-black text-white tabular-nums" style={{ fontSize: 20 }}>$0.00</p>
-            <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.05)' }}>
+            <p className="font-black text-white tabular-nums" style={{ fontSize: 20, whiteSpace: 'nowrap' }}>$450.00</p>
+            <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.05)' }}>
               <i className="fa-solid fa-chevron-right" style={{ fontSize: 6, color: 'rgba(255,255,255,0.2)' }} />
             </div>
           </div>
@@ -506,7 +505,7 @@ function PhoneDashboard() {
             <div key={i}>
               <div className="flex items-center justify-between mb-0.5">
                 <p className="font-black uppercase" style={{ fontSize: 6, letterSpacing: 1.5, color: b.color }}>{b.label}</p>
-                <p style={{ fontSize: 5.5, color: 'rgba(255,255,255,0.35)' }}>{b.val}</p>
+                <p className="tabular-nums" style={{ fontSize: 5.5, color: 'rgba(255,255,255,0.35)', whiteSpace: 'nowrap' }}>{b.val}</p>
               </div>
               <div className="h-[3px] rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
                 <div className="h-full rounded-full" style={{ width: `${b.pct}%`, background: b.color }} />
@@ -526,10 +525,10 @@ function PhoneDashboard() {
               <i className={`fa-solid ${item.icon}`} style={{ fontSize: 8, color: '#fff' }} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-white leading-none" style={{ fontSize: 9 }}>{item.name}</p>
+              <p className="font-bold text-white leading-none truncate" style={{ fontSize: 9 }}>{item.name}</p>
               <p className="font-medium" style={{ fontSize: 7, color: 'rgba(255,255,255,0.4)' }}>{item.date}</p>
             </div>
-            <p className="font-black tabular-nums" style={{ fontSize: 9, color: item.green ? '#30D158' : '#FF453A' }}>{item.amt}</p>
+            <p className="font-black tabular-nums flex-shrink-0" style={{ fontSize: 9, color: item.green ? '#30D158' : '#FF453A', whiteSpace: 'nowrap' }}>{item.amt}</p>
             <i className="fa-solid fa-chevron-right flex-shrink-0" style={{ fontSize: 6, color: 'rgba(255,255,255,0.2)' }} />
           </div>
         ))}
@@ -557,10 +556,10 @@ function PhoneAccountsAndTDC() {
 
   const cardBg = (type: string) =>
     type === 'cash'
-      ? 'linear-gradient(160deg, #22C55E 0%, #15803D 100%)'
+      ? 'linear-gradient(135deg, #34D058 0%, #16A34A 100%)'
       : type === 'debit'
-      ? 'linear-gradient(160deg, #3B82F6 0%, #1D4ED8 100%)'
-      : 'linear-gradient(160deg, #F87171 0%, #DC2626 100%)'
+        ? 'linear-gradient(135deg, #60A5FA 0%, #2563EB 100%)'
+        : 'linear-gradient(135deg, #FB7185 0%, #DC2626 100%)'
 
   return (
     <PhoneFrame>
@@ -570,7 +569,7 @@ function PhoneAccountsAndTDC() {
           style={{ background: 'rgba(255,255,255,0.07)' }}>
           <i className="fa-solid fa-bars text-white" style={{ fontSize: 10 }} />
         </div>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <p className="font-black uppercase leading-none" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.4)' }}>JUNIO 2026</p>
           <p className="font-black text-white leading-tight" style={{ fontSize: 14 }}>Hola, Carlos</p>
         </div>
@@ -583,11 +582,11 @@ function PhoneAccountsAndTDC() {
       {/* ESTADO DE CUENTAS label + actions */}
       <div className="flex items-center gap-1.5 mx-3 mb-1.5">
         <p className="flex-1 font-black uppercase" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.38)' }}>ESTADO DE CUENTAS</p>
-        <div className="w-5 h-5 rounded-full flex items-center justify-center"
+        <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
           style={{ background: 'rgba(0,122,255,0.15)', border: '1px solid rgba(0,122,255,0.35)' }}>
           <i className="fa-solid fa-plus" style={{ fontSize: 7, color: '#007AFF' }} />
         </div>
-        <div className="flex items-center gap-1 rounded-[7px] px-1.5 py-1"
+        <div className="flex items-center gap-1 rounded-[7px] px-1.5 py-1 flex-shrink-0"
           style={{ background: 'rgba(0,122,255,0.12)', border: '1px solid rgba(0,122,255,0.3)' }}>
           <i className="fa-solid fa-sliders" style={{ fontSize: 6, color: '#007AFF' }} />
           <p className="font-black" style={{ fontSize: 6, color: '#007AFF' }}>AUDITAR</p>
@@ -598,12 +597,14 @@ function PhoneAccountsAndTDC() {
       <div className="grid grid-cols-2 gap-1.5 mx-3 mb-2">
         {accounts.map((a, i) => (
           <div key={i} className="rounded-[12px] p-2.5 relative overflow-hidden" style={{ background: cardBg(a.type) }}>
-            <div className="flex items-start justify-between mb-1.5">
-              <p className="font-black uppercase leading-tight" style={{ fontSize: 6, letterSpacing: 1, color: 'rgba(255,255,255,0.85)', maxWidth: 54 }}>{a.name}</p>
+            {/* Subtle shine overlay */}
+            <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%)' }} />
+            <div className="flex items-start justify-between mb-1.5 relative">
+              <p className="font-black uppercase leading-tight" style={{ fontSize: 6, letterSpacing: 1, color: 'rgba(255,255,255,0.9)', maxWidth: 54 }}>{a.name}</p>
               <i className={`fa-solid ${a.type === 'cash' ? 'fa-money-bill-wave' : 'fa-credit-card'}`}
-                style={{ fontSize: 8, color: 'rgba(255,255,255,0.5)', flexShrink: 0 }} />
+                style={{ fontSize: 8, color: 'rgba(255,255,255,0.6)', flexShrink: 0 }} />
             </div>
-            <p className="font-black text-white leading-none tabular-nums" style={{ fontSize: i === 0 ? 12 : 10 }}>{a.amt}</p>
+            <p className="font-black text-white leading-none tabular-nums relative" style={{ fontSize: 10, whiteSpace: 'nowrap', overflow: 'hidden' }}>{a.amt}</p>
           </div>
         ))}
       </div>
@@ -615,8 +616,8 @@ function PhoneAccountsAndTDC() {
           <div key={i} className="flex items-center gap-2 px-2.5 py-2"
             style={{ borderBottom: i < creditCards.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
             <div className="w-6 h-6 rounded-[8px] flex items-center justify-center flex-shrink-0"
-              style={{ background: 'rgba(248,113,113,0.15)' }}>
-              <i className="fa-solid fa-credit-card" style={{ fontSize: 8, color: '#F87171' }} />
+              style={{ background: 'rgba(251,113,133,0.2)' }}>
+              <i className="fa-solid fa-credit-card" style={{ fontSize: 8, color: '#FB7185' }} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-bold text-white leading-none" style={{ fontSize: 9 }}>{c.tdcLabel}</p>
@@ -634,14 +635,14 @@ function PhoneAccountsAndTDC() {
       <div className="absolute bottom-0 left-0 right-0 flex items-center gap-2 px-3 py-2"
         style={{ background: 'rgba(8,10,18,0.98)', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
         <div className="w-6 h-6 rounded-[8px] flex items-center justify-center flex-shrink-0"
-          style={{ background: 'rgba(248,113,113,0.15)' }}>
-          <i className="fa-solid fa-credit-card" style={{ fontSize: 8, color: '#F87171' }} />
+          style={{ background: 'rgba(251,113,133,0.2)' }}>
+          <i className="fa-solid fa-credit-card" style={{ fontSize: 8, color: '#FB7185' }} />
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-bold text-white leading-none" style={{ fontSize: 8.5 }}>TDC LikeU</p>
           <p style={{ fontSize: 6.5, color: 'rgba(255,255,255,0.38)' }}>Vence en 8 días</p>
         </div>
-        <div className="rounded-full px-2.5 py-1 font-black"
+        <div className="rounded-full px-2.5 py-1 font-black flex-shrink-0"
           style={{ background: '#007AFF', fontSize: 8, color: '#fff' }}>
           Pagar
         </div>
@@ -673,21 +674,21 @@ function PhoneShared() {
       </div>
 
       {/* ME DEBEN / DEBO summary */}
-      <div className="grid grid-cols-2 gap-1.5 mx-3 mb-3">
+      <div className="grid grid-cols-2 gap-1.5 mx-3 mb-2">
         {[
           { label: 'ME DEBEN', val: '+$1,250.00', color: '#30D158', bg: 'rgba(48,209,88,0.12)', border: 'rgba(48,209,88,0.25)' },
           { label: 'DEBO', val: '-$292.00', color: '#FF453A', bg: 'rgba(255,69,58,0.12)', border: 'rgba(255,69,58,0.25)' },
         ].map((c, i) => (
-          <div key={i} className="rounded-[13px] px-3 py-2.5" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
+          <div key={i} className="rounded-[13px] px-3 py-2.5 overflow-hidden" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
             <p className="font-black uppercase" style={{ fontSize: 6, letterSpacing: 2, color: c.color }}>{c.label}</p>
-            <p className="font-black tabular-nums" style={{ fontSize: 13, color: c.color }}>{c.val}</p>
+            <p className="font-black tabular-nums" style={{ fontSize: 13, color: c.color, whiteSpace: 'nowrap' }}>{c.val}</p>
           </div>
         ))}
       </div>
 
       {/* Person cards */}
       {people.map((p, i) => (
-        <div key={i} className="mx-3 mb-2 rounded-[14px] p-2.5"
+        <div key={i} className="mx-3 mb-1.5 rounded-[14px] p-2.5"
           style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
           <div className="flex items-center gap-2 mb-2">
             <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
@@ -696,12 +697,12 @@ function PhoneShared() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-bold text-white leading-none" style={{ fontSize: 11 }}>{p.name}</p>
-              <p className="font-medium" style={{ fontSize: 7, color: 'rgba(255,255,255,0.38)' }}>
+              <p className="font-medium truncate" style={{ fontSize: 7, color: 'rgba(255,255,255,0.38)' }}>
                 {p.sub}{p.handle ? ` · ` : ''}{p.handle && <span style={{ color: '#007AFF' }}>{p.handle}</span>}
               </p>
             </div>
             <div className="flex-shrink-0 text-right">
-              <p className="font-black tabular-nums" style={{ fontSize: 11, color: p.color }}>{p.amt}</p>
+              <p className="font-black tabular-nums" style={{ fontSize: 11, color: p.color, whiteSpace: 'nowrap' }}>{p.amt}</p>
               <p style={{ fontSize: 7, color: 'rgba(255,255,255,0.35)' }}>{p.positive ? 'me debe' : 'les debo'}</p>
             </div>
             <i className="fa-solid fa-chevron-right flex-shrink-0" style={{ fontSize: 6, color: 'rgba(255,255,255,0.2)' }} />
@@ -772,7 +773,7 @@ function PhoneCategoryChart() {
             <div className="flex flex-col items-center justify-center rounded-full"
               style={{ width: 66, height: 66, background: '#020617' }}>
               <p className="font-black leading-none" style={{ fontSize: 5.5, color: 'rgba(255,255,255,0.45)' }}>TOTAL</p>
-              <p className="font-black text-white leading-tight tabular-nums" style={{ fontSize: 11 }}>$1,585.78</p>
+              <p className="font-black text-white leading-tight tabular-nums" style={{ fontSize: 11, whiteSpace: 'nowrap' }}>$1,585.78</p>
             </div>
           </div>
         </div>
@@ -789,7 +790,7 @@ function PhoneCategoryChart() {
                 <i className={`fa-solid ${cat.icon}`} style={{ fontSize: 8, color: cat.color }} />
               </div>
               <p className="flex-1 font-bold text-white" style={{ fontSize: 9 }}>{cat.name}</p>
-              <p className="font-black text-white tabular-nums" style={{ fontSize: 9 }}>{cat.amt}</p>
+              <p className="font-black text-white tabular-nums flex-shrink-0" style={{ fontSize: 9, whiteSpace: 'nowrap' }}>{cat.amt}</p>
             </div>
             <div className="h-[3px] rounded-full ml-8" style={{ background: 'rgba(255,255,255,0.08)' }}>
               <div className="h-full rounded-full flex items-center justify-end pr-1"
@@ -838,9 +839,9 @@ function PhoneTrends() {
           { label: 'INGRESOS', val: '+$2,547.00', color: '#30D158', bg: 'rgba(48,209,88,0.12)', border: 'rgba(48,209,88,0.25)' },
           { label: 'GASTOS', val: '-$1,585.78', color: '#FF453A', bg: 'rgba(255,69,58,0.12)', border: 'rgba(255,69,58,0.25)' },
         ].map((c, i) => (
-          <div key={i} className="rounded-[13px] px-3 py-2.5" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
+          <div key={i} className="rounded-[13px] px-3 py-2.5 overflow-hidden" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
             <p className="font-black uppercase" style={{ fontSize: 6, letterSpacing: 2, color: c.color }}>{c.label}</p>
-            <p className="font-black tabular-nums" style={{ fontSize: 12, color: c.color }}>{c.val}</p>
+            <p className="font-black tabular-nums" style={{ fontSize: 12, color: c.color, whiteSpace: 'nowrap' }}>{c.val}</p>
           </div>
         ))}
       </div>
@@ -851,10 +852,10 @@ function PhoneTrends() {
           { label: 'PROM. MENSUAL', val: '$13,858.68', sub: 'de gasto', color: '#60A5FA' },
           { label: 'TASA DE AHORRO', val: '38%', sub: 'de ingresos', color: '#A78BFA' },
         ].map((m, i) => (
-          <div key={i} className="rounded-[13px] px-2.5 py-2"
+          <div key={i} className="rounded-[13px] px-2.5 py-2 overflow-hidden"
             style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
-            <p className="font-black uppercase" style={{ fontSize: 5.5, letterSpacing: 1.5, color: 'rgba(255,255,255,0.4)' }}>{m.label}</p>
-            <p className="font-black leading-tight tabular-nums" style={{ fontSize: 10, color: m.color }}>{m.val}</p>
+            <p className="font-black uppercase truncate" style={{ fontSize: 5.5, letterSpacing: 1.5, color: 'rgba(255,255,255,0.4)' }}>{m.label}</p>
+            <p className="font-black leading-tight tabular-nums" style={{ fontSize: 10, color: m.color, whiteSpace: 'nowrap' }}>{m.val}</p>
             <p className="font-semibold" style={{ fontSize: 7, color: 'rgba(255,255,255,0.35)' }}>{m.sub}</p>
           </div>
         ))}
@@ -1042,12 +1043,18 @@ function PhoneApplePay() {
           }} />
           {/* Geometric BBVA "A" watermark */}
           <div className="absolute" style={{ right: 4, top: 0, width: 120, height: 144, opacity: 0.12, pointerEvents: 'none' }}>
-            <div style={{ position: 'absolute', width: 8, height: 110, background: 'rgba(180,200,255,1)',
-              borderRadius: 5, left: '32%', top: 8, transform: 'rotate(-18deg)', transformOrigin: 'bottom center' }} />
-            <div style={{ position: 'absolute', width: 8, height: 110, background: 'rgba(180,200,255,1)',
-              borderRadius: 5, right: '18%', top: 8, transform: 'rotate(18deg)', transformOrigin: 'bottom center' }} />
-            <div style={{ position: 'absolute', height: 8, background: 'rgba(180,200,255,1)',
-              borderRadius: 4, left: '29%', right: '23%', top: '48%' }} />
+            <div style={{
+              position: 'absolute', width: 8, height: 110, background: 'rgba(180,200,255,1)',
+              borderRadius: 5, left: '32%', top: 8, transform: 'rotate(-18deg)', transformOrigin: 'bottom center'
+            }} />
+            <div style={{
+              position: 'absolute', width: 8, height: 110, background: 'rgba(180,200,255,1)',
+              borderRadius: 5, right: '18%', top: 8, transform: 'rotate(18deg)', transformOrigin: 'bottom center'
+            }} />
+            <div style={{
+              position: 'absolute', height: 8, background: 'rgba(180,200,255,1)',
+              borderRadius: 4, left: '29%', right: '23%', top: '48%'
+            }} />
           </div>
           <div className="absolute inset-0 p-4 flex flex-col justify-between">
             <div className="flex items-start justify-between">
@@ -1150,15 +1157,26 @@ function ApplePaySection() {
               </p>
             </RevealWrapper>
             <RevealWrapper delay={320}>
-              <div className="inline-flex items-center gap-3 rounded-[16px] px-5 py-4"
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <div className="w-8 h-8 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#007AFF' }}>
-                  <i className="fa-solid fa-bolt text-white text-[14px]" />
+              {/* iOS notification widget — frosted glass, matches real Flux notification */}
+              <div className="inline-flex items-center gap-2.5 rounded-[16px] px-3.5 py-3 max-w-xs"
+                style={{
+                  background: 'rgba(44,44,46,0.92)',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                  backdropFilter: 'blur(24px)',
+                  WebkitBackdropFilter: 'blur(24px)',
+                }}>
+                <div className="w-10 h-10 rounded-[13px] flex items-center justify-center flex-shrink-0"
+                  style={{ background: '#007AFF' }}>
+                  <i className="fa-solid fa-wallet text-white" style={{ fontSize: 15 }} />
                 </div>
-                <div className="text-left">
-                  <p className="text-[14px] font-bold text-white">Pagas con Apple Pay en OXXO</p>
-                  <p className="text-[13px] font-medium" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                    FluxApp registra: −$89 · OXXO · Automático ✓
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-3 mb-0.5">
+                    <p className="font-bold text-white" style={{ fontSize: 13 }}>Flux Apple Pay</p>
+                    <p className="font-medium flex-shrink-0" style={{ fontSize: 11, color: 'rgba(255,255,255,0.38)' }}>mié 13:50</p>
+                  </div>
+                  <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', lineHeight: 1.4 }}>
+                    Pagaste <span className="font-black text-white">$450.00</span> con Santander LikeU
                   </p>
                 </div>
               </div>
@@ -1175,32 +1193,28 @@ function ApplePaySection() {
         {/* ── "Así de fácil" step flow ───────────────────────── */}
         <RevealWrapper delay={200} className="mt-20">
           <p className="text-center font-black text-white mb-10" style={{ fontSize: 22, letterSpacing: -0.5 }}>
-            Así de fácil funciona Flux
+            Así de fácil funciona FluxApp Finance
           </p>
-          <div className="relative flex flex-row items-start gap-0">
+          <div className="relative flex flex-row items-center gap-0">
             {[
-              { icon: 'fa-mobile-screen', label: 'Pagas con Apple Pay', n: 1 },
-              { icon: 'fa-bolt', label: 'Flux detecta el movimiento', n: 2 },
-              { icon: 'fa-receipt', label: 'El gasto se registra', n: 3 },
-              { icon: 'fa-chart-bar', label: 'Tu presupuesto se actualiza', n: 4 },
+              { icon: 'fa-mobile-screen', label: 'Pagas con Apple Pay' },
+              { icon: 'fa-bolt', label: 'Flux detecta el movimiento' },
+              { icon: 'fa-receipt', label: 'El gasto se registra' },
+              { icon: 'fa-chart-bar', label: 'Tu presupuesto se actualiza' },
             ].map((step, i, arr) => (
               <div key={i} className="flex flex-col items-center flex-1 relative">
-                {/* Dotted connector — hidden for last */}
+                {/* Arrow connector — hidden for last */}
                 {i < arr.length - 1 && (
-                  <div className="absolute left-1/2 top-[28px] z-0"
-                    style={{ width: '100%', height: 1, borderTop: '2px dashed rgba(255,255,255,0.15)' }}
-                  />
+                  <div className="absolute left-1/2 top-[27px] z-0 flex items-center justify-end"
+                    style={{ width: '100%' }}>
+                    <i className="fa-solid fa-chevron-right" style={{ fontSize: 12, color: 'rgba(255,255,255,0.22)' }} />
+                  </div>
                 )}
                 {/* Circle + icon */}
-                <div className="relative flex-shrink-0 z-10" style={{ width: 56, height: 56 }}>
+                <div className="relative flex-shrink-0 z-10" style={{ width: 54, height: 54 }}>
                   <div className="absolute inset-0 rounded-full flex items-center justify-center"
-                    style={{ border: '1.5px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.04)' }}>
-                    <i className={`fa-solid ${step.icon}`} style={{ fontSize: 20, color: 'rgba(255,255,255,0.65)' }} />
-                  </div>
-                  <div className="absolute flex items-center justify-center rounded-full font-black"
-                    style={{ width: 18, height: 18, bottom: -2, left: -2,
-                      background: '#007AFF', fontSize: 9, color: '#fff', boxShadow: '0 0 0 2px #000' }}>
-                    {step.n}
+                    style={{ border: '1.5px solid rgba(0,122,255,0.4)', background: 'rgba(0,122,255,0.1)' }}>
+                    <i className={`fa-solid ${step.icon}`} style={{ fontSize: 20, color: '#007AFF' }} />
                   </div>
                 </div>
                 {/* Label */}
