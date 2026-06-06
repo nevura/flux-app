@@ -659,7 +659,6 @@ function PhoneShared() {
   ]
   return (
     <PhoneFrame>
-      <ScreenshotOverlay src="/9.png" />
       {/* Header */}
       <div className="px-3 pt-9 pb-3 flex items-center justify-between">
         <div>
@@ -913,7 +912,6 @@ function PhoneNewTransaction() {
   ]
   return (
     <PhoneFrame>
-      <ScreenshotOverlay src="/10.png" />
       <div className="h-full flex flex-col overflow-hidden" style={{ background: '#111113' }}>
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
@@ -1297,7 +1295,7 @@ function FeaturesSection() {
   const features = [
     { icon: 'fa-chart-line', title: 'Dashboard inteligente', desc: 'Visualiza ingresos, gastos y saldo en tiempo real. Gráficas mensuales y resumen instantáneo de tu situación financiera.', color: '#007AFF' },
     { icon: 'fa-users', title: 'Gastos compartidos', desc: 'Divide cuentas, rastrea deudas y cobra a tus amigos desde la app. Todo en tiempo real, sin calculadoras.', color: '#30D158' },
-    { icon: 'fa-bullseye', title: 'Presupuestos', desc: 'Define cuánto quieres gastar por categoría. Flux te avisa cuando te acercas al límite.', color: '#FF9500' },
+    { icon: 'fa-bullseye', title: 'Presupuestos', desc: 'Define cuánto quieres gastar al mes. Flux te avisa cuando te acercas al límite.', color: '#FF9500' },
     { icon: 'fa-wallet', title: 'Multi-cuenta', desc: 'Maneja efectivo, tarjeta de débito y crédito en un solo lugar. Saldos actualizados al instante.', color: '#5E5CE6' },
   ]
   return (
