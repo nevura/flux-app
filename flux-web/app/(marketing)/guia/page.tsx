@@ -52,7 +52,7 @@ const content: Record<string, { title: string; steps: { icon: string; title: str
       { icon: 'fa-plus', title: 'Crear un presupuesto', desc: 'Ve a Ajustes → Presupuestos, toca "Nuevo presupuesto", elige la categoría y el monto límite mensual. El presupuesto se reinicia automáticamente el primer día de cada mes.' },
       { icon: 'fa-chart-bar', title: 'Visualizar avance', desc: 'En el Dashboard verás el avance de cada presupuesto con una barra de progreso. Verde = bien, amarillo = cerca del límite, rojo = excedido.' },
       { icon: 'fa-triangle-exclamation', title: 'Alertas', desc: 'Flux te notifica cuando llegas al 80% de tu presupuesto para que puedas ajustar tus gastos antes de excederlo.' },
-      { icon: 'fa-rotate', title: 'Gastos recurrentes', desc: 'En Ajustes → Recurrentes puedes programar gastos fijos (Netflix, renta, luz). Flux los registra automáticamente en la fecha que configures.' },
+      { icon: 'fa-rotate', title: 'Gastos recurrentes', desc: 'En Ajustes → Recurrentes puedes programar gastos fijos (streaming, renta, servicios). Flux los registra automáticamente en la fecha que configures.' },
     ],
   },
 }

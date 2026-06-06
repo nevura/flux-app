@@ -113,7 +113,7 @@ export const ONBOARDING_SLIDES: OnboardingSlide[] = [
     title: 'Recurrentes',
     subtitle: 'Suscripciones y cobros fijos',
     bullets: [
-      'Configura Netflix, renta, nómina — lo que se repite',
+      'Configura servicios de streaming, renta, nómina — lo que se repite',
       'Flux los genera automáticamente en la fecha que defines',
       'Aparecen como "Por confirmar" para que los valides',
     ],
@@ -332,7 +332,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
         title: '¿Qué son los recurrentes?',
         summary: 'Gastos o ingresos que se repiten',
         bullets: [
-          'Suscripciones (Netflix, Spotify), renta, nómina, servicios',
+          'Servicios de streaming y música, renta, nómina, servicios',
           'Flux los genera automáticamente en la fecha que configures',
           'Aparecen como "Por confirmar" — tú los validas o ajustas',
           'Puedes definir frecuencia: diaria, semanal, mensual o anual',

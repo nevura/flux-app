@@ -517,7 +517,7 @@ function PhoneDashboard() {
         {/* Items */}
         {[
           { name: 'AT&T', date: 'Mié, 10', amt: '-$399', bg: '#4B5B2A', icon: 'fa-wrench', green: false },
-          { name: 'Apple One', date: 'Jue, 11', amt: '-$81', bg: '#4A3A20', icon: 'fa-rotate', green: false },
+          { name: 'Streaming+', date: 'Jue, 11', amt: '-$81', bg: '#4A3A20', icon: 'fa-rotate', green: false },
           { name: 'iBoost', date: 'Lun, 15', amt: '+$9,000', bg: '#1B2E38', icon: 'fa-briefcase', green: true },
         ].map((item, i) => (
           <div key={i} className="flex items-center gap-2 mb-1.5">
@@ -1503,6 +1503,10 @@ function FAQSection() {
     {
       q: '¿Cómo cancelo mi suscripción?',
       a: 'Puedes cancelar en cualquier momento directamente desde la misma app: ve a Ajustes → Suscripción. Se abre el portal de Stripe donde puedes gestionar o cancelar tu plan.\n\nTambién puedes escribirnos a hola@fluxappfinance.com. Sin contratos ni permanencia mínima — tu acceso continúa hasta el final del periodo pagado.',
+    },
+    {
+      q: '¿Necesito conexión a internet para usar FluxApp?',
+      a: 'Sí. FluxApp requiere conexión a internet tanto para usar la app como para que los Atajos de iPhone funcionen.\n\nLa app sincroniza tus datos en tiempo real desde la nube, por lo que sin conexión no podrás registrar ni consultar movimientos. Los Atajos de Apple Pay también necesitan internet para enviar el registro a tu cuenta en el momento del pago.',
     },
     {
       q: '¿Mis datos financieros están seguros?',

@@ -100,7 +100,7 @@ export const COACH_MARKS: Record<string, CoachMarkStep[]> = {
     {
       target: 'settings-section-planificados',
       title: 'Transacciones recurrentes',
-      description: 'Configura Netflix, renta, nómina — todo lo que se repite. Flux los registra automáticamente. Toca "Nuevo" y define la fecha de cobro y la frecuencia.',
+      description: 'Configura servicios de streaming, renta, nómina — todo lo que se repite. Flux los registra automáticamente. Toca "Nuevo" y define la fecha de cobro y la frecuencia.',
     },
     {
       target: 'settings-section-suscripcion',

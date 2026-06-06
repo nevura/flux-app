@@ -1,11 +1,20 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import { COACH_MARKS } from '@/lib/coach-marks'
 import CoachMarkOverlay from './CoachMarkOverlay'
 import { markCoachMarkDone } from '@/actions/config'
 
 const LS_KEY = (page: string) => `flux_coach_${page}`
+
+// Maps each coach pageKey to the route prefix(es) where it should appear
+const PAGE_PATHS: Partial<Record<keyof typeof COACH_MARKS, string[]>> = {
+  home:         ['/home'],
+  transactions: ['/transactions'],
+  shared:       ['/shared'],
+  settings:     ['/settings'],
+}
 
 interface Props {
   pageKey: keyof typeof COACH_MARKS
@@ -16,19 +25,35 @@ interface Props {
 
 export default function CoachMarkTour({ pageKey, force, onDone }: Props) {
   const [show, setShow] = useState(false)
+  const pathname = usePathname()
 
+  const isPageActive = (path: string) => {
+    const allowed = PAGE_PATHS[pageKey]
+    if (!allowed) return true
+    return allowed.some(p => path.startsWith(p))
+  }
+
+  // Close immediately whenever the user leaves this tab
   useEffect(() => {
+    if (!isPageActive(pathname)) {
+      setShow(false)
+    }
+  }, [pathname])
+
+  // Start tour when the page becomes active and hasn't been completed
+  useEffect(() => {
+    if (!isPageActive(pathname)) return
     if (force) { setShow(true); return }
     const done = localStorage.getItem(LS_KEY(pageKey))
     if (!done) {
       const t = setTimeout(() => {
-        // Don't show while onboarding slides are active
         if (localStorage.getItem('flux_onboarding_open')) return
+        if (!isPageActive(window.location.pathname)) return
         setShow(true)
       }, 600)
       return () => clearTimeout(t)
     }
-  }, [pageKey, force])
+  }, [pageKey, force, pathname])
 
   function handleDone() {
     localStorage.setItem(LS_KEY(pageKey), '1')
@@ -37,7 +62,7 @@ export default function CoachMarkTour({ pageKey, force, onDone }: Props) {
     markCoachMarkDone(pageKey).catch(() => {})
   }
 
-  if (!show) return null
+  if (!show || !isPageActive(pathname)) return null
 
   const steps = COACH_MARKS[pageKey]
   if (!steps?.length) return null

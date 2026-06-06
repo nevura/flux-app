@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { adjustmentFor, parseAmount } from '@/lib/utils'
+import { adjustmentFor, parseAmount, getMexicoNow } from '@/lib/utils'
 import { DEFAULT_CATEGORIES } from '@/lib/constants'
 import type { ShortcutPayload } from '@/lib/types'
 
@@ -149,7 +149,8 @@ export async function POST(req: NextRequest) {
     available_accounts: userAccounts?.map(a => a.name) ?? [],
   }, { status: 400 })
 
-  const date = body.date ? new Date(body.date).toISOString() : new Date().toISOString()
+  // Use CDMX timezone when no date provided so late-night transactions aren't bucketed to the next UTC day
+  const date = body.date ? String(body.date) : getMexicoNow()
 
   // Insert transaction
   if (txType === 'TR-TRANSFER') {

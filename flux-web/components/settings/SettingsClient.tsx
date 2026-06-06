@@ -1412,7 +1412,7 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
                   type="text"
                   value={editing.name}
                   onChange={e => setEditing({ ...editing, name: e.target.value })}
-                  placeholder="Ej: Spotify, Netflix, Renta…"
+                  placeholder="Ej: Renta, luz, sueldo…"
                   className="w-full rounded-[14px] px-4 py-3.5 text-[16px] font-bold [color:var(--f-text)] placeholder:font-medium outline-none transition-all"
                   style={{
                     background: 'var(--f-bg-input)',
@@ -2348,7 +2348,7 @@ function DataTab({ isActive, categories, accounts }: { isActive: boolean; catego
     // Sheet 1 — template rows
     const templateRows = [
       ['Fecha', 'Concepto', 'Tipo', 'Monto', 'Categoría', 'Cuenta', 'Notas'],
-      ['2025-01-15', 'Netflix', 'Gasto', 199, catNames[0] ?? 'Entretenimiento', accNames[0] ?? 'Mi cuenta', 'Suscripción mensual'],
+      ['2025-01-15', 'Streaming', 'Gasto', 199, catNames[0] ?? 'Entretenimiento', accNames[0] ?? 'Mi cuenta', 'Suscripción mensual'],
       ['2025-01-20', 'Sueldo', 'Ingreso', 15000, '', accNames[0] ?? 'Mi cuenta', ''],
       ['2025-01-22', 'Pago tarjeta', 'Transferencia', 5000, '', accNames[0] ?? 'Mi cuenta', ''],
     ]
