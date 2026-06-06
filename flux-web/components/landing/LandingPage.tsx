@@ -326,6 +326,21 @@ function PhoneFrame({ children, glow = false }: { children: ReactNode; glow?: bo
   )
 }
 
+/* Drop a screenshot in flux-web/public/screenshots/<name>.png to auto-replace the CSS mockup */
+function ScreenshotOverlay({ src }: { src: string }) {
+  const [failed, setFailed] = useState(false)
+  if (failed) return null
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src} alt=""
+      className="absolute inset-0 w-full h-full"
+      style={{ objectFit: 'cover', objectPosition: 'top', zIndex: 20 }}
+      onError={() => setFailed(true)}
+    />
+  )
+}
+
 function ShowcaseBottomNav({ active }: { active: number }) {
   return (
     <div className="absolute bottom-0 left-0 right-0 flex justify-around items-center px-2 pb-3 pt-2.5"
@@ -362,6 +377,7 @@ function PhoneTransactions() {
   )
   return (
     <PhoneFrame>
+      <ScreenshotOverlay src="/5.png" />
       {/* Header: < Junio 2026 > */}
       <div className="px-3 pt-9 pb-2 flex items-center justify-between">
         <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.07)' }}>
@@ -428,6 +444,7 @@ function PhoneTransactions() {
 function PhoneDashboard() {
   return (
     <PhoneFrame glow>
+      <ScreenshotOverlay src="/1.png" />
       {/* Header */}
       <div className="flex items-center gap-2 px-3 pt-9 pb-2">
         <div className="w-7 h-7 rounded-[10px] flex items-center justify-center flex-shrink-0"
@@ -559,6 +576,7 @@ function PhoneAccountsAndTDC() {
 
   return (
     <PhoneFrame>
+      <ScreenshotOverlay src="/4.png" />
       {/* Header — matches real app */}
       <div className="flex items-center gap-2 px-3 pt-9 pb-2">
         <div className="w-7 h-7 rounded-[10px] flex items-center justify-center flex-shrink-0"
@@ -641,6 +659,7 @@ function PhoneShared() {
   ]
   return (
     <PhoneFrame>
+      <ScreenshotOverlay src="/9.png" />
       {/* Header */}
       <div className="px-3 pt-9 pb-3 flex items-center justify-between">
         <div>
@@ -719,6 +738,7 @@ function PhoneCategoryChart() {
   ]
   return (
     <PhoneFrame>
+      <ScreenshotOverlay src="/6.png" />
       {/* Header */}
       <div className="px-3 pt-9 pb-2 flex items-center justify-between">
         <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.07)' }}>
@@ -800,6 +820,7 @@ function PhoneTrends() {
   ]
   return (
     <PhoneFrame>
+      <ScreenshotOverlay src="/7.png" />
       <div className="px-3 pt-9 pb-2 flex items-center justify-between">
         <i className="fa-solid fa-chevron-left" style={{ fontSize: 10, color: '#007AFF' }} />
         <div className="flex items-center gap-1">
@@ -892,6 +913,7 @@ function PhoneNewTransaction() {
   ]
   return (
     <PhoneFrame>
+      <ScreenshotOverlay src="/10.png" />
       <div className="h-full flex flex-col overflow-hidden" style={{ background: '#111113' }}>
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
@@ -1102,38 +1124,71 @@ function TrustBar() {
 function PhoneApplePay() {
   return (
     <PhoneFrame glow>
-      <div className="h-full relative overflow-hidden" style={{ background: '#000' }}>
-        {/* Real Apple Pay wallet screenshot — place applepay.png in flux-web/public/ */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/applepay.png"
-          alt=""
-          className="absolute inset-0 w-full h-full"
-          style={{ objectFit: 'cover', objectPosition: 'top' }}
-        />
+      <ScreenshotOverlay src="/applepay.png" />
+      <div className="h-full flex flex-col relative" style={{ background: '#000' }}>
 
-        {/* Flux notification — overlaid on the card area */}
-        <div className="absolute left-2.5 right-2.5 rounded-[13px] flex items-center gap-2 px-2.5 py-2"
-          style={{
-            top: 112,
-            background: 'rgba(44,44,46,0.97)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-          }}>
-          <div className="w-8 h-8 rounded-[11px] flex items-center justify-center flex-shrink-0"
-            style={{ background: '#007AFF' }}>
-            <i className="fa-solid fa-wallet text-white" style={{ fontSize: 12 }} />
+        {/* Status bar */}
+        <div className="flex items-center justify-between px-4 flex-shrink-0"
+          style={{ paddingTop: 36, paddingBottom: 8 }}>
+          <p className="font-semibold text-white" style={{ fontSize: 9 }}>12:00</p>
+          <div className="flex items-center gap-1">
+            <i className="fa-solid fa-signal text-white" style={{ fontSize: 7 }} />
+            <i className="fa-solid fa-wifi text-white" style={{ fontSize: 7 }} />
+            <i className="fa-solid fa-battery-three-quarters text-white" style={{ fontSize: 8 }} />
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between">
-              <p className="font-bold text-white" style={{ fontSize: 9 }}>Flux Apple Pay</p>
-              <p style={{ fontSize: 7.5, color: 'rgba(255,255,255,0.38)' }}>mié 13:50</p>
+        </div>
+
+        {/* BBVA card */}
+        <div className="mx-3 rounded-[18px] overflow-hidden relative flex-shrink-0" style={{ height: 140 }}>
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, #1A3F96 0%, #0E2660 50%, #091848 100%)' }} />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(130deg, rgba(255,255,255,0.06) 0%, transparent 55%)' }} />
+          {/* Λ watermark */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ opacity: 0.18 }}>
+            <div className="relative" style={{ width: 90, height: 100 }}>
+              <div style={{ position: 'absolute', width: 8, height: 92, background: 'rgba(180,210,255,1)',
+                borderRadius: 4, left: '30%', bottom: 0, transform: 'rotate(-15deg)', transformOrigin: 'bottom center' }} />
+              <div style={{ position: 'absolute', width: 8, height: 92, background: 'rgba(180,210,255,1)',
+                borderRadius: 4, right: '22%', bottom: 0, transform: 'rotate(15deg)', transformOrigin: 'bottom center' }} />
+              <div style={{ position: 'absolute', height: 8, background: 'rgba(180,210,255,1)',
+                borderRadius: 4, left: '24%', right: '20%', top: '44%' }} />
             </div>
-            <p style={{ fontSize: 8.5, color: 'rgba(255,255,255,0.65)', lineHeight: 1.3 }}>
-              Pagaste <span className="font-black text-white">$450.00</span> con TDC Azul
-            </p>
+          </div>
+          <div className="absolute inset-0 p-4 flex flex-col justify-between">
+            <div className="flex items-start justify-between">
+              <p className="font-black text-white" style={{ fontSize: 17, letterSpacing: -0.3 }}>BBVA</p>
+              <div className="flex items-center">
+                <div className="w-5 h-5 rounded-full" style={{ background: 'rgba(220,0,20,0.88)' }} />
+                <div className="w-5 h-5 rounded-full -ml-2.5" style={{ background: 'rgba(255,160,0,0.88)' }} />
+              </div>
+            </div>
+            <div className="flex items-end justify-between">
+              <p style={{ fontSize: 11, letterSpacing: 2, fontFamily: 'monospace', color: 'rgba(255,255,255,0.88)' }}>
+                ···· 1826
+              </p>
+              <p className="font-black" style={{ fontSize: 15, fontStyle: 'italic', letterSpacing: 0.5, color: 'rgba(255,255,255,0.85)' }}>VISA</p>
+            </div>
+          </div>
+        </div>
+
+        {/* NFC / "Acercar al lector" */}
+        <div className="flex-1 flex flex-col items-center justify-center gap-2">
+          <div className="rounded-full flex items-center justify-center"
+            style={{ width: 48, height: 48, border: '2.5px solid #007AFF', background: 'rgba(0,122,255,0.06)' }}>
+            <i className="fa-solid fa-mobile-screen text-white" style={{ fontSize: 20, color: 'rgba(255,255,255,0.9)' }} />
+          </div>
+          <p className="font-semibold" style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>Acercar al lector</p>
+        </div>
+
+        {/* Stacked cards at bottom */}
+        <div className="flex-shrink-0 relative" style={{ height: 54 }}>
+          <div className="absolute bottom-0 left-5 right-5 h-7 rounded-t-[10px]" style={{ background: '#34d1c5' }} />
+          <div className="absolute bottom-0 left-2.5 right-2.5 h-9 rounded-t-[12px]"
+            style={{ background: 'linear-gradient(135deg, #B91C1C 0%, #DC2626 100%)' }} />
+          <div className="absolute bottom-0 left-0 right-0 h-11 rounded-t-[14px] flex items-center px-3 gap-2 overflow-hidden"
+            style={{ background: 'linear-gradient(135deg, #0D1117 0%, #1e2124 100%)' }}>
+            <p className="font-black text-white" style={{ fontSize: 9, letterSpacing: -0.5 }}>aws</p>
+            <p className="flex-1" />
+            <p style={{ fontSize: 6, color: 'rgba(255,255,255,0.35)', letterSpacing: 0.5 }}>FECHA DE INICIO</p>
           </div>
         </div>
       </div>
@@ -1173,29 +1228,14 @@ function ApplePaySection() {
               </p>
             </RevealWrapper>
             <RevealWrapper delay={320} className="flex sm:block">
-              {/* iOS notification widget — frosted glass, matches real Flux notification */}
-              <div className="inline-flex items-center gap-2.5 rounded-[16px] px-3.5 py-3 max-w-xs mx-auto sm:mx-0"
-                style={{
-                  background: 'rgba(44,44,46,0.92)',
-                  border: '1px solid rgba(255,255,255,0.12)',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-                  backdropFilter: 'blur(24px)',
-                  WebkitBackdropFilter: 'blur(24px)',
-                }}>
-                <div className="w-10 h-10 rounded-[13px] flex items-center justify-center flex-shrink-0"
-                  style={{ background: '#007AFF' }}>
-                  <i className="fa-solid fa-wallet text-white" style={{ fontSize: 15 }} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-3 mb-0.5">
-                    <p className="font-bold text-white" style={{ fontSize: 13 }}>Flux Apple Pay</p>
-                    <p className="font-medium flex-shrink-0" style={{ fontSize: 11, color: 'rgba(255,255,255,0.38)' }}>mié 13:50</p>
-                  </div>
-                  <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', lineHeight: 1.4 }}>
-                    Pagaste <span className="font-black text-white">$450.00</span> con TDC Azul
-                  </p>
-                </div>
-              </div>
+              {/* Real Flux notification screenshot */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/applepay-not.png"
+                alt="Notificación Flux Apple Pay"
+                className="rounded-[18px] mx-auto sm:mx-0"
+                style={{ maxWidth: 320, width: '100%', display: 'block', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}
+              />
             </RevealWrapper>
           </div>
 
