@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, type ReactNode } from 'react'
+import { useState, useEffect, useRef, Fragment, type ReactNode } from 'react'
 import Link from 'next/link'
 import { RevealWrapper } from './RevealWrapper'
 
@@ -631,22 +631,24 @@ function PhoneAccountsAndTDC() {
         ))}
       </div>
 
-      {/* Sticky bottom: first upcoming TDC */}
-      <div className="absolute bottom-0 left-0 right-0 flex items-center gap-2 px-3 py-2"
-        style={{ background: 'rgba(8,10,18,0.98)', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-        <div className="w-6 h-6 rounded-[8px] flex items-center justify-center flex-shrink-0"
+      {/* Sticky TDC reminder — sits just above the bottom nav */}
+      <div className="absolute left-0 right-0 flex items-center gap-2 px-3 py-1.5"
+        style={{ bottom: 42, background: 'rgba(8,10,18,0.97)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="w-5 h-5 rounded-[7px] flex items-center justify-center flex-shrink-0"
           style={{ background: 'rgba(251,113,133,0.2)' }}>
-          <i className="fa-solid fa-credit-card" style={{ fontSize: 8, color: '#FB7185' }} />
+          <i className="fa-solid fa-credit-card" style={{ fontSize: 7, color: '#FB7185' }} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-white leading-none" style={{ fontSize: 8.5 }}>TDC LikeU</p>
-          <p style={{ fontSize: 6.5, color: 'rgba(255,255,255,0.38)' }}>Vence en 8 días</p>
+          <p className="font-bold text-white leading-none" style={{ fontSize: 8 }}>TDC LikeU</p>
+          <p style={{ fontSize: 6, color: 'rgba(255,255,255,0.38)' }}>Vence en 8 días</p>
         </div>
-        <div className="rounded-full px-2.5 py-1 font-black flex-shrink-0"
-          style={{ background: '#007AFF', fontSize: 8, color: '#fff' }}>
+        <div className="rounded-full px-2 py-0.5 font-black flex-shrink-0"
+          style={{ background: '#007AFF', fontSize: 7, color: '#fff' }}>
           Pagar
         </div>
       </div>
+
+      <ShowcaseBottomNav active={0} />
     </PhoneFrame>
   )
 }
@@ -1034,52 +1036,44 @@ function PhoneApplePay() {
         </div>
 
         {/* BBVA card */}
-        <div className="mx-3 rounded-[18px] overflow-hidden relative flex-shrink-0" style={{ height: 144 }}>
-          <div className="absolute inset-0" style={{
-            background: 'linear-gradient(150deg, #1C4299 0%, #0D2560 55%, #091A46 100%)',
-          }} />
-          <div className="absolute inset-0" style={{
-            background: 'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, transparent 45%)',
-          }} />
-          {/* Geometric BBVA "A" watermark */}
-          <div className="absolute" style={{ right: 4, top: 0, width: 120, height: 144, opacity: 0.12, pointerEvents: 'none' }}>
-            <div style={{
-              position: 'absolute', width: 8, height: 110, background: 'rgba(180,200,255,1)',
-              borderRadius: 5, left: '32%', top: 8, transform: 'rotate(-18deg)', transformOrigin: 'bottom center'
-            }} />
-            <div style={{
-              position: 'absolute', width: 8, height: 110, background: 'rgba(180,200,255,1)',
-              borderRadius: 5, right: '18%', top: 8, transform: 'rotate(18deg)', transformOrigin: 'bottom center'
-            }} />
-            <div style={{
-              position: 'absolute', height: 8, background: 'rgba(180,200,255,1)',
-              borderRadius: 4, left: '29%', right: '23%', top: '48%'
-            }} />
+        <div className="mx-3 rounded-[18px] overflow-hidden relative flex-shrink-0" style={{ height: 140 }}>
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, #1A3F96 0%, #0E2660 50%, #091848 100%)' }} />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(130deg, rgba(255,255,255,0.07) 0%, transparent 50%)' }} />
+          {/* BBVA "A" watermark — centered, more prominent */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ opacity: 0.2 }}>
+            <div className="relative" style={{ width: 96, height: 108 }}>
+              <div style={{ position: 'absolute', width: 9, height: 98, background: 'rgba(210,225,255,1)',
+                borderRadius: 5, left: '28%', bottom: 0, transform: 'rotate(-16deg)', transformOrigin: 'bottom center' }} />
+              <div style={{ position: 'absolute', width: 9, height: 98, background: 'rgba(210,225,255,1)',
+                borderRadius: 5, right: '18%', bottom: 0, transform: 'rotate(16deg)', transformOrigin: 'bottom center' }} />
+              <div style={{ position: 'absolute', height: 9, background: 'rgba(210,225,255,1)',
+                borderRadius: 4, left: '22%', right: '16%', top: '43%' }} />
+            </div>
           </div>
           <div className="absolute inset-0 p-4 flex flex-col justify-between">
             <div className="flex items-start justify-between">
-              <p className="font-black text-white" style={{ fontSize: 18, letterSpacing: -0.5 }}>BBVA</p>
+              <p className="font-black text-white" style={{ fontSize: 17, letterSpacing: -0.3 }}>BBVA</p>
               <div className="flex items-center">
-                <div className="w-6 h-6 rounded-full" style={{ background: 'rgba(235,0,27,0.85)' }} />
-                <div className="w-6 h-6 rounded-full -ml-3" style={{ background: 'rgba(255,163,0,0.85)' }} />
+                <div className="w-5 h-5 rounded-full" style={{ background: 'rgba(220,0,20,0.9)' }} />
+                <div className="w-5 h-5 rounded-full -ml-2.5" style={{ background: 'rgba(255,160,0,0.9)' }} />
               </div>
             </div>
             <div className="flex items-end justify-between">
-              <p className="font-mono text-white" style={{ fontSize: 11, letterSpacing: 2.5, color: 'rgba(255,255,255,0.85)' }}>
-                ···· 3742
+              <p className="text-white" style={{ fontSize: 11, letterSpacing: 2, fontFamily: 'monospace', color: 'rgba(255,255,255,0.88)' }}>
+                ···· 1826
               </p>
-              <p className="font-black text-white" style={{ fontSize: 19, fontStyle: 'italic', letterSpacing: 0.5 }}>VISA</p>
+              <p className="font-black text-white" style={{ fontSize: 15, fontStyle: 'italic', letterSpacing: 0.5, color: 'rgba(255,255,255,0.85)' }}>VISA</p>
             </div>
           </div>
         </div>
 
-        {/* NFC / Acercar al lector — center of empty space */}
+        {/* NFC / "Listo, puedes hacerlo" — center of empty space */}
         <div className="flex-1 flex flex-col items-center justify-center gap-2">
           <div className="rounded-full flex items-center justify-center"
-            style={{ width: 44, height: 44, border: '2px solid #007AFF' }}>
-            <i className="fa-solid fa-mobile-screen text-white" style={{ fontSize: 18 }} />
+            style={{ width: 48, height: 48, border: '2px solid #007AFF', background: 'rgba(0,122,255,0.08)' }}>
+            <i className="fa-solid fa-mobile-screen text-white" style={{ fontSize: 20 }} />
           </div>
-          <p className="font-semibold" style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)' }}>Acercar al lector</p>
+          <p className="font-semibold" style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)' }}>Listo, puedes hacerlo</p>
         </div>
 
         {/* Flux notification — absolute, overlaid at top of phone content */}
@@ -1195,34 +1189,32 @@ function ApplePaySection() {
           <p className="text-center font-black text-white mb-10" style={{ fontSize: 22, letterSpacing: -0.5 }}>
             Así de fácil funciona FluxApp Finance
           </p>
-          <div className="relative flex flex-row items-center gap-0">
+          <div className="flex flex-row items-start">
             {[
               { icon: 'fa-mobile-screen', label: 'Pagas con Apple Pay' },
               { icon: 'fa-bolt', label: 'Flux detecta el movimiento' },
               { icon: 'fa-receipt', label: 'El gasto se registra' },
               { icon: 'fa-chart-bar', label: 'Tu presupuesto se actualiza' },
             ].map((step, i, arr) => (
-              <div key={i} className="flex flex-col items-center flex-1 relative">
-                {/* Arrow connector — hidden for last */}
-                {i < arr.length - 1 && (
-                  <div className="absolute left-1/2 top-[27px] z-0 flex items-center justify-end"
-                    style={{ width: '100%' }}>
-                    <i className="fa-solid fa-chevron-right" style={{ fontSize: 12, color: 'rgba(255,255,255,0.22)' }} />
-                  </div>
-                )}
-                {/* Circle + icon */}
-                <div className="relative flex-shrink-0 z-10" style={{ width: 54, height: 54 }}>
-                  <div className="absolute inset-0 rounded-full flex items-center justify-center"
-                    style={{ border: '1.5px solid rgba(0,122,255,0.4)', background: 'rgba(0,122,255,0.1)' }}>
+              <Fragment key={i}>
+                {/* Step */}
+                <div className="flex flex-col items-center" style={{ flex: 1, minWidth: 0 }}>
+                  <div className="rounded-full flex items-center justify-center flex-shrink-0"
+                    style={{ width: 54, height: 54, border: '1.5px solid rgba(0,122,255,0.5)', background: 'rgba(0,122,255,0.12)' }}>
                     <i className={`fa-solid ${step.icon}`} style={{ fontSize: 20, color: '#007AFF' }} />
                   </div>
+                  <p className="mt-3 text-center font-semibold leading-snug px-1"
+                    style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)' }}>
+                    {step.label}
+                  </p>
                 </div>
-                {/* Label */}
-                <p className="mt-3 text-center font-semibold leading-snug px-1"
-                  style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>
-                  {step.label}
-                </p>
-              </div>
+                {/* Arrow between steps */}
+                {i < arr.length - 1 && (
+                  <div className="flex items-start flex-shrink-0" style={{ paddingTop: 16 }}>
+                    <i className="fa-solid fa-arrow-right" style={{ fontSize: 16, color: '#007AFF', opacity: 0.7 }} />
+                  </div>
+                )}
+              </Fragment>
             ))}
           </div>
         </RevealWrapper>

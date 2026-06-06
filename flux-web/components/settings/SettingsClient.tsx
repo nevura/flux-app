@@ -1910,8 +1910,8 @@ function SubscriptionTab({ profile }: { profile: Profile | null }) {
               ? 'Suscríbete antes de que expire tu período de prueba para no perder acceso.'
               : 'Gracias por suscribirte. Tienes acceso completo a todas las funciones.'}
           </p>
-          {/* Only show portal button if not trialing without a Stripe customer — those users use the price cards below */}
-          {(!isTrialing || hasCustomer) && (
+          {/* Portal only for active subscribers — trialing users go to checkout price cards below */}
+          {!isTrialing && (
             <button
               onClick={handlePortal}
               disabled={loadingPortal}

@@ -30,6 +30,19 @@ export async function POST(req: NextRequest) {
 
   const userId = tokenRow.user_id
 
+  // Block expired/canceled accounts — they cannot add transactions
+  const { data: subProfile } = await supabaseAdmin
+    .from('profiles')
+    .select('subscription_status')
+    .eq('id', userId)
+    .single()
+  const blockedSub = ['expired', 'canceled']
+  if (blockedSub.includes(subProfile?.subscription_status ?? '')) {
+    return NextResponse.json({
+      error: 'Tu suscripción expiró. Renueva en FluxApp Finance → Configuración → Suscripción.',
+    }, { status: 402 })
+  }
+
   // Update last_used_at (source update happens after body parse below)
 
   // Parse body — accept both English and Spanish field names

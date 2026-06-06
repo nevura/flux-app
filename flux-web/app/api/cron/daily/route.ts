@@ -21,12 +21,22 @@ export async function GET(request: Request) {
   const recurringByUser: Record<string, { email: string; items: { name: string; amount: number }[] }> = {}
 
   // ── 1. Transacciones recurrentes ──────────────────────────────────────────
-  const { data: scheduled, error: schedErr } = await (admin
-    .from('scheduled_transactions') as any)
-    .select('*')
-    .eq('status', 'ACTIVO')
-    .lte('next_charge_date', todayStr)
-    .not('next_charge_date', 'is', null)
+  // Only process recurring for active/trialing/grace users — expired accounts are blocked
+  const { data: activeProfData } = await (admin.from('profiles') as any)
+    .select('id')
+    .in('subscription_status', ['trialing', 'active', 'grace'])
+    .eq('status', 'approved')
+  const activeUserIds: string[] = (activeProfData ?? []).map((p: any) => p.id)
+
+  const { data: scheduled, error: schedErr } = activeUserIds.length === 0
+    ? { data: [], error: null }
+    : await (admin
+      .from('scheduled_transactions') as any)
+      .select('*')
+      .eq('status', 'ACTIVO')
+      .lte('next_charge_date', todayStr)
+      .not('next_charge_date', 'is', null)
+      .in('user_id', activeUserIds)
 
   if (schedErr) {
     results.errors.push(`scheduled_fetch: ${schedErr.message}`)
