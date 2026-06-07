@@ -377,7 +377,7 @@ function PhoneTransactions() {
   )
   return (
     <PhoneFrame>
-      <ScreenshotOverlay src="/5.png" />
+      <ScreenshotOverlay src="/5.jpeg" />
       {/* Header: < Junio 2026 > */}
       <div className="px-3 pt-9 pb-2 flex items-center justify-between">
         <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.07)' }}>
@@ -444,7 +444,7 @@ function PhoneTransactions() {
 function PhoneDashboard() {
   return (
     <PhoneFrame glow>
-      <ScreenshotOverlay src="/1.png" />
+      <ScreenshotOverlay src="/1.jpeg" />
       {/* Header */}
       <div className="flex items-center gap-2 px-3 pt-9 pb-2">
         <div className="w-7 h-7 rounded-[10px] flex items-center justify-center flex-shrink-0"
@@ -576,7 +576,7 @@ function PhoneAccountsAndTDC() {
 
   return (
     <PhoneFrame>
-      <ScreenshotOverlay src="/4.png" />
+      <ScreenshotOverlay src="/4.jpeg" />
       {/* Header — matches real app */}
       <div className="flex items-center gap-2 px-3 pt-9 pb-2">
         <div className="w-7 h-7 rounded-[10px] flex items-center justify-center flex-shrink-0"
@@ -659,7 +659,7 @@ function PhoneShared() {
   ]
   return (
     <PhoneFrame>
-      <ScreenshotOverlay src="/7.png" />
+      <ScreenshotOverlay src="/7.jpeg" />
       {/* Header */}
       <div className="px-3 pt-9 pb-3 flex items-center justify-between">
         <div>
@@ -738,7 +738,7 @@ function PhoneCategoryChart() {
   ]
   return (
     <PhoneFrame>
-      <ScreenshotOverlay src="/6.png" />
+      <ScreenshotOverlay src="/6.jpeg" />
       {/* Header */}
       <div className="px-3 pt-9 pb-2 flex items-center justify-between">
         <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.07)' }}>
@@ -912,7 +912,7 @@ function PhoneNewTransaction() {
   ]
   return (
     <PhoneFrame>
-      <ScreenshotOverlay src="/8.png" position="bottom" />
+      <ScreenshotOverlay src="/8.jpeg" position="bottom" />
       <div className="h-full flex flex-col overflow-hidden" style={{ background: '#111113' }}>
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
@@ -1123,7 +1123,7 @@ function TrustBar() {
 function PhoneApplePay() {
   return (
     <PhoneFrame glow>
-      <ScreenshotOverlay src="/applepay.png" />
+      <ScreenshotOverlay src="/applepay.jpeg" />
       <div className="h-full flex flex-col relative" style={{ background: '#000' }}>
 
         {/* Status bar */}
