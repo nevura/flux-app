@@ -37,21 +37,33 @@ function BottomSheet({ onClose, children, title }: { onClose: () => void; childr
   const sheetRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // Body lock that doesn't break inner scroll on iOS:
-    // overflow:hidden on both html and body prevents background scroll
-    // without the position:fixed hack that blocks fixed children's touch scroll.
     const y = window.scrollY
     const html = document.documentElement
     html.style.overflow = 'hidden'
     html.style.height = '100%'
     document.body.style.overflow = 'hidden'
-    // Scroll the sheet to top on open
     if (sheetRef.current) sheetRef.current.scrollTop = 0
     return () => {
       html.style.overflow = ''
       html.style.height = ''
       document.body.style.overflow = ''
       window.scrollTo({ top: y, behavior: 'instant' })
+    }
+  }, [])
+
+  // Slide sheet up when keyboard opens so inputs stay visible
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    const update = () => {
+      const keyboardHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop)
+      if (sheetRef.current) sheetRef.current.style.bottom = `${keyboardHeight}px`
+    }
+    vv.addEventListener('resize', update)
+    vv.addEventListener('scroll', update)
+    return () => {
+      vv.removeEventListener('resize', update)
+      vv.removeEventListener('scroll', update)
     }
   }, [])
 

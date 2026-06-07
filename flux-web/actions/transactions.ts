@@ -245,66 +245,101 @@ export async function updateTransaction(id: string, form: TransactionForm) {
 
   if (error) return { error: error.message }
 
-  // Send invites to new participants added during update
+  // Notify participants on update: invite new ones, notify existing accepted ones
   if (form.split_data?.data && (form.split_data.splitMode === 'THEY' || form.split_data.splitMode === 'DIV')) {
     const prevIds = new Set<string>(
       (existingTx?.split_data as typeof form.split_data | null)?.data
         ?.filter(p => p.id !== 'PER-YO')
         .map(p => p.id) ?? []
     )
-    const newParticipantIds = form.split_data.data
-      .filter(p => p.id !== 'PER-YO' && !prevIds.has(p.id))
-      .map(p => p.id)
+    const allParticipantIds = form.split_data.data.filter(p => p.id !== 'PER-YO').map(p => p.id)
 
-    if (newParticipantIds.length > 0) {
+    if (allParticipantIds.length > 0) {
       const { data: linkedPeople } = await supabase
         .from('people').select('id, linked_user_id')
-        .in('id', newParticipantIds).not('linked_user_id', 'is', null)
+        .in('id', allParticipantIds).not('linked_user_id', 'is', null)
 
       if (linkedPeople?.length) {
         const { data: myProfile } = await supabase
           .from('profiles').select('username, full_name').eq('id', user.id).single()
         const admin = createAdminClient()
         const invitedNames: string[] = []
+        const updatedNames: string[] = []
 
         for (const lp of linkedPeople) {
           const participant = form.split_data!.data.find(p => p.id === lp.id)
           if (!participant) continue
-          invitedNames.push(participant.nombre)
-          await (admin.from('notifications') as any).insert({
-            user_id: lp.linked_user_id,
-            type: 'shared_expense_invite',
-            data: {
-              transaction_id: id,
-              from_user_id: user.id,
-              from_username: myProfile?.username ?? '',
-              from_name: myProfile?.full_name ?? '',
-              concept: form.concept,
-              total_amount: amount,
-              participant_amount: participant.value,
-              participant_person_id: lp.id,
-              category_id: form.category_id || null,
-            },
-          })
-          const { data: recipientProfile } = await (admin.from('profiles') as any)
-            .select('email, full_name').eq('id', lp.linked_user_id).single()
-          if (recipientProfile?.email) {
-            sendSharedExpenseInviteEmail({
-              to: recipientProfile.email,
-              toName: recipientProfile.full_name ?? '',
-              fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
-              fromUsername: myProfile?.username ?? '',
-              concept: form.concept,
-              amount: formatCurrency(participant.value),
-            }).catch(() => {})
+          const isNew = !prevIds.has(lp.id)
+
+          if (isNew) {
+            // New participant → send invite
+            invitedNames.push(participant.nombre)
+            await (admin.from('notifications') as any).insert({
+              user_id: lp.linked_user_id,
+              type: 'shared_expense_invite',
+              data: {
+                transaction_id: id,
+                from_user_id: user.id,
+                from_username: myProfile?.username ?? '',
+                from_name: myProfile?.full_name ?? '',
+                concept: form.concept,
+                total_amount: amount,
+                participant_amount: participant.value,
+                participant_person_id: lp.id,
+                category_id: form.category_id || null,
+              },
+            })
+            const { data: recipientProfile } = await (admin.from('profiles') as any)
+              .select('email, full_name').eq('id', lp.linked_user_id).single()
+            if (recipientProfile?.email) {
+              sendSharedExpenseInviteEmail({
+                to: recipientProfile.email,
+                toName: recipientProfile.full_name ?? '',
+                fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
+                fromUsername: myProfile?.username ?? '',
+                concept: form.concept,
+                amount: formatCurrency(participant.value),
+              }).catch(() => {})
+            }
+          } else {
+            // Existing participant → notify of update
+            updatedNames.push(participant.nombre)
+            await (admin.from('notifications') as any).insert({
+              user_id: lp.linked_user_id,
+              type: 'shared_expense_updated',
+              data: {
+                transaction_id: id,
+                from_user_id: user.id,
+                from_username: myProfile?.username ?? '',
+                from_name: myProfile?.full_name ?? '',
+                concept: form.concept,
+                total_amount: amount,
+                participant_amount: participant.value,
+                participant_person_id: lp.id,
+                category_id: form.category_id || null,
+              },
+            })
+            const { data: recipientProfile } = await (admin.from('profiles') as any)
+              .select('email, full_name').eq('id', lp.linked_user_id).single()
+            if (recipientProfile?.email) {
+              sendSharedExpenseInviteEmail({
+                to: recipientProfile.email,
+                toName: recipientProfile.full_name ?? '',
+                fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
+                fromUsername: myProfile?.username ?? '',
+                concept: `[Actualizado] ${form.concept}`,
+                amount: formatCurrency(participant.value),
+              }).catch(() => {})
+            }
           }
         }
 
-        if (invitedNames.length > 0) {
+        const notifiedNames = [...invitedNames, ...updatedNames]
+        if (notifiedNames.length > 0) {
           await supabase.from('notifications').insert({
             user_id: user.id,
             type: 'shared_expense_sent',
-            data: { concept: form.concept, total_amount: amount, invited_names: invitedNames },
+            data: { concept: form.concept, total_amount: amount, invited_names: notifiedNames },
           })
         }
       }

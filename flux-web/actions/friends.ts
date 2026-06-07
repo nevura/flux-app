@@ -302,6 +302,16 @@ export async function linkPersonToUser(personId: string, linkedUserId: string | 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autorizado' }
 
+  // Delete any auto-created duplicate that was already linked to this user
+  if (linkedUserId) {
+    await supabase
+      .from('people')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('linked_user_id', linkedUserId)
+      .neq('id', personId)
+  }
+
   const { error } = await supabase
     .from('people')
     .update({ linked_user_id: linkedUserId })

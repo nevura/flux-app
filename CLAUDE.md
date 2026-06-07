@@ -19,14 +19,45 @@ Requires a `.env.local` file (see `flux-web/.env.local.example`) with Supabase c
 ### flux-web architecture
 
 - **Next.js 16 App Router** — `proxy.ts` (replaces deprecated `middleware.ts`) handles auth redirects
-- **Supabase** — DB + Auth. Schema in `flux-web/supabase/migrations/001_initial.sql`
+- **Supabase** — DB + Auth. Schema in `flux-web/supabase/migrations/`. New migrations go there + applied via Supabase MCP or CLI.
 - **Server Actions** in `flux-web/actions/` for all mutations (no API routes for web UI)
 - **Shortcut API** at `POST /api/shortcut/transaction` — bearer token auth via `shortcut_tokens` table
-- **Key pages:** `/home` (dashboard), `/transactions`, `/settings` (with shortcut install)
+- **Key pages:** `/home` (dashboard), `/transactions`, `/shared`, `/insights`, `/settings`
 - **iPhone Shortcuts token:** auto-generated on signup, shown in Settings → Atajos
+
+### Tab architecture (AppShell)
+
+All main tabs (`home`, `transactions`, `shared`, `insights`) stay **mounted simultaneously** in `AppShell.tsx` — only visibility (`display`) changes on tab switch. Each tab is a client component that fetches its own data via Supabase JS client.
+
+- **`flux:refresh`** — custom `window` event. Dispatch it after any mutation to trigger all active tabs to reload. `AppShell` increments `refreshSignal` state on this event and passes it down to each tab.
+- **Stale tracking** — `DashboardTab` uses `staleRef`: if `flux:refresh` fires while the tab is hidden, it marks itself stale and reloads on next activation.
+- **Realtime** — `DashboardTab` has a `postgres_changes` subscription on `transactions`. `NotificationBell` subscribes to `notifications`. Both tables are in the `supabase_realtime` publication with `REPLICA IDENTITY FULL` (required for column-based filters like `user_id=eq.X`).
+
+### Shared expenses & friends
+
+- **`people` table** — local contacts. `linked_user_id` links a contact to a registered Flux user.
+- **`friendships` table** — pending/accepted/declined friend requests.
+- **Auto-link on send** (`sendFriendRequest`): when A sends a request to B, B is auto-created in A's `people` table with `linked_user_id`.
+- **`linkPersonToUser`** (`actions/friends.ts`): links an existing contact to a registered user AND deletes any auto-created duplicate with the same `linked_user_id` to prevent duplicates.
+- **Shared expense notifications** (`actions/transactions.ts`):
+  - `addTransaction` → sends `shared_expense_invite` + email to all linked participants
+  - `updateTransaction` → sends `shared_expense_invite` to new participants, `shared_expense_updated` + email to existing ones (fallback for already-accepted participants)
+  - `settleParticipant` / `settleAllForPerson` → calls `notifyLinkedPersonSettled` → `shared_expense_settled_confirm` + email
+  - `acceptSharedExpense` → `shared_expense_accepted` to creator
+
+### Icons & categories
+
+- `STATIC_ICONS` in `flux-web/lib/constants.ts` — all ~59 Font Awesome icons available in the app. The category picker in `SettingsClient.tsx` must use the full array (no `.slice()`).
+- Custom categories stored in `categories` table with `user_id`; default categories have `user_id = null`.
+
+### BottomSheet (SettingsClient)
+
+The `BottomSheet` component listens to `window.visualViewport` resize events to slide up when the mobile keyboard opens, keeping inputs visible. This is the correct pattern for iOS/Android keyboard handling with `position: fixed` elements.
 
 ### Shortcut iCloud links
 Update `flux-web/lib/constants.ts` → `SHORTCUT_LINKS` once the shortcuts are published to iCloud.
+
+---
 
 ## Legacy: Code.js + Dashboard.html
 
