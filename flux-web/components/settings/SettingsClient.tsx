@@ -51,17 +51,23 @@ function BottomSheet({ onClose, children, title }: { onClose: () => void; childr
     }
   }, [])
 
-  // Slide sheet up when keyboard opens so inputs stay visible
-  // Only listen to 'resize' (not 'scroll') to avoid interfering with inner horizontal scrolls
+  // Shrink maxHeight when keyboard opens — keeps bottom:0 stable (no "stuck" issue).
+  // transform:translateY approach fights with slide-up animation; maxHeight is cleaner.
   useEffect(() => {
     const vv = window.visualViewport
     if (!vv) return
     const update = () => {
-      const keyboardHeight = Math.max(0, window.innerHeight - vv.height)
-      if (sheetRef.current) sheetRef.current.style.bottom = `${keyboardHeight}px`
+      if (sheetRef.current) {
+        const available = vv.height - 16 // 16px breathing room above sheet
+        sheetRef.current.style.maxHeight = `${available}px`
+      }
     }
+    update()
     vv.addEventListener('resize', update)
-    return () => vv.removeEventListener('resize', update)
+    return () => {
+      vv.removeEventListener('resize', update)
+      if (sheetRef.current) sheetRef.current.style.maxHeight = ''
+    }
   }, [])
 
   return createPortal(
@@ -763,38 +769,44 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
             />
             <div>
               <p className="text-[12px] font-black uppercase tracking-[1.5px] mb-2" style={{ color: 'var(--f-text-4)' }}>Icono</p>
-              <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-2" style={{ touchAction: 'pan-x' }}>
-                {STATIC_ICONS.map(ic => (
-                  <button
-                    key={ic.id_icon}
-                    type="button"
-                    onClick={() => setEditing({ ...editing, icon_id: ic.id_icon })}
-                    className="flex-shrink-0 w-12 h-12 rounded-[14px] flex items-center justify-center transition-all"
-                    style={editing.icon_id === ic.id_icon
-                      ? { background: 'var(--f-blue)' }
-                      : { background: 'var(--f-bg-input)' }}
-                  >
-                    <i className={`${ic.icon_base} text-base`} style={{ color: editing.icon_id === ic.id_icon ? 'white' : 'var(--f-text-3)' }} />
-                  </button>
-                ))}
+              {/* overflow-y:hidden prevents the outer vertical scroller from capturing
+                  the first horizontal swipe — eliminates the "first scroll lost" issue */}
+              <div style={{ overflowY: 'hidden' }}>
+                <div className="flex gap-2.5 no-scrollbar pb-2" style={{ overflowX: 'auto', touchAction: 'pan-x', WebkitOverflowScrolling: 'touch' as React.CSSProperties['WebkitOverflowScrolling'] }}>
+                  {STATIC_ICONS.map(ic => (
+                    <button
+                      key={ic.id_icon}
+                      type="button"
+                      onClick={() => setEditing({ ...editing, icon_id: ic.id_icon })}
+                      className="flex-shrink-0 w-12 h-12 rounded-[14px] flex items-center justify-center transition-all"
+                      style={editing.icon_id === ic.id_icon
+                        ? { background: 'var(--f-blue)' }
+                        : { background: 'var(--f-bg-input)' }}
+                    >
+                      <i className={`${ic.icon_base} text-base`} style={{ color: editing.icon_id === ic.id_icon ? 'white' : 'var(--f-text-3)' }} />
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
             <div>
               <p className="text-[12px] font-black uppercase tracking-[1.5px] mb-2" style={{ color: 'var(--f-text-4)' }}>Color</p>
-              <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-2" style={{ touchAction: 'pan-x' }}>
-                {STATIC_COLORS.map(col => (
-                  <button
-                    key={col.id_color}
-                    type="button"
-                    onClick={() => setEditing({ ...editing, color_id: col.id_color })}
-                    className="flex-shrink-0 w-9 h-9 rounded-full border-2 transition-all"
-                    style={{
-                      backgroundColor: col.hex,
-                      borderColor: editing.color_id === col.id_color ? 'white' : 'transparent',
-                      transform: editing.color_id === col.id_color ? 'scale(1.15)' : 'scale(1)',
-                    }}
-                  />
-                ))}
+              <div style={{ overflowY: 'hidden' }}>
+                <div className="flex gap-2.5 no-scrollbar pb-2" style={{ overflowX: 'auto', touchAction: 'pan-x', WebkitOverflowScrolling: 'touch' as React.CSSProperties['WebkitOverflowScrolling'] }}>
+                  {STATIC_COLORS.map(col => (
+                    <button
+                      key={col.id_color}
+                      type="button"
+                      onClick={() => setEditing({ ...editing, color_id: col.id_color })}
+                      className="flex-shrink-0 w-9 h-9 rounded-full border-2 transition-all"
+                      style={{
+                        backgroundColor: col.hex,
+                        borderColor: editing.color_id === col.id_color ? 'white' : 'transparent',
+                        transform: editing.color_id === col.id_color ? 'scale(1.15)' : 'scale(1)',
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
             <div className="flex gap-2 pt-1">
