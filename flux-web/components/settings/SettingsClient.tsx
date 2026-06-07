@@ -756,7 +756,7 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
             <div>
               <p className="text-[12px] font-black uppercase tracking-[1.5px]" style={{ color: 'var(--f-text-4)' }}>Icono</p>
               <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                {STATIC_ICONS.slice(0, 20).map(ic => (
+                {STATIC_ICONS.map(ic => (
                   <button
                     key={ic.id_icon}
                     type="button"
@@ -828,7 +828,7 @@ function AccountsTab({ accounts, isPending, startTransition }: {
     startTransition(async () => {
       const res = await saveAccount({ name: editing.name!, payment_method_id: editing.payment_method_id ?? 'MP-EFECTIVO', id: editing.id, payment_day: editing.payment_day, color_id: editing.color_id ?? 'COL-01' })
       if (res.error) toast.error(res.error)
-      else { toast.success('Cuenta guardada'); setEditing(null) }
+      else { toast.success('Cuenta guardada'); setEditing(null); window.dispatchEvent(new CustomEvent('flux:refresh')) }
     })
   }
 

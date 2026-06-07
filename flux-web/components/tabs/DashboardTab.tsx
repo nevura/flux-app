@@ -42,6 +42,7 @@ interface Props {
 export default function DashboardTab({ userId, fullName, email, active, refreshSignal }: Props) {
   const [data, setData] = useState<DashboardData | null>(null)
   const loadedRef = useRef(false)
+  const staleRef = useRef(false)
   const supabase = useRef(createClient()).current
 
   const load = useCallback(async () => {
@@ -113,14 +114,23 @@ export default function DashboardTab({ userId, fullName, email, active, refreshS
     loadedRef.current = true
   }, [userId, supabase])
 
-  // Load on first activation
+  // Load on first activation; reload when returning from another tab if data is stale
   useEffect(() => {
-    if (active && !loadedRef.current) load()
+    if (!active) return
+    if (!loadedRef.current || staleRef.current) {
+      staleRef.current = false
+      load()
+    }
   }, [active, load])
 
   // Refresh when signal changes (pull-to-refresh or after mutation)
   useEffect(() => {
-    if (refreshSignal > 0 && active) load()
+    if (refreshSignal === 0) return
+    if (active) {
+      load()
+    } else {
+      staleRef.current = true
+    }
   }, [refreshSignal]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Realtime: refetch when transactions change

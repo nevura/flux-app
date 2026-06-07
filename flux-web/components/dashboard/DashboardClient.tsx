@@ -489,6 +489,29 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
           </div>
         </div>
 
+        {/* Upcoming scheduled — empty state */}
+        {scheduled.length === 0 && (
+          <div
+            className="rounded-[20px] p-5 animate-fade-up flex flex-col items-center gap-3 text-center"
+            style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', animationDelay: '0.08s' }}
+          >
+            <div className="w-12 h-12 rounded-[14px] flex items-center justify-center" style={{ background: 'rgba(0,122,255,0.12)', border: '1px solid rgba(0,122,255,0.2)' }}>
+              <i className="fa-solid fa-arrows-rotate text-lg" style={{ color: 'var(--f-blue)' }} />
+            </div>
+            <div>
+              <p className="text-[14px] font-black" style={{ color: 'var(--f-text)' }}>Sin recurrentes registrados</p>
+              <p className="text-[12px] mt-1" style={{ color: 'var(--f-text-3)' }}>Registra tus suscripciones y cobros fijos para darles seguimiento aquí.</p>
+            </div>
+            <a
+              href="/settings?section=planificados"
+              className="px-4 py-2 rounded-[10px] text-[13px] font-black transition-all active:scale-95"
+              style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)', border: '1px solid var(--f-accent-border)' }}
+            >
+              Agregar recurrente
+            </a>
+          </div>
+        )}
+
         {/* Upcoming scheduled */}
         {scheduled.length > 0 && (() => {
           const now2 = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Mexico_City' }))

@@ -326,8 +326,8 @@ function PhoneFrame({ children, glow = false }: { children: ReactNode; glow?: bo
   )
 }
 
-/* Drop a screenshot in flux-web/public/screenshots/<name>.png to auto-replace the CSS mockup */
-function ScreenshotOverlay({ src }: { src: string }) {
+/* Drop a screenshot in flux-web/public/<name>.png to auto-replace the CSS mockup */
+function ScreenshotOverlay({ src, position = 'top' }: { src: string; position?: string }) {
   const [failed, setFailed] = useState(false)
   if (failed) return null
   return (
@@ -335,7 +335,7 @@ function ScreenshotOverlay({ src }: { src: string }) {
     <img
       src={src} alt=""
       className="absolute inset-0 w-full h-full"
-      style={{ objectFit: 'cover', objectPosition: 'top', zIndex: 20 }}
+      style={{ objectFit: 'cover', objectPosition: position, zIndex: 20 }}
       onError={() => setFailed(true)}
     />
   )
@@ -659,6 +659,7 @@ function PhoneShared() {
   ]
   return (
     <PhoneFrame>
+      <ScreenshotOverlay src="/7.png" />
       {/* Header */}
       <div className="px-3 pt-9 pb-3 flex items-center justify-between">
         <div>
@@ -819,7 +820,6 @@ function PhoneTrends() {
   ]
   return (
     <PhoneFrame>
-      <ScreenshotOverlay src="/7.png" />
       <div className="px-3 pt-9 pb-2 flex items-center justify-between">
         <i className="fa-solid fa-chevron-left" style={{ fontSize: 10, color: '#007AFF' }} />
         <div className="flex items-center gap-1">
@@ -912,6 +912,7 @@ function PhoneNewTransaction() {
   ]
   return (
     <PhoneFrame>
+      <ScreenshotOverlay src="/8.png" position="bottom" />
       <div className="h-full flex flex-col overflow-hidden" style={{ background: '#111113' }}>
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
