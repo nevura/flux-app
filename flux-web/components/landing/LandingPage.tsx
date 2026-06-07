@@ -334,8 +334,8 @@ function ScreenshotOverlay({ src, position = 'top' }: { src: string; position?: 
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={src} alt=""
-      className="absolute inset-0 w-full h-full"
-      style={{ objectFit: 'cover', objectPosition: position, zIndex: 20 }}
+      className="absolute"
+      style={{ inset: 4, objectFit: 'cover', objectPosition: position, zIndex: 20, borderRadius: 38 }}
       onError={() => setFailed(true)}
     />
   )
