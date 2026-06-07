@@ -87,9 +87,9 @@ function BottomSheet({ onClose, children, title }: { onClose: () => void; childr
       >
         {title && (
           <div className="flex items-center justify-between px-5 pt-5 pb-3">
-            <p className="text-[17px] font-black text-white">{title}</p>
+            <p className="text-[17px] font-black" style={{ color: 'var(--f-text)' }}>{title}</p>
             <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'var(--f-bg-input)' }}>
-              <i className="fa-solid fa-xmark text-white text-xs" />
+              <i className="fa-solid fa-xmark text-xs" style={{ color: 'var(--f-text-3)' }} />
             </button>
           </div>
         )}
@@ -1017,7 +1017,6 @@ function AccountsTab({ accounts, isPending, startTransition }: {
         <BottomSheet title={editing.id ? 'Editar cuenta' : 'Nueva cuenta'} onClose={() => setEditing(null)}>
           <div className="px-5 pb-2 space-y-4">
             <input
-              autoFocus
               value={editing.name ?? ''}
               onChange={e => setEditing({ ...editing, name: e.target.value })}
               placeholder="Nombre de la cuenta"
@@ -1427,7 +1426,6 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
               <div>
                 <p className="text-[11px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Nombre</p>
                 <input
-                  autoFocus
                   type="text"
                   value={editing.name}
                   onChange={e => setEditing({ ...editing, name: e.target.value })}
@@ -1490,7 +1488,7 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
                   value={editing.account_id}
                   onChange={e => setEditing({ ...editing, account_id: e.target.value })}
                   className="w-full rounded-[14px] px-4 py-3 text-[16px] font-bold [color:var(--f-text)] focus:outline-none"
-                  style={{ background: 'var(--f-bg-input)', border: `1px solid ${cfg.color}40`, colorScheme: 'dark' }}
+                  style={{ background: 'var(--f-bg-input)', border: `1px solid ${cfg.color}40` }}
                 >
                   <option value="">Seleccionar cuenta</option>
                   {accounts.map(acc => (
@@ -1507,7 +1505,7 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
                     value={editing.destination_account_id}
                     onChange={e => setEditing({ ...editing, destination_account_id: e.target.value })}
                     className="w-full rounded-[14px] px-4 py-3 text-[16px] font-bold [color:var(--f-text)] focus:outline-none"
-                    style={{ background: 'var(--f-bg-input)', border: '1px solid rgba(100,210,255,0.4)', colorScheme: 'dark' }}
+                    style={{ background: 'var(--f-bg-input)', border: '1px solid rgba(100,210,255,0.4)' }}
                   >
                     <option value="">Seleccionar cuenta destino</option>
                     {accounts.filter(a => a.id !== editing.account_id).map(acc => (
@@ -1754,7 +1752,7 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
                         })}
                         {addingPerson ? (
                           <div className="flex gap-2">
-                            <input autoFocus value={newPersonName} onChange={e => setNewPersonName(e.target.value)}
+                            <input value={newPersonName} onChange={e => setNewPersonName(e.target.value)}
                               onKeyDown={e => { if (e.key === 'Enter') handleAddPerson(); if (e.key === 'Escape') setAddingPerson(false) }}
                               placeholder="Nombre"
                               className="flex-1 rounded-[10px] px-3 py-2 text-[15px] font-bold [color:var(--f-text)] outline-none"
@@ -2155,7 +2153,7 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-white">Contactos</p>
+        <p className="text-sm font-semibold" style={{ color: 'var(--f-text)' }}>Contactos</p>
         <button onClick={() => setEditing({ name: '' })} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[15px] font-bold transition-all active:scale-95" style={{ background: 'var(--f-accent-bg)', color: 'var(--f-blue)' }}>
           <i className="fa-solid fa-plus" /> Nuevo
         </button>
@@ -2172,7 +2170,7 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
               {person.name[0]?.toUpperCase() ?? '?'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-white truncate">{person.name}</p>
+              <p className="text-sm font-bold truncate" style={{ color: 'var(--f-text)' }}>{person.name}</p>
               {person.linked_profile?.username ? (
                 <p className="text-[13px] font-semibold" style={{ color: 'var(--f-blue)' }}>@{person.linked_profile.username}</p>
               ) : (
@@ -2264,7 +2262,6 @@ function PeopleTab({ people: initialPeople, isPending, startTransition }: {
         <BottomSheet title={editing.id ? 'Editar contacto' : 'Nuevo contacto'} onClose={() => setEditing(null)}>
           <div className="px-5 pb-2 space-y-4">
             <input
-              autoFocus
               value={editing.name}
               onChange={e => setEditing({ ...editing, name: e.target.value })}
               onKeyDown={e => { if (e.key === 'Enter') handleSave() }}
