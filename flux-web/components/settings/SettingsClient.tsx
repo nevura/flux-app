@@ -52,19 +52,16 @@ function BottomSheet({ onClose, children, title }: { onClose: () => void; childr
   }, [])
 
   // Slide sheet up when keyboard opens so inputs stay visible
+  // Only listen to 'resize' (not 'scroll') to avoid interfering with inner horizontal scrolls
   useEffect(() => {
     const vv = window.visualViewport
     if (!vv) return
     const update = () => {
-      const keyboardHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop)
+      const keyboardHeight = Math.max(0, window.innerHeight - vv.height)
       if (sheetRef.current) sheetRef.current.style.bottom = `${keyboardHeight}px`
     }
     vv.addEventListener('resize', update)
-    vv.addEventListener('scroll', update)
-    return () => {
-      vv.removeEventListener('resize', update)
-      vv.removeEventListener('scroll', update)
-    }
+    return () => vv.removeEventListener('resize', update)
   }, [])
 
   return createPortal(
@@ -80,7 +77,6 @@ function BottomSheet({ onClose, children, title }: { onClose: () => void; childr
           overflowY: 'auto',
           WebkitOverflowScrolling: 'touch' as React.CSSProperties['WebkitOverflowScrolling'],
           overscrollBehavior: 'contain',
-          touchAction: 'pan-y',
         }}
       >
         {title && (
@@ -766,32 +762,32 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
               style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
             />
             <div>
-              <p className="text-[12px] font-black uppercase tracking-[1.5px]" style={{ color: 'var(--f-text-4)' }}>Icono</p>
-              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+              <p className="text-[12px] font-black uppercase tracking-[1.5px] mb-2" style={{ color: 'var(--f-text-4)' }}>Icono</p>
+              <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-2" style={{ touchAction: 'pan-x' }}>
                 {STATIC_ICONS.map(ic => (
                   <button
                     key={ic.id_icon}
                     type="button"
                     onClick={() => setEditing({ ...editing, icon_id: ic.id_icon })}
-                    className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all"
+                    className="flex-shrink-0 w-12 h-12 rounded-[14px] flex items-center justify-center transition-all"
                     style={editing.icon_id === ic.id_icon
                       ? { background: 'var(--f-blue)' }
                       : { background: 'var(--f-bg-input)' }}
                   >
-                    <i className={`${ic.icon_base} text-sm`} style={{ color: editing.icon_id === ic.id_icon ? 'white' : 'var(--f-text-3)' }} />
+                    <i className={`${ic.icon_base} text-base`} style={{ color: editing.icon_id === ic.id_icon ? 'white' : 'var(--f-text-3)' }} />
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <p className="text-[12px] font-black uppercase tracking-[1.5px]" style={{ color: 'var(--f-text-4)' }}>Color</p>
-              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+              <p className="text-[12px] font-black uppercase tracking-[1.5px] mb-2" style={{ color: 'var(--f-text-4)' }}>Color</p>
+              <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-2" style={{ touchAction: 'pan-x' }}>
                 {STATIC_COLORS.map(col => (
                   <button
                     key={col.id_color}
                     type="button"
                     onClick={() => setEditing({ ...editing, color_id: col.id_color })}
-                    className="flex-shrink-0 w-7 h-7 rounded-full border-2 transition-all"
+                    className="flex-shrink-0 w-9 h-9 rounded-full border-2 transition-all"
                     style={{
                       backgroundColor: col.hex,
                       borderColor: editing.color_id === col.id_color ? 'white' : 'transparent',
