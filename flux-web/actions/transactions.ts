@@ -231,12 +231,13 @@ export async function updateTransaction(id: string, form: TransactionForm) {
     .from('transactions').select('split_data').eq('id', id).eq('user_id', user.id).single()
 
   const isPayable = form.is_payable ?? false
+  const isReceivable = form.is_receivable ?? false
   const { error } = await supabase
     .from('transactions')
     .update({
       concept: form.concept, type: form.type,
       amount,
-      adjustment: adjustmentFor(form.type, amount),
+      adjustment: (isPayable || isReceivable) ? 0 : adjustmentFor(form.type, amount),
       category_id: form.category_id || null,
       account_id: form.account_id,
       transaction_date: date,
@@ -244,6 +245,8 @@ export async function updateTransaction(id: string, form: TransactionForm) {
       exclude_mode: form.exclude_mode ?? 'none',
       notes: form.notes || null,
       is_payable: isPayable,
+      is_receivable: isReceivable,
+      ...(isReceivable ? { is_validated: false } : {}),
     })
     .eq('id', id)
     .eq('user_id', user.id)
@@ -281,7 +284,7 @@ export async function updateTransaction(id: string, form: TransactionForm) {
             invitedNames.push(participant.nombre)
             await (admin.from('notifications') as any).insert({
               user_id: lp.linked_user_id,
-              type: 'shared_expense_invite',
+              type: isReceivable ? 'receivable_invite' : 'shared_expense_invite',
               data: {
                 transaction_id: id,
                 from_user_id: user.id,
@@ -292,6 +295,7 @@ export async function updateTransaction(id: string, form: TransactionForm) {
                 participant_amount: participant.value,
                 participant_person_id: lp.id,
                 category_id: form.category_id || null,
+                is_receivable: isReceivable,
               },
             })
             const { data: recipientProfile } = await (admin.from('profiles') as any)
@@ -311,7 +315,7 @@ export async function updateTransaction(id: string, form: TransactionForm) {
             updatedNames.push(participant.nombre)
             await (admin.from('notifications') as any).insert({
               user_id: lp.linked_user_id,
-              type: 'shared_expense_updated',
+              type: isReceivable ? 'receivable_invite' : 'shared_expense_updated',
               data: {
                 transaction_id: id,
                 from_user_id: user.id,
@@ -322,6 +326,7 @@ export async function updateTransaction(id: string, form: TransactionForm) {
                 participant_amount: participant.value,
                 participant_person_id: lp.id,
                 category_id: form.category_id || null,
+                is_receivable: isReceivable,
               },
             })
             const { data: recipientProfile } = await (admin.from('profiles') as any)
