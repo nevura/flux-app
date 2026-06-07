@@ -760,7 +760,6 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
         <BottomSheet title={editing.id ? 'Editar categoría' : 'Nueva categoría'} onClose={() => setEditing(null)}>
           <div className="px-5 pb-2 space-y-4">
             <input
-              autoFocus
               value={editing.name ?? ''}
               onChange={e => setEditing({ ...editing, name: e.target.value })}
               placeholder="Nombre de la categoría"
