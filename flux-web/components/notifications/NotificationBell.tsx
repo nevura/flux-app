@@ -25,6 +25,8 @@ function notifLabel(n: Notification): { icon: string; iconColor: string; text: s
       return { icon: 'fa-solid fa-user-xmark', iconColor: 'var(--f-expense)', text: `@${d.from_username || d.from_name} rechazó tu solicitud` }
     case 'shared_expense_invite':
       return { icon: 'fa-solid fa-receipt', iconColor: 'var(--f-transfer)', text: `@${d.from_username} te invita a dividir: ${d.concept}` }
+    case 'shared_expense_updated':
+      return { icon: 'fa-solid fa-pen-to-square', iconColor: 'var(--f-transfer)', text: `@${d.from_username} actualizó el gasto compartido: ${d.concept}` }
     case 'shared_expense_sent': {
       const names = Array.isArray(d.invited_names) ? (d.invited_names as string[]).join(', ') : ''
       return { icon: 'fa-solid fa-paper-plane', iconColor: 'var(--f-blue)', text: `Invitaste a ${names} a dividir: ${d.concept}` }

@@ -319,9 +319,150 @@ export async function linkPersonToUser(personId: string, linkedUserId: string | 
     .eq('user_id', user.id)
 
   if (error) return { error: error.message }
+
+  // Sync full shared expense history to the newly linked user
+  if (linkedUserId) {
+    syncHistoricalSharedExpenses(user.id, personId, linkedUserId).catch(console.error)
+  }
+
   revalidatePath('/shared')
   revalidatePath('/settings')
   return { error: null }
+}
+
+// ── Historical shared expense sync ────────────────────────────────────────────
+// Called after linking a contact to a registered user.
+// Pending transactions → send shared_expense_invite so B can acknowledge.
+// Settled transactions → auto-create a settled IOWE record on B's side.
+async function syncHistoricalSharedExpenses(
+  userId: string,
+  personId: string,
+  linkedUserId: string
+) {
+  const supabase = await createClient()
+  const admin = createAdminClient()
+
+  // Fetch all of A's transactions where personId is a THEY/DIV participant
+  const { data: allTxs } = await supabase
+    .from('transactions')
+    .select('id, concept, amount, transaction_date, category_id, split_data')
+    .eq('user_id', userId)
+    .not('split_data', 'is', null)
+    .order('transaction_date', { ascending: false })
+
+  type SplitEntry = { id: string; nombre: string; value: number; paidStatus: boolean; paidAmount: number }
+  type SD = { splitMode: string; data: SplitEntry[] }
+
+  const relevantTxs = (allTxs ?? []).filter(tx => {
+    const sd = tx.split_data as SD | null
+    return (sd?.splitMode === 'THEY' || sd?.splitMode === 'DIV') &&
+      sd?.data.some((p: SplitEntry) => p.id === personId)
+  })
+
+  if (relevantTxs.length === 0) return
+
+  // Load profiles
+  const { data: myProfile } = await supabase
+    .from('profiles').select('username, full_name').eq('id', userId).single()
+  const creatorName = myProfile?.full_name ?? myProfile?.username ?? 'Amigo'
+
+  // Ensure creator (A) exists as a person record in B's people table
+  const { data: existingCreatorPerson } = await (admin.from('people') as any)
+    .select('id, name')
+    .eq('user_id', linkedUserId)
+    .eq('linked_user_id', userId)
+    .maybeSingle()
+
+  let creatorPersonId: string | null = existingCreatorPerson?.id ?? null
+  if (!creatorPersonId) {
+    const newId = `PER-HIST-${Date.now()}`
+    const { error: personErr } = await (admin.from('people') as any).insert({
+      id: newId,
+      user_id: linkedUserId,
+      name: creatorName,
+      linked_user_id: userId,
+      is_me: false,
+    })
+    if (!personErr) creatorPersonId = newId
+  }
+
+  // Fetch B's existing transactions to avoid duplicate creation
+  const { data: bTxs } = await (admin.from('transactions') as any)
+    .select('split_data')
+    .eq('user_id', linkedUserId)
+    .not('split_data', 'is', null)
+
+  const alreadyLinkedIds = new Set<string>(
+    (bTxs ?? [])
+      .map((t: { split_data: { linked_tx_id?: string } }) => t.split_data?.linked_tx_id)
+      .filter(Boolean)
+  )
+
+  // Also fetch B's existing invite notifications to avoid duplicates
+  const { data: existingNotifs } = await (admin.from('notifications') as any)
+    .select('data')
+    .eq('user_id', linkedUserId)
+    .eq('type', 'shared_expense_invite')
+
+  const alreadyNotifiedTxIds = new Set<string>(
+    (existingNotifs ?? [])
+      .map((n: { data: { transaction_id?: string } }) => n.data?.transaction_id)
+      .filter(Boolean)
+  )
+
+  for (const tx of relevantTxs) {
+    const sd = tx.split_data as SD
+    const participant = sd.data.find((p: SplitEntry) => p.id === personId)
+    if (!participant) continue
+
+    if (!participant.paidStatus) {
+      // Pending: send invite notification so B can acknowledge the debt
+      if (!alreadyNotifiedTxIds.has(tx.id)) {
+        await (admin.from('notifications') as any).insert({
+          user_id: linkedUserId,
+          type: 'shared_expense_invite',
+          data: {
+            transaction_id: tx.id,
+            from_user_id: userId,
+            from_username: myProfile?.username ?? '',
+            from_name: myProfile?.full_name ?? '',
+            concept: tx.concept,
+            total_amount: Number(tx.amount),
+            participant_amount: participant.value,
+            participant_person_id: personId,
+            category_id: tx.category_id || null,
+          },
+        })
+      }
+    } else if (!alreadyLinkedIds.has(tx.id) && creatorPersonId) {
+      // Settled: auto-create a resolved IOWE transaction on B's side
+      const splitDataForB = {
+        mode: 'AMT',
+        splitMode: 'IOWE',
+        linked_tx_id: tx.id,
+        linked_participant_id: personId,
+        data: [{
+          id: creatorPersonId,
+          nombre: creatorName,
+          value: participant.value,
+          paidAmount: participant.value,
+          paidStatus: true,
+        }],
+      }
+      await (admin.from('transactions') as any).insert({
+        user_id: linkedUserId,
+        concept: tx.concept,
+        type: 'TR-GASTO',
+        amount: participant.value,
+        adjustment: 0,
+        category_id: tx.category_id && String(tx.category_id).startsWith('CAT-DEF-') ? tx.category_id : null,
+        account_id: null,
+        transaction_date: tx.transaction_date,
+        is_validated: true,
+        split_data: splitDataForB,
+      })
+    }
+  }
 }
 
 // ── People (unlinked) ────────────────────────────────────────────────────────
