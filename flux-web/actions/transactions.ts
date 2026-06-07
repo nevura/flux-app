@@ -120,17 +120,20 @@ export async function addTransaction(form: TransactionForm) {
     if (error) return { error: error.message }
   } else {
     const isPayable = form.is_payable ?? false
+    const isReceivable = form.is_receivable ?? false
     const { data: newTx, error } = await supabase.from('transactions').insert({
       user_id: user.id,
       concept,
       type: form.type,
       amount,
-      // IOWE (is_payable): money hasn't left the account yet — adjustment = 0
-      adjustment: adjustmentFor(form.type, amount),
+      // IOWE (is_payable): money hasn't moved yet — adjustment = 0
+      // is_receivable: income not yet collected — adjustment = 0 until collected
+      adjustment: (isPayable || isReceivable) ? 0 : adjustmentFor(form.type, amount),
       category_id: form.category_id || null,
       account_id: form.account_id,
       transaction_date: date,
-      is_validated: true,
+      is_validated: !isReceivable,
+      is_receivable: isReceivable,
       scheduled_id: form.scheduled_id || null,
       split_data: form.split_data || null,
       exclude_mode: form.exclude_mode ?? 'none',
@@ -139,7 +142,7 @@ export async function addTransaction(form: TransactionForm) {
     }).select('id').single()
     if (error) return { error: error.message }
 
-    // Send shared expense invites to linked friends
+    // Send shared expense invites to linked friends (expenses) OR receivable invites (incomes)
     if (newTx && form.split_data?.data && (form.split_data.splitMode === 'THEY' || form.split_data.splitMode === 'DIV')) {
       const participantIds = form.split_data.data.filter(p => p.id !== 'PER-YO').map(p => p.id)
       if (participantIds.length > 0) {
@@ -158,7 +161,7 @@ export async function addTransaction(form: TransactionForm) {
             invitedNames.push(participant.nombre)
             await (admin.from('notifications') as any).insert({
               user_id: lp.linked_user_id,
-              type: 'shared_expense_invite',
+              type: isReceivable ? 'receivable_invite' : 'shared_expense_invite',
               data: {
                 transaction_id: newTx.id,
                 from_user_id: user.id,
@@ -169,6 +172,7 @@ export async function addTransaction(form: TransactionForm) {
                 participant_amount: participant.value,
                 participant_person_id: lp.id,
                 category_id: form.category_id || null,
+                is_receivable: isReceivable,
               },
             })
             // Send invite email to each linked participant
@@ -195,6 +199,7 @@ export async function addTransaction(form: TransactionForm) {
                 concept: form.concept,
                 total_amount: amount,
                 invited_names: invitedNames,
+                is_receivable: isReceivable,
               },
             })
           }
@@ -595,9 +600,8 @@ export async function abonoGlobalForPerson(personId: string, personName: string,
     .order('transaction_date', { ascending: true })
   if (fetchErr) return { error: fetchErr.message }
 
-  // Collect pending items for this person (THEY-owe-me direction only — they're paying me)
-  // Also handle IOWE direction (I'm paying them)
-  const pending: Array<{ txId: string; participantId: string; unpaid: number; sd: object }> = []
+  // Collect all pending items for this person FIFO (expenses + receivable incomes)
+  const pending: Array<{ txId: string; participantId: string; unpaid: number; sd: object; isReceivable: boolean; txAmount: number }> = []
   for (const tx of txs ?? []) {
     const sd = tx.split_data
     if (!sd || !Array.isArray(sd.data)) continue
@@ -605,7 +609,7 @@ export async function abonoGlobalForPerson(personId: string, personName: string,
     if (!p || p.paidStatus) continue
     const unpaid = p.value - (p.paidAmount ?? 0)
     if (unpaid <= 0.005) continue
-    pending.push({ txId: tx.id, participantId: personId, unpaid, sd })
+    pending.push({ txId: tx.id, participantId: personId, unpaid, sd, isReceivable: tx.is_receivable === true && tx.type === 'TR-INGRESO', txAmount: Number(tx.amount) })
   }
 
   if (pending.length === 0) return { error: 'Sin saldos pendientes' }
@@ -623,8 +627,18 @@ export async function abonoGlobalForPerson(personId: string, personName: string,
         ? { ...p, paidAmount: (p.paidAmount ?? 0) + apply, paidStatus: newPaid }
         : p
     )
+    const updatePayload: Record<string, unknown> = { split_data: { ...sd, data: newData } }
+
+    // If this tx is a receivable income and is now fully paid, activate it
+    if (newPaid && item.isReceivable) {
+      updatePayload.is_receivable = false
+      updatePayload.is_validated = true
+      updatePayload.adjustment = item.txAmount
+      updatePayload.transaction_date = getMexicoNow()
+    }
+
     const { error } = await supabase
-      .from('transactions').update({ split_data: { ...sd, data: newData } })
+      .from('transactions').update(updatePayload)
       .eq('id', item.txId).eq('user_id', user.id)
     if (error) return { error: error.message }
   }
@@ -648,6 +662,116 @@ export async function abonoGlobalForPerson(personId: string, personName: string,
   return { error: null }
 }
 
+// ── Collect a receivable income (full or partial payment received) ────────────
+export async function collectReceivable(
+  txId: string,
+  participantId: string,
+  mode: 'full' | 'partial',
+  partialAmount?: number
+): Promise<{ error: string | null }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+
+  const { data: tx } = await supabase
+    .from('transactions').select('*').eq('id', txId).eq('user_id', user.id).single()
+  if (!tx) return { error: 'Movimiento no encontrado' }
+
+  const sd = tx.split_data as import('@/lib/types').SplitData | null
+  if (!sd) return { error: 'Sin datos de cobro' }
+
+  const participant = (sd.data as import('@/lib/types').SplitParticipant[]).find(p => p.id === participantId)
+  if (!participant) return { error: 'Participante no encontrado' }
+
+  const remaining = participant.value - (participant.paidAmount ?? 0)
+  const collectAmount = mode === 'full' ? remaining : Math.min(partialAmount ?? 0, remaining)
+  if (collectAmount <= 0.005) return { error: 'Monto inválido' }
+
+  const isFullSettlement = mode === 'full' || (remaining - collectAmount) <= 0.005
+
+  if (isFullSettlement) {
+    // Activate the original income: it now counts in balance
+    const newData = (sd.data as import('@/lib/types').SplitParticipant[]).map(p =>
+      p.id === participantId ? { ...p, paidStatus: true, paidAmount: p.value } : p
+    )
+    const { error } = await supabase.from('transactions').update({
+      split_data: { ...sd, data: newData },
+      is_receivable: false,
+      is_validated: true,
+      adjustment: Number(tx.amount),
+      transaction_date: getMexicoNow(),
+    }).eq('id', txId).eq('user_id', user.id)
+    if (error) return { error: error.message }
+
+    // Notify linked contact
+    await notifyLinkedPersonReceivable(supabase, participantId, user.id, tx.concept, Number(tx.amount), 'settled')
+  } else {
+    // Partial: create a new validated income for the collected amount, reduce original
+    const newPaidAmount = (participant.paidAmount ?? 0) + collectAmount
+    const newValue = remaining - collectAmount
+    const newData = (sd.data as import('@/lib/types').SplitParticipant[]).map(p =>
+      p.id === participantId ? { ...p, paidAmount: newPaidAmount, value: newValue } : p
+    )
+    const { error: updateErr } = await supabase.from('transactions').update({
+      split_data: { ...sd, data: newData },
+      amount: newValue, // remaining amount on original
+    }).eq('id', txId).eq('user_id', user.id)
+    if (updateErr) return { error: updateErr.message }
+
+    // New validated income for what was actually collected
+    await supabase.from('transactions').insert({
+      user_id: user.id,
+      concept: tx.concept,
+      type: 'TR-INGRESO',
+      amount: collectAmount,
+      adjustment: adjustmentFor('TR-INGRESO', collectAmount),
+      category_id: tx.category_id,
+      account_id: tx.account_id,
+      transaction_date: getMexicoNow(),
+      is_validated: true,
+      notes: `Abono parcial (original: ${txId})`,
+    })
+
+    // Notify linked contact of partial payment
+    await notifyLinkedPersonReceivable(supabase, participantId, user.id, tx.concept, collectAmount, 'abono')
+  }
+
+  revalidatePath('/shared')
+  revalidatePath('/home')
+  revalidatePath('/transactions')
+  return { error: null }
+}
+
+// Notifies the contact (linked Flux user) that a receivable was collected or partially paid
+async function notifyLinkedPersonReceivable(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  personId: string,
+  myUserId: string,
+  concept: string,
+  amount: number,
+  type: 'settled' | 'abono'
+) {
+  const { data: person } = await supabase
+    .from('people').select('linked_user_id').eq('id', personId).eq('user_id', myUserId).maybeSingle()
+  if (!person?.linked_user_id) return
+  const { data: myProfile } = await supabase
+    .from('profiles').select('username, full_name').eq('id', myUserId).single()
+  const admin = createAdminClient()
+  try {
+    await (admin.from('notifications') as any).insert({
+      user_id: person.linked_user_id,
+      type: type === 'settled' ? 'receivable_settled' : 'receivable_abono',
+      data: {
+        from_user_id: myUserId,
+        from_username: myProfile?.username ?? '',
+        from_name: myProfile?.full_name ?? '',
+        concept,
+        amount,
+      },
+    })
+  } catch { /* best-effort */ }
+}
+
 export async function settleAllForPerson(personId: string, personName: string, accountId?: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -657,10 +781,10 @@ export async function settleAllForPerson(personId: string, personName: string, a
     .from('transactions').select('*').eq('user_id', user.id).not('split_data', 'is', null)
   if (fetchErr) return { error: fetchErr.message }
 
-  let totalTheyOwe = 0
-  let totalIOwe = 0
+  let totalTheyOwe = 0  // expense-based debts (money coming in via new income tx)
+  let totalIOwe = 0     // IOWE debts (money going out)
   type UpdateItem = {
-    id: string; split_data: object; isIowe: boolean; unpaid: number
+    id: string; split_data: object; isIowe: boolean; isReceivable: boolean; txAmount: number; unpaid: number
     linked_tx_id?: string; linked_participant_id?: string
   }
   const updates: UpdateItem[] = []
@@ -673,16 +797,18 @@ export async function settleAllForPerson(personId: string, personName: string, a
     const unpaid = participant.value - (participant.paidAmount ?? 0)
     if (unpaid <= 0.005) continue
 
-    const isTheyOwe = sd.splitMode === 'THEY' || sd.splitMode === 'DIV'
+    const isReceivable = tx.is_receivable === true && tx.type === 'TR-INGRESO'
     const isIowe = sd.splitMode === 'IOWE'
+    const isTheyOwe = (sd.splitMode === 'THEY' || sd.splitMode === 'DIV') && !isReceivable
     if (isTheyOwe) totalTheyOwe += unpaid
-    else totalIOwe += unpaid
+    else if (isIowe) totalIOwe += unpaid
+    // receivable incomes are activated in-place — not counted in separate totals
 
     const newData = (sd.data as SplitParticipant[]).map(p =>
       p.id === personId ? { ...p, paidStatus: true, paidAmount: p.value } : p
     )
     updates.push({
-      id: tx.id, split_data: { ...sd, data: newData }, isIowe, unpaid,
+      id: tx.id, split_data: { ...sd, data: newData }, isIowe, isReceivable, txAmount: Number(tx.amount), unpaid,
       linked_tx_id: sd.linked_tx_id, linked_participant_id: sd.linked_participant_id,
     })
   }
@@ -691,20 +817,27 @@ export async function settleAllForPerson(personId: string, personName: string, a
 
   const admin = createAdminClient()
   for (const u of updates) {
-    // IOWE: update in-place (activate the debt-tracking tx), no new tx created
     const payload: Record<string, unknown> = { split_data: u.split_data }
-    if (u.isIowe) {
+
+    if (u.isReceivable) {
+      // Activate the receivable income — no new tx needed
+      payload.is_receivable = false
+      payload.is_validated = true
+      payload.adjustment = u.txAmount
+      payload.transaction_date = getMexicoNow()
+    } else if (u.isIowe) {
       payload.is_validated = true
       if (accountId) {
         payload.account_id = accountId
         payload.adjustment = adjustmentFor('TR-GASTO', u.unpaid)
       }
     }
+
     const { error } = await supabase
       .from('transactions').update(payload).eq('id', u.id).eq('user_id', user.id)
     if (error) return { error: error.message }
 
-    // Update creator's linked tx (A sees B as paid)
+    // Update creator's linked tx (A sees B as paid) — only for IOWE
     if (u.isIowe && u.linked_tx_id && u.linked_participant_id) {
       const { data: origTx } = await (admin.from('transactions') as any).select('*').eq('id', u.linked_tx_id).maybeSingle()
       if (origTx?.split_data) {
@@ -721,8 +854,7 @@ export async function settleAllForPerson(personId: string, personName: string, a
     }
   }
 
-  // Only create a summary income tx for THEY/DIV amounts (money coming in)
-  // IOWE amounts are already handled in-place above — no "Pago global" created
+  // Summary income tx only for expense-based THEY/DIV debts (receivables are activated in-place)
   if (accountId && totalTheyOwe > 0.005) {
     await supabase.from('transactions').insert({
       user_id: user.id,
@@ -736,7 +868,7 @@ export async function settleAllForPerson(personId: string, personName: string, a
     })
   }
 
-  const totalSettled = totalTheyOwe + totalIOwe
+  const totalSettled = totalTheyOwe + totalIOwe + updates.filter(u => u.isReceivable).reduce((s, u) => s + u.unpaid, 0)
   if (totalSettled > 0.005) {
     await notifyLinkedPersonSettled(supabase, personId, user.id, `Saldo total con ${personName}`, totalSettled, totalTheyOwe >= totalIOwe)
   }

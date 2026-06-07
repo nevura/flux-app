@@ -41,6 +41,12 @@ function notifLabel(n: Notification): { icon: string; iconColor: string; text: s
       return { icon: 'fa-solid fa-circle-check', iconColor: 'var(--f-income)', text: `@${d.from_username} confirmó el pago de: ${d.concept}` }
     case 'expense_settle_rejected':
       return { icon: 'fa-solid fa-circle-xmark', iconColor: 'var(--f-expense)', text: `@${d.from_username} no confirmó el pago de: ${d.concept}` }
+    case 'receivable_invite':
+      return { icon: 'fa-solid fa-file-invoice-dollar', iconColor: 'var(--f-income)', text: `@${d.from_username} registró un cobro pendiente: ${d.concept} · ${formatCurrency(Number(d.participant_amount))}` }
+    case 'receivable_abono':
+      return { icon: 'fa-solid fa-coins', iconColor: 'var(--f-income)', text: `@${d.from_username} registró tu abono de ${formatCurrency(Number(d.amount))} en: ${d.concept}` }
+    case 'receivable_settled':
+      return { icon: 'fa-solid fa-circle-check', iconColor: 'var(--f-income)', text: `@${d.from_username} registró el pago completo de: ${d.concept} · ${formatCurrency(Number(d.amount))}` }
     case 'scheduled_due':
       return { icon: 'fa-solid fa-calendar-exclamation', iconColor: 'var(--f-expense)', text: `Vence hoy: ${d.name} · ${formatCurrency(Number(d.amount))}` }
     case 'tdc_due': {

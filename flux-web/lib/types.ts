@@ -92,6 +92,9 @@ export type NotificationType =
   | 'expense_settled_confirm'
   | 'expense_settled'
   | 'expense_settle_rejected'
+  | 'receivable_invite'
+  | 'receivable_abono'
+  | 'receivable_settled'
   | 'scheduled_due'
   | 'tdc_due'
   | 'budget_alert'
@@ -217,6 +220,7 @@ export interface TransactionForm {
   notes?: string
   scheduled_id?: string
   is_payable?: boolean
+  is_receivable?: boolean
 }
 
 // ── UI / Computed types ────────────────────────────────────────────────────────

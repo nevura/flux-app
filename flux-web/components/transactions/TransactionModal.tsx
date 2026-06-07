@@ -63,12 +63,19 @@ export default function TransactionModal({ transaction, accounts, categories, pe
   const initSplit = transaction?.split_data
   const initIoweData = transaction?.is_payable && transaction?.split_data?.splitMode === 'IOWE'
     ? transaction.split_data : null
+  const initReceivable = transaction?.is_receivable === true
 
   const [localPeople, setLocalPeople] = useState(people)
   const [newPersonName, setNewPersonName] = useState('')
   const [addingPerson, setAddingPerson] = useState(false)
   const [isAddingPerson, startAddPerson] = useTransition()
   const otherPeople = localPeople.filter(p => !p.is_me)
+
+  // Receivable income state — "Pendiente de cobro"
+  const [receivableEnabled, setReceivableEnabled] = useState(initReceivable)
+  const [receivablePersonId, setReceivablePersonId] = useState<string>(
+    initReceivable ? (transaction?.split_data?.data[0]?.id ?? '') : ''
+  )
 
   function handleAddPerson() {
     const name = newPersonName.trim()
@@ -192,13 +199,29 @@ export default function TransactionModal({ transaction, accounts, categories, pe
     return true
   })
 
+  function buildReceivableData(): import('@/lib/types').SplitData | null {
+    if (!receivableEnabled || type !== 'TR-INGRESO' || !receivablePersonId) return null
+    const person = otherPeople.find(p => p.id === receivablePersonId)
+    if (!person) return null
+    const amt = parseFloat(amount) || 0
+    return {
+      mode: 'AMT',
+      splitMode: 'THEY',
+      data: [{ id: person.id, nombre: person.name, value: amt, paidAmount: 0, paidStatus: false }],
+    }
+  }
+
   async function handleSubmit() {
     if (iOweEnabled) {
       if (ioweSelected.size === 0) { toast.error('Selecciona a quién le debes'); return }
       if (ioweMode === 'custom' && ioweCustomTotal <= 0) { toast.error('Agrega el monto que debes'); return }
       if (ioweMode === 'full' && (parseFloat(amount) || 0) <= 0) { toast.error('Agrega el monto que debes'); return }
     }
+    if (receivableEnabled && type === 'TR-INGRESO' && !receivablePersonId) {
+      toast.error('Selecciona a quién le cobrarás'); return
+    }
     const effectiveAmount = iOweEnabled && ioweMode === 'custom' ? String(ioweCustomTotal) : amount
+    const isReceivable = receivableEnabled && type === 'TR-INGRESO' && !!receivablePersonId
     const form = {
       concept, type,
       amount: effectiveAmount,
@@ -208,8 +231,9 @@ export default function TransactionModal({ transaction, accounts, categories, pe
       transaction_date: date,
       exclude_mode: excludeMode,
       notes,
-      split_data: iOweEnabled ? buildIoweData() : buildSplitData(),
+      split_data: isReceivable ? buildReceivableData() : iOweEnabled ? buildIoweData() : buildSplitData(),
       is_payable: iOweEnabled,
+      is_receivable: isReceivable,
     }
     startTransition(async () => {
       const res = isEdit && transaction
@@ -850,6 +874,82 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                         </button>
                       )}
                     </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Receivable toggle — only for TR-INGRESO */}
+            {type === 'TR-INGRESO' && (
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={() => { setReceivableEnabled(v => !v); setReceivablePersonId('') }}
+                  className="w-full flex items-center justify-between px-4 py-3.5 rounded-[14px] transition-all"
+                  style={{
+                    background: receivableEnabled ? 'var(--f-income-bg)' : 'var(--f-bg-input)',
+                    border: `1px solid ${receivableEnabled ? 'var(--f-income-border)' : 'var(--f-line)'}`,
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <i className="fa-solid fa-file-invoice-dollar text-[17px]" style={{ color: receivableEnabled ? 'var(--f-income)' : 'var(--f-text-3)' }} />
+                    <div className="text-left">
+                      <p className="text-[14px] font-black leading-tight" style={{ color: receivableEnabled ? 'var(--f-income)' : 'var(--f-text)' }}>
+                        Pendiente de cobro
+                      </p>
+                      <p className="text-[12px] font-medium leading-tight mt-0.5" style={{ color: receivableEnabled ? 'var(--f-income)' : 'var(--f-text-4)', opacity: 0.8 }}>
+                        No afecta saldo hasta cobrar
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    className="w-10 h-6 rounded-full relative flex-shrink-0 transition-colors"
+                    style={{ background: receivableEnabled ? 'var(--f-income)' : 'var(--f-line-strong)' }}
+                  >
+                    <div
+                      className="absolute top-1 w-4 h-4 rounded-full bg-white transition-transform"
+                      style={{ transform: receivableEnabled ? 'translateX(20px)' : 'translateX(4px)' }}
+                    />
+                  </div>
+                </button>
+
+                {receivableEnabled && (
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-black tracking-[2px] uppercase px-1" style={{ color: 'var(--f-text-4)' }}>
+                      ¿Quién te debe?
+                    </p>
+                    {otherPeople.length === 0 ? (
+                      <p className="text-[14px] font-medium text-center py-3" style={{ color: 'var(--f-text-3)' }}>
+                        Agrega personas desde Configuración → Personas
+                      </p>
+                    ) : (
+                      otherPeople.map(person => {
+                        const selected = receivablePersonId === person.id
+                        return (
+                          <button
+                            key={person.id}
+                            type="button"
+                            onClick={() => setReceivablePersonId(selected ? '' : person.id)}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[12px] transition-all"
+                            style={{
+                              background: selected ? 'var(--f-income-bg)' : 'var(--f-bg-input)',
+                              border: `1px solid ${selected ? 'var(--f-income-border)' : 'var(--f-line)'}`,
+                            }}
+                          >
+                            <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all"
+                              style={{ background: selected ? 'var(--f-income)' : 'var(--f-line-strong)' }}>
+                              {selected && <i className="fa-solid fa-check text-[11px] text-white" />}
+                            </div>
+                            <span className="text-[15px] font-bold flex-1 text-left truncate" style={{ color: 'var(--f-text)' }}>{person.name}</span>
+                            {person.linked_profile?.username && (
+                              <span className="text-[13px] font-semibold flex-shrink-0" style={{ color: 'var(--f-blue)' }}>
+                                @{person.linked_profile.username}
+                              </span>
+                            )}
+                          </button>
+                        )
+                      })
+                    )}
                   </div>
                 )}
               </div>
