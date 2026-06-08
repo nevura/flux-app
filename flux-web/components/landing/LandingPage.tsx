@@ -116,7 +116,7 @@ function Hero() {
               <img
                 src="/inicio-section.png"
                 alt="FluxApp Finance dashboard"
-                style={{ width: '100%', maxWidth: 460, display: 'block', filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.12))' }}
+                style={{ width: '100%', maxWidth: 780, display: 'block', filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.12))' }}
               />
             </div>
           </div>
@@ -220,13 +220,19 @@ function AppShowcaseSection() {
           </p>
         </RevealWrapper>
       </div>
-      {/* Image outside the padded container so blends edge-to-edge with the dark section */}
+      {/* Image scaled up beyond container — dark bg clips dead space invisibly */}
       <RevealWrapper>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/carrusel-section.png"
           alt="FluxApp Finance — pantallas de la app"
-          style={{ width: '100%', display: 'block' }}
+          style={{
+            width: '130%',
+            marginLeft: '-15%',
+            marginTop: '-5%',
+            marginBottom: '-2%',
+            display: 'block',
+          }}
         />
       </RevealWrapper>
     </section>
