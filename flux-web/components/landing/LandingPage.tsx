@@ -116,7 +116,7 @@ function Hero() {
               <img
                 src="/inicio-section.png"
                 alt="FluxApp Finance dashboard"
-                style={{ width: '100%', maxWidth: 780, display: 'block', filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.12))' }}
+                style={{ width: '100%', display: 'block', filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.12))' }}
               />
             </div>
           </div>
@@ -265,7 +265,7 @@ function ApplePaySection() {
         style={{ background: 'radial-gradient(ellipse 60% 60% at 80% 50%, rgba(0,122,255,0.10) 0%, transparent 70%)' }} />
 
       <div className="max-w-6xl mx-auto px-6 py-24 relative">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className="grid lg:grid-cols-2 gap-x-16 gap-y-6 items-center">
           <div>
             <RevealWrapper>
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-[18px] mb-6"
@@ -305,7 +305,7 @@ function ApplePaySection() {
               <img
                 src="/applepay-section.png"
                 alt="Apple Pay en FluxApp Finance"
-                style={{ width: '100%', maxWidth: 420, display: 'block', filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.5))' }}
+                style={{ width: '100%', display: 'block', filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.5))' }}
               />
             </div>
           </RevealWrapper>
@@ -403,7 +403,7 @@ function SharedSection() {
             <img
               src="/compartidos-section.png"
               alt="Gastos compartidos en FluxApp Finance"
-              style={{ maxWidth: 560, width: '100%', display: 'block' }}
+              style={{ width: '100%', display: 'block' }}
             />
           </RevealWrapper>
 
