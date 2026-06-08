@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { signAdminAction } from '@/lib/admin'
-import { sendApprovalRequestEmail } from '@/lib/email'
+import { sendApprovalRequestEmail, sendNewUserRegistrationEmail } from '@/lib/email'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
@@ -46,18 +46,36 @@ export async function GET(request: Request) {
     .eq('id', user.id)
     .single() as { data: { status: string; email: string | null; created_at: string } | null }
 
+  // Notify admin whenever a brand-new user registers (first login within 5 min of profile creation)
+  const profileAgeMs = Date.now() - new Date(profile?.created_at ?? 0).getTime()
+  const isNewUser = profile && profileAgeMs < 5 * 60 * 1000
+  if (isNewUser) {
+    const adminEmail = process.env.ADMIN_EMAIL ?? 'bernardo.perezro06@gmail.com'
+    const provider = user.app_metadata?.provider ?? 'email'
+    try {
+      await sendNewUserRegistrationEmail({
+        adminEmail,
+        userEmail: profile.email ?? user.email ?? '',
+        userName: user.user_metadata?.full_name ?? user.user_metadata?.name ?? undefined,
+        provider,
+      })
+    } catch {}
+  }
+
   if (profile?.status === 'pending') {
     const ageMs = Date.now() - new Date(profile.created_at ?? 0).getTime()
     if (ageMs < 10 * 60 * 1000) {
-      const adminEmail = process.env.ADMIN_EMAIL!
+      const adminEmail = process.env.ADMIN_EMAIL ?? 'bernardo.perezro06@gmail.com'
       const approveUrl = `${origin}/api/admin/approve?uid=${user.id}&sig=${signAdminAction(user.id, 'approve')}`
       const rejectUrl  = `${origin}/api/admin/reject?uid=${user.id}&sig=${signAdminAction(user.id, 'reject')}`
-      await sendApprovalRequestEmail({
-        adminEmail,
-        applicantEmail: profile.email ?? user.email ?? '',
-        approveUrl,
-        rejectUrl,
-      }).catch(() => {})
+      try {
+        await sendApprovalRequestEmail({
+          adminEmail,
+          applicantEmail: profile.email ?? user.email ?? '',
+          approveUrl,
+          rejectUrl,
+        })
+      } catch {}
     }
     return NextResponse.redirect(`${origin}/pending`)
   }

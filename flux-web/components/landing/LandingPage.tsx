@@ -317,8 +317,13 @@ function PhoneFrame({ children, glow = false }: { children: ReactNode; glow?: bo
           zIndex: 5,
           borderRadius: 44,
         }} />
-        {/* Screen */}
-        <div className="absolute rounded-[43px] overflow-hidden" style={{ inset: 2.5, background: '#020617' }}>
+        {/* Screen — no bottom inset so image reaches phone frame edge */}
+        <div className="absolute overflow-hidden" style={{
+          top: 2.5, left: 2.5, right: 2.5, bottom: 0,
+          borderTopLeftRadius: 43, borderTopRightRadius: 43,
+          borderBottomLeftRadius: 45, borderBottomRightRadius: 45,
+          background: '#020617',
+        }}>
           {children}
         </div>
       </div>
@@ -332,15 +337,17 @@ function ScreenshotOverlay({ src, position = 'bottom' }: { src: string; position
   if (failed) return null
   return (
     <>
-      {/* Backdrop: hides CSS mockup content so it doesn't show through the screenshot edges */}
+      {/* Backdrop: hides CSS mockup content behind the screenshot */}
       <div className="absolute inset-0" style={{ background: '#020617', zIndex: 15, pointerEvents: 'none' }} />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src} alt=""
-        className="absolute"
-        style={{ top: 8, left: 0, right: 0, bottom: 0, objectFit: 'cover', objectPosition: position, zIndex: 20 }}
-        onError={() => setFailed(true)}
-      />
+      {/* Wrapper div gives objectFit:cover an explicit width/height to work with in all browsers */}
+      <div className="absolute" style={{ top: 8, left: 0, right: 0, bottom: 0, zIndex: 20 }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src} alt=""
+          style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover', objectPosition: position }}
+          onError={() => setFailed(true)}
+        />
+      </div>
     </>
   )
 }

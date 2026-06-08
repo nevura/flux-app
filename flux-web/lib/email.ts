@@ -289,3 +289,22 @@ export async function sendSharedExpensePaidEmail(opts: {
   )
   return send(opts.to, `${opts.fromName} pagó su parte de: ${opts.concept}`, html)
 }
+
+// ── Admin: new user registered ───────────────────────────────────────────────
+
+export async function sendNewUserRegistrationEmail(opts: {
+  adminEmail: string
+  userEmail: string
+  userName?: string
+  provider: string
+}) {
+  const html = base(
+    'Nuevo usuario registrado',
+    `<p style="color:#6E6E73;margin:0 0 16px">Alguien acaba de crear una cuenta en FluxApp Finance.</p>
+     ${card(`<p style="color:#1D1D1F;margin:0 0 4px"><strong>Email:</strong> ${opts.userEmail}</p>
+             ${opts.userName ? `<p style="color:#1D1D1F;margin:0 0 4px"><strong>Nombre:</strong> ${opts.userName}</p>` : ''}
+             <p style="color:#6E6E73;margin:0;font-size:13px">Método: ${opts.provider}</p>`)}`,
+    { url: `${APP_URL}/admin`, label: 'Ver en Admin', color: '#007AFF' },
+  )
+  return send(opts.adminEmail, `Nuevo usuario — ${opts.userEmail}`, html)
+}
