@@ -317,15 +317,16 @@ function PhoneFrame({ children, glow = false }: { children: ReactNode; glow?: bo
           zIndex: 5,
           borderRadius: 44,
         }} />
-        {/* Screen — no bottom inset so image reaches phone frame edge */}
-        <div className="absolute overflow-hidden" style={{
-          top: 2.5, left: 2.5, right: 2.5, bottom: 0,
-          borderTopLeftRadius: 43, borderTopRightRadius: 43,
-          borderBottomLeftRadius: 45, borderBottomRightRadius: 45,
-          background: '#020617',
-        }}>
+        {/* Screen */}
+        <div className="absolute rounded-[43px] overflow-hidden" style={{ inset: 2.5, background: '#020617' }}>
           {children}
         </div>
+        {/* Dark strip that covers the 2.5px metal gap at the bottom so the image looks flush */}
+        <div className="absolute" style={{
+          bottom: 0, left: 2.5, right: 2.5, height: 4,
+          background: '#020617',
+          borderBottomLeftRadius: 44, borderBottomRightRadius: 44,
+        }} />
       </div>
     </div>
   )
