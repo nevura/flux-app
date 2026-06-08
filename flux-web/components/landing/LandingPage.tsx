@@ -110,7 +110,8 @@ function Hero() {
               ))}
             </div>
           </div>
-          <div className="flex justify-center lg:justify-end">
+          {/* overflow-hidden clips the scale zoom so transparent dead space is invisible */}
+          <div className="flex justify-center lg:justify-end overflow-hidden">
             <div style={{ animation: 'heroFloat 6s ease-in-out infinite', display: 'inline-block', width: '100%' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -124,8 +125,8 @@ function Hero() {
       </div>
       <style>{`
         @keyframes heroFloat {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-12px); }
+          0%, 100% { transform: scale(1.9) translateY(0px); }
+          50% { transform: scale(1.9) translateY(-6px); }
         }
       `}</style>
     </section>
@@ -225,7 +226,7 @@ function AppShowcaseSection() {
         <img
           src="/carrusel-section.png"
           alt="FluxApp Finance — pantallas de la app"
-          style={{ width: '100%', display: 'block' }}
+          style={{ width: '100%', display: 'block', transform: 'scale(1.3)', transformOrigin: 'center center' }}
         />
       </RevealWrapper>
     </section>
@@ -399,12 +400,14 @@ function SharedSection() {
       <div className="max-w-6xl mx-auto px-6 py-24">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <RevealWrapper direction="left" className="flex justify-center lg:justify-start">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/compartidos-section.png"
-              alt="Gastos compartidos en FluxApp Finance"
-              style={{ width: '100%', display: 'block' }}
-            />
+            <div style={{ overflow: 'hidden', width: '100%' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/compartidos-section.png"
+                alt="Gastos compartidos en FluxApp Finance"
+                style={{ width: '100%', display: 'block', transform: 'scale(1.7)', transformOrigin: 'center center' }}
+              />
+            </div>
           </RevealWrapper>
 
           <RevealWrapper direction="right">
