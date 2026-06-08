@@ -111,12 +111,12 @@ function Hero() {
             </div>
           </div>
           <div className="flex justify-center lg:justify-end">
-            <div style={{ animation: 'heroFloat 6s ease-in-out infinite', display: 'inline-block' }}>
+            <div style={{ animation: 'heroFloat 6s ease-in-out infinite', display: 'inline-block', width: '100%' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/inicio-section.png"
                 alt="FluxApp Finance dashboard"
-                style={{ width: 300, display: 'block', filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.12))' }}
+                style={{ width: '100%', maxWidth: 460, display: 'block', filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.12))' }}
               />
             </div>
           </div>
@@ -209,7 +209,7 @@ function PainSection() {
 function AppShowcaseSection() {
   return (
     <section style={{ background: '#000', overflow: 'hidden' }}>
-      <div className="max-w-6xl mx-auto px-6 py-24">
+      <div className="max-w-6xl mx-auto px-6 pt-24 pb-8">
         <RevealWrapper className="text-center mb-14">
           <p className="text-[12px] font-black uppercase tracking-[4px] mb-4" style={{ color: BLUE }}>La app</p>
           <h2 className="text-[40px] sm:text-[52px] font-black leading-[1.06] tracking-[-1.5px] text-white">
@@ -219,15 +219,16 @@ function AppShowcaseSection() {
             Dashboard, cuentas, analítica y gastos compartidos — todo en una app que cabe en tu pantalla de inicio.
           </p>
         </RevealWrapper>
-        <RevealWrapper>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/carrusel-section.png"
-            alt="FluxApp Finance — pantallas de la app"
-            style={{ width: '100%', maxWidth: 960, display: 'block', margin: '0 auto' }}
-          />
-        </RevealWrapper>
       </div>
+      {/* Image outside the padded container so blends edge-to-edge with the dark section */}
+      <RevealWrapper>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/carrusel-section.png"
+          alt="FluxApp Finance — pantallas de la app"
+          style={{ width: '100%', display: 'block' }}
+        />
+      </RevealWrapper>
     </section>
   )
 }
@@ -305,7 +306,7 @@ function ApplePaySection() {
               <img
                 src="/applepay-section.png"
                 alt="Apple Pay en FluxApp Finance"
-                style={{ width: 300, display: 'block', filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.5))' }}
+                style={{ width: '100%', maxWidth: 420, display: 'block', filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.5))' }}
               />
             </div>
           </RevealWrapper>
@@ -403,7 +404,7 @@ function SharedSection() {
             <img
               src="/compartidos-section.png"
               alt="Gastos compartidos en FluxApp Finance"
-              style={{ maxWidth: 460, width: '100%', display: 'block' }}
+              style={{ maxWidth: 560, width: '100%', display: 'block' }}
             />
           </RevealWrapper>
 
