@@ -338,7 +338,7 @@ function ScreenshotOverlay({ src, position = 'bottom' }: { src: string; position
       <img
         src={src} alt=""
         className="absolute"
-        style={{ inset: 4, objectFit: 'cover', objectPosition: position, zIndex: 20, borderRadius: 38 }}
+        style={{ top: 8, left: 0, right: 0, bottom: 0, objectFit: 'cover', objectPosition: position, zIndex: 20 }}
         onError={() => setFailed(true)}
       />
     </>
@@ -742,6 +742,7 @@ function PhoneCategoryChart() {
   ]
   return (
     <PhoneFrame>
+      <ScreenshotOverlay src="/6.jpeg" />
       {/* Header */}
       <div className="px-3 pt-9 pb-2 flex items-center justify-between">
         <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.07)' }}>
@@ -812,88 +813,6 @@ function PhoneCategoryChart() {
 }
 
 /* ── Showcase screen: Tendencia ──────────────────────────────────────────── */
-function PhoneTrends() {
-  const bars = [
-    { m: 'ENE', i: 52, g: 40 },
-    { m: 'FEB', i: 60, g: 48 },
-    { m: 'MAR', i: 56, g: 36 },
-    { m: 'ABR', i: 72, g: 55 },
-    { m: 'MAY', i: 90, g: 68 },
-    { m: 'JUN', i: 22, g: 18 },
-  ]
-  return (
-    <PhoneFrame>
-      <ScreenshotOverlay src="/6.jpeg" />
-      <div className="px-3 pt-9 pb-2 flex items-center justify-between">
-        <i className="fa-solid fa-chevron-left" style={{ fontSize: 10, color: '#007AFF' }} />
-        <div className="flex items-center gap-1">
-          <p className="font-black text-white" style={{ fontSize: 13 }}>Junio 2026</p>
-          <i className="fa-solid fa-chevron-down" style={{ fontSize: 7, color: 'rgba(255,255,255,0.4)' }} />
-        </div>
-        <i className="fa-solid fa-chevron-right" style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }} />
-      </div>
-      <div className="flex mx-3 mb-2 rounded-[10px] overflow-hidden"
-        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
-        <div className="flex-1 py-1.5 text-center font-black uppercase"
-          style={{ fontSize: 7, letterSpacing: 1, color: 'rgba(255,255,255,0.35)' }}>CATEGORÍAS</div>
-        <div className="flex-1 py-1.5 text-center font-black uppercase"
-          style={{ fontSize: 7, letterSpacing: 1, background: '#007AFF', color: '#fff' }}>TENDENCIA</div>
-      </div>
-      <div className="grid grid-cols-2 gap-1.5 mx-3 mb-2">
-        {[
-          { label: 'INGRESOS', val: '+$2,547.00', color: '#30D158', bg: 'rgba(48,209,88,0.12)', border: 'rgba(48,209,88,0.25)' },
-          { label: 'GASTOS', val: '-$1,585.78', color: '#FF453A', bg: 'rgba(255,69,58,0.12)', border: 'rgba(255,69,58,0.25)' },
-        ].map((c, i) => (
-          <div key={i} className="rounded-[13px] px-3 py-2.5 overflow-hidden" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
-            <p className="font-black uppercase" style={{ fontSize: 6, letterSpacing: 2, color: c.color }}>{c.label}</p>
-            <p className="font-black tabular-nums" style={{ fontSize: 12, color: c.color, whiteSpace: 'nowrap' }}>{c.val}</p>
-          </div>
-        ))}
-      </div>
-      <div className="grid grid-cols-2 gap-1.5 mx-3 mb-2">
-        {[
-          { label: 'TASA DE GASTO', val: '$317.16', sub: 'por día', color: '#F87171' },
-          { label: 'FLUJO NETO', val: '+$961.22', sub: 'este mes', color: '#30D158' },
-          { label: 'PROM. MENSUAL', val: '$13,858.68', sub: 'de gasto', color: '#60A5FA' },
-          { label: 'TASA DE AHORRO', val: '38%', sub: 'de ingresos', color: '#A78BFA' },
-        ].map((m, i) => (
-          <div key={i} className="rounded-[13px] px-2.5 py-2 overflow-hidden"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)' }}>
-            <p className="font-black uppercase truncate" style={{ fontSize: 5.5, letterSpacing: 1.5, color: 'rgba(255,255,255,0.4)' }}>{m.label}</p>
-            <p className="font-black leading-tight tabular-nums" style={{ fontSize: 10, color: m.color, whiteSpace: 'nowrap' }}>{m.val}</p>
-            <p className="font-semibold" style={{ fontSize: 7, color: 'rgba(255,255,255,0.35)' }}>{m.sub}</p>
-          </div>
-        ))}
-      </div>
-      <div className="mx-3 rounded-[12px] p-2.5" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-        <p className="font-black uppercase mb-2" style={{ fontSize: 6, letterSpacing: 2, color: 'rgba(255,255,255,0.35)' }}>TENDENCIA</p>
-        <div className="flex items-end gap-1" style={{ height: 44 }}>
-          {bars.map((bar, i) => (
-            <div key={i} className="flex-1 flex flex-col items-center gap-0.5">
-              <div className="flex items-end gap-0.5 w-full justify-center" style={{ height: 38 }}>
-                <div style={{ width: 5, height: `${bar.i}%`, background: '#30D158', borderRadius: 2 }} />
-                <div style={{ width: 5, height: `${bar.g}%`, background: '#FF453A', borderRadius: 2 }} />
-              </div>
-              <p className="font-black" style={{ fontSize: 5, color: 'rgba(255,255,255,0.35)' }}>{bar.m}</p>
-            </div>
-          ))}
-        </div>
-        <div className="flex items-center gap-3 mt-1.5">
-          <div className="flex items-center gap-1">
-            <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#30D158' }} />
-            <p className="font-semibold" style={{ fontSize: 7, color: 'rgba(255,255,255,0.5)' }}>Ingresos</p>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#FF453A' }} />
-            <p className="font-semibold" style={{ fontSize: 7, color: 'rgba(255,255,255,0.5)' }}>Gastos</p>
-          </div>
-        </div>
-      </div>
-      <ShowcaseBottomNav active={3} />
-    </PhoneFrame>
-  )
-}
-
 /* ── Showcase screen: Nuevo Movimiento modal ─────────────────────────────── */
 function PhoneNewTransaction() {
   const cats = [
@@ -1013,7 +932,6 @@ function AppShowcaseSection() {
     { key: 'new-transaction', node: <PhoneNewTransaction /> },
     { key: 'transactions', node: <PhoneTransactions /> },
     { key: 'categories', node: <PhoneCategoryChart /> },
-    { key: 'trends', node: <PhoneTrends /> },
     { key: 'shared', node: <PhoneShared /> },
   ]
 
