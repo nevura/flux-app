@@ -7,7 +7,7 @@ import { es } from 'date-fns/locale'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { markNotificationsRead, respondFriendRequest, deleteNotification, clearAllNotifications } from '@/actions/friends'
-import { acceptSharedExpense, declineSharedExpense, confirmSettledExpense, rejectSettledExpense } from '@/actions/transactions'
+import { acceptSharedExpense, declineSharedExpense, confirmSettledExpense, rejectSettledExpense, acceptReceivableInvite, declineReceivableInvite } from '@/actions/transactions'
 import { formatCurrency } from '@/lib/utils'
 import { useBottomSheetSwipe } from '@/lib/hooks/useBottomSheetSwipe'
 import { SwipeableRow } from '@/components/shared/SwipeableRow'
@@ -147,7 +147,7 @@ export default function NotificationBell() {
       setUnread(0)
       // Don't auto-mark actionable notifications as read — they need explicit user action.
       // They get marked read only when accept/decline/confirm/reject is executed.
-      const ACTIONABLE = ['friend_request', 'shared_expense_invite', 'expense_settled_confirm']
+      const ACTIONABLE = ['friend_request', 'shared_expense_invite', 'receivable_invite', 'expense_settled_confirm']
       const passiveIds = (notifs ?? [])
         .filter(n => !n.read && !ACTIONABLE.includes(n.type))
         .map(n => n.id)
@@ -188,6 +188,23 @@ export default function NotificationBell() {
   function handleDeclineExpense(notifId: string) {
     startTransition(async () => {
       const res = await declineSharedExpense(notifId)
+      if (res.error) { toast.error(res.error); return }
+      setList(prev => prev.map(n => n.id === notifId ? { ...n, read: true } : n))
+    })
+  }
+
+  function handleAcceptReceivable(notifId: string) {
+    startTransition(async () => {
+      const res = await acceptReceivableInvite(notifId)
+      if (res.error) { toast.error(res.error); return }
+      toast.success('Cobro aceptado — lo verás en Compartidos cuando pagues')
+      setList(prev => prev.map(n => n.id === notifId ? { ...n, read: true } : n))
+    })
+  }
+
+  function handleDeclineReceivable(notifId: string) {
+    startTransition(async () => {
+      const res = await declineReceivableInvite(notifId)
       if (res.error) { toast.error(res.error); return }
       setList(prev => prev.map(n => n.id === notifId ? { ...n, read: true } : n))
     })
@@ -426,6 +443,31 @@ export default function NotificationBell() {
                             style={{ background: 'var(--f-transfer)' }}
                           >
                             {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Aceptar deuda'}
+                          </button>
+                        </div>
+                      </>
+                    )}
+                    {n.type === 'receivable_invite' && !n.read && (
+                      <>
+                        <p className="text-[14px] mt-1 font-bold tabular-nums" style={{ color: 'var(--f-income)' }}>
+                          Monto: {formatCurrency(Number(d.participant_amount))}
+                        </p>
+                        <div className="flex gap-2 mt-3">
+                          <button
+                            onClick={() => handleDeclineReceivable(n.id)}
+                            disabled={isPending}
+                            className="flex-1 py-3 rounded-[12px] text-[15px] font-black transition-all active:scale-95 disabled:opacity-50"
+                            style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
+                          >
+                            Ignorar
+                          </button>
+                          <button
+                            onClick={() => handleAcceptReceivable(n.id)}
+                            disabled={isPending}
+                            className="flex-[2] py-3 rounded-[12px] text-[15px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
+                            style={{ background: 'var(--f-income)' }}
+                          >
+                            {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Aceptar cobro'}
                           </button>
                         </div>
                       </>

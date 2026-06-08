@@ -1178,6 +1178,132 @@ export async function declineSharedExpense(notificationId: string) {
   return { error: null }
 }
 
+export async function acceptReceivableInvite(notificationId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+
+  const { data: notif } = await supabase
+    .from('notifications').select('*').eq('id', notificationId).eq('user_id', user.id).single()
+  if (!notif) return { error: 'Notificación no encontrada' }
+
+  const d = notif.data as Record<string, unknown>
+  const participantAmount = Number(d.participant_amount)
+  const today = getMexicoNow().slice(0, 10)
+  const fromUserId = String(d.from_user_id)
+  const admin = createAdminClient()
+
+  // Find or create a person record for the creator in the recipient's people table
+  const { data: existingPerson } = await supabase
+    .from('people').select('id, name')
+    .eq('user_id', user.id)
+    .eq('linked_user_id', fromUserId)
+    .maybeSingle()
+
+  let creatorPersonId: string | null = existingPerson?.id ?? null
+  const creatorName = existingPerson?.name ?? String(d.from_name ?? d.from_username ?? 'Desconocido')
+
+  if (!creatorPersonId) {
+    const newId = `PER-${Date.now()}`
+    const { error: personErr } = await supabase.from('people').insert({
+      id: newId,
+      user_id: user.id,
+      name: String(d.from_name ?? d.from_username ?? 'Desconocido'),
+      linked_user_id: fromUserId,
+      is_me: false,
+    })
+    if (!personErr) creatorPersonId = newId
+  }
+
+  const origTxId = String(d.transaction_id ?? '')
+  const participantPersonId = String(d.participant_person_id ?? '')
+
+  // B owes A money — IOWE gasto with no money movement until settled
+  const splitData = creatorPersonId ? {
+    mode: 'AMT',
+    splitMode: 'IOWE',
+    linked_tx_id: origTxId || undefined,
+    linked_participant_id: participantPersonId || undefined,
+    data: [{
+      id: creatorPersonId,
+      nombre: creatorName,
+      value: participantAmount,
+      paidAmount: 0,
+      paidStatus: false,
+    }],
+  } : null
+
+  const { error: txError } = await supabase.from('transactions').insert({
+    user_id: user.id,
+    concept: String(d.concept) || `Cobro de ${String(d.from_name ?? d.from_username ?? 'contacto')}`,
+    type: 'TR-GASTO',
+    amount: participantAmount,
+    adjustment: 0,
+    category_id: d.category_id && String(d.category_id).startsWith('CAT-DEF-') ? String(d.category_id) : null,
+    account_id: null,
+    transaction_date: today,
+    is_validated: false,
+    split_data: splitData,
+  })
+  if (txError) return { error: txError.message }
+
+  await supabase.from('notifications').update({ read: true }).eq('id', notificationId)
+
+  // Notify creator that B acknowledged the receivable
+  const { data: myProfile } = await supabase
+    .from('profiles').select('username, full_name').eq('id', user.id).single()
+  try {
+    await (admin.from('notifications') as any).insert({
+      user_id: fromUserId,
+      type: 'shared_expense_accepted',
+      data: {
+        from_user_id: user.id,
+        from_username: myProfile?.username ?? '',
+        from_name: myProfile?.full_name ?? '',
+        concept: String(d.concept),
+        amount: participantAmount,
+      },
+    })
+  } catch { /* ignore */ }
+
+  revalidatePath('/home')
+  revalidatePath('/transactions')
+  revalidatePath('/shared')
+  return { error: null }
+}
+
+export async function declineReceivableInvite(notificationId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+
+  const { data: notif } = await supabase
+    .from('notifications').select('*').eq('id', notificationId).eq('user_id', user.id).maybeSingle()
+
+  await supabase.from('notifications').update({ read: true }).eq('id', notificationId).eq('user_id', user.id)
+
+  if (notif) {
+    const d = notif.data as Record<string, unknown>
+    const { data: myProfile } = await supabase.from('profiles').select('username, full_name').eq('id', user.id).single()
+    const admin = createAdminClient()
+    try {
+      await (admin.from('notifications') as any).insert({
+        user_id: String(d.from_user_id),
+        type: 'shared_expense_declined',
+        data: {
+          from_user_id: user.id,
+          from_username: myProfile?.username ?? '',
+          from_name: myProfile?.full_name ?? '',
+          concept: String(d.concept),
+          amount: Number(d.participant_amount),
+        },
+      })
+    } catch { /* ignore */ }
+  }
+
+  return { error: null }
+}
+
 export async function saveBudget(month: number, year: number, amount: number) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
