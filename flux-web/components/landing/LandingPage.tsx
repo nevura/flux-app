@@ -327,7 +327,7 @@ function PhoneFrame({ children, glow = false }: { children: ReactNode; glow?: bo
 }
 
 /* Drop a screenshot in flux-web/public/<name>.png to auto-replace the CSS mockup */
-function ScreenshotOverlay({ src, position = 'top' }: { src: string; position?: string }) {
+function ScreenshotOverlay({ src, position = 'bottom' }: { src: string; position?: string }) {
   const [failed, setFailed] = useState(false)
   if (failed) return null
   return (
@@ -742,7 +742,6 @@ function PhoneCategoryChart() {
   ]
   return (
     <PhoneFrame>
-      <ScreenshotOverlay src="/6.jpeg" />
       {/* Header */}
       <div className="px-3 pt-9 pb-2 flex items-center justify-between">
         <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.07)' }}>
@@ -824,6 +823,7 @@ function PhoneTrends() {
   ]
   return (
     <PhoneFrame>
+      <ScreenshotOverlay src="/6.jpeg" />
       <div className="px-3 pt-9 pb-2 flex items-center justify-between">
         <i className="fa-solid fa-chevron-left" style={{ fontSize: 10, color: '#007AFF' }} />
         <div className="flex items-center gap-1">
@@ -916,7 +916,7 @@ function PhoneNewTransaction() {
   ]
   return (
     <PhoneFrame>
-      <ScreenshotOverlay src="/8.jpeg" position="bottom" />
+      <ScreenshotOverlay src="/8.jpeg" />
       <div className="h-full flex flex-col overflow-hidden" style={{ background: '#111113' }}>
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
