@@ -110,14 +110,13 @@ function Hero() {
               ))}
             </div>
           </div>
-          {/* overflow-hidden clips the scale zoom so transparent dead space is invisible */}
           <div className="flex justify-center lg:justify-end overflow-hidden">
-            <div style={{ animation: 'heroFloat 6s ease-in-out infinite', display: 'inline-block', width: '100%' }}>
+            <div style={{ animation: 'heroFloat 6s ease-in-out infinite', width: '100%' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/inicio-section.png"
                 alt="FluxApp Finance dashboard"
-                style={{ width: '100%', display: 'block', filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.12))' }}
+                style={{ width: '130%', marginLeft: '-15%', display: 'block', filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.12))' }}
               />
             </div>
           </div>
@@ -125,8 +124,8 @@ function Hero() {
       </div>
       <style>{`
         @keyframes heroFloat {
-          0%, 100% { transform: scale(1.9) translateY(0px); }
-          50% { transform: scale(1.9) translateY(-6px); }
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-8px); }
         }
       `}</style>
     </section>
@@ -222,15 +221,12 @@ function AppShowcaseSection() {
         </RevealWrapper>
       </div>
       <RevealWrapper>
-        {/* overflow:hidden clips horizontal excess; width/marginLeft affect real layout so full height shows */}
-        <div style={{ overflow: 'hidden' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/carrusel-section.png"
-            alt="FluxApp Finance — pantallas de la app"
-            style={{ width: '130%', marginLeft: '-15%', display: 'block' }}
-          />
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/carrusel-section.png"
+          alt="FluxApp Finance — pantallas de la app"
+          style={{ width: '100%', display: 'block' }}
+        />
       </RevealWrapper>
     </section>
   )
@@ -408,7 +404,7 @@ function SharedSection() {
               <img
                 src="/compartidos-section.png"
                 alt="Gastos compartidos en FluxApp Finance"
-                style={{ width: '100%', display: 'block', transform: 'scale(1.7)', transformOrigin: 'center center' }}
+                style={{ width: '130%', marginLeft: '-15%', display: 'block' }}
               />
             </div>
           </RevealWrapper>
