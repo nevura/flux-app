@@ -331,13 +331,17 @@ function ScreenshotOverlay({ src, position = 'top' }: { src: string; position?: 
   const [failed, setFailed] = useState(false)
   if (failed) return null
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src} alt=""
-      className="absolute"
-      style={{ inset: 4, objectFit: 'cover', objectPosition: position, zIndex: 20, borderRadius: 38 }}
-      onError={() => setFailed(true)}
-    />
+    <>
+      {/* Backdrop: hides CSS mockup content so it doesn't show through the screenshot edges */}
+      <div className="absolute inset-0" style={{ background: '#020617', zIndex: 15, pointerEvents: 'none' }} />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src} alt=""
+        className="absolute"
+        style={{ inset: 4, objectFit: 'cover', objectPosition: position, zIndex: 20, borderRadius: 38 }}
+        onError={() => setFailed(true)}
+      />
+    </>
   )
 }
 

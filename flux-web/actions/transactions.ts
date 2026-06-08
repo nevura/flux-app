@@ -52,14 +52,16 @@ async function notifyLinkedPersonSettled(
   const { data: recipientProfile } = await (admin.from('profiles') as any)
     .select('email, full_name').eq('id', person.linked_user_id).single()
   if (recipientProfile?.email) {
-    sendSharedExpensePaidEmail({
-      to: recipientProfile.email,
-      toName: recipientProfile.full_name ?? '',
-      fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
-      fromUsername: myProfile?.username ?? '',
-      concept,
-      amount: formatCurrency(amount),
-    }).catch(() => {})
+    try {
+      await sendSharedExpensePaidEmail({
+        to: recipientProfile.email,
+        toName: recipientProfile.full_name ?? '',
+        fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
+        fromUsername: myProfile?.username ?? '',
+        concept,
+        amount: formatCurrency(amount),
+      })
+    } catch {}
   }
 }
 
@@ -132,7 +134,7 @@ export async function addTransaction(form: TransactionForm) {
       category_id: form.category_id || null,
       account_id: form.account_id,
       transaction_date: date,
-      is_validated: !isReceivable,
+      is_validated: true,
       is_receivable: isReceivable,
       scheduled_id: form.scheduled_id || null,
       split_data: form.split_data || null,
@@ -179,14 +181,16 @@ export async function addTransaction(form: TransactionForm) {
             const { data: recipientProfile } = await (admin.from('profiles') as any)
               .select('email, full_name').eq('id', lp.linked_user_id).single()
             if (recipientProfile?.email) {
-              sendSharedExpenseInviteEmail({
-                to: recipientProfile.email,
-                toName: recipientProfile.full_name ?? '',
-                fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
-                fromUsername: myProfile?.username ?? '',
-                concept: form.concept,
-                amount: formatCurrency(participant.value),
-              }).catch(() => {})
+              try {
+                await sendSharedExpenseInviteEmail({
+                  to: recipientProfile.email,
+                  toName: recipientProfile.full_name ?? '',
+                  fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
+                  fromUsername: myProfile?.username ?? '',
+                  concept: form.concept,
+                  amount: formatCurrency(participant.value),
+                })
+              } catch {}
             }
           }
 
@@ -246,7 +250,6 @@ export async function updateTransaction(id: string, form: TransactionForm) {
       notes: form.notes || null,
       is_payable: isPayable,
       is_receivable: isReceivable,
-      ...(isReceivable ? { is_validated: false } : {}),
     })
     .eq('id', id)
     .eq('user_id', user.id)
@@ -301,14 +304,16 @@ export async function updateTransaction(id: string, form: TransactionForm) {
             const { data: recipientProfile } = await (admin.from('profiles') as any)
               .select('email, full_name').eq('id', lp.linked_user_id).single()
             if (recipientProfile?.email) {
-              sendSharedExpenseInviteEmail({
-                to: recipientProfile.email,
-                toName: recipientProfile.full_name ?? '',
-                fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
-                fromUsername: myProfile?.username ?? '',
-                concept: form.concept,
-                amount: formatCurrency(participant.value),
-              }).catch(() => {})
+              try {
+                await sendSharedExpenseInviteEmail({
+                  to: recipientProfile.email,
+                  toName: recipientProfile.full_name ?? '',
+                  fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
+                  fromUsername: myProfile?.username ?? '',
+                  concept: form.concept,
+                  amount: formatCurrency(participant.value),
+                })
+              } catch {}
             }
           } else {
             // Existing participant → notify of update
@@ -332,14 +337,16 @@ export async function updateTransaction(id: string, form: TransactionForm) {
             const { data: recipientProfile } = await (admin.from('profiles') as any)
               .select('email, full_name').eq('id', lp.linked_user_id).single()
             if (recipientProfile?.email) {
-              sendSharedExpenseInviteEmail({
-                to: recipientProfile.email,
-                toName: recipientProfile.full_name ?? '',
-                fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
-                fromUsername: myProfile?.username ?? '',
-                concept: `[Actualizado] ${form.concept}`,
-                amount: formatCurrency(participant.value),
-              }).catch(() => {})
+              try {
+                await sendSharedExpenseInviteEmail({
+                  to: recipientProfile.email,
+                  toName: recipientProfile.full_name ?? '',
+                  fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
+                  fromUsername: myProfile?.username ?? '',
+                  concept: `[Actualizado] ${form.concept}`,
+                  amount: formatCurrency(participant.value),
+                })
+              } catch {}
             }
           }
         }
