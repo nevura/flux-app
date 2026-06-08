@@ -85,7 +85,7 @@ export async function getTransactionModalData(): Promise<{ accounts: AccountWith
   return { accounts: accountsWithBalance, categories: (allCategories ?? []) as Category[], people: (people ?? []) as Person[] }
 }
 
-export async function addTransaction(form: TransactionForm) {
+export async function addTransaction(form: TransactionForm): Promise<{ error: string | null; id?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autorizado' }
@@ -111,15 +111,18 @@ export async function addTransaction(form: TransactionForm) {
       const dst = accs?.find(a => a.id === form.destination_account_id)?.name ?? 'cuenta'
       concept = `Transferencia de ${src} a ${dst}`
     }
-    const { error } = await supabase.from('transactions').insert({
+    const { data: transferTx, error } = await supabase.from('transactions').insert({
       user_id: user.id, concept,
       type: 'TR-TRANSFER', amount, adjustment: -amount,
       category_id: null, account_id: form.account_id,
       destination_account_id: form.destination_account_id!,
       transaction_date: date, is_validated: true,
       scheduled_id: form.scheduled_id || null,
-    })
+    }).select('id').single()
     if (error) return { error: error.message }
+    revalidatePath('/home')
+    revalidatePath('/transactions')
+    return { error: null, id: transferTx?.id }
   } else {
     const isPayable = form.is_payable ?? false
     const isReceivable = form.is_receivable ?? false
@@ -210,11 +213,11 @@ export async function addTransaction(form: TransactionForm) {
         }
       }
     }
-  }
 
-  revalidatePath('/home')
-  revalidatePath('/transactions')
-  return { error: null }
+    revalidatePath('/home')
+    revalidatePath('/transactions')
+    return { error: null, id: newTx?.id }
+  }
 }
 
 export async function updateTransaction(id: string, form: TransactionForm) {

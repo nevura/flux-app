@@ -243,6 +243,9 @@ export default function TransactionModal({ transaction, accounts, categories, pe
       toast.success(isEdit ? 'Movimiento actualizado' : 'Movimiento guardado')
       window.dispatchEvent(new CustomEvent('flux:refresh'))
       onClose()
+      if (!isEdit) {
+        router.push('/transactions')
+      }
     })
   }
 
