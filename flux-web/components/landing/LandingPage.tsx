@@ -209,8 +209,8 @@ function PainSection() {
 function AppShowcaseSection() {
   return (
     <section style={{ background: '#000', overflow: 'hidden' }}>
-      <div className="max-w-6xl mx-auto px-6 pt-24 pb-8">
-        <RevealWrapper className="text-center mb-14">
+      <div className="max-w-6xl mx-auto px-6 pt-24 pb-0">
+        <RevealWrapper className="text-center mb-6">
           <p className="text-[12px] font-black uppercase tracking-[4px] mb-4" style={{ color: BLUE }}>La app</p>
           <h2 className="text-[40px] sm:text-[52px] font-black leading-[1.06] tracking-[-1.5px] text-white">
             Diseñada para vivir<br />en tu bolsillo.
@@ -220,19 +220,12 @@ function AppShowcaseSection() {
           </p>
         </RevealWrapper>
       </div>
-      {/* Image scaled up beyond container — dark bg clips dead space invisibly */}
       <RevealWrapper>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/carrusel-section.png"
           alt="FluxApp Finance — pantallas de la app"
-          style={{
-            width: '130%',
-            marginLeft: '-15%',
-            marginTop: '-5%',
-            marginBottom: '-2%',
-            display: 'block',
-          }}
+          style={{ width: '100%', display: 'block' }}
         />
       </RevealWrapper>
     </section>
