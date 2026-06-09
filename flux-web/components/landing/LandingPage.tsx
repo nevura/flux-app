@@ -227,7 +227,7 @@ function AppShowcaseSection() {
           <img
             src="/carrusel-section.png"
             alt="FluxApp Finance — pantallas de la app"
-            style={{ width: '150%', marginLeft: 'calc(-25% + 30px)', display: 'block' }}
+            style={{ width: '150%', marginLeft: 'calc(-25% - 30px)', display: 'block' }}
           />
         </div>
       </RevealWrapper>
