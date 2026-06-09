@@ -110,7 +110,7 @@ function Hero() {
               ))}
             </div>
           </div>
-          <div className="flex justify-center lg:justify-end overflow-hidden">
+          <div className="flex justify-center lg:justify-end">
             <div style={{ animation: 'heroFloat 6s ease-in-out infinite', display: 'inline-block', width: '100%' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -124,8 +124,8 @@ function Hero() {
       </div>
       <style>{`
         @keyframes heroFloat {
-          0%, 100% { transform: scale(2.0) translateY(0px); }
-          50% { transform: scale(2.0) translateY(-8px); }
+          0%, 100% { transform: scale(1.5) translateY(0px); }
+          50% { transform: scale(1.5) translateY(-8px); }
         }
       `}</style>
     </section>
@@ -208,7 +208,7 @@ function PainSection() {
 /* ── App Showcase Section ────────────────────────────────────────────────── */
 function AppShowcaseSection() {
   return (
-    <section style={{ background: '#000' }}>
+    <section style={{ background: '#000', overflow: 'hidden' }}>
       <div className="max-w-6xl mx-auto px-6 pt-24 pb-0">
         <RevealWrapper className="text-center mb-6">
           <p className="text-[12px] font-black uppercase tracking-[4px] mb-4" style={{ color: BLUE }}>La app</p>
@@ -226,7 +226,7 @@ function AppShowcaseSection() {
           <img
             src="/carrusel-section.png"
             alt="FluxApp Finance — pantallas de la app"
-            style={{ width: '100%', marginLeft: '15px', display: 'block' }}
+            style={{ width: '100%', marginLeft: '15px', display: 'block', transform: 'scale(1.5)', transformOrigin: 'center center' }}
           />
         </div>
       </RevealWrapper>
@@ -401,12 +401,12 @@ function SharedSection() {
       <div className="max-w-6xl mx-auto px-6 py-24">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <RevealWrapper direction="left" className="flex justify-center lg:justify-start">
-            <div style={{ overflow: 'hidden', width: '100%' }}>
+            <div style={{ width: '100%' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/compartidos-section.png"
                 alt="Gastos compartidos en FluxApp Finance"
-                style={{ width: '100%', display: 'block', transform: 'scale(2.0)', transformOrigin: 'center center' }}
+                style={{ width: '100%', display: 'block', transform: 'scale(1.5)', transformOrigin: '40% center' }}
               />
             </div>
           </RevealWrapper>
