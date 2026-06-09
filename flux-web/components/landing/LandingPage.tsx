@@ -221,12 +221,13 @@ function AppShowcaseSection() {
         </RevealWrapper>
       </div>
       <RevealWrapper>
-        <div style={{ overflow: 'hidden', paddingTop: '22%', paddingBottom: '22%' }}>
+        <div style={{ overflow: 'hidden' }}>
+          {/* width:150% + marginLeft centra el 150% en el viewport — igual que scale(1.5) pero el layout crece con la imagen */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/carrusel-section.png"
             alt="FluxApp Finance — pantallas de la app"
-            style={{ width: '100%', marginLeft: '30px', display: 'block', transform: 'scale(1.5)', transformOrigin: 'center center' }}
+            style={{ width: '150%', marginLeft: 'calc(-25% + 30px)', display: 'block' }}
           />
         </div>
       </RevealWrapper>
