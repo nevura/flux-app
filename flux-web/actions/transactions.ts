@@ -283,74 +283,57 @@ export async function updateTransaction(id: string, form: TransactionForm) {
         for (const lp of linkedPeople) {
           const participant = form.split_data!.data.find(p => p.id === lp.id)
           if (!participant) continue
+          if (participant.paidStatus) continue  // already settled, no notification needed
           const isNew = !prevIds.has(lp.id)
 
+          // Dedup: remove any existing pending invite/update for this tx so B only sees the latest
+          const { data: staleNotifs } = await (admin.from('notifications') as any)
+            .select('id, data')
+            .eq('user_id', lp.linked_user_id)
+            .eq('read', false)
+            .in('type', ['shared_expense_invite', 'shared_expense_updated', 'receivable_invite'])
+          const staleIds = (staleNotifs ?? [])
+            .filter((n: any) => String(n.data?.transaction_id) === id)
+            .map((n: any) => n.id)
+          if (staleIds.length > 0) {
+            await (admin.from('notifications') as any).delete().in('id', staleIds)
+          }
+
+          const notifType = isReceivable ? 'receivable_invite' : (isNew ? 'shared_expense_invite' : 'shared_expense_updated')
+          const notifData = {
+            transaction_id: id,
+            from_user_id: user.id,
+            from_username: myProfile?.username ?? '',
+            from_name: myProfile?.full_name ?? '',
+            concept: form.concept,
+            total_amount: amount,
+            participant_amount: participant.value,
+            participant_person_id: lp.id,
+            category_id: form.category_id || null,
+            is_receivable: isReceivable,
+          }
+
           if (isNew) {
-            // New participant → send invite
             invitedNames.push(participant.nombre)
-            await (admin.from('notifications') as any).insert({
-              user_id: lp.linked_user_id,
-              type: isReceivable ? 'receivable_invite' : 'shared_expense_invite',
-              data: {
-                transaction_id: id,
-                from_user_id: user.id,
-                from_username: myProfile?.username ?? '',
-                from_name: myProfile?.full_name ?? '',
-                concept: form.concept,
-                total_amount: amount,
-                participant_amount: participant.value,
-                participant_person_id: lp.id,
-                category_id: form.category_id || null,
-                is_receivable: isReceivable,
-              },
-            })
-            const { data: recipientProfile } = await (admin.from('profiles') as any)
-              .select('email, full_name').eq('id', lp.linked_user_id).single()
-            if (recipientProfile?.email) {
-              try {
-                await sendSharedExpenseInviteEmail({
-                  to: recipientProfile.email,
-                  toName: recipientProfile.full_name ?? '',
-                  fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
-                  fromUsername: myProfile?.username ?? '',
-                  concept: form.concept,
-                  amount: formatCurrency(participant.value),
-                })
-              } catch {}
-            }
           } else {
-            // Existing participant → notify of update
             updatedNames.push(participant.nombre)
-            await (admin.from('notifications') as any).insert({
-              user_id: lp.linked_user_id,
-              type: isReceivable ? 'receivable_invite' : 'shared_expense_updated',
-              data: {
-                transaction_id: id,
-                from_user_id: user.id,
-                from_username: myProfile?.username ?? '',
-                from_name: myProfile?.full_name ?? '',
-                concept: form.concept,
-                total_amount: amount,
-                participant_amount: participant.value,
-                participant_person_id: lp.id,
-                category_id: form.category_id || null,
-                is_receivable: isReceivable,
-              },
-            })
-            const { data: recipientProfile } = await (admin.from('profiles') as any)
-              .select('email, full_name').eq('id', lp.linked_user_id).single()
-            if (recipientProfile?.email) {
-              try {
-                await sendSharedExpenseInviteEmail({
-                  to: recipientProfile.email,
-                  toName: recipientProfile.full_name ?? '',
-                  fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
-                  fromUsername: myProfile?.username ?? '',
-                  concept: `[Actualizado] ${form.concept}`,
-                  amount: formatCurrency(participant.value),
-                })
-              } catch {}
-            }
+          }
+
+          await (admin.from('notifications') as any).insert({ user_id: lp.linked_user_id, type: notifType, data: notifData })
+
+          const { data: recipientProfile } = await (admin.from('profiles') as any)
+            .select('email, full_name').eq('id', lp.linked_user_id).single()
+          if (recipientProfile?.email) {
+            try {
+              await sendSharedExpenseInviteEmail({
+                to: recipientProfile.email,
+                toName: recipientProfile.full_name ?? '',
+                fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
+                fromUsername: myProfile?.username ?? '',
+                concept: isNew ? form.concept : `[Actualizado] ${form.concept}`,
+                amount: formatCurrency(participant.value),
+              })
+            } catch {}
           }
         }
 
@@ -1107,18 +1090,50 @@ export async function acceptSharedExpense(notificationId: string) {
     }],
   } : null
 
-  const { error: txError } = await supabase.from('transactions').insert({
-    user_id: user.id,
-    concept: String(d.concept) || `Gasto con ${String(d.from_name ?? d.from_username ?? 'contacto')}`,
-    type: 'TR-GASTO',
-    amount: participantAmount,
-    adjustment: 0,       // no real money movement until settled
-    category_id: d.category_id && String(d.category_id).startsWith('CAT-DEF-') ? String(d.category_id) : null,
-    account_id: null,    // no account until payment is confirmed
-    transaction_date: today,
-    is_validated: false, // pending — will be validated when settled
-    split_data: splitData,
-  })
+  // If B already accepted this transaction before (e.g. creator edited the amount),
+  // update the existing IOWE tx instead of creating a duplicate.
+  const { data: existingTxs } = await supabase
+    .from('transactions')
+    .select('id, split_data')
+    .eq('user_id', user.id)
+    .not('split_data', 'is', null)
+  const existingIowe = origTxId
+    ? (existingTxs ?? []).find((tx: any) => String((tx.split_data as any)?.linked_tx_id) === origTxId)
+    : null
+
+  let txError: { message: string } | null = null
+  if (existingIowe) {
+    const prevSplit = existingIowe.split_data as any
+    const updatedSplit = {
+      ...prevSplit,
+      data: prevSplit.data.map((p: any) => ({
+        ...p,
+        value: participantAmount,
+        paidAmount: 0,
+        paidStatus: false,
+      })),
+    }
+    const { error } = await supabase
+      .from('transactions')
+      .update({ amount: participantAmount, split_data: updatedSplit })
+      .eq('id', existingIowe.id)
+      .eq('user_id', user.id)
+    txError = error
+  } else {
+    const { error } = await supabase.from('transactions').insert({
+      user_id: user.id,
+      concept: String(d.concept) || `Gasto con ${String(d.from_name ?? d.from_username ?? 'contacto')}`,
+      type: 'TR-GASTO',
+      amount: participantAmount,
+      adjustment: 0,
+      category_id: d.category_id && String(d.category_id).startsWith('CAT-DEF-') ? String(d.category_id) : null,
+      account_id: null,
+      transaction_date: today,
+      is_validated: false,
+      split_data: splitData,
+    })
+    txError = error
+  }
   if (txError) return { error: txError.message }
 
   await supabase.from('notifications').update({ read: true }).eq('id', notificationId)

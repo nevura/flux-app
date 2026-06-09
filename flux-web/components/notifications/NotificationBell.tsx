@@ -147,7 +147,7 @@ export default function NotificationBell() {
       setUnread(0)
       // Don't auto-mark actionable notifications as read — they need explicit user action.
       // They get marked read only when accept/decline/confirm/reject is executed.
-      const ACTIONABLE = ['friend_request', 'shared_expense_invite', 'receivable_invite', 'expense_settled_confirm']
+      const ACTIONABLE = ['friend_request', 'shared_expense_invite', 'shared_expense_updated', 'receivable_invite', 'expense_settled_confirm']
       const passiveIds = (notifs ?? [])
         .filter(n => !n.read && !ACTIONABLE.includes(n.type))
         .map(n => n.id)
@@ -422,7 +422,7 @@ export default function NotificationBell() {
                         )}
                       </div>
                     )}
-                    {n.type === 'shared_expense_invite' && !n.read && (
+                    {(n.type === 'shared_expense_invite' || n.type === 'shared_expense_updated') && !n.read && (
                       <>
                         <p className="text-[14px] mt-1 font-bold tabular-nums" style={{ color: 'var(--f-transfer)' }}>
                           Tu parte: {formatCurrency(Number(d.participant_amount))}
