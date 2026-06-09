@@ -7,7 +7,7 @@ import { es } from 'date-fns/locale'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { markNotificationsRead, respondFriendRequest, deleteNotification, clearAllNotifications } from '@/actions/friends'
-import { acceptSharedExpense, declineSharedExpense, confirmSettledExpense, rejectSettledExpense, acceptReceivableInvite, declineReceivableInvite } from '@/actions/transactions'
+import { acceptSharedExpense, declineSharedExpense, confirmSettledExpense, rejectSettledExpense, acceptReceivableInvite, declineReceivableInvite, acceptSyncProposal, declineSyncProposal } from '@/actions/transactions'
 import { formatCurrency } from '@/lib/utils'
 import { useBottomSheetSwipe } from '@/lib/hooks/useBottomSheetSwipe'
 import { SwipeableRow } from '@/components/shared/SwipeableRow'
@@ -27,6 +27,12 @@ function notifLabel(n: Notification): { icon: string; iconColor: string; text: s
       return { icon: 'fa-solid fa-receipt', iconColor: 'var(--f-transfer)', text: `@${d.from_username} te invita a dividir: ${d.concept}` }
     case 'shared_expense_updated':
       return { icon: 'fa-solid fa-pen-to-square', iconColor: 'var(--f-transfer)', text: `@${d.from_username} actualizó el gasto compartido: ${d.concept}` }
+    case 'sync_proposal':
+      return { icon: 'fa-solid fa-arrows-rotate', iconColor: 'var(--f-blue)', text: `@${d.from_username} quiere sincronizar un gasto contigo: ${d.concept}` }
+    case 'sync_accepted':
+      return { icon: 'fa-solid fa-circle-check', iconColor: 'var(--f-income)', text: `@${d.from_username} aceptó sincronizar: ${d.concept}` }
+    case 'sync_declined':
+      return { icon: 'fa-solid fa-circle-xmark', iconColor: 'var(--f-expense)', text: `@${d.from_username} rechazó sincronizar: ${d.concept}` }
     case 'shared_expense_sent': {
       const names = Array.isArray(d.invited_names) ? (d.invited_names as string[]).join(', ') : ''
       return { icon: 'fa-solid fa-paper-plane', iconColor: 'var(--f-blue)', text: `Invitaste a ${names} a dividir: ${d.concept}` }
@@ -147,7 +153,7 @@ export default function NotificationBell() {
       setUnread(0)
       // Don't auto-mark actionable notifications as read — they need explicit user action.
       // They get marked read only when accept/decline/confirm/reject is executed.
-      const ACTIONABLE = ['friend_request', 'shared_expense_invite', 'shared_expense_updated', 'receivable_invite', 'expense_settled_confirm']
+      const ACTIONABLE = ['friend_request', 'shared_expense_invite', 'shared_expense_updated', 'sync_proposal', 'receivable_invite', 'expense_settled_confirm']
       const passiveIds = (notifs ?? [])
         .filter(n => !n.read && !ACTIONABLE.includes(n.type))
         .map(n => n.id)
@@ -443,6 +449,31 @@ export default function NotificationBell() {
                             style={{ background: 'var(--f-transfer)' }}
                           >
                             {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Aceptar deuda'}
+                          </button>
+                        </div>
+                      </>
+                    )}
+                    {n.type === 'sync_proposal' && !n.read && (
+                      <>
+                        <p className="text-[14px] mt-1 font-bold tabular-nums" style={{ color: 'var(--f-blue)' }}>
+                          Tu parte: {formatCurrency(Number(d.participant_amount))}
+                        </p>
+                        <div className="flex gap-2 mt-3">
+                          <button
+                            onClick={() => { startTransition(async () => { const r = await declineSyncProposal(n.id); if (r.error) toast.error(r.error); setList(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x)) }) }}
+                            disabled={isPending}
+                            className="flex-1 py-3 rounded-[12px] text-[15px] font-black transition-all active:scale-95 disabled:opacity-50"
+                            style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
+                          >
+                            Ignorar
+                          </button>
+                          <button
+                            onClick={() => { startTransition(async () => { const r = await acceptSyncProposal(n.id); if (r.error) { toast.error(r.error); return } toast.success('Gasto sincronizado — lo verás en Compartidos'); setList(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x)) }) }}
+                            disabled={isPending}
+                            className="flex-[2] py-3 rounded-[12px] text-[15px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
+                            style={{ background: 'var(--f-blue)' }}
+                          >
+                            {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Sincronizar'}
                           </button>
                         </div>
                       </>

@@ -9,7 +9,7 @@ function AnimatedCurrency({ value }: { value: number }) {
   const animated = useCountUp(value)
   return <>{formatCurrency(animated)}</>
 }
-import { settleParticipant, partialSettle, settleAndRecord, settleAllForPerson, abonoGlobalForPerson, collectReceivable } from '@/actions/transactions'
+import { settleParticipant, partialSettle, settleAndRecord, settleAllForPerson, abonoGlobalForPerson, collectReceivable, proposeSyncTransaction } from '@/actions/transactions'
 import { linkPersonToUser } from '@/actions/friends'
 import CoachMarkTour from '@/components/onboarding/CoachMarkTour'
 import type { Transaction, Person, SplitParticipant, Account, Category, AccountWithBalance, Friendship } from '@/lib/types'
@@ -571,6 +571,26 @@ export default function SharedClient({ transactions, people, accounts, categorie
                                   </button>
                                 </div>
                               )
+                            )}
+
+                            {/* Sincronizar — only for THEY/DIV with linked Flux user and not yet settled */}
+                            {isTheyOwe && !!b.person.linked_user_id && !participant.paidStatus && !isReceivable && (
+                              <button
+                                onClick={() => {
+                                  startTransition(async () => {
+                                    const r = await proposeSyncTransaction(tx.id, participant.id)
+                                    if (r.error) toast.error(r.error)
+                                    else toast.success('Propuesta de sincronización enviada')
+                                  })
+                                }}
+                                disabled={isPending}
+                                className="w-full flex items-center gap-2 py-1.5 text-left disabled:opacity-40 transition-all active:scale-95"
+                              >
+                                <i className="fa-solid fa-arrows-rotate text-[13px]" style={{ color: 'var(--f-blue)' }} />
+                                <p className="text-[14px] font-bold" style={{ color: 'var(--f-blue)' }}>
+                                  Sincronizar con @{b.person.linked_profile?.username ?? b.person.name}
+                                </p>
+                              </button>
                             )}
 
                             {/* Settle inline expansion — only for expense debts */}

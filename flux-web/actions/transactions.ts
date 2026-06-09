@@ -1350,3 +1350,81 @@ export async function settlePayable(txId: string): Promise<{ error: string | nul
   revalidatePath('/transactions')
   return { error: null }
 }
+
+// ─── Sync proposal ────────────────────────────────────────────────────────────
+// Sends a sync_proposal notification to a linked participant so they can link
+// their existing (or new) IOWE transaction to this THEY/DIV expense.
+export async function proposeSyncTransaction(txId: string, participantPersonId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+
+  const { data: tx } = await supabase
+    .from('transactions').select('*').eq('id', txId).eq('user_id', user.id).single()
+  if (!tx) return { error: 'Transacción no encontrada' }
+
+  const sd = tx.split_data as import('@/lib/types').SplitData | null
+  const participant = sd?.data?.find((p: import('@/lib/types').SplitParticipant) => p.id === participantPersonId)
+  if (!participant) return { error: 'Participante no encontrado' }
+
+  const { data: person } = await supabase
+    .from('people').select('linked_user_id').eq('id', participantPersonId).eq('user_id', user.id).single()
+  if (!person?.linked_user_id) return { error: 'Este contacto no está vinculado a Flux' }
+
+  const { data: myProfile } = await supabase
+    .from('profiles').select('username, full_name').eq('id', user.id).single()
+
+  const admin = createAdminClient()
+  await (admin.from('notifications') as any).insert({
+    user_id: person.linked_user_id,
+    type: 'sync_proposal',
+    data: {
+      transaction_id: txId,
+      from_user_id: user.id,
+      from_username: myProfile?.username ?? '',
+      from_name: myProfile?.full_name ?? '',
+      concept: tx.concept,
+      total_amount: Number(tx.amount),
+      participant_amount: participant.value,
+      participant_person_id: participantPersonId,
+      category_id: tx.category_id || null,
+    },
+  })
+
+  return { error: null }
+}
+
+// acceptSyncProposal reuses the same logic as acceptSharedExpense (creates/updates IOWE).
+export async function acceptSyncProposal(notificationId: string) {
+  return acceptSharedExpense(notificationId)
+}
+
+export async function declineSyncProposal(notificationId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+
+  const { data: notif } = await supabase
+    .from('notifications').select('data').eq('id', notificationId).eq('user_id', user.id).maybeSingle()
+
+  await supabase.from('notifications').update({ read: true }).eq('id', notificationId).eq('user_id', user.id)
+
+  if (notif) {
+    const d = notif.data as Record<string, unknown>
+    const { data: myProfile } = await supabase.from('profiles').select('username, full_name').eq('id', user.id).single()
+    const admin = createAdminClient()
+    try {
+      await (admin.from('notifications') as any).insert({
+        user_id: String(d.from_user_id),
+        type: 'sync_declined',
+        data: {
+          from_user_id: user.id,
+          from_username: myProfile?.username ?? '',
+          from_name: myProfile?.full_name ?? '',
+          concept: String(d.concept),
+        },
+      })
+    } catch { /* ignore */ }
+  }
+  return { error: null }
+}
