@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { sendSupportReplyEmail } from '@/lib/email'
+import { sendSupportReplyEmail, sendTrialExpiryEmail, sendShortcutReminderEmail, sendReengagementEmail } from '@/lib/email'
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? ''  // notification recipient
 const ADMIN_AUTH_EMAIL = process.env.ADMIN_AUTH_EMAIL || process.env.ADMIN_EMAIL || 'bernardo.perezro06@gmail.com'
@@ -227,6 +227,70 @@ export async function setUserSubscriptionStatus(userId: string, status: string) 
   if (error) return { error: error.message }
   revalidatePath('/admin')
   return { error: null }
+}
+
+// ── Email traceability + manual send ─────────────────────────────────────────
+
+export type EmailType = 'trial_expiring' | 'shortcut_reminder' | 'reengagement'
+
+export async function getEmailLogForUser(userId: string): Promise<Record<EmailType, { count: number; lastSent: string | null }>> {
+  await verifyAdmin()
+  const admin = createAdminClient()
+  const { data } = await (admin.from('notifications') as any)
+    .select('type, created_at')
+    .eq('user_id', userId)
+    .in('type', ['trial_expiring', 'shortcut_reminder', 'reengagement'])
+    .order('created_at', { ascending: false })
+
+  const log: Record<EmailType, { count: number; lastSent: string | null }> = {
+    trial_expiring:    { count: 0, lastSent: null },
+    shortcut_reminder: { count: 0, lastSent: null },
+    reengagement:      { count: 0, lastSent: null },
+  }
+  for (const n of (data ?? []) as { type: EmailType; created_at: string }[]) {
+    log[n.type].count++
+    if (!log[n.type].lastSent) log[n.type].lastSent = n.created_at
+  }
+  return log
+}
+
+export async function sendManualEmailToUser(userId: string, type: EmailType) {
+  await verifyAdmin()
+  const admin = createAdminClient()
+  const { data: profile } = await (admin.from('profiles') as any)
+    .select('email, full_name, trial_ends_at, shortcut_ever_used')
+    .eq('id', userId)
+    .single()
+
+  if (!profile?.email) return { error: 'Usuario sin email registrado' }
+
+  const userName = profile.full_name ?? profile.email.split('@')[0]
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://fluxappfinance.com'
+
+  try {
+    if (type === 'trial_expiring') {
+      const daysLeft = profile.trial_ends_at
+        ? Math.max(0, Math.ceil((new Date(profile.trial_ends_at).getTime() - Date.now()) / 86_400_000))
+        : 0
+      await sendTrialExpiryEmail({ to: profile.email, daysLeft, upgradeUrl: `${appUrl}/settings` })
+    } else if (type === 'shortcut_reminder') {
+      await sendShortcutReminderEmail({ to: profile.email, userName })
+    } else if (type === 'reengagement') {
+      await sendReengagementEmail({ to: profile.email, userName, daysSince: 7, hasShortcut: !!profile.shortcut_ever_used })
+    }
+
+    // Log as notification so traceability stays in the notifications table
+    await (admin.from('notifications') as any).insert({
+      user_id: userId,
+      type,
+      data: { sent_by_admin: true },
+      read: true,
+    })
+
+    return { error: null }
+  } catch (e) {
+    return { error: String(e) }
+  }
 }
 
 // ── Support tickets ───────────────────────────────────────────────────────────

@@ -14,9 +14,11 @@ const tabs = [
   { id: 'presupuestos', label: 'Presupuestos', icon: 'fa-bullseye' },
 ]
 
-const content: Record<string, { title: string; steps: { icon: string; title: string; desc: string; tip?: string }[] }> = {
+// videoTitle: label shown inside the placeholder — will be replaced with real embeds later
+const content: Record<string, { title: string; videoTitle?: string; steps: { icon: string; title: string; desc: string; tip?: string }[] }> = {
   inicio: {
     title: 'Primeros pasos con FluxApp Finance',
+    videoTitle: 'Tutorial: cómo empezar en FluxApp Finance',
     steps: [
       { icon: 'fa-user-plus', title: 'Crea tu cuenta', desc: 'Regístrate con tu correo electrónico. El acceso está sujeto a aprobación — te avisamos por email cuando esté lista tu cuenta.' },
       { icon: 'fa-wallet', title: 'Configura tus cuentas', desc: 'Ve a Ajustes → Cuentas y agrega tu cuenta de Efectivo, Tarjeta de Débito y/o Tarjeta de Crédito. Ajusta el saldo inicial para que coincida con tu saldo real.' },
@@ -27,6 +29,7 @@ const content: Record<string, { title: string; steps: { icon: string; title: str
   },
   applepay: {
     title: 'Integración con Apple Pay',
+    videoTitle: 'Tutorial: cómo instalar el Atajo de Apple Pay',
     steps: [
       { icon: 'fa-mobile-screen', title: 'Requisitos', desc: 'Necesitas un iPhone con iOS 16 o superior. La integración usa Atajos de iPhone (app nativa de Apple, pre-instalada).' },
       { icon: 'fa-download', title: 'Descarga el Atajo', desc: 'En FluxApp Finance, ve a Ajustes → Atajos de iPhone y toca "Instalar Atajo Apple Pay". Se abrirá la app de Atajos con el atajo listo para configurar.' },
@@ -37,6 +40,7 @@ const content: Record<string, { title: string; steps: { icon: string; title: str
   },
   compartidos: {
     title: 'Gastos compartidos',
+    videoTitle: 'Tutorial: dividir gastos con amigos en Flux',
     steps: [
       { icon: 'fa-user-plus', title: 'Agrega amigos', desc: 'Ve a Compartidos → ícono de amigos y busca a tus amigos por @username. Envíales una solicitud — cuando acepten, quedan vinculados.' },
       { icon: 'fa-person-dots-from-line', title: 'Crea contactos locales', desc: 'En Ajustes → Personas puedes crear contactos sin importar si usan Flux. Cuando empiecen a usar la app, puedes vincularlos a su cuenta.' },
@@ -47,6 +51,7 @@ const content: Record<string, { title: string; steps: { icon: string; title: str
   },
   presupuestos: {
     title: 'Presupuestos',
+    videoTitle: 'Tutorial: configura tu presupuesto mensual',
     steps: [
       { icon: 'fa-bullseye', title: '¿Qué es un presupuesto?', desc: 'Un presupuesto en Flux es un límite mensual que defines por categoría. Por ejemplo: máximo $3,000 en Comida, $800 en Entretenimiento.' },
       { icon: 'fa-plus', title: 'Crear un presupuesto', desc: 'Ve a Ajustes → Presupuestos, toca "Nuevo presupuesto", elige la categoría y el monto límite mensual. El presupuesto se reinicia automáticamente el primer día de cada mes.' },
@@ -90,6 +95,26 @@ export default function GuiaPage() {
       {/* Content */}
       <div key={active}>
         <h2 className="text-[28px] font-black mb-8" style={{ color: DARK }}>{section.title}</h2>
+
+        {/* Video placeholder — will be replaced with real embed once videos are published */}
+        {section.videoTitle && (
+          <div className="mb-8 rounded-[20px] overflow-hidden" style={{ background: '#111', border: '1px solid rgba(255,255,255,0.08)' }}>
+            {/* 16:9 aspect ratio container */}
+            <div style={{ position: 'relative', paddingTop: '56.25%' }}>
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+                <div style={{ width: 64, height: 64, background: 'rgba(0,122,255,0.9)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <i className="fa-solid fa-play text-white text-[22px]" style={{ marginLeft: 4 }} />
+                </div>
+                <p className="text-[15px] font-bold px-6 text-center" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  {section.videoTitle}
+                </p>
+                <span className="text-[12px] font-semibold px-3 py-1 rounded-full" style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)' }}>
+                  Video tutorial próximamente
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-5">
           {section.steps.map((step, i) => (

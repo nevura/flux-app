@@ -8,7 +8,10 @@ import {
   setUserAccountStatus,
   extendUserTrial,
   setUserSubscriptionStatus,
+  getEmailLogForUser,
+  sendManualEmailToUser,
   type AdminProfile,
+  type EmailType,
 } from '@/actions/admin'
 import {
   getAdminConversations,
@@ -88,6 +91,78 @@ function StatCard({ label, value, color, onClick, active }: { label: string; val
       <p className="text-[32px] font-black leading-none" style={{ color: active ? '#fff' : DARK }}>{value}</p>
       <p className="text-[11px] font-bold mt-1.5 uppercase tracking-wide leading-tight" style={{ color: active ? 'rgba(255,255,255,0.75)' : GRAY }}>{label}</p>
     </button>
+  )
+}
+
+// ── Email log per user ────────────────────────────────────────────────────────
+const EMAIL_ROWS: { type: EmailType; label: string; icon: string; color: string }[] = [
+  { type: 'trial_expiring',    label: 'Fin de prueba',        icon: 'fa-clock',         color: ORANGE },
+  { type: 'shortcut_reminder', label: 'Recordatorio Atajo',   icon: 'fa-bolt',          color: '#bf5af2' },
+  { type: 'reengagement',      label: 'Re-engagement',        icon: 'fa-rotate-right',  color: BLUE },
+]
+
+function UserEmailLog({ userId }: { userId: string }) {
+  const [log, setLog] = useState<Record<EmailType, { count: number; lastSent: string | null }> | null>(null)
+  const [sending, setSending] = useState<EmailType | null>(null)
+
+  useEffect(() => {
+    getEmailLogForUser(userId).then(setLog)
+  }, [userId])
+
+  async function handleSend(type: EmailType) {
+    setSending(type)
+    const r = await sendManualEmailToUser(userId, type)
+    setSending(null)
+    if (r.error) { toast.error(r.error); return }
+    toast.success('Correo enviado')
+    // Refresh log
+    getEmailLogForUser(userId).then(setLog)
+  }
+
+  function daysSince(iso: string | null) {
+    if (!iso) return null
+    const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000)
+    return d === 0 ? 'hoy' : `hace ${d}d`
+  }
+
+  if (!log) return (
+    <div className="py-3 text-center">
+      <i className="fa-solid fa-spinner fa-spin text-sm" style={{ color: GRAY }} />
+    </div>
+  )
+
+  return (
+    <div className="space-y-2">
+      {EMAIL_ROWS.map(({ type, label, icon, color }) => {
+        const entry = log[type]
+        return (
+          <div key={type} className="flex items-center gap-3 rounded-[12px] px-3 py-2.5"
+            style={{ background: '#fff', border: '1px solid rgba(0,0,0,0.07)' }}>
+            <div className="w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0"
+              style={{ background: `${color}18` }}>
+              <i className={`fa-solid ${icon} text-[11px]`} style={{ color }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-bold leading-none" style={{ color: DARK }}>{label}</p>
+              <p className="text-[11px] font-medium mt-0.5" style={{ color: GRAY }}>
+                {entry.count === 0
+                  ? 'Nunca enviado'
+                  : `${entry.count}× · último ${daysSince(entry.lastSent)}`}
+              </p>
+            </div>
+            <button
+              onClick={() => handleSend(type)}
+              disabled={sending === type}
+              className="px-3 py-1.5 rounded-[8px] text-[12px] font-black transition-all active:scale-95 disabled:opacity-50 flex-shrink-0"
+              style={{ background: `${color}15`, color }}>
+              {sending === type
+                ? <i className="fa-solid fa-spinner fa-spin" />
+                : <><i className="fa-solid fa-paper-plane mr-1" />Enviar</>}
+            </button>
+          </div>
+        )
+      })}
+    </div>
   )
 }
 
@@ -261,6 +336,14 @@ function UserCard({ profile, isPending, onApprove, onReject, onExtend, onSetSub 
                   )
                 })}
               </div>
+            </div>
+          )}
+
+          {/* Email log — visible for all approved users */}
+          {profile.status !== 'pending' && (
+            <div>
+              <p className="text-[12px] font-black uppercase tracking-wide mb-2" style={{ color: GRAY }}>Correos de retención</p>
+              <UserEmailLog userId={profile.id} />
             </div>
           )}
         </div>
