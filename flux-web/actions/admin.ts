@@ -257,15 +257,22 @@ export async function getEmailLogForUser(userId: string): Promise<Record<EmailTy
 export async function sendManualEmailToUser(userId: string, type: EmailType) {
   await verifyAdmin()
   const admin = createAdminClient()
-  const { data: profile } = await (admin.from('profiles') as any)
-    .select('email, full_name, trial_ends_at, shortcut_ever_used')
-    .eq('id', userId)
-    .single()
+  const [{ data: profile }, { data: shortcutToken }] = await Promise.all([
+    (admin.from('profiles') as any)
+      .select('email, full_name, trial_ends_at')
+      .eq('id', userId)
+      .single(),
+    (admin.from('shortcut_tokens') as any)
+      .select('last_used_at')
+      .eq('user_id', userId)
+      .maybeSingle(),
+  ])
 
   if (!profile?.email) return { error: 'Usuario sin email registrado' }
 
   const userName = profile.full_name ?? profile.email.split('@')[0]
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://fluxappfinance.com'
+  const hasShortcut = !!shortcutToken?.last_used_at
 
   try {
     if (type === 'trial_expiring') {
@@ -276,7 +283,7 @@ export async function sendManualEmailToUser(userId: string, type: EmailType) {
     } else if (type === 'shortcut_reminder') {
       await sendShortcutReminderEmail({ to: profile.email, userName })
     } else if (type === 'reengagement') {
-      await sendReengagementEmail({ to: profile.email, userName, daysSince: 7, hasShortcut: !!profile.shortcut_ever_used })
+      await sendReengagementEmail({ to: profile.email, userName, daysSince: 7, hasShortcut })
     }
 
     // Log as notification so traceability stays in the notifications table
