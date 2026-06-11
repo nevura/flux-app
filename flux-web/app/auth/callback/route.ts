@@ -1,7 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { signAdminAction } from '@/lib/admin'
-import { sendApprovalRequestEmail, sendNewUserRegistrationEmail } from '@/lib/email'
+import { sendApprovalGrantedEmail, sendNewUserRegistrationEmail } from '@/lib/email'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
@@ -63,21 +62,23 @@ export async function GET(request: Request) {
   }
 
   if (profile?.status === 'pending') {
-    const ageMs = Date.now() - new Date(profile.created_at ?? 0).getTime()
-    if (ageMs < 10 * 60 * 1000) {
-      const adminEmail = process.env.ADMIN_EMAIL ?? 'bernardo.perezro06@gmail.com'
-      const approveUrl = `${origin}/api/admin/approve?uid=${user.id}&sig=${signAdminAction(user.id, 'approve')}`
-      const rejectUrl  = `${origin}/api/admin/reject?uid=${user.id}&sig=${signAdminAction(user.id, 'reject')}`
-      try {
-        await sendApprovalRequestEmail({
-          adminEmail,
-          applicantEmail: profile.email ?? user.email ?? '',
-          approveUrl,
-          rejectUrl,
-        })
-      } catch {}
-    }
-    return NextResponse.redirect(`${origin}/pending`)
+    // Auto-approve on email confirmation — 20-day trial starts immediately
+    const trialEnd = new Date()
+    trialEnd.setDate(trialEnd.getDate() + 20)
+    await (admin.from('profiles') as any).update({
+      status: 'approved',
+      subscription_status: 'trialing',
+      trial_ends_at: trialEnd.toISOString(),
+    }).eq('id', user.id)
+
+    try {
+      await sendApprovalGrantedEmail({
+        to: profile.email ?? user.email ?? '',
+        loginUrl: `${origin}/home`,
+      })
+    } catch {}
+
+    return NextResponse.redirect(`${origin}/home`)
   }
 
   if (profile?.status === 'rejected') {

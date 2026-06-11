@@ -25,7 +25,13 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/api/admin/approve/done?already=1`)
   }
 
-  await (admin.from('profiles') as any).update({ status: 'approved' }).eq('id', uid)
+  const trialEnd = new Date()
+  trialEnd.setDate(trialEnd.getDate() + 20)
+  await (admin.from('profiles') as any).update({
+    status: 'approved',
+    subscription_status: 'trialing',
+    trial_ends_at: trialEnd.toISOString(),
+  }).eq('id', uid)
 
   if (profile.email) {
     await sendApprovalGrantedEmail({
