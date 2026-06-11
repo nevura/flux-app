@@ -96,11 +96,21 @@ Si escalate es true, en el reply avisa amablemente que un humano lo contactará 
 
     if (!reply) return NextResponse.json({ ok: false, reason: 'empty_reply' })
 
-    await (admin.from('support_messages') as any).insert({
-      conversation_id: conversationId,
-      sender: 'admin',
-      body: reply,
-    })
+    const usage = response.usage
+
+    await Promise.all([
+      (admin.from('support_messages') as any).insert({
+        conversation_id: conversationId,
+        sender: 'admin',
+        body: reply,
+      }),
+      (admin.from('bot_usage_logs') as any).insert({
+        conversation_id: conversationId,
+        user_id: userId,
+        input_tokens: usage.input_tokens,
+        output_tokens: usage.output_tokens,
+      }),
+    ])
 
     await (admin.from('support_conversations') as any)
       .update({

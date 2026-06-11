@@ -21,7 +21,7 @@ import {
   type SupportConversation,
   type SupportMessage,
 } from '@/actions/support-chat'
-import { getAdminMetrics, type AdminMetrics } from '@/actions/admin'
+import { getAdminMetrics, type AdminMetrics, getBotUsageStats, type BotUsageStats } from '@/actions/admin'
 import { createClient } from '@/lib/supabase/client'
 
 const BLUE   = '#007AFF'
@@ -574,6 +574,85 @@ function applyFilter(profiles: AdminProfile[], filter: string) {
   }
 }
 
+// ── Bot cost section ──────────────────────────────────────────────────────────
+function BotCostSection() {
+  const [stats, setStats] = useState<BotUsageStats | null>(null)
+
+  useEffect(() => { getBotUsageStats().then(setStats) }, [])
+
+  function fmtUSD(n: number) {
+    if (n < 0.01) return `$${(n * 100).toFixed(3)}¢`
+    return `$${n.toFixed(4)}`
+  }
+
+  if (!stats) return (
+    <div className="py-4 text-center"><i className="fa-solid fa-spinner fa-spin text-sm" style={{ color: GRAY }} /></div>
+  )
+
+  const BOT_COLOR = '#30D158'
+
+  return (
+    <section>
+      <p className="text-[11px] font-black uppercase tracking-[3px] mb-3" style={{ color: GRAY }}>
+        Bot de soporte (Claude Haiku)
+      </p>
+
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        {[
+          { label: 'Este mes', msgs: stats.this_month.messages, cost: stats.this_month.cost_usd },
+          { label: 'Total', msgs: stats.all_time.messages, cost: stats.all_time.cost_usd },
+        ].map(({ label, msgs, cost }) => (
+          <div key={label} className="rounded-[16px] p-4" style={{ background: LIGHT, border: '1px solid rgba(0,0,0,0.06)' }}>
+            <p className="text-[24px] font-black leading-none tabular-nums" style={{ color: BOT_COLOR }}>{msgs}</p>
+            <p className="text-[12px] font-bold mt-1" style={{ color: DARK }}>{label}</p>
+            <p className="text-[11px] font-medium mt-0.5" style={{ color: GRAY }}>
+              {fmtUSD(cost)} USD
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Token breakdown */}
+      <div className="rounded-[16px] px-4 py-3 mb-3 flex gap-4" style={{ background: LIGHT, border: '1px solid rgba(0,0,0,0.06)' }}>
+        <div className="flex-1 text-center">
+          <p className="text-[11px] font-bold uppercase" style={{ color: GRAY }}>Input tokens</p>
+          <p className="text-[16px] font-black tabular-nums" style={{ color: DARK }}>{stats.this_month.input_tokens.toLocaleString()}</p>
+        </div>
+        <div style={{ width: 1, background: 'rgba(0,0,0,0.07)' }} />
+        <div className="flex-1 text-center">
+          <p className="text-[11px] font-bold uppercase" style={{ color: GRAY }}>Output tokens</p>
+          <p className="text-[16px] font-black tabular-nums" style={{ color: DARK }}>{stats.this_month.output_tokens.toLocaleString()}</p>
+        </div>
+      </div>
+
+      {/* Per-user breakdown */}
+      {stats.by_user.length > 0 && (
+        <div className="rounded-[16px] overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.06)' }}>
+          {stats.by_user.map((u, i) => (
+            <div key={u.user_id} className="flex items-center gap-3 px-4 py-3"
+              style={{ background: LIGHT, borderTop: i > 0 ? '1px solid rgba(0,0,0,0.06)' : undefined }}>
+              <div className="w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-black text-white flex-shrink-0"
+                style={{ background: BOT_COLOR }}>
+                {(u.user_name || u.user_email || '?')[0].toUpperCase()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-bold truncate" style={{ color: DARK }}>{u.user_name ?? u.user_email ?? 'Usuario'}</p>
+                <p className="text-[11px] font-medium" style={{ color: GRAY }}>{u.messages} {u.messages === 1 ? 'mensaje' : 'mensajes'}</p>
+              </div>
+              <p className="text-[13px] font-black tabular-nums flex-shrink-0" style={{ color: BOT_COLOR }}>{fmtUSD(u.cost_usd)}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {stats.by_user.length === 0 && (
+        <p className="text-center text-[13px] py-4" style={{ color: GRAY }}>Sin datos aún</p>
+      )}
+    </section>
+  )
+}
+
 // ── Metrics view ─────────────────────────────────────────────────────────────
 function MetricsView() {
   const [metrics, setMetrics] = useState<AdminMetrics | null>(null)
@@ -733,6 +812,9 @@ function MetricsView() {
           ))}
         </div>
       </section>
+
+      {/* ── Bot de soporte ── */}
+      <BotCostSection />
 
     </div>
   )

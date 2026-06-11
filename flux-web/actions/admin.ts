@@ -423,3 +423,77 @@ export async function markTicketRead(ticketId: string) {
   await (admin.from('support_tickets') as any).update({ is_read: true }).eq('id', ticketId)
   revalidatePath('/admin')
 }
+
+// ── Bot usage & cost ──────────────────────────────────────────────────────────
+
+// Haiku pricing (per token)
+const HAIKU_INPUT_COST  = 0.80 / 1_000_000   // $0.80 per 1M input tokens
+const HAIKU_OUTPUT_COST = 4.00 / 1_000_000   // $4.00 per 1M output tokens
+
+export interface BotUsageStats {
+  all_time: { messages: number; input_tokens: number; output_tokens: number; cost_usd: number }
+  this_month: { messages: number; input_tokens: number; output_tokens: number; cost_usd: number }
+  by_user: { user_id: string; user_name: string | null; user_email: string | null; messages: number; cost_usd: number }[]
+}
+
+export async function getBotUsageStats(): Promise<BotUsageStats> {
+  await verifyAdmin()
+  const admin = createAdminClient()
+
+  const monthStart = new Date()
+  monthStart.setDate(1)
+  monthStart.setHours(0, 0, 0, 0)
+
+  const [allRows, monthRows, userRows] = await Promise.all([
+    (admin.from('bot_usage_logs') as any).select('input_tokens, output_tokens'),
+    (admin.from('bot_usage_logs') as any)
+      .select('input_tokens, output_tokens')
+      .gte('created_at', monthStart.toISOString()),
+    (admin.from('bot_usage_logs') as any)
+      .select('user_id, input_tokens, output_tokens, profiles(full_name, email)')
+      .order('created_at', { ascending: false }),
+  ])
+
+  function sum(rows: any[]) {
+    let input = 0, output = 0
+    for (const r of rows ?? []) { input += r.input_tokens; output += r.output_tokens }
+    const cost = input * HAIKU_INPUT_COST + output * HAIKU_OUTPUT_COST
+    return { messages: rows?.length ?? 0, input_tokens: input, output_tokens: output, cost_usd: cost }
+  }
+
+  // Aggregate by user
+  const userMap = new Map<string, { user_name: string | null; user_email: string | null; input: number; output: number; count: number }>()
+  for (const r of userRows.data ?? []) {
+    const existing = userMap.get(r.user_id)
+    if (existing) {
+      existing.input += r.input_tokens
+      existing.output += r.output_tokens
+      existing.count++
+    } else {
+      userMap.set(r.user_id, {
+        user_name: r.profiles?.full_name ?? null,
+        user_email: r.profiles?.email ?? null,
+        input: r.input_tokens,
+        output: r.output_tokens,
+        count: 1,
+      })
+    }
+  }
+
+  const by_user = Array.from(userMap.entries())
+    .map(([user_id, v]) => ({
+      user_id,
+      user_name: v.user_name,
+      user_email: v.user_email,
+      messages: v.count,
+      cost_usd: v.input * HAIKU_INPUT_COST + v.output * HAIKU_OUTPUT_COST,
+    }))
+    .sort((a, b) => b.cost_usd - a.cost_usd)
+    .slice(0, 10)
+
+  return {
+    all_time: sum(allRows.data),
+    this_month: sum(monthRows.data),
+    by_user,
+  }
+}
