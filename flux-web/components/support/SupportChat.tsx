@@ -129,7 +129,17 @@ export default function SupportChat({ onBack }: Props = {}) {
       toast.error(error)
       setMessages(prev => prev.filter(m => m.id !== optimistic.id))
       setInput(body)
+      return
     }
+
+    // Trigger bot from the browser — fire-and-forget at the network level,
+    // so Vercel won't kill it when the server action returns.
+    // Bot reply arrives via the Supabase realtime subscription above.
+    fetch('/api/support/bot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ conversationId: conv.id, userMessage: body }),
+    }).catch(() => {})
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {

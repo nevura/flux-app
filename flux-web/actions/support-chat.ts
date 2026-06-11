@@ -128,44 +128,8 @@ export async function sendUserMessage(conversationId: string, body: string): Pro
     }).catch(() => {})
   }
 
-  // Fire bot response in background (doesn't block the user's action)
-  const admin = createAdminClient()
-  const { data: history } = await (admin.from('support_messages') as any)
-    .select('sender, body')
-    .eq('conversation_id', conversationId)
-    .order('created_at', { ascending: true })
-    .limit(20)
-
-  const { data: profileFull } = await (admin.from('profiles') as any)
-    .select('full_name, subscription_status, trial_ends_at, shortcut_tokens(last_used_at)')
-    .eq('id', user.id)
-    .single()
-
-  const daysLeft = profileFull?.trial_ends_at
-    ? Math.max(0, Math.ceil((new Date(profileFull.trial_ends_at).getTime() - Date.now()) / 86_400_000))
-    : null
-
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://fluxappfinance.com'
-  fetch(`${appUrl}/api/support/bot`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-bot-secret': process.env.CRON_SECRET ?? '',
-    },
-    body: JSON.stringify({
-      conversationId,
-      userId: user.id,
-      userMessage: trimmed,
-      history: (history ?? []) as { sender: string; body: string }[],
-      userContext: {
-        name: profileFull?.full_name ?? 'Usuario',
-        subscriptionStatus: profileFull?.subscription_status ?? 'trialing',
-        daysLeft,
-        shortcutEverUsed: !!(profileFull?.shortcut_tokens as any)?.[0]?.last_used_at,
-      },
-    }),
-  }).catch(() => {})
-
+  // Bot is triggered from the client (SupportChat.tsx) after this action returns,
+  // so Vercel doesn't kill it mid-flight. See /api/support/bot/route.ts.
   return { error: null }
 }
 

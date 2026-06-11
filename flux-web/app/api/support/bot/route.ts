@@ -1,19 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export const maxDuration = 30
 
 export async function POST(req: NextRequest) {
-  // Simple internal secret check so this route isn't publicly callable
-  const secret = req.headers.get('x-bot-secret')
-  if (secret !== process.env.CRON_SECRET) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) return NextResponse.json({ ok: false, reason: 'no_key' })
 
-  const { conversationId, userId, userMessage, history, userContext } = await req.json()
+  // Auth via user session (called from the browser)
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { conversationId, userMessage } = await req.json()
+
+  // Verify user owns the conversation
+  const admin = createAdminClient()
+  const { data: conv } = await (admin.from('support_conversations') as any)
+    .select('user_id')
+    .eq('id', conversationId)
+    .single()
+  if (!conv || conv.user_id !== user.id) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  const userId = user.id
+
+  // Fetch history + user context in parallel (no longer passed from client)
+  const [historyResult, profileResult] = await Promise.all([
+    (admin.from('support_messages') as any)
+      .select('sender, body')
+      .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: true })
+      .limit(20),
+    (admin.from('profiles') as any)
+      .select('full_name, subscription_status, trial_ends_at, shortcut_tokens(last_used_at)')
+      .eq('id', userId)
+      .single(),
+  ])
+
+  const history: { sender: string; body: string }[] = historyResult.data ?? []
+  const profileFull = profileResult.data
+  const daysLeft = profileFull?.trial_ends_at
+    ? Math.max(0, Math.ceil((new Date(profileFull.trial_ends_at).getTime() - Date.now()) / 86_400_000))
+    : null
+  const userContext = {
+    name: profileFull?.full_name ?? 'Usuario',
+    subscriptionStatus: profileFull?.subscription_status ?? 'trialing',
+    daysLeft,
+    shortcutEverUsed: !!(profileFull?.shortcut_tokens as any)?.[0]?.last_used_at,
+  }
 
   const admin = createAdminClient()
 
