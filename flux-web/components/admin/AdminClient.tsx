@@ -532,25 +532,35 @@ function AdminInbox() {
 
   return (
     <div className="space-y-3">
-      {convs.map(c => (
-        <button key={c.id} onClick={() => openConv(c)} className="w-full text-left rounded-[20px] p-5 flex items-center gap-4 transition-all active:scale-[0.99]"
-          style={{
-            background: c.unread_admin > 0 ? 'rgba(0,122,255,0.04)' : LIGHT,
-            border: c.unread_admin > 0 ? '1.5px solid rgba(0,122,255,0.25)' : '1px solid rgba(0,0,0,0.06)',
-          }}>
-          <div className="w-10 h-10 rounded-full flex items-center justify-center text-[15px] font-black text-white flex-shrink-0" style={{ background: BLUE }}>
-            {(c.user_name || c.user_email || '?')[0].toUpperCase()}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <p className="text-[15px] font-bold truncate" style={{ color: DARK }}>{c.user_name ?? c.user_email ?? 'Usuario'}</p>
-              {c.unread_admin > 0 && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: BLUE }} />}
+      {convs.map(c => {
+        const isEscalated = !!(c as any).escalated
+        return (
+          <button key={c.id} onClick={() => openConv(c)} className="w-full text-left rounded-[20px] p-5 flex items-center gap-4 transition-all active:scale-[0.99]"
+            style={{
+              background: isEscalated ? 'rgba(255,59,48,0.04)' : c.unread_admin > 0 ? 'rgba(0,122,255,0.04)' : LIGHT,
+              border: isEscalated ? '1.5px solid rgba(255,59,48,0.35)' : c.unread_admin > 0 ? '1.5px solid rgba(0,122,255,0.25)' : '1px solid rgba(0,0,0,0.06)',
+            }}>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-[15px] font-black text-white flex-shrink-0"
+              style={{ background: isEscalated ? '#FF3B30' : BLUE }}>
+              {(c.user_name || c.user_email || '?')[0].toUpperCase()}
             </div>
-            <p className="text-[12px] font-medium mt-0.5" style={{ color: GRAY }}>{fmtDateTime(c.last_message_at)}</p>
-          </div>
-          <i className="fa-solid fa-chevron-right text-[13px] flex-shrink-0" style={{ color: GRAY }} />
-        </button>
-      ))}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="text-[15px] font-bold truncate" style={{ color: DARK }}>{c.user_name ?? c.user_email ?? 'Usuario'}</p>
+                {isEscalated && (
+                  <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full flex-shrink-0 flex items-center gap-1"
+                    style={{ background: 'rgba(255,59,48,0.12)', color: '#FF3B30' }}>
+                    <i className="fa-solid fa-triangle-exclamation text-[9px]" /> Requiere atención
+                  </span>
+                )}
+                {!isEscalated && c.unread_admin > 0 && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: BLUE }} />}
+              </div>
+              <p className="text-[12px] font-medium mt-0.5" style={{ color: GRAY }}>{fmtDateTime(c.last_message_at)}</p>
+            </div>
+            <i className="fa-solid fa-chevron-right text-[13px] flex-shrink-0" style={{ color: GRAY }} />
+          </button>
+        )
+      })}
     </div>
   )
 }
