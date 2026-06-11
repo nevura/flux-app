@@ -191,7 +191,16 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
 export async function setUserAccountStatus(userId: string, status: 'approved' | 'rejected') {
   await verifyAdmin()
   const admin = createAdminClient()
-  const { error } = await (admin.from('profiles') as any).update({ status }).eq('id', userId)
+
+  const update: Record<string, unknown> = { status }
+  if (status === 'approved') {
+    const trialEnd = new Date()
+    trialEnd.setDate(trialEnd.getDate() + 20)
+    update.trial_ends_at = trialEnd.toISOString()
+    update.subscription_status = 'trialing'
+  }
+
+  const { error } = await (admin.from('profiles') as any).update(update).eq('id', userId)
   if (error) return { error: error.message }
   revalidatePath('/admin')
   return { error: null }
