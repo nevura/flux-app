@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import SubscriptionBanner from '@/components/subscription/SubscriptionBanner'
 import ReadOnlyOverlay from '@/components/subscription/ReadOnlyOverlay'
 import WelcomeBanner from '@/components/subscription/WelcomeBanner'
 import ThemeSync from '@/components/layout/ThemeSync'
@@ -35,7 +34,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="flex flex-col min-h-screen">
       <ThemeSync theme={(profile?.theme_preference as 'dark' | 'light') ?? 'dark'} />
       <WakeOnFocus />
-      <SubscriptionBanner status={sub.status} daysLeft={sub.daysLeft} />
       {sub.status === 'trialing' && <WelcomeBanner daysLeft={sub.daysLeft} />}
       {sub.isReadOnly && <ReadOnlyOverlay />}
       {needsSetup && (
@@ -53,6 +51,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         fullName={profile?.full_name ?? null}
         email={user.email ?? ''}
         isReadOnly={sub.isReadOnly}
+        subStatus={sub.status}
+        subDaysLeft={sub.daysLeft}
       >
         {children}
       </AppShell>

@@ -37,9 +37,11 @@ interface Props {
   email: string
   active: boolean
   refreshSignal: number
+  subStatus?: string
+  subDaysLeft?: number | null
 }
 
-export default function DashboardTab({ userId, fullName, email, active, refreshSignal }: Props) {
+export default function DashboardTab({ userId, fullName, email, active, refreshSignal, subStatus, subDaysLeft }: Props) {
   const [data, setData] = useState<DashboardData | null>(null)
   const loadedRef = useRef(false)
   const staleRef = useRef(false)
@@ -150,6 +152,8 @@ export default function DashboardTab({ userId, fullName, email, active, refreshS
     <DashboardClient
       user={{ id: userId, email, full_name: fullName }}
       {...data}
+      subStatus={subStatus}
+      subDaysLeft={subDaysLeft}
       onRefresh={load}
     />
   )
