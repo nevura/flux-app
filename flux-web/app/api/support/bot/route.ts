@@ -52,8 +52,6 @@ export async function POST(req: NextRequest) {
     shortcutEverUsed: !!(profileFull?.shortcut_tokens as any)?.[0]?.last_used_at,
   }
 
-  const admin = createAdminClient()
-
   try {
     const { default: Anthropic } = await import('@anthropic-ai/sdk')
     const client = new Anthropic({ apiKey })
