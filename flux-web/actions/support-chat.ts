@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendSupportReplyEmail } from '@/lib/email'
@@ -284,7 +285,7 @@ export async function sendUserMessage(conversationId: string, body: string): Pro
     ? Math.max(0, Math.ceil((new Date(profileFull.trial_ends_at).getTime() - Date.now()) / 86_400_000))
     : null
 
-  runSupportBot({
+  after(() => runSupportBot({
     conversationId,
     userId: user.id,
     userMessage: trimmed,
@@ -295,7 +296,7 @@ export async function sendUserMessage(conversationId: string, body: string): Pro
       daysLeft,
       shortcutEverUsed: !!(profileFull?.shortcut_tokens as any)?.[0]?.last_used_at,
     },
-  }).catch(() => {})
+  }).catch(() => {}))
 
   return { error: null }
 }
