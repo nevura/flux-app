@@ -43,6 +43,13 @@ export default function TransactionModal({ transaction, accounts, categories, pe
 
   const { handleProps: swipeHandleProps, sheetStyle } = useBottomSheetSwipe(handleClose)
   useBodyScrollLock()
+
+  // Tell PullToRefresh to stand down while modal is open
+  useEffect(() => {
+    document.body.dataset.modalOpen = '1'
+    return () => { delete document.body.dataset.modalOpen }
+  }, [])
+
   const [confirmDelete, setConfirmDelete] = useState(false)
   const needsConfirm = isEdit && transaction?.is_validated === false
 

@@ -39,7 +39,6 @@ type ConfirmAction = 'settle' | 'forget' | 'partial'
 
 export default function SharedClient({ transactions, people, accounts, categories, friendships, myUserId }: Props) {
   const [expanded, setExpanded] = useState<string | null>(null)
-  const [settling, setSettling] = useState<string | null>(null)
   const [partialMode, setPartialMode] = useState<string | null>(null)
   const [partialInput, setPartialInput] = useState('')
   const [partialAccountId, setPartialAccountId] = useState('')
@@ -80,35 +79,29 @@ export default function SharedClient({ transactions, people, accounts, categorie
   function cancelConfirm() { setConfirmKey(null); setConfirmAction(null); setSettleAccountId('') }
 
   function executeSettle(txId: string, participantId: string) {
-    const key = `${txId}-${participantId}`
-    setSettling(key); cancelConfirm()
+    cancelConfirm()
     startTransition(async () => {
       const res = await settleParticipant(txId, participantId)
-      if (res.error) { toast.error(res.error); setSettling(null); return }
+      if (res.error) { toast.error(res.error); return }
       toast.success('Liquidado')
-      setSettling(null)
     })
   }
 
   function executeForget(txId: string, participantId: string) {
-    const key = `${txId}-${participantId}`
-    setSettling(key); cancelConfirm()
+    cancelConfirm()
     startTransition(async () => {
       const res = await settleParticipant(txId, participantId, false)
-      if (res.error) { toast.error(res.error); setSettling(null); return }
+      if (res.error) { toast.error(res.error); return }
       toast.success('Deuda olvidada')
-      setSettling(null)
     })
   }
 
   function executeSettleWithRecord(txId: string, participantId: string, accountId: string) {
-    const key = `${txId}-${participantId}`
-    setSettling(key); cancelConfirm()
+    cancelConfirm()
     startTransition(async () => {
       const res = await settleAndRecord(txId, participantId, accountId)
-      if (res.error) { toast.error(res.error); setSettling(null); return }
+      if (res.error) { toast.error(res.error); return }
       toast.success('Liquidado y registrado')
-      setSettling(null)
     })
   }
 
@@ -529,7 +522,6 @@ export default function SharedClient({ transactions, people, accounts, categorie
                         const isTheyOwe = tx.split_data?.splitMode === 'THEY' || tx.split_data?.splitMode === 'DIV'
                         const isReceivable = tx.is_receivable === true && tx.type === 'TR-INGRESO'
                         const key = `${tx.id}-${participant.id}`
-                        const isSettling = settling === key && isPending
                         const isPartialOpen = partialMode === key
                         const isConfirming = confirmKey === key
                         const isCollectPartialOpen = collectPartialOpen === key
@@ -538,18 +530,50 @@ export default function SharedClient({ transactions, people, accounts, categorie
                         return (
                           <div key={key} className="pt-2 space-y-2">
                             <SwipeableRow
-                              rightActions={canSync ? [{
-                                icon: 'fa-solid fa-arrows-rotate',
-                                label: 'Sincronizar',
-                                bg: 'var(--f-blue)',
-                                onClick: () => {
-                                  startTransition(async () => {
-                                    const r = await proposeSyncTransaction(tx.id, participant.id)
-                                    if (r.error) toast.error(r.error)
-                                    else toast.success('Sincronización propuesta')
-                                  })
+                              rightActions={[
+                                isReceivable
+                                  ? {
+                                      icon: 'fa-solid fa-check',
+                                      label: 'Cobrar',
+                                      bg: 'var(--f-income)',
+                                      onClick: () => executeCollect(tx.id, participant.id, 'full'),
+                                    }
+                                  : {
+                                      icon: 'fa-solid fa-check',
+                                      label: isTheyOwe ? 'Cobrado' : 'Pagado',
+                                      bg: 'var(--f-income)',
+                                      onClick: () => {
+                                        setPartialMode(null); setPartialInput(''); setPartialAccountId('')
+                                        requestConfirm(key, 'settle')
+                                      },
+                                    },
+                                {
+                                  icon: 'fa-solid fa-coins',
+                                  label: isReceivable ? 'Abonar' : 'Abono',
+                                  bg: 'var(--f-blue)',
+                                  onClick: isReceivable
+                                    ? () => { setCollectPartialOpen(isCollectPartialOpen ? null : key); setCollectPartialAmount('') }
+                                    : () => { setPartialMode(isPartialOpen ? null : key); setPartialInput(''); setPartialAccountId(''); cancelConfirm() },
                                 },
-                              }] : []}
+                                {
+                                  icon: 'fa-solid fa-trash',
+                                  label: isReceivable ? 'Cancelar' : 'Olvidar',
+                                  bg: 'var(--f-expense)',
+                                  onClick: () => requestConfirm(key, 'forget'),
+                                },
+                                ...(canSync ? [{
+                                  icon: 'fa-solid fa-arrows-rotate',
+                                  label: 'Sincronizar',
+                                  bg: '#5E5CE6',
+                                  onClick: () => {
+                                    startTransition(async () => {
+                                      const r = await proposeSyncTransaction(tx.id, participant.id)
+                                      if (r.error) toast.error(r.error)
+                                      else toast.success('Propuesta enviada')
+                                    })
+                                  },
+                                }] : []),
+                              ]}
                             >
                               <button
                                 onClick={() => setEditingTx(tx)}
@@ -569,84 +593,17 @@ export default function SharedClient({ transactions, people, accounts, categorie
                                     {formatDateShort(tx.transaction_date)}
                                     {' · '}
                                     {isReceivable ? 'pendiente de cobro' : isTheyOwe ? 'te debe' : 'les debes'}
-                                    {canSync && <> · <span style={{ color: 'var(--f-blue)' }}>← desliza</span></>}
                                   </p>
                                 </div>
-                                <p className="text-[16px] font-black tabular-nums flex-shrink-0"
-                                  style={{ color: isTheyOwe ? 'var(--f-income)' : 'var(--f-expense)' }}>
-                                  {isTheyOwe ? '+' : '-'}{formatCurrency(unpaid)}
-                                </p>
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                  <p className="text-[16px] font-black tabular-nums"
+                                    style={{ color: isTheyOwe ? 'var(--f-income)' : 'var(--f-expense)' }}>
+                                    {isTheyOwe ? '+' : '-'}{formatCurrency(unpaid)}
+                                  </p>
+                                  <i className="fa-solid fa-chevron-right text-[10px] opacity-20" style={{ color: 'var(--f-text-3)' }} />
+                                </div>
                               </button>
                             </SwipeableRow>
-
-                            {/* Action buttons — receivable incomes get Cobrar/Abonar/Cancelar */}
-                            {isReceivable ? (
-                              !isConfirming && (
-                                <div className="flex gap-1.5">
-                                  <button
-                                    onClick={() => executeCollect(tx.id, participant.id, 'full')}
-                                    disabled={isCollecting}
-                                    className="flex-1 py-1.5 rounded-[8px] text-[14px] font-black disabled:opacity-40 transition-all active:scale-95"
-                                    style={{ background: 'var(--f-income-bg)', color: 'var(--f-income)', border: '1px solid var(--f-income-border)' }}
-                                  >
-                                    {isCollectingThis ? <i className="fa-solid fa-spinner fa-spin" /> : '✓ Cobrar'}
-                                  </button>
-                                  <button
-                                    onClick={() => { setCollectPartialOpen(isCollectPartialOpen ? null : key); setCollectPartialAmount('') }}
-                                    disabled={isCollecting}
-                                    className="flex-1 py-1.5 rounded-[8px] text-[14px] font-black disabled:opacity-40 transition-all active:scale-95"
-                                    style={{ background: isCollectPartialOpen ? 'var(--f-accent-bg)' : 'var(--f-bg-input)', color: 'var(--f-blue)', border: `1px solid ${isCollectPartialOpen ? 'var(--f-accent-border)' : 'var(--f-line)'}` }}
-                                  >
-                                    ± Abonar
-                                  </button>
-                                  <button
-                                    onClick={() => requestConfirm(key, 'forget')}
-                                    disabled={isCollecting}
-                                    className="flex-1 py-1.5 rounded-[8px] text-[14px] font-black disabled:opacity-40 transition-all active:scale-95"
-                                    style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)', border: '1px solid var(--f-line)' }}
-                                  >
-                                    Cancelar
-                                  </button>
-                                </div>
-                              )
-                            ) : (
-                              (!isConfirming || confirmAction === 'settle') && (
-                                <div className="flex gap-1.5">
-                                  <button
-                                    onClick={() => {
-                                      if (isConfirming && confirmAction === 'settle') { cancelConfirm(); return }
-                                      setPartialMode(null); setPartialInput(''); setPartialAccountId('')
-                                      requestConfirm(key, 'settle')
-                                    }}
-                                    disabled={isPending || isPartialPending}
-                                    className="flex-1 py-1.5 rounded-[8px] text-[14px] font-black disabled:opacity-40 transition-all active:scale-95"
-                                    style={{
-                                      background: 'var(--f-income-bg)',
-                                      color: 'var(--f-income)',
-                                      border: `1px solid ${isConfirming && confirmAction === 'settle' ? 'var(--f-income)' : 'var(--f-income-border)'}`,
-                                    }}
-                                  >
-                                    {isSettling ? <i className="fa-solid fa-spinner fa-spin" /> : isTheyOwe ? '✓ Cobrado' : '✓ Pagado'}
-                                  </button>
-                                  <button
-                                    onClick={() => { setPartialMode(isPartialOpen ? null : key); setPartialInput(''); setPartialAccountId(''); cancelConfirm() }}
-                                    disabled={isPending || isPartialPending}
-                                    className="flex-1 py-1.5 rounded-[8px] text-[14px] font-black disabled:opacity-40 transition-all active:scale-95"
-                                    style={{ background: isPartialOpen ? 'var(--f-accent-bg)' : 'var(--f-bg-input)', color: 'var(--f-blue)', border: `1px solid ${isPartialOpen ? 'var(--f-accent-border)' : 'var(--f-line)'}` }}
-                                  >
-                                    ± Abono
-                                  </button>
-                                  <button
-                                    onClick={() => requestConfirm(key, 'forget')}
-                                    disabled={isPending || isPartialPending}
-                                    className="flex-1 py-1.5 rounded-[8px] text-[14px] font-black disabled:opacity-40 transition-all active:scale-95"
-                                    style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)', border: '1px solid var(--f-line)' }}
-                                  >
-                                    Olvidar
-                                  </button>
-                                </div>
-                              )
-                            )}
 
                             {/* Settle inline expansion — only for expense debts */}
                             {!isReceivable && isConfirming && confirmAction === 'settle' && (

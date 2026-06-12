@@ -18,41 +18,41 @@ function notifLabel(n: Notification): { icon: string; iconColor: string; text: s
   const d = n.data as Record<string, string>
   switch (n.type) {
     case 'friend_request':
-      return { icon: 'fa-solid fa-user-plus', iconColor: 'var(--f-blue)', text: `@${d.from_username || d.from_name} quiere ser tu amigo` }
+      return { icon: 'fa-solid fa-user-plus', iconColor: 'var(--f-blue)', text: `@${d.from_username || d.from_name} quiere ser tu amigo en Flux` }
     case 'friend_accepted':
-      return { icon: 'fa-solid fa-user-check', iconColor: 'var(--f-income)', text: `@${d.from_username || d.from_name} aceptó tu solicitud` }
+      return { icon: 'fa-solid fa-user-check', iconColor: 'var(--f-income)', text: `@${d.from_username || d.from_name} aceptó — ya pueden dividir gastos juntos` }
     case 'friend_declined':
-      return { icon: 'fa-solid fa-user-xmark', iconColor: 'var(--f-expense)', text: `@${d.from_username || d.from_name} rechazó tu solicitud` }
+      return { icon: 'fa-solid fa-user-xmark', iconColor: 'var(--f-expense)', text: `@${d.from_username || d.from_name} rechazó tu solicitud de amistad` }
     case 'shared_expense_invite':
-      return { icon: 'fa-solid fa-receipt', iconColor: 'var(--f-transfer)', text: `@${d.from_username} te invita a dividir: ${d.concept}` }
+      return { icon: 'fa-solid fa-receipt', iconColor: 'var(--f-transfer)', text: `@${d.from_username} pagó "${d.concept}" y dice que le debes tu parte` }
     case 'shared_expense_updated':
-      return { icon: 'fa-solid fa-pen-to-square', iconColor: 'var(--f-transfer)', text: `@${d.from_username} actualizó el gasto compartido: ${d.concept}` }
+      return { icon: 'fa-solid fa-pen-to-square', iconColor: 'var(--f-transfer)', text: `@${d.from_username} cambió un gasto en el que participas: "${d.concept}"` }
     case 'sync_proposal':
-      return { icon: 'fa-solid fa-arrows-rotate', iconColor: 'var(--f-blue)', text: `@${d.from_username} quiere sincronizar un gasto contigo: ${d.concept}` }
+      return { icon: 'fa-solid fa-arrows-rotate', iconColor: 'var(--f-blue)', text: `@${d.from_username} dice que participaste en: "${d.concept}" — ¿lo agregas a tu app?` }
     case 'sync_accepted':
-      return { icon: 'fa-solid fa-circle-check', iconColor: 'var(--f-income)', text: `@${d.from_username} aceptó sincronizar: ${d.concept}` }
+      return { icon: 'fa-solid fa-circle-check', iconColor: 'var(--f-income)', text: `@${d.from_username} aceptó el gasto compartido: "${d.concept}"` }
     case 'sync_declined':
-      return { icon: 'fa-solid fa-circle-xmark', iconColor: 'var(--f-expense)', text: `@${d.from_username} rechazó sincronizar: ${d.concept}` }
+      return { icon: 'fa-solid fa-circle-xmark', iconColor: 'var(--f-expense)', text: `@${d.from_username} no reconoce el gasto: "${d.concept}"` }
     case 'shared_expense_sent': {
       const names = Array.isArray(d.invited_names) ? (d.invited_names as string[]).join(', ') : ''
-      return { icon: 'fa-solid fa-paper-plane', iconColor: 'var(--f-blue)', text: `Invitaste a ${names} a dividir: ${d.concept}` }
+      return { icon: 'fa-solid fa-paper-plane', iconColor: 'var(--f-blue)', text: `Le avisaste a ${names} sobre: "${d.concept}" — te avisaremos cuando acepte` }
     }
     case 'shared_expense_accepted':
-      return { icon: 'fa-solid fa-circle-check', iconColor: 'var(--f-transfer)', text: `@${d.from_username} aceptó la deuda de: ${d.concept}` }
+      return { icon: 'fa-solid fa-circle-check', iconColor: 'var(--f-transfer)', text: `@${d.from_username} aceptó — te pagará cuando pueda. Revísalo en Compartidos` }
     case 'shared_expense_declined':
-      return { icon: 'fa-solid fa-circle-xmark', iconColor: 'var(--f-expense)', text: `@${d.from_username} rechazó el gasto: ${d.concept}` }
+      return { icon: 'fa-solid fa-circle-xmark', iconColor: 'var(--f-expense)', text: `@${d.from_username} no aceptó el gasto: "${d.concept}"` }
     case 'expense_settled_confirm':
-      return { icon: 'fa-solid fa-hand-holding-dollar', iconColor: 'var(--f-income)', text: `@${d.from_username} reporta que pagó su parte de: ${d.concept}` }
+      return { icon: 'fa-solid fa-hand-holding-dollar', iconColor: 'var(--f-income)', text: `@${d.from_username} dice que ya te pagó "${d.concept}" — ¿lo confirmas?` }
     case 'expense_settled':
-      return { icon: 'fa-solid fa-circle-check', iconColor: 'var(--f-income)', text: `@${d.from_username} confirmó el pago de: ${d.concept}` }
+      return { icon: 'fa-solid fa-circle-check', iconColor: 'var(--f-income)', text: `Confirmaste que @${d.from_username} te pagó "${d.concept}"` }
     case 'expense_settle_rejected':
-      return { icon: 'fa-solid fa-circle-xmark', iconColor: 'var(--f-expense)', text: `@${d.from_username} no confirmó el pago de: ${d.concept}` }
+      return { icon: 'fa-solid fa-circle-xmark', iconColor: 'var(--f-expense)', text: `No confirmaste el pago de @${d.from_username} en "${d.concept}"` }
     case 'receivable_invite':
-      return { icon: 'fa-solid fa-file-invoice-dollar', iconColor: 'var(--f-income)', text: `@${d.from_username} registró un cobro pendiente: ${d.concept} · ${formatCurrency(Number(d.participant_amount))}` }
+      return { icon: 'fa-solid fa-file-invoice-dollar', iconColor: '#FF9F0A', text: `@${d.from_username} dice que le debes: "${d.concept}" · ${formatCurrency(Number(d.participant_amount))}` }
     case 'receivable_abono':
-      return { icon: 'fa-solid fa-coins', iconColor: 'var(--f-income)', text: `@${d.from_username} registró tu abono de ${formatCurrency(Number(d.amount))} en: ${d.concept}` }
+      return { icon: 'fa-solid fa-coins', iconColor: 'var(--f-income)', text: `@${d.from_username} anotó que les pagaste ${formatCurrency(Number(d.amount))} de: "${d.concept}"` }
     case 'receivable_settled':
-      return { icon: 'fa-solid fa-circle-check', iconColor: 'var(--f-income)', text: `@${d.from_username} registró el pago completo de: ${d.concept} · ${formatCurrency(Number(d.amount))}` }
+      return { icon: 'fa-solid fa-circle-check', iconColor: 'var(--f-income)', text: `@${d.from_username} confirmó que ya les pagaste todo: "${d.concept}"` }
     case 'scheduled_due':
       return { icon: 'fa-solid fa-calendar-exclamation', iconColor: 'var(--f-expense)', text: `Vence hoy: ${d.name} · ${formatCurrency(Number(d.amount))}` }
     case 'tdc_due': {
@@ -172,7 +172,7 @@ export default function NotificationBell() {
     startTransition(async () => {
       const res = await acceptSharedExpense(notifId)
       if (res.error) { toast.error(res.error); return }
-      toast.success('Deuda aceptada — liquídala desde Compartidos cuando pagues')
+      toast.success('Guardado en Compartidos — paga cuando puedas y regístralo allí')
       setList(prev => prev.map(n => n.id === notifId ? { ...n, read: true } : n))
     })
   }
@@ -208,7 +208,7 @@ export default function NotificationBell() {
     startTransition(async () => {
       const res = await acceptReceivableInvite(notifId)
       if (res.error) { toast.error(res.error); return }
-      toast.success('Cobro aceptado — lo verás en Compartidos cuando pagues')
+      toast.success('Guardado en Compartidos — págalo cuando puedas y regístralo allí')
       setList(prev => prev.map(n => n.id === notifId ? { ...n, read: true } : n))
     })
   }
@@ -381,7 +381,10 @@ export default function NotificationBell() {
                     {n.type === 'expense_settled_confirm' && !n.read && (
                       <div className="mt-3 space-y-2">
                         <p className="text-[14px] font-bold tabular-nums" style={{ color: 'var(--f-income)' }}>
-                          Monto: {formatCurrency(Number(d.amount))}
+                          Monto reportado: {formatCurrency(Number(d.amount))}
+                        </p>
+                        <p className="text-[13px] font-medium leading-snug" style={{ color: 'var(--f-text-4)' }}>
+                          ¿Realmente recibiste este pago? Si confirmas, el saldo se cierra automáticamente.
                         </p>
                         {/* Optional account to credit on confirm */}
                         <select
@@ -408,7 +411,7 @@ export default function NotificationBell() {
                               className="flex-[2] py-2.5 rounded-[12px] text-[15px] font-black text-white disabled:opacity-50 active:scale-95"
                               style={{ background: 'var(--f-expense)' }}
                             >
-                              {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Confirmar rechazo'}
+                              {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Sí, rechazar pago'}
                             </button>
                           </div>
                         ) : (
@@ -419,7 +422,7 @@ export default function NotificationBell() {
                               className="flex-1 py-2.5 rounded-[12px] text-[15px] font-black transition-all active:scale-95 disabled:opacity-50"
                               style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
                             >
-                              Rechazar
+                              No recibí nada
                             </button>
                             <button
                               onClick={() => handleConfirmSettle(n.id)}
@@ -427,7 +430,7 @@ export default function NotificationBell() {
                               className="flex-[2] py-2.5 rounded-[12px] text-[15px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
                               style={{ background: 'var(--f-income)' }}
                             >
-                              {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : '✓ Confirmar pago'}
+                              {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : '✓ Sí, me pagó'}
                             </button>
                           </div>
                         )}
@@ -437,6 +440,9 @@ export default function NotificationBell() {
                       <>
                         <p className="text-[14px] mt-1 font-bold tabular-nums" style={{ color: 'var(--f-transfer)' }}>
                           Tu parte: {formatCurrency(Number(d.participant_amount))}
+                        </p>
+                        <p className="text-[13px] mt-1 font-medium leading-snug" style={{ color: 'var(--f-text-4)' }}>
+                          Si aceptas, quedará en tu tab <strong style={{ color: 'var(--f-text-3)' }}>Compartidos</strong>. Paga cuando puedas.
                         </p>
                         <div className="flex gap-2 mt-3">
                           <button
@@ -453,7 +459,7 @@ export default function NotificationBell() {
                             className="flex-[2] py-3 rounded-[12px] text-[15px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
                             style={{ background: 'var(--f-transfer)' }}
                           >
-                            {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Aceptar deuda'}
+                            {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Sí, lo debo'}
                           </button>
                         </div>
                       </>
@@ -463,6 +469,9 @@ export default function NotificationBell() {
                         <p className="text-[14px] mt-1 font-bold tabular-nums" style={{ color: 'var(--f-blue)' }}>
                           Tu parte: {formatCurrency(Number(d.participant_amount))}
                         </p>
+                        <p className="text-[13px] mt-1 font-medium leading-snug" style={{ color: 'var(--f-text-4)' }}>
+                          Si aceptas, se creará este gasto en tu app para que lo registres.
+                        </p>
                         <div className="flex gap-2 mt-3">
                           <button
                             onClick={() => { startTransition(async () => { const r = await declineSyncProposal(n.id); if (r.error) toast.error(r.error); setList(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x)) }) }}
@@ -470,23 +479,26 @@ export default function NotificationBell() {
                             className="flex-1 py-3 rounded-[12px] text-[15px] font-black transition-all active:scale-95 disabled:opacity-50"
                             style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
                           >
-                            Ignorar
+                            No reconozco
                           </button>
                           <button
-                            onClick={() => { startTransition(async () => { const r = await acceptSyncProposal(n.id); if (r.error) { toast.error(r.error); return } toast.success('Gasto sincronizado — lo verás en Compartidos'); setList(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x)) }) }}
+                            onClick={() => { startTransition(async () => { const r = await acceptSyncProposal(n.id); if (r.error) { toast.error(r.error); return } toast.success('Gasto agregado — lo verás en Compartidos'); setList(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x)) }) }}
                             disabled={isPending}
                             className="flex-[2] py-3 rounded-[12px] text-[15px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
                             style={{ background: 'var(--f-blue)' }}
                           >
-                            {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Sincronizar'}
+                            {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Sí, agregar a mi app'}
                           </button>
                         </div>
                       </>
                     )}
                     {n.type === 'receivable_invite' && !n.read && (
                       <>
-                        <p className="text-[14px] mt-1 font-bold tabular-nums" style={{ color: 'var(--f-income)' }}>
+                        <p className="text-[14px] mt-1 font-bold tabular-nums" style={{ color: '#FF9F0A' }}>
                           Monto: {formatCurrency(Number(d.participant_amount))}
+                        </p>
+                        <p className="text-[13px] mt-1 font-medium leading-snug" style={{ color: 'var(--f-text-4)' }}>
+                          Si aceptas, aparecerá en tu <strong style={{ color: 'var(--f-text-3)' }}>Compartidos</strong> como deuda pendiente.
                         </p>
                         <div className="flex gap-2 mt-3">
                           <button
@@ -495,15 +507,15 @@ export default function NotificationBell() {
                             className="flex-1 py-3 rounded-[12px] text-[15px] font-black transition-all active:scale-95 disabled:opacity-50"
                             style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
                           >
-                            Ignorar
+                            No reconozco
                           </button>
                           <button
                             onClick={() => handleAcceptReceivable(n.id)}
                             disabled={isPending}
                             className="flex-[2] py-3 rounded-[12px] text-[15px] font-black text-white transition-all active:scale-95 disabled:opacity-50"
-                            style={{ background: 'var(--f-income)' }}
+                            style={{ background: '#FF9F0A' }}
                           >
-                            {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Aceptar cobro'}
+                            {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Sí, lo acepto'}
                           </button>
                         </div>
                       </>

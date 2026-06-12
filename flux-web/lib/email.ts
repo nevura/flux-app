@@ -264,30 +264,42 @@ export async function sendSharedExpenseInviteEmail(opts: {
   to: string; toName: string; fromName: string; fromUsername: string; concept: string; amount: string
 }) {
   const html = base(
-    'Gasto compartido',
-    `<p style="color:#6E6E73;margin:0 0 16px"><strong style="color:#1D1D1F">@${opts.fromUsername}</strong> te invita a dividir un gasto.</p>
+    `@${opts.fromUsername} pagó y dice que le debes`,
+    `<p style="color:#6E6E73;margin:0 0 16px"><strong style="color:#1D1D1F">${opts.fromName}</strong> pagó <strong style="color:#1D1D1F">${opts.concept}</strong> e incluye tu parte en el cobro.</p>
      ${card(`<p style="color:#6E6E73;font-size:13px;margin:0 0 4px">Concepto</p>
              <p style="color:#1D1D1F;font-size:16px;font-weight:700;margin:0 0 10px">${opts.concept}</p>
              <p style="color:#6E6E73;font-size:13px;margin:0 0 4px">Tu parte</p>
-             <p style="color:#007AFF;font-size:22px;font-weight:900;margin:0">${opts.amount}</p>`)}`,
-    { url: APP_URL, label: 'Aceptar en FluxApp Finance', color: '#007AFF' },
+             <p style="color:#007AFF;font-size:22px;font-weight:900;margin:0">${opts.amount}</p>`)}
+     <div style="margin-top:16px;padding:14px;background:#F0F6FF;border-radius:12px;border:1px solid rgba(0,122,255,0.12)">
+       <p style="color:#1D1D1F;font-size:14px;font-weight:700;margin:0 0 6px">¿Qué hago?</p>
+       <p style="color:#6E6E73;font-size:13px;margin:0 0 4px">1. Abre la notificación en FluxApp Finance</p>
+       <p style="color:#6E6E73;font-size:13px;margin:0 0 4px">2. Toca <strong style="color:#1D1D1F">Sí, lo debo</strong> para guardarlo</p>
+       <p style="color:#6E6E73;font-size:13px;margin:0">3. Ve a <strong style="color:#1D1D1F">Compartidos</strong> cuando lo hayas pagado y regístralo</p>
+     </div>
+     <p style="color:#6E6E73;font-size:12px;margin:12px 0 0">No tienes que pagar ahora — solo confirma que reconoces el gasto.</p>`,
+    { url: APP_URL, label: 'Ver en FluxApp Finance', color: '#007AFF' },
   )
-  return send(opts.to, `${opts.fromName} te invita a dividir: ${opts.concept}`, html)
+  return send(opts.to, `${opts.fromName} pagó ${opts.concept} — te toca ${opts.amount}`, html)
 }
 
 export async function sendSharedExpensePaidEmail(opts: {
   to: string; toName: string; fromName: string; fromUsername: string; concept: string; amount: string
 }) {
   const html = base(
-    'Pago reportado',
-    `<p style="color:#6E6E73;margin:0 0 16px"><strong style="color:#1D1D1F">@${opts.fromUsername}</strong> reporta que pagó su parte.</p>
+    `@${opts.fromUsername} dice que ya te pagó`,
+    `<p style="color:#6E6E73;margin:0 0 16px"><strong style="color:#1D1D1F">${opts.fromName}</strong> marcó su parte de <strong style="color:#1D1D1F">${opts.concept}</strong> como pagada y necesita que lo confirmes.</p>
      ${card(`<p style="color:#6E6E73;font-size:13px;margin:0 0 4px">Concepto</p>
              <p style="color:#1D1D1F;font-size:16px;font-weight:700;margin:0 0 10px">${opts.concept}</p>
-             <p style="color:#6E6E73;font-size:13px;margin:0 0 4px">Monto pagado</p>
-             <p style="color:#34C759;font-size:22px;font-weight:900;margin:0">${opts.amount}</p>`)}`,
-    { url: APP_URL, label: 'Confirmar en FluxApp Finance', color: '#34C759' },
+             <p style="color:#6E6E73;font-size:13px;margin:0 0 4px">Monto reportado</p>
+             <p style="color:#34C759;font-size:22px;font-weight:900;margin:0">${opts.amount}</p>`)}
+     <div style="margin-top:16px;padding:14px;background:#F0FFF4;border-radius:12px;border:1px solid rgba(52,199,89,0.15)">
+       <p style="color:#1D1D1F;font-size:14px;font-weight:700;margin:0 0 6px">¿Qué hago?</p>
+       <p style="color:#6E6E73;font-size:13px;margin:0 0 4px">• Si <strong style="color:#1D1D1F">sí recibiste el pago</strong>: abre la app y toca <strong style="color:#34C759">✓ Sí, me pagó</strong></p>
+       <p style="color:#6E6E73;font-size:13px;margin:0">• Si <strong style="color:#1D1D1F">no recibiste nada</strong>: toca <strong style="color:#FF3B30">No recibí nada</strong> y el saldo queda pendiente</p>
+     </div>`,
+    { url: APP_URL, label: 'Confirmar o rechazar en FluxApp Finance', color: '#34C759' },
   )
-  return send(opts.to, `${opts.fromName} pagó su parte de: ${opts.concept}`, html)
+  return send(opts.to, `${opts.fromName} dice que ya te pagó — ${opts.concept}`, html)
 }
 
 // ── Admin: new user registered ───────────────────────────────────────────────

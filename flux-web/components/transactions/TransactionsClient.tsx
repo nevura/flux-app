@@ -42,16 +42,26 @@ export default function TransactionsClient({ initialTransactions, categories, ac
   const [pickerOpen, setPickerOpen] = useState(false)
   const [pickerYear, setPickerYear] = useState(year)
   const [slideDir, setSlideDir] = useState<'right' | 'left' | null>(null)
+  const [displayMonth, setDisplayMonth] = useState(month)
+  const [displayYear, setDisplayYear] = useState(year)
+
+  // Sync display state when new server data arrives
+  useEffect(() => {
+    setDisplayMonth(month)
+    setDisplayYear(year)
+  }, [month, year])
 
   const catMap = useMemo(() => Object.fromEntries(categories.map(c => [c.id, c])), [categories])
   const accMap = useMemo(() => Object.fromEntries(accounts.map(a => [a.id, a])), [accounts])
 
   function navigate(dir: -1 | 1) {
-    setSlideDir(dir === 1 ? 'right' : 'left')
-    let m = month + dir
-    let y = year
+    let m = displayMonth + dir
+    let y = displayYear
     if (m < 1)  { m = 12; y-- }
     if (m > 12) { m = 1;  y++ }
+    setDisplayMonth(m)
+    setDisplayYear(y)
+    setSlideDir(dir === 1 ? 'right' : 'left')
     startNavigate(() => router.push(`/transactions?year=${y}&month=${m}`))
   }
 
@@ -158,7 +168,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
 
 
   const now = new Date()
-  const isCurrentMonth = year === now.getFullYear() && month === (now.getMonth() + 1)
+  const isCurrentMonth = displayYear === now.getFullYear() && displayMonth === (now.getMonth() + 1)
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--f-bg)' }}>
@@ -183,13 +193,13 @@ export default function TransactionsClient({ initialTransactions, categories, ac
             <i className="fa-solid fa-chevron-left text-xs" style={{ color: 'var(--f-text)' }} />
           </button>
 
-          <div className="text-center" style={{ opacity: isNavigating ? 0.4 : 1, transition: 'opacity 0.15s ease' }}>
+          <div className="text-center">
             <button
-              onClick={() => { setPickerYear(year); setPickerOpen(true) }}
+              onClick={() => { setPickerYear(displayYear); setPickerOpen(true) }}
               className="flex items-center gap-1.5 text-[19px] font-black capitalize"
               style={{ color: 'var(--f-text)' }}
             >
-              {MONTHS_ES[month - 1]} {year}
+              {MONTHS_ES[displayMonth - 1]} {displayYear}
               {isNavigating && <i className="fa-solid fa-spinner fa-spin text-[14px] ml-1" style={{ color: 'var(--f-text-4)' }} />}
               <i className="fa-solid fa-chevron-down text-[12px]" style={{ color: 'var(--f-text-3)' }} />
             </button>
@@ -480,6 +490,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
       <div
         key={`${year}-${month}-${search}-${showShared}`}
         className={`px-4 py-4 max-w-lg mx-auto ${slideDir === 'right' ? 'animate-slide-from-right' : slideDir === 'left' ? 'animate-slide-from-left' : 'animate-fade-up'}`}
+        style={{ opacity: isNavigating ? 0.35 : 1, transition: 'opacity 0.12s ease' }}
       >
         {grouped.length === 0 ? (
           <div className="text-center py-16" style={{ color: 'var(--f-text-4)' }}>

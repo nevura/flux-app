@@ -62,12 +62,9 @@ export default function AppShell({ userId, fullName, email, isReadOnly, subStatu
   // ── Non-tab routes (settings, etc.) ─────────────────────────────────────────
   if (activeTab === null) {
     return (
-      <>
-        <main className="flex-1 pb-[calc(5rem+var(--safe-bottom))]">
-          <div className="animate-fade-in">{children}</div>
-        </main>
-        <AppNav isReadOnly={isReadOnly} />
-      </>
+      <main className="flex-1" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+        <div className="animate-fade-in">{children}</div>
+      </main>
     )
   }
 

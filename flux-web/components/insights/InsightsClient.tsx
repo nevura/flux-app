@@ -132,16 +132,25 @@ export default function InsightsClient({ transactions, categories, monthlySummar
   const catMap = useMemo(() => Object.fromEntries(categories.map(c => [c.id, c])), [categories])
 
   const now = new Date()
-  const isCurrentMonth = year === now.getFullYear() && month === (now.getMonth() + 1)
+  const [displayMonth, setDisplayMonth] = useState(month)
+  const [displayYear, setDisplayYear] = useState(year)
+
+  useEffect(() => { setDisplayMonth(month); setDisplayYear(year) }, [month, year])
+
+  const isCurrentMonth = displayYear === now.getFullYear() && displayMonth === (now.getMonth() + 1)
 
   function navigate(dir: -1 | 1) {
-    let m = month + dir, y = year
+    let m = displayMonth + dir, y = displayYear
     if (m < 1) { m = 12; y-- }
     if (m > 12) { m = 1; y++ }
+    setDisplayMonth(m)
+    setDisplayYear(y)
     startNavigate(() => router.push(`/insights?year=${y}&month=${m}`))
   }
 
   function navigatePicker(y: number, m: number) {
+    setDisplayMonth(m)
+    setDisplayYear(y)
     startNavigate(() => router.push(`/insights?year=${y}&month=${m}`))
   }
 
@@ -234,11 +243,12 @@ export default function InsightsClient({ transactions, categories, monthlySummar
           </button>
           <div className="text-center">
             <button
-              onClick={() => { setPickerYear(year); setPickerOpen(true) }}
+              onClick={() => { setPickerYear(displayYear); setPickerOpen(true) }}
               className="flex items-center gap-1.5 text-[19px] font-black capitalize"
               style={{ color: 'var(--f-text)' }}
             >
-              {MONTHS_ES[month - 1]} {year}
+              {MONTHS_ES[displayMonth - 1]} {displayYear}
+              {isNavigating && <i className="fa-solid fa-spinner fa-spin text-[14px]" style={{ color: 'var(--f-text-4)' }} />}
               <i className="fa-solid fa-chevron-down text-[12px]" style={{ color: 'var(--f-text-3)' }} />
             </button>
             {!isCurrentMonth && (
@@ -285,7 +295,7 @@ export default function InsightsClient({ transactions, categories, monthlySummar
               </div>
               <div className="grid grid-cols-4 gap-1.5">
                 {MONTHS_ES.map((m, i) => {
-                  const isSelected = pickerYear === year && (i + 1) === month
+                  const isSelected = pickerYear === displayYear && (i + 1) === displayMonth
                   const isFuture = pickerYear === now.getFullYear() && (i + 1) > now.getMonth() + 1
                   return (
                     <button

@@ -28,6 +28,7 @@ export default function PullToRefresh({ children }: { children: React.ReactNode 
 
   useEffect(() => {
     const onStart = (e: TouchEvent) => {
+      if (document.body.dataset.modalOpen) return
       if (window.scrollY === 0 && !refreshingRef.current) {
         startYRef.current = e.touches[0].clientY
         activeRef.current = true
