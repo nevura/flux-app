@@ -39,9 +39,10 @@ export default function SupportChat({ onBack }: Props = {}) {
   const [sending, setSending] = useState(false)
   const [botTyping, setBotTyping] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const bottomRef    = useRef<HTMLDivElement>(null)
-  const inputRef     = useRef<HTMLTextAreaElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const bottomRef      = useRef<HTMLDivElement>(null)
+  const inputRef       = useRef<HTMLTextAreaElement>(null)
+  const containerRef   = useRef<HTMLDivElement>(null)
+  const botDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => { setMounted(true) }, [])
 
@@ -133,17 +134,20 @@ export default function SupportChat({ onBack }: Props = {}) {
       return
     }
 
-    // Trigger bot from the browser — fire-and-forget at the network level,
-    // so Vercel won't kill it when the server action returns.
-    // Bot reply arrives via the Supabase realtime subscription above.
-    const typingTimer = setTimeout(() => setBotTyping(true), 1200)
-    fetch('/api/support/bot', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ conversationId: conv.id, userMessage: body }),
-    }).then(r => r.json()).then(data => {
-      if (!data.ok) { clearTimeout(typingTimer); setBotTyping(false); console.warn('[support-bot] failed:', data) }
-    }).catch(err => { clearTimeout(typingTimer); setBotTyping(false); console.error('[support-bot] fetch error:', err) })
+    // Debounce the bot trigger: wait 2.5s after the last message so rapid
+    // consecutive messages only produce one bot reply.
+    if (botDebounceRef.current) clearTimeout(botDebounceRef.current)
+    setBotTyping(false)
+    botDebounceRef.current = setTimeout(() => {
+      setBotTyping(true)
+      fetch('/api/support/bot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversationId: conv.id, userMessage: body }),
+      }).then(r => r.json()).then(data => {
+        if (!data.ok) { setBotTyping(false); console.warn('[support-bot] failed:', data) }
+      }).catch(err => { setBotTyping(false); console.error('[support-bot] fetch error:', err) })
+    }, 2500)
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
