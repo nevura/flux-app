@@ -252,7 +252,9 @@ export default function TransactionModal({ transaction, accounts, categories, pe
       window.dispatchEvent(new CustomEvent('flux:refresh'))
       handleClose()
       if (!isEdit) {
-        setTimeout(() => router.push('/transactions'), 260)
+        const isSplit = splitEnabled && splitSelected.size > 0
+        const isIOwe = iOweEnabled && ioweSelected.size > 0
+        setTimeout(() => router.push(isSplit || isIOwe ? '/shared' : '/transactions'), 260)
       }
     })
   }
@@ -322,7 +324,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
         </div>
 
         {/* Scrollable body */}
-        <div className="flex-1 overflow-y-auto no-scrollbar" style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+        <div className="flex-1 overflow-y-auto no-scrollbar" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' } as React.CSSProperties}>
           <div className="px-5 py-5 space-y-5">
 
             {/* Type selector */}
@@ -659,6 +661,26 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                     title="Divide gastos con otras personas"
                     body="'Compartir gasto' registra lo que cada quien te debe. 'Lo pagó otra persona' guarda una deuda tuya sin mover tu saldo hasta que pagues."
                   />
+                )}
+
+                {/* Contextual tips — always visible when mode is active */}
+                {splitEnabled && (
+                  <div className="rounded-[12px] px-3 py-2.5 animate-fade-up"
+                    style={{ background: 'var(--f-transfer-bg)', border: '1px solid var(--f-transfer-border)' }}>
+                    <p className="text-[13px] font-medium" style={{ color: 'var(--f-transfer)' }}>
+                      <i className="fa-solid fa-circle-info mr-1.5" />
+                      Selecciona quiénes participaron. En <strong>Compartidos</strong> podrás registrar cuando te paguen.
+                    </p>
+                  </div>
+                )}
+                {iOweEnabled && (
+                  <div className="rounded-[12px] px-3 py-2.5 animate-fade-up"
+                    style={{ background: 'rgba(255,159,10,0.08)', border: '1px solid rgba(255,159,10,0.25)' }}>
+                    <p className="text-[13px] font-medium" style={{ color: '#FF9F0A' }}>
+                      <i className="fa-solid fa-circle-info mr-1.5" />
+                      No mueve tu saldo ahora. Cuando pagues, ve a <strong>Compartidos</strong> y toca <strong>Liquidar deuda</strong>.
+                    </p>
+                  </div>
                 )}
 
                 {/* IOWE expanded */}

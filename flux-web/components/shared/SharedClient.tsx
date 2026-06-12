@@ -1,6 +1,7 @@
 'use client'
 
-import { useMemo, useState, useTransition } from 'react'
+import React, { useMemo, useState, useTransition } from 'react'
+import { SwipeableRow } from '@/components/shared/SwipeableRow'
 import { toast } from 'sonner'
 import { formatCurrency, formatDateShort } from '@/lib/utils'
 import { useCountUp } from '@/lib/hooks'
@@ -211,11 +212,18 @@ export default function SharedClient({ transactions, people, accounts, categorie
 
     return Object.values(map)
       .filter(b => b.person)
-      .sort((a, b) => Math.abs(b.net) - Math.abs(a.net))
+      .sort((a, b) => {
+        if (a.net > 0 && b.net <= 0) return -1
+        if (a.net <= 0 && b.net > 0) return 1
+        return Math.abs(b.net) - Math.abs(a.net)
+      })
   }, [transactions, personMap])
 
   const totalOwesMe = balances.reduce((s, b) => s + b.owesMe, 0)
   const totalIOwe = balances.reduce((s, b) => s + b.iOwe, 0)
+  const hasOwesMe = balances.some(b => b.net > 0)
+  const hasIOwe = balances.some(b => b.net < 0)
+  const firstIoweIdx = balances.findIndex(b => b.net < 0)
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--f-bg)' }}>
@@ -269,15 +277,47 @@ export default function SharedClient({ transactions, people, accounts, categorie
 
         {/* Per-person breakdown */}
         {balances.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="w-20 h-20 rounded-[28px] flex items-center justify-center mb-5 mx-auto"
-              style={{ background: 'var(--f-accent-bg)', border: '1px solid var(--f-accent-border)' }}>
-              <i className="fa-solid fa-users text-3xl" style={{ color: 'var(--f-blue)' }} />
+          <div className="py-12 space-y-5">
+            <div className="text-center">
+              <div className="w-20 h-20 rounded-[28px] flex items-center justify-center mb-4 mx-auto"
+                style={{ background: 'var(--f-accent-bg)', border: '1px solid var(--f-accent-border)' }}>
+                <i className="fa-solid fa-users text-3xl" style={{ color: 'var(--f-blue)' }} />
+              </div>
+              <p className="text-[20px] font-black mb-1" style={{ color: 'var(--f-text)' }}>Sin gastos compartidos</p>
+              <p className="text-[14px] font-medium" style={{ color: 'var(--f-text-4)' }}>
+                Registra deudas con otras personas
+              </p>
             </div>
-            <p className="text-[20px] font-black mb-2" style={{ color: 'var(--f-text)' }}>Sin gastos compartidos</p>
-            <p className="text-[15px] font-bold text-center max-w-xs mx-auto" style={{ color: 'var(--f-text-4)' }}>
-              Al agregar un gasto, activa &quot;Compartir&quot; y asigna personas
-            </p>
+            <div className="space-y-2">
+              <div className="rounded-[16px] p-4" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)' }}>
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0"
+                    style={{ background: 'var(--f-income-bg)' }}>
+                    <i className="fa-solid fa-receipt text-[16px]" style={{ color: 'var(--f-income)' }} />
+                  </div>
+                  <div>
+                    <p className="text-[15px] font-black" style={{ color: 'var(--f-text)' }}>Pagué yo — me deben</p>
+                    <p className="text-[13px] font-medium mt-0.5" style={{ color: 'var(--f-text-3)' }}>
+                      En un nuevo gasto activa <strong>Compartir gasto</strong> y selecciona a los participantes.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="rounded-[16px] p-4" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)' }}>
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0"
+                    style={{ background: 'rgba(255,159,10,0.1)' }}>
+                    <i className="fa-solid fa-hand-holding-dollar text-[16px]" style={{ color: '#FF9F0A' }} />
+                  </div>
+                  <div>
+                    <p className="text-[15px] font-black" style={{ color: 'var(--f-text)' }}>Alguien más pagó — yo les debo</p>
+                    <p className="text-[13px] font-medium mt-0.5" style={{ color: 'var(--f-text-3)' }}>
+                      Usa <strong>Lo pagó otra persona</strong> para registrar lo que debes sin afectar tu saldo.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="space-y-2">
@@ -287,7 +327,22 @@ export default function SharedClient({ transactions, people, accounts, categorie
               const isGlobalOpen = globalSettleId === b.person.id
               const isAbonoOpen = globalAbonoId === b.person.id
               return (
-                <div key={b.person.id} className="rounded-[20px] overflow-hidden animate-spring-in"
+                <React.Fragment key={b.person.id}>
+                  {bi === 0 && hasOwesMe && hasIOwe && (
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="flex-1 h-px" style={{ background: 'var(--f-line)' }} />
+                      <p className="text-[11px] font-black tracking-[2px] uppercase px-1" style={{ color: 'var(--f-income)' }}>Me deben</p>
+                      <div className="flex-1 h-px" style={{ background: 'var(--f-line)' }} />
+                    </div>
+                  )}
+                  {bi === firstIoweIdx && firstIoweIdx > 0 && (
+                    <div className="flex items-center gap-2 mt-1 mb-1">
+                      <div className="flex-1 h-px" style={{ background: 'var(--f-line)' }} />
+                      <p className="text-[11px] font-black tracking-[2px] uppercase px-1" style={{ color: 'var(--f-expense)' }}>Les debo</p>
+                      <div className="flex-1 h-px" style={{ background: 'var(--f-line)' }} />
+                    </div>
+                  )}
+                <div className="rounded-[20px] overflow-hidden animate-spring-in"
                   style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', animationDelay: `${bi * 0.07}s` }}>
 
                   {/* Header row — tap to toggle desglose */}
@@ -330,7 +385,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                       style={{ background: isAbonoOpen ? 'var(--f-accent-bg)' : 'var(--f-bg-input)', color: isAbonoOpen ? 'var(--f-blue)' : 'var(--f-text-3)', border: `1px solid ${isAbonoOpen ? 'var(--f-accent-border)' : 'var(--f-line)'}` }}
                     >
                       <i className="fa-solid fa-coins text-[12px]" />
-                      Abonar
+                      {netPositive ? 'Me pagó' : 'Registrar pago'}
                     </button>
                     <button
                       onClick={() => { setGlobalSettleId(isGlobalOpen ? null : b.person.id); setGlobalAbonoId(null); setGlobalAccountId('') }}
@@ -338,13 +393,16 @@ export default function SharedClient({ transactions, people, accounts, categorie
                       style={{ background: isGlobalOpen ? 'var(--f-income-bg)' : 'var(--f-bg-input)', color: isGlobalOpen ? 'var(--f-income)' : 'var(--f-text-3)', border: `1px solid ${isGlobalOpen ? 'var(--f-income-border)' : 'var(--f-line)'}` }}
                     >
                       <i className="fa-solid fa-check-double text-[12px]" />
-                      Saldar todo
+                      {netPositive ? 'Cobrar todo' : 'Liquidar deuda'}
                     </button>
                   </div>
 
                   {/* Global abono panel — compact inline style */}
                   {isAbonoOpen && (
                     <div className="mx-4 mb-4 space-y-2 animate-fade-up">
+                      <p className="text-[13px] font-bold" style={{ color: 'var(--f-text-3)' }}>
+                        {netPositive ? `¿Cuánto te pagó ${b.person.name}?` : `¿Cuánto le pagaste a ${b.person.name}?`}
+                      </p>
                       <div className="flex gap-2">
                         <input
                           autoFocus
@@ -412,7 +470,9 @@ export default function SharedClient({ transactions, people, accounts, categorie
                         >
                           {isGlobalPending
                             ? <i className="fa-solid fa-spinner fa-spin" />
-                            : globalAccountId ? 'Saldar y registrar' : 'Saldar sin registrar'}
+                            : globalAccountId
+                              ? (netPositive ? 'Cobrar y registrar' : 'Liquidar y registrar')
+                              : (netPositive ? 'Cobrar todo' : 'Liquidar deuda')}
                         </button>
                       </div>
                     </div>
@@ -474,35 +534,50 @@ export default function SharedClient({ transactions, people, accounts, categorie
                         const isConfirming = confirmKey === key
                         const isCollectPartialOpen = collectPartialOpen === key
                         const isCollectingThis = collectingKey === key && isCollecting
+                        const canSync = isTheyOwe && !!b.person.linked_user_id && !participant.paidStatus && !isReceivable
                         return (
                           <div key={key} className="pt-2 space-y-2">
-                            <button
-                              onClick={() => setEditingTx(tx)}
-                              className="w-full flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
+                            <SwipeableRow
+                              rightActions={canSync ? [{
+                                icon: 'fa-solid fa-arrows-rotate',
+                                label: 'Sincronizar',
+                                bg: 'var(--f-blue)',
+                                onClick: () => {
+                                  startTransition(async () => {
+                                    const r = await proposeSyncTransaction(tx.id, participant.id)
+                                    if (r.error) toast.error(r.error)
+                                    else toast.success('Sincronización propuesta')
+                                  })
+                                },
+                              }] : []}
                             >
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-0.5">
-                                  {isReceivable && (
-                                    <span className="text-[10px] font-black tracking-[1px] uppercase px-1.5 py-0.5 rounded-full flex-shrink-0"
-                                      style={{ background: 'var(--f-income-bg)', color: 'var(--f-income)', border: '1px solid var(--f-income-border)' }}>
-                                      por cobrar
-                                    </span>
-                                  )}
-                                  <p className="text-[16px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{tx.concept}</p>
+                              <button
+                                onClick={() => setEditingTx(tx)}
+                                className="w-full flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
+                              >
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-0.5">
+                                    {isReceivable && (
+                                      <span className="text-[10px] font-black tracking-[1px] uppercase px-1.5 py-0.5 rounded-full flex-shrink-0"
+                                        style={{ background: 'var(--f-income-bg)', color: 'var(--f-income)', border: '1px solid var(--f-income-border)' }}>
+                                        por cobrar
+                                      </span>
+                                    )}
+                                    <p className="text-[16px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{tx.concept}</p>
+                                  </div>
+                                  <p className="text-[14px]" style={{ color: 'var(--f-text-4)' }}>
+                                    {formatDateShort(tx.transaction_date)}
+                                    {' · '}
+                                    {isReceivable ? 'pendiente de cobro' : isTheyOwe ? 'te debe' : 'les debes'}
+                                    {canSync && <> · <span style={{ color: 'var(--f-blue)' }}>← desliza</span></>}
+                                  </p>
                                 </div>
-                                <p className="text-[14px]" style={{ color: 'var(--f-text-4)' }}>
-                                  {formatDateShort(tx.transaction_date)}
-                                  {' · '}
-                                  {isReceivable ? 'pendiente de cobro' : isTheyOwe ? 'te debe' : 'les debes'}
-                                  {' · '}
-                                  <span style={{ color: 'var(--f-blue)' }}>ver</span>
+                                <p className="text-[16px] font-black tabular-nums flex-shrink-0"
+                                  style={{ color: isTheyOwe ? 'var(--f-income)' : 'var(--f-expense)' }}>
+                                  {isTheyOwe ? '+' : '-'}{formatCurrency(unpaid)}
                                 </p>
-                              </div>
-                              <p className="text-[16px] font-black tabular-nums flex-shrink-0"
-                                style={{ color: isTheyOwe ? 'var(--f-income)' : 'var(--f-expense)' }}>
-                                {isTheyOwe ? '+' : '-'}{formatCurrency(unpaid)}
-                              </p>
-                            </button>
+                              </button>
+                            </SwipeableRow>
 
                             {/* Action buttons — receivable incomes get Cobrar/Abonar/Cancelar */}
                             {isReceivable ? (
@@ -571,26 +646,6 @@ export default function SharedClient({ transactions, people, accounts, categorie
                                   </button>
                                 </div>
                               )
-                            )}
-
-                            {/* Sincronizar — only for THEY/DIV with linked Flux user and not yet settled */}
-                            {isTheyOwe && !!b.person.linked_user_id && !participant.paidStatus && !isReceivable && (
-                              <button
-                                onClick={() => {
-                                  startTransition(async () => {
-                                    const r = await proposeSyncTransaction(tx.id, participant.id)
-                                    if (r.error) toast.error(r.error)
-                                    else toast.success('Propuesta de sincronización enviada')
-                                  })
-                                }}
-                                disabled={isPending}
-                                className="w-full flex items-center gap-2 py-1.5 text-left disabled:opacity-40 transition-all active:scale-95"
-                              >
-                                <i className="fa-solid fa-arrows-rotate text-[13px]" style={{ color: 'var(--f-blue)' }} />
-                                <p className="text-[14px] font-bold" style={{ color: 'var(--f-blue)' }}>
-                                  Sincronizar con @{b.person.linked_profile?.username ?? b.person.name}
-                                </p>
-                              </button>
                             )}
 
                             {/* Settle inline expansion — only for expense debts */}
@@ -755,6 +810,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                     </div>
                   )}
                 </div>
+                </React.Fragment>
               )
             })}
           </div>

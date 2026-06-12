@@ -29,6 +29,7 @@ interface Props {
 export default function TransactionsClient({ initialTransactions, categories, accounts, people, year, month }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+  const [isNavigating, startNavigate] = useTransition()
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing]     = useState<Transaction | null>(null)
   const [search, setSearch]         = useState('')
@@ -51,7 +52,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
     let y = year
     if (m < 1)  { m = 12; y-- }
     if (m > 12) { m = 1;  y++ }
-    router.push(`/transactions?year=${y}&month=${m}`)
+    startNavigate(() => router.push(`/transactions?year=${y}&month=${m}`))
   }
 
   function toggleType(v: string) {
@@ -182,13 +183,14 @@ export default function TransactionsClient({ initialTransactions, categories, ac
             <i className="fa-solid fa-chevron-left text-xs" style={{ color: 'var(--f-text)' }} />
           </button>
 
-          <div className="text-center">
+          <div className="text-center" style={{ opacity: isNavigating ? 0.4 : 1, transition: 'opacity 0.15s ease' }}>
             <button
               onClick={() => { setPickerYear(year); setPickerOpen(true) }}
               className="flex items-center gap-1.5 text-[19px] font-black capitalize"
               style={{ color: 'var(--f-text)' }}
             >
               {MONTHS_ES[month - 1]} {year}
+              {isNavigating && <i className="fa-solid fa-spinner fa-spin text-[14px] ml-1" style={{ color: 'var(--f-text-4)' }} />}
               <i className="fa-solid fa-chevron-down text-[12px]" style={{ color: 'var(--f-text-3)' }} />
             </button>
             {!isCurrentMonth && (
