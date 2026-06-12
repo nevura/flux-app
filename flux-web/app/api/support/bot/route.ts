@@ -6,14 +6,17 @@ export const maxDuration = 30
 
 export async function POST(req: NextRequest) {
   const apiKey = process.env.ANTHROPIC_API_KEY
+  console.log('[support-bot] called, has_key:', !!apiKey)
   if (!apiKey) return NextResponse.json({ ok: false, reason: 'no_key' })
 
   // Auth via user session (called from the browser)
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user }, error: authErr } = await supabase.auth.getUser()
+  console.log('[support-bot] auth:', user?.id ?? 'none', authErr?.message ?? '')
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { conversationId, userMessage } = await req.json()
+  console.log('[support-bot] conversationId:', conversationId)
 
   // Verify user owns the conversation
   const admin = createAdminClient()
@@ -109,12 +112,14 @@ Si escalate es true, en el reply avisa amablemente que un humano lo contactará 
       messages.push({ role: 'user', content: userMessage })
     }
 
+    console.log('[support-bot] calling Anthropic, messages:', messages.length)
     const response = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 512,
       system: BOT_SYSTEM_PROMPT,
       messages,
     })
+    console.log('[support-bot] Anthropic response received, tokens:', response.usage)
 
     const raw = (response.content[0] as { type: string; text: string }).text.trim()
 

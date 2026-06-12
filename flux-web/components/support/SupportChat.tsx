@@ -139,7 +139,9 @@ export default function SupportChat({ onBack }: Props = {}) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ conversationId: conv.id, userMessage: body }),
-    }).catch(() => {})
+    }).then(r => r.json()).then(data => {
+      if (!data.ok) console.warn('[support-bot] failed:', data)
+    }).catch(err => console.error('[support-bot] fetch error:', err))
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
