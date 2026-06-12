@@ -123,9 +123,9 @@ Si escalate es true, en el reply avisa amablemente que un humano lo contactará 
       }
     }
 
-    console.log('[support-bot] calling Anthropic, messages:', messages.length)
+    console.log('[support-bot] calling Anthropic, messages:', messages.length, JSON.stringify(messages.map(m => ({ role: m.role, len: m.content.length }))))
     const response = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
+      model: 'claude-3-5-haiku-20241022',
       max_tokens: 512,
       system: BOT_SYSTEM_PROMPT,
       messages,
@@ -196,8 +196,9 @@ Si escalate es true, en el reply avisa amablemente que un humano lo contactará 
     }
 
     return NextResponse.json({ ok: true, escalate })
-  } catch (e) {
-    console.error('[support-bot]', e)
-    return NextResponse.json({ ok: false, error: String(e) }, { status: 500 })
+  } catch (e: any) {
+    const detail = e?.error ?? e?.message ?? String(e)
+    console.error('[support-bot] error:', JSON.stringify(detail))
+    return NextResponse.json({ ok: false, error: String(e), detail }, { status: 500 })
   }
 }
