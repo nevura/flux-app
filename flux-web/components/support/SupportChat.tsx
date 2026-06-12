@@ -37,6 +37,7 @@ export default function SupportChat({ onBack }: Props = {}) {
   const [loading, setLoading] = useState(true)
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
+  const [botTyping, setBotTyping] = useState(false)
   const [mounted, setMounted] = useState(false)
   const bottomRef    = useRef<HTMLDivElement>(null)
   const inputRef     = useRef<HTMLTextAreaElement>(null)
@@ -97,7 +98,7 @@ export default function SupportChat({ onBack }: Props = {}) {
               return [...withoutOpt, msg]
             })
             scrollToBottom()
-            if (msg.sender === 'admin') markReadByUser(conversation.id)
+            if (msg.sender === 'admin') { setBotTyping(false); markReadByUser(conversation.id) }
           }
         )
         .subscribe()
@@ -135,13 +136,14 @@ export default function SupportChat({ onBack }: Props = {}) {
     // Trigger bot from the browser — fire-and-forget at the network level,
     // so Vercel won't kill it when the server action returns.
     // Bot reply arrives via the Supabase realtime subscription above.
+    setBotTyping(true)
     fetch('/api/support/bot', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ conversationId: conv.id, userMessage: body }),
     }).then(r => r.json()).then(data => {
-      if (!data.ok) console.warn('[support-bot] failed:', data)
-    }).catch(err => console.error('[support-bot] fetch error:', err))
+      if (!data.ok) { setBotTyping(false); console.warn('[support-bot] failed:', data) }
+    }).catch(err => { setBotTyping(false); console.error('[support-bot] fetch error:', err) })
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -236,6 +238,20 @@ export default function SupportChat({ onBack }: Props = {}) {
           })}
         </div>
       ))}
+      {botTyping && (
+        <div className="flex justify-start mb-1">
+          <div className="w-7 h-7 rounded-full flex-shrink-0 mr-2 mt-auto mb-0.5 flex items-center justify-center"
+            style={{ background: 'rgba(0,122,255,0.12)' }}>
+            <i className="fa-solid fa-headset text-[10px]" style={{ color: 'var(--f-blue)' }} />
+          </div>
+          <div className="px-4 py-3 rounded-[18px] flex gap-1 items-center"
+            style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', borderBottomLeftRadius: 4 }}>
+            <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: 'var(--f-text-4)', animationDelay: '0ms' }} />
+            <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: 'var(--f-text-4)', animationDelay: '150ms' }} />
+            <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: 'var(--f-text-4)', animationDelay: '300ms' }} />
+          </div>
+        </div>
+      )}
       <div ref={bottomRef} />
     </>
   )
