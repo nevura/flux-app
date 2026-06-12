@@ -136,14 +136,14 @@ export default function SupportChat({ onBack }: Props = {}) {
     // Trigger bot from the browser — fire-and-forget at the network level,
     // so Vercel won't kill it when the server action returns.
     // Bot reply arrives via the Supabase realtime subscription above.
-    setTimeout(() => setBotTyping(true), 1200)
+    const typingTimer = setTimeout(() => setBotTyping(true), 1200)
     fetch('/api/support/bot', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ conversationId: conv.id, userMessage: body }),
     }).then(r => r.json()).then(data => {
-      if (!data.ok) { setBotTyping(false); console.warn('[support-bot] failed:', data) }
-    }).catch(err => { setBotTyping(false); console.error('[support-bot] fetch error:', err) })
+      if (!data.ok) { clearTimeout(typingTimer); setBotTyping(false); console.warn('[support-bot] failed:', data) }
+    }).catch(err => { clearTimeout(typingTimer); setBotTyping(false); console.error('[support-bot] fetch error:', err) })
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {

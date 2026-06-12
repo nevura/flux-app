@@ -99,7 +99,7 @@ Si escalate es true, en el reply avisa amablemente que un humano lo contactará 
     const recent = (history as { sender: string; body: string }[]).slice(-10)
     const contextBlock = `Usuario: ${userContext.name} | Suscripción: ${userContext.subscriptionStatus}${userContext.daysLeft !== null ? ` (${userContext.daysLeft}d restantes)` : ''} | Atajos: ${userContext.shortcutEverUsed ? 'sí' : 'no'}`
 
-    const messages: { role: 'user' | 'assistant'; content: string }[] = [
+    const rawMessages: { role: 'user' | 'assistant'; content: string }[] = [
       { role: 'user', content: `[Contexto del usuario] ${contextBlock}` },
       { role: 'assistant', content: 'Entendido, estoy listo para ayudar.' },
       ...recent.map(m => ({
@@ -108,8 +108,19 @@ Si escalate es true, en el reply avisa amablemente que un humano lo contactará 
       })),
     ]
 
-    if (messages[messages.length - 1]?.role !== 'user') {
-      messages.push({ role: 'user', content: userMessage })
+    if (rawMessages[rawMessages.length - 1]?.role !== 'user') {
+      rawMessages.push({ role: 'user', content: userMessage })
+    }
+
+    // Anthropic requires strictly alternating roles — merge consecutive same-role messages
+    const messages: { role: 'user' | 'assistant'; content: string }[] = []
+    for (const msg of rawMessages) {
+      const last = messages[messages.length - 1]
+      if (last && last.role === msg.role) {
+        last.content += '\n' + msg.content
+      } else {
+        messages.push({ role: msg.role, content: msg.content })
+      }
     }
 
     console.log('[support-bot] calling Anthropic, messages:', messages.length)
