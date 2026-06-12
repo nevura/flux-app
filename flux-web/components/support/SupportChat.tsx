@@ -147,7 +147,7 @@ export default function SupportChat({ onBack }: Props = {}) {
       }).then(r => r.json()).then(data => {
         if (!data.ok) { setBotTyping(false); console.warn('[support-bot] failed:', data) }
       }).catch(err => { setBotTyping(false); console.error('[support-bot] fetch error:', err) })
-    }, 2500)
+    }, 5000)
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
