@@ -490,9 +490,21 @@ export default function TransactionsClient({ initialTransactions, categories, ac
       <div
         key={`${year}-${month}-${search}-${showShared}`}
         className={`px-4 py-4 max-w-lg mx-auto ${slideDir === 'right' ? 'animate-slide-from-right' : slideDir === 'left' ? 'animate-slide-from-left' : 'animate-fade-up'}`}
-        style={{ opacity: isNavigating ? 0.35 : 1, transition: 'opacity 0.12s ease' }}
       >
-        {grouped.length === 0 ? (
+        {isNavigating ? (
+          <div className="space-y-4 animate-pulse">
+            {[0,1,2,3].map(i => (
+              <div key={i}>
+                <div className="h-3 w-20 rounded-full mb-2" style={{ background: 'var(--f-bg-card)' }} />
+                <div className="space-y-1.5">
+                  {[0,1].map(j => (
+                    <div key={j} className="h-16 rounded-[18px]" style={{ background: 'var(--f-bg-card)' }} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : grouped.length === 0 ? (
           <div className="text-center py-16" style={{ color: 'var(--f-text-4)' }}>
             <i className="fa-solid fa-magnifying-glass text-4xl mb-3 block opacity-30" />
             <p className="text-sm font-bold">{isSearchingAll || isLoadingShared ? 'Buscando…' : 'Sin movimientos'}</p>

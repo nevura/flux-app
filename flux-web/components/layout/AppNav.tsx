@@ -19,8 +19,11 @@ const TABS = [
 
 interface ModalData { accounts: AccountWithBalance[]; categories: Category[]; people: Person[] }
 
+const TAB_PATHS = ['/home', '/transactions', '/insights', '/shared']
+
 export default function AppNav({ isReadOnly }: NavProps) {
   const pathname = usePathname()
+  const isTabRoute = TAB_PATHS.some(p => pathname === p || (p !== '/home' && pathname.startsWith(p)))
   const [pendingHref, setPendingHref] = useState<string | null>(null)
   const [fabOpen, setFabOpen] = useState(false)
   const [fabData, setFabData] = useState<ModalData | null>(null)
@@ -66,6 +69,8 @@ export default function AppNav({ isReadOnly }: NavProps) {
       </Link>
     )
   }
+
+  if (!isTabRoute) return null
 
   return (
     <>

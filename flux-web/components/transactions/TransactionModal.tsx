@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useEffect } from 'react'
+import { useState, useTransition, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -44,10 +44,25 @@ export default function TransactionModal({ transaction, accounts, categories, pe
   const { handleProps: swipeHandleProps, sheetStyle } = useBottomSheetSwipe(handleClose)
   useBodyScrollLock()
 
-  // Tell PullToRefresh to stand down while modal is open
+  // Prevent pull-to-refresh (both native iOS and custom) while modal is open
+  const scrollBodyRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     document.body.dataset.modalOpen = '1'
-    return () => { delete document.body.dataset.modalOpen }
+    const el = scrollBodyRef.current
+    if (!el) return () => { delete document.body.dataset.modalOpen }
+    let startY = 0
+    const onStart = (e: TouchEvent) => { startY = e.touches[0].clientY }
+    const onMove = (e: TouchEvent) => {
+      const dy = e.touches[0].clientY - startY
+      if (el.scrollTop <= 0 && dy > 0) e.preventDefault()
+    }
+    el.addEventListener('touchstart', onStart, { passive: true })
+    el.addEventListener('touchmove', onMove, { passive: false })
+    return () => {
+      delete document.body.dataset.modalOpen
+      el.removeEventListener('touchstart', onStart)
+      el.removeEventListener('touchmove', onMove)
+    }
   }, [])
 
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -331,7 +346,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
         </div>
 
         {/* Scrollable body */}
-        <div className="flex-1 overflow-y-auto no-scrollbar" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' } as React.CSSProperties}>
+        <div ref={scrollBodyRef} className="flex-1 overflow-y-auto no-scrollbar" style={{ overscrollBehavior: 'contain' } as React.CSSProperties}>
           <div className="px-5 py-5 space-y-5">
 
             {/* Type selector */}
