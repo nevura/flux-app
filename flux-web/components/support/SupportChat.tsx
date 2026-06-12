@@ -136,7 +136,7 @@ export default function SupportChat({ onBack }: Props = {}) {
     // Trigger bot from the browser — fire-and-forget at the network level,
     // so Vercel won't kill it when the server action returns.
     // Bot reply arrives via the Supabase realtime subscription above.
-    setBotTyping(true)
+    setTimeout(() => setBotTyping(true), 1200)
     fetch('/api/support/bot', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
