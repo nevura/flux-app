@@ -1,6 +1,9 @@
 'use client'
 
-import React, { useMemo, useState, useTransition } from 'react'
+'use client'
+
+import React, { useMemo, useState, useTransition, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { SwipeableRow } from '@/components/shared/SwipeableRow'
 import { toast } from 'sonner'
 import { formatCurrency, formatDateShort } from '@/lib/utils'
@@ -17,6 +20,17 @@ import type { Transaction, Person, SplitParticipant, Account, Category, AccountW
 import TransactionModal from '@/components/transactions/TransactionModal'
 import FriendSearchModal from '@/components/friends/FriendSearchModal'
 import LinkPersonModal from '@/components/friends/LinkPersonModal'
+
+type ActionModalType = 'settle' | 'partial' | 'forget' | 'collectPartial'
+interface ActionModalState {
+  type: ActionModalType
+  txId: string
+  participantId: string
+  maxAmount: number
+  isReceivable: boolean
+  isTheyOwe: boolean
+  concept: string
+}
 
 interface Props {
   transactions: Transaction[]
@@ -35,20 +49,13 @@ interface PersonBalance {
   pending: Array<{ tx: Transaction; participant: SplitParticipant }>
 }
 
-type ConfirmAction = 'settle' | 'forget' | 'partial'
-
 export default function SharedClient({ transactions, people, accounts, categories, friendships, myUserId }: Props) {
+  const [mounted, setMounted] = useState(false)
   const [expanded, setExpanded] = useState<string | null>(null)
-  const [partialMode, setPartialMode] = useState<string | null>(null)
-  const [partialInput, setPartialInput] = useState('')
-  const [partialAccountId, setPartialAccountId] = useState('')
-  const [confirmKey, setConfirmKey] = useState<string | null>(null)
-  const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null)
   const [isPending, startTransition] = useTransition()
   const [isPartialPending, startPartial] = useTransition()
   const [isUnlinking, startUnlink] = useTransition()
   const [unlinkConfirmId, setUnlinkConfirmId] = useState<string | null>(null)
-  const [settleAccountId, setSettleAccountId] = useState('')
 
   // Global settle state — keyed by person id
   const [globalSettleId, setGlobalSettleId] = useState<string | null>(null)
@@ -63,23 +70,27 @@ export default function SharedClient({ transactions, people, accounts, categorie
 
   // Receivable collect state
   const [collectingKey, setCollectingKey] = useState<string | null>(null)
-  const [collectPartialOpen, setCollectPartialOpen] = useState<string | null>(null)
-  const [collectPartialAmount, setCollectPartialAmount] = useState('')
   const [isCollecting, startCollect] = useTransition()
+
+  // Action bottom modal
+  const [actionModal, setActionModal] = useState<ActionModalState | null>(null)
+  const [modalAmount, setModalAmount] = useState('')
+  const [modalAccount, setModalAccount] = useState('')
 
   const [editingTx, setEditingTx] = useState<Transaction | null>(null)
   const [showFriendSearch, setShowFriendSearch] = useState(false)
   const [linkingPerson, setLinkingPerson] = useState<{ id: string; name: string } | null>(null)
 
-  function requestConfirm(key: string, action: ConfirmAction) {
-    setConfirmKey(key)
-    setConfirmAction(action)
+  useEffect(() => setMounted(true), [])
+
+  function closeModal() {
+    setActionModal(null)
+    setModalAmount('')
+    setModalAccount('')
   }
 
-  function cancelConfirm() { setConfirmKey(null); setConfirmAction(null); setSettleAccountId('') }
-
   function executeSettle(txId: string, participantId: string) {
-    cancelConfirm()
+    closeModal()
     startTransition(async () => {
       const res = await settleParticipant(txId, participantId)
       if (res.error) { toast.error(res.error); return }
@@ -88,7 +99,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
   }
 
   function executeForget(txId: string, participantId: string) {
-    cancelConfirm()
+    closeModal()
     startTransition(async () => {
       const res = await settleParticipant(txId, participantId, false)
       if (res.error) { toast.error(res.error); return }
@@ -97,7 +108,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
   }
 
   function executeSettleWithRecord(txId: string, participantId: string, accountId: string) {
-    cancelConfirm()
+    closeModal()
     startTransition(async () => {
       const res = await settleAndRecord(txId, participantId, accountId)
       if (res.error) { toast.error(res.error); return }
@@ -105,17 +116,12 @@ export default function SharedClient({ transactions, people, accounts, categorie
     })
   }
 
-  function executePartialSettle(txId: string, participantId: string) {
-    const amt = parseFloat(partialInput.replace(',', '.'))
-    if (isNaN(amt) || amt <= 0) { toast.error('Monto inválido'); return }
-    cancelConfirm()
+  function executePartialSettle(txId: string, participantId: string, amt: number, accountId: string) {
+    closeModal()
     startPartial(async () => {
-      const res = await partialSettle(txId, participantId, amt, partialAccountId || undefined)
+      const res = await partialSettle(txId, participantId, amt, accountId || undefined)
       if (res.error) { toast.error(res.error); return }
-      toast.success(partialAccountId ? 'Abono registrado' : 'Abono aplicado')
-      setPartialMode(null)
-      setPartialInput('')
-      setPartialAccountId('')
+      toast.success(accountId ? 'Abono registrado' : 'Abono aplicado')
     })
   }
 
@@ -142,9 +148,9 @@ export default function SharedClient({ transactions, people, accounts, categorie
     })
   }
 
-  function executeCollect(txId: string, participantId: string, mode: 'full' | 'partial') {
-    const amt = mode === 'partial' ? parseFloat(collectPartialAmount.replace(',', '.')) : undefined
-    if (mode === 'partial' && (isNaN(amt!) || amt! <= 0)) { toast.error('Monto inválido'); return }
+  function executeCollect(txId: string, participantId: string, mode: 'full' | 'partial', amt?: number) {
+    if (mode === 'partial' && (!amt || isNaN(amt) || amt <= 0)) { toast.error('Monto inválido'); return }
+    closeModal()
     const key = `${txId}-${participantId}`
     setCollectingKey(key)
     startCollect(async () => {
@@ -152,8 +158,6 @@ export default function SharedClient({ transactions, people, accounts, categorie
       if (res.error) { toast.error(res.error); setCollectingKey(null); return }
       toast.success(mode === 'full' ? '¡Cobrado!' : 'Abono registrado')
       setCollectingKey(null)
-      setCollectPartialOpen(null)
-      setCollectPartialAmount('')
     })
   }
 
@@ -517,18 +521,23 @@ export default function SharedClient({ transactions, people, accounts, categorie
                           </p>
                         </button>
                       )}
+                      {b.pending.length > 0 && (
+                        <div className="flex items-center justify-end mb-2">
+                          <span className="text-[11px] font-black flex items-center gap-1" style={{ color: 'var(--f-text-4)' }}>
+                            <i className="fa-solid fa-hand-point-left text-[10px]" />
+                            desliza para opciones
+                          </span>
+                        </div>
+                      )}
                       {b.pending.map(({ tx, participant }) => {
                         const unpaid = participant.value - (participant.paidAmount ?? 0)
                         const isTheyOwe = tx.split_data?.splitMode === 'THEY' || tx.split_data?.splitMode === 'DIV'
                         const isReceivable = tx.is_receivable === true && tx.type === 'TR-INGRESO'
                         const key = `${tx.id}-${participant.id}`
-                        const isPartialOpen = partialMode === key
-                        const isConfirming = confirmKey === key
-                        const isCollectPartialOpen = collectPartialOpen === key
                         const isCollectingThis = collectingKey === key && isCollecting
                         const canSync = isTheyOwe && !!b.person.linked_user_id && !participant.paidStatus && !isReceivable
                         return (
-                          <div key={key} className="pt-2 space-y-2">
+                          <div key={key} className="pt-1">
                             <SwipeableRow
                               rightActions={[
                                 isReceivable
@@ -542,24 +551,19 @@ export default function SharedClient({ transactions, people, accounts, categorie
                                       icon: 'fa-solid fa-check',
                                       label: isTheyOwe ? 'Cobrado' : 'Pagado',
                                       bg: 'var(--f-income)',
-                                      onClick: () => {
-                                        setPartialMode(null); setPartialInput(''); setPartialAccountId('')
-                                        requestConfirm(key, 'settle')
-                                      },
+                                      onClick: () => setActionModal({ type: 'settle', txId: tx.id, participantId: participant.id, maxAmount: unpaid, isReceivable, isTheyOwe, concept: tx.concept }),
                                     },
                                 {
                                   icon: 'fa-solid fa-coins',
                                   label: isReceivable ? 'Abonar' : 'Abono',
                                   bg: 'var(--f-blue)',
-                                  onClick: isReceivable
-                                    ? () => { setCollectPartialOpen(isCollectPartialOpen ? null : key); setCollectPartialAmount('') }
-                                    : () => { setPartialMode(isPartialOpen ? null : key); setPartialInput(''); setPartialAccountId(''); cancelConfirm() },
+                                  onClick: () => setActionModal({ type: isReceivable ? 'collectPartial' : 'partial', txId: tx.id, participantId: participant.id, maxAmount: unpaid, isReceivable, isTheyOwe, concept: tx.concept }),
                                 },
                                 {
                                   icon: 'fa-solid fa-trash',
                                   label: isReceivable ? 'Cancelar' : 'Olvidar',
                                   bg: 'var(--f-expense)',
-                                  onClick: () => requestConfirm(key, 'forget'),
+                                  onClick: () => setActionModal({ type: 'forget', txId: tx.id, participantId: participant.id, maxAmount: unpaid, isReceivable, isTheyOwe, concept: tx.concept }),
                                 },
                                 ...(canSync ? [{
                                   icon: 'fa-solid fa-arrows-rotate',
@@ -577,7 +581,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                             >
                               <button
                                 onClick={() => setEditingTx(tx)}
-                                className="w-full flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
+                                className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:scale-[0.98] transition-transform"
                               >
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2 mb-0.5">
@@ -596,171 +600,17 @@ export default function SharedClient({ transactions, people, accounts, categorie
                                   </p>
                                 </div>
                                 <div className="flex items-center gap-2 flex-shrink-0">
-                                  <p className="text-[16px] font-black tabular-nums"
+                                  <p className="text-[17px] font-black tabular-nums"
                                     style={{ color: isTheyOwe ? 'var(--f-income)' : 'var(--f-expense)' }}>
                                     {isTheyOwe ? '+' : '-'}{formatCurrency(unpaid)}
                                   </p>
-                                  <i className="fa-solid fa-chevron-right text-[10px] opacity-20" style={{ color: 'var(--f-text-3)' }} />
+                                  {isCollectingThis
+                                    ? <i className="fa-solid fa-spinner fa-spin text-[12px]" style={{ color: 'var(--f-text-4)' }} />
+                                    : <i className="fa-solid fa-chevron-right text-[10px] opacity-20" style={{ color: 'var(--f-text-3)' }} />
+                                  }
                                 </div>
                               </button>
                             </SwipeableRow>
-
-                            {/* Settle inline expansion — only for expense debts */}
-                            {!isReceivable && isConfirming && confirmAction === 'settle' && (
-                              <div className="space-y-2 animate-fade-up">
-                                <select
-                                  value={settleAccountId}
-                                  onChange={e => setSettleAccountId(e.target.value)}
-                                  className="w-full rounded-[10px] px-3 py-2 text-[15px] font-bold outline-none"
-                                  style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)', colorScheme: 'dark' }}
-                                >
-                                  <option value="">Sin registrar en cuenta</option>
-                                  {accounts.map(acc => (
-                                    <option key={acc.id} value={acc.id}>{acc.name}</option>
-                                  ))}
-                                </select>
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={cancelConfirm}
-                                    className="flex-1 py-1.5 rounded-[10px] text-[15px] font-black transition-all active:scale-95"
-                                    style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
-                                  >
-                                    Cancelar
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      if (settleAccountId) executeSettleWithRecord(tx.id, participant.id, settleAccountId)
-                                      else executeSettle(tx.id, participant.id)
-                                    }}
-                                    disabled={isPending}
-                                    className="flex-1 py-1.5 rounded-[10px] text-[15px] font-black text-white disabled:opacity-50 transition-all active:scale-95"
-                                    style={{ background: 'var(--f-income)' }}
-                                  >
-                                    {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Confirmar'}
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Forget confirmation card */}
-                            {isConfirming && confirmAction === 'forget' && (
-                              <div className="rounded-[10px] p-2.5 space-y-2"
-                                style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-line-strong)' }}>
-                                <p className="text-[15px] font-bold text-center" style={{ color: 'var(--f-text-2)' }}>
-                                  {isReceivable ? '¿Cancelar este cobro pendiente?' : '¿Olvidar esta deuda?'}
-                                </p>
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={cancelConfirm}
-                                    className="flex-1 py-1.5 rounded-[8px] text-[15px] font-black"
-                                    style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
-                                  >
-                                    Cancelar
-                                  </button>
-                                  <button
-                                    onClick={() => executeForget(tx.id, participant.id)}
-                                    disabled={isPending}
-                                    className="flex-1 py-1.5 rounded-[8px] text-[15px] font-black text-white disabled:opacity-50"
-                                    style={{ background: 'var(--f-expense)' }}
-                                  >
-                                    {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Confirmar'}
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Partial abono confirmation card — only for expense debts */}
-                            {!isReceivable && isConfirming && confirmAction === 'partial' && (
-                              <div className="rounded-[10px] p-2.5 space-y-2"
-                                style={{ background: 'var(--f-bg-elevated)', border: '1px solid var(--f-line-strong)' }}>
-                                <p className="text-[15px] font-bold text-center" style={{ color: 'var(--f-text-2)' }}>
-                                  {`¿Registrar abono de ${formatCurrency(parseFloat(partialInput.replace(',', '.')) || 0)}?`}
-                                </p>
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={cancelConfirm}
-                                    className="flex-1 py-1.5 rounded-[8px] text-[15px] font-black"
-                                    style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
-                                  >
-                                    Cancelar
-                                  </button>
-                                  <button
-                                    onClick={() => executePartialSettle(tx.id, participant.id)}
-                                    disabled={isPending || isPartialPending}
-                                    className="flex-1 py-1.5 rounded-[8px] text-[15px] font-black text-white disabled:opacity-50"
-                                    style={{ background: 'var(--f-income)' }}
-                                  >
-                                    {isPending || isPartialPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Confirmar'}
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Partial payment input for expense debts */}
-                            {!isReceivable && isPartialOpen && !isConfirming && (
-                              <div className="space-y-2">
-                                <div className="flex gap-2">
-                                  <input
-                                    autoFocus
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    value={partialInput}
-                                    onChange={e => setPartialInput(e.target.value)}
-                                    onKeyDown={e => { if (e.key === 'Enter') requestConfirm(key, 'partial') }}
-                                    placeholder={`Máx. ${formatCurrency(unpaid)}`}
-                                    className="flex-1 rounded-[10px] px-3 py-2 text-[16px] font-bold outline-none tabular-nums"
-                                    style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-border)', color: 'var(--f-text)' }}
-                                    inputMode="decimal"
-                                  />
-                                  <button
-                                    onClick={() => requestConfirm(key, 'partial')}
-                                    disabled={isPartialPending || !partialInput}
-                                    className="px-3 rounded-[10px] text-[16px] font-black text-white disabled:opacity-50"
-                                    style={{ background: 'var(--f-blue)' }}
-                                  >
-                                    OK
-                                  </button>
-                                </div>
-                                <select
-                                  value={partialAccountId}
-                                  onChange={e => setPartialAccountId(e.target.value)}
-                                  className="w-full rounded-[10px] px-3 py-2 text-[15px] font-bold outline-none"
-                                  style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)', colorScheme: 'dark' }}
-                                >
-                                  <option value="">Sin registrar en cuenta</option>
-                                  {accounts.map(acc => (
-                                    <option key={acc.id} value={acc.id}>{acc.name}</option>
-                                  ))}
-                                </select>
-                              </div>
-                            )}
-
-                            {/* Partial collection input for receivable incomes */}
-                            {isReceivable && isCollectPartialOpen && !isConfirming && (
-                              <div className="flex gap-2">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  step="0.01"
-                                  value={collectPartialAmount}
-                                  onChange={e => setCollectPartialAmount(e.target.value)}
-                                  onKeyDown={e => { if (e.key === 'Enter' && collectPartialAmount) executeCollect(tx.id, participant.id, 'partial') }}
-                                  placeholder={`Máx. ${formatCurrency(unpaid)}`}
-                                  className="flex-1 rounded-[10px] px-3 py-2 text-[16px] font-bold outline-none tabular-nums"
-                                  style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-income-border)', color: 'var(--f-text)' }}
-                                  inputMode="decimal"
-                                />
-                                <button
-                                  onClick={() => executeCollect(tx.id, participant.id, 'partial')}
-                                  disabled={isCollecting || !collectPartialAmount}
-                                  className="px-3 rounded-[10px] text-[16px] font-black text-white disabled:opacity-50"
-                                  style={{ background: 'var(--f-income)' }}
-                                >
-                                  {isCollectingThis ? <i className="fa-solid fa-spinner fa-spin" /> : 'OK'}
-                                </button>
-                              </div>
-                            )}
                           </div>
                         )
                       })}
@@ -803,6 +653,174 @@ export default function SharedClient({ transactions, people, accounts, categorie
       )}
 
       <CoachMarkTour pageKey="shared" />
+
+      {/* Action bottom modal */}
+      {mounted && actionModal && createPortal(
+        <div
+          className="fixed inset-0 z-50 flex flex-col justify-end"
+          style={{ background: 'var(--f-bg-overlay)' }}
+          onClick={closeModal}
+        >
+          <div
+            className="animate-slide-up rounded-t-[28px] p-5 pb-8 space-y-4 max-h-[85vh] overflow-y-auto"
+            style={{ background: 'var(--f-bg-elevated)', paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Handle bar */}
+            <div className="w-10 h-1 rounded-full mx-auto mb-1" style={{ background: 'var(--f-line-strong)' }} />
+
+            {/* Concept */}
+            <div>
+              <p className="text-[13px] font-black tracking-[2px] uppercase mb-1" style={{ color: 'var(--f-text-4)' }}>
+                {actionModal.type === 'settle' ? (actionModal.isTheyOwe ? 'Confirmar cobro' : 'Confirmar pago')
+                  : actionModal.type === 'partial' ? 'Registrar abono'
+                  : actionModal.type === 'collectPartial' ? 'Registrar cobro parcial'
+                  : actionModal.isReceivable ? 'Cancelar cobro' : 'Olvidar deuda'}
+              </p>
+              <p className="text-[20px] font-black" style={{ color: 'var(--f-text)' }}>{actionModal.concept}</p>
+              <p className="text-[15px] font-bold mt-0.5 tabular-nums" style={{ color: actionModal.isTheyOwe ? 'var(--f-income)' : 'var(--f-expense)' }}>
+                {actionModal.isTheyOwe ? '+' : '-'}{formatCurrency(actionModal.maxAmount)} pendiente
+              </p>
+            </div>
+
+            {/* Settle: account selector */}
+            {actionModal.type === 'settle' && (
+              <div className="space-y-3">
+                <select
+                  value={modalAccount}
+                  onChange={e => setModalAccount(e.target.value)}
+                  className="w-full rounded-[14px] px-4 py-3 text-[16px] font-bold outline-none"
+                  style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)', colorScheme: 'dark' }}
+                >
+                  <option value="">Sin registrar en cuenta</option>
+                  {accounts.map(acc => (
+                    <option key={acc.id} value={acc.id}>{acc.name}</option>
+                  ))}
+                </select>
+                <div className="flex gap-3">
+                  <button
+                    onClick={closeModal}
+                    className="flex-1 py-3 rounded-[14px] text-[16px] font-black transition-all active:scale-95"
+                    style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (modalAccount) executeSettleWithRecord(actionModal.txId, actionModal.participantId, modalAccount)
+                      else executeSettle(actionModal.txId, actionModal.participantId)
+                    }}
+                    disabled={isPending}
+                    className="flex-[2] py-3 rounded-[14px] text-[16px] font-black text-white disabled:opacity-50 transition-all active:scale-95"
+                    style={{ background: 'var(--f-income)' }}
+                  >
+                    {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : modalAccount ? (actionModal.isTheyOwe ? 'Cobrado y registrado' : 'Pagado y registrado') : (actionModal.isTheyOwe ? 'Sí, me pagó' : 'Sí, lo pagué')}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Partial abono: amount + account */}
+            {actionModal.type === 'partial' && (
+              <div className="space-y-3">
+                <input
+                  autoFocus
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="0.01"
+                  value={modalAmount}
+                  onChange={e => setModalAmount(e.target.value)}
+                  placeholder={`Máx. ${formatCurrency(actionModal.maxAmount)}`}
+                  className="w-full rounded-[14px] px-4 py-3 text-[20px] font-bold outline-none tabular-nums"
+                  style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-border)', color: 'var(--f-text)' }}
+                />
+                <select
+                  value={modalAccount}
+                  onChange={e => setModalAccount(e.target.value)}
+                  className="w-full rounded-[14px] px-4 py-3 text-[16px] font-bold outline-none"
+                  style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)', colorScheme: 'dark' }}
+                >
+                  <option value="">Sin registrar en cuenta</option>
+                  {accounts.map(acc => (
+                    <option key={acc.id} value={acc.id}>{acc.name}</option>
+                  ))}
+                </select>
+                <div className="flex gap-3">
+                  <button onClick={closeModal} className="flex-1 py-3 rounded-[14px] text-[16px] font-black transition-all active:scale-95" style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}>Cancelar</button>
+                  <button
+                    onClick={() => {
+                      const amt = parseFloat(modalAmount.replace(',', '.'))
+                      if (isNaN(amt) || amt <= 0) { toast.error('Monto inválido'); return }
+                      executePartialSettle(actionModal.txId, actionModal.participantId, amt, modalAccount)
+                    }}
+                    disabled={isPartialPending || !modalAmount}
+                    className="flex-[2] py-3 rounded-[14px] text-[16px] font-black text-white disabled:opacity-50 transition-all active:scale-95"
+                    style={{ background: 'var(--f-blue)' }}
+                  >
+                    {isPartialPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Registrar abono'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Collect partial: amount only */}
+            {actionModal.type === 'collectPartial' && (
+              <div className="space-y-3">
+                <input
+                  autoFocus
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="0.01"
+                  value={modalAmount}
+                  onChange={e => setModalAmount(e.target.value)}
+                  placeholder={`Máx. ${formatCurrency(actionModal.maxAmount)}`}
+                  className="w-full rounded-[14px] px-4 py-3 text-[20px] font-bold outline-none tabular-nums"
+                  style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-income-border)', color: 'var(--f-text)' }}
+                />
+                <div className="flex gap-3">
+                  <button onClick={closeModal} className="flex-1 py-3 rounded-[14px] text-[16px] font-black transition-all active:scale-95" style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}>Cancelar</button>
+                  <button
+                    onClick={() => {
+                      const amt = parseFloat(modalAmount.replace(',', '.'))
+                      executeCollect(actionModal.txId, actionModal.participantId, 'partial', amt)
+                    }}
+                    disabled={isCollecting || !modalAmount}
+                    className="flex-[2] py-3 rounded-[14px] text-[16px] font-black text-white disabled:opacity-50 transition-all active:scale-95"
+                    style={{ background: 'var(--f-income)' }}
+                  >
+                    {isCollecting ? <i className="fa-solid fa-spinner fa-spin" /> : 'Registrar cobro'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Forget: confirmation */}
+            {actionModal.type === 'forget' && (
+              <div className="space-y-3">
+                <p className="text-[15px] font-medium text-center" style={{ color: 'var(--f-text-3)' }}>
+                  {actionModal.isReceivable
+                    ? 'Esto cancelará el cobro pendiente sin registrar nada.'
+                    : 'Esto marcará la deuda como saldada sin registrar ningún movimiento en tu cuenta.'}
+                </p>
+                <div className="flex gap-3">
+                  <button onClick={closeModal} className="flex-1 py-3 rounded-[14px] text-[16px] font-black transition-all active:scale-95" style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}>Cancelar</button>
+                  <button
+                    onClick={() => executeForget(actionModal.txId, actionModal.participantId)}
+                    disabled={isPending}
+                    className="flex-[2] py-3 rounded-[14px] text-[16px] font-black text-white disabled:opacity-50 transition-all active:scale-95"
+                    style={{ background: 'var(--f-expense)' }}
+                  >
+                    {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : actionModal.isReceivable ? 'Cancelar cobro' : 'Olvidar deuda'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   )
 }

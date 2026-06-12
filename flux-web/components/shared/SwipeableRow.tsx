@@ -16,7 +16,7 @@ interface Props {
   style?: React.CSSProperties
 }
 
-const ACTION_W = 72
+const ACTION_W = 76
 
 export function SwipeableRow({ children, rightActions, className, style }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -26,17 +26,26 @@ export function SwipeableRow({ children, rightActions, className, style }: Props
   const offsetRef = useRef(0)
   const isDraggingRef = useRef(false)
   const dirRef = useRef<'h' | 'v' | null>(null)
+  const lastTouchX = useRef(0)
+  const lastTouchT = useRef(0)
+  const velocityRef = useRef(0)
   const [offset, setOffset] = useState(0)
   const maxReveal = rightActions.length * ACTION_W
 
   const snapDirRef = useRef<'open' | 'close'>('close')
+  const isOpenRef = useRef(false)
 
-  function snapTo(val: number) {
+  function snapTo(val: number, skipHaptic = false) {
     isDraggingRef.current = false
-    snapDirRef.current = val < 0 ? 'open' : 'close'
+    const opening = val < 0
+    snapDirRef.current = opening ? 'open' : 'close'
+    isOpenRef.current = opening
     offsetRef.current = val
     baseOffset.current = val
     setOffset(val)
+    if (opening && !skipHaptic && typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(10)
+    }
   }
 
   useEffect(() => {
@@ -44,28 +53,44 @@ export function SwipeableRow({ children, rightActions, className, style }: Props
     if (!el || maxReveal === 0) return
 
     function onTouchStart(e: TouchEvent) {
-      startX.current = e.touches[0].clientX
-      startY.current = e.touches[0].clientY
+      const t = e.touches[0]
+      startX.current = t.clientX
+      startY.current = t.clientY
+      lastTouchX.current = t.clientX
+      lastTouchT.current = Date.now()
+      velocityRef.current = 0
       baseOffset.current = offsetRef.current
       dirRef.current = null
     }
 
     function onTouchMove(e: TouchEvent) {
-      const dx = e.touches[0].clientX - startX.current
-      const dy = e.touches[0].clientY - startY.current
+      const t = e.touches[0]
+      const dx = t.clientX - startX.current
+      const dy = t.clientY - startY.current
 
       if (!dirRef.current) {
-        if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
+        if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
           dirRef.current = Math.abs(dx) >= Math.abs(dy) ? 'h' : 'v'
         }
         return
       }
       if (dirRef.current !== 'h') return
 
+      // Track velocity (px/ms)
+      const now = Date.now()
+      const dt = now - lastTouchT.current
+      if (dt > 0) velocityRef.current = (t.clientX - lastTouchX.current) / dt
+      lastTouchX.current = t.clientX
+      lastTouchT.current = now
+
       e.preventDefault()
       isDraggingRef.current = true
+
       const raw = baseOffset.current + dx
-      const clamped = Math.max(-maxReveal, Math.min(0, raw))
+      // Rubber-band past max
+      const clamped = raw < -maxReveal
+        ? -maxReveal - Math.sqrt(Math.abs(raw) - maxReveal) * 3
+        : Math.min(0, raw)
       offsetRef.current = clamped
       setOffset(clamped)
     }
@@ -73,10 +98,26 @@ export function SwipeableRow({ children, rightActions, className, style }: Props
     function onTouchEnd() {
       if (dirRef.current === 'v') return
       if (dirRef.current === null) {
-        if (offsetRef.current < 0) snapTo(0)
+        if (offsetRef.current < 0) snapTo(0, true)
         return
       }
-      snapTo(offsetRef.current < -(maxReveal / 2) ? -maxReveal : 0)
+
+      const vel = velocityRef.current // negative = swiping left (opening)
+      const cur = offsetRef.current
+
+      let target: number
+      if (vel < -0.35) {
+        // Fast swipe left → open
+        target = -maxReveal
+      } else if (vel > 0.35) {
+        // Fast swipe right → close
+        target = 0
+      } else {
+        // Slow drag → snap based on midpoint
+        target = cur < -(maxReveal / 2) ? -maxReveal : 0
+      }
+
+      snapTo(target)
     }
 
     el.addEventListener('touchstart', onTouchStart, { passive: true })
@@ -92,12 +133,11 @@ export function SwipeableRow({ children, rightActions, className, style }: Props
     }
   }, [maxReveal])
 
-  // Open: spring with slight overshoot — Close: smooth decelerate
   const transition = isDraggingRef.current
     ? 'none'
     : snapDirRef.current === 'open'
-      ? 'transform 0.38s cubic-bezier(0.34, 1.3, 0.64, 1)'
-      : 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)'
+      ? 'transform 0.42s cubic-bezier(0.34, 1.25, 0.64, 1)'
+      : 'transform 0.28s cubic-bezier(0.25, 1, 0.5, 1)'
 
   return (
     <div
@@ -105,12 +145,6 @@ export function SwipeableRow({ children, rightActions, className, style }: Props
       className={`relative overflow-hidden ${className ?? ''}`}
       style={style}
     >
-      {/*
-        Inner flex row: content + tray placed side-by-side.
-        The row is (container_width + maxReveal) wide, so the tray starts
-        exactly at the right edge of the container and is hidden by
-        overflow-hidden. When the row translates left, the tray slides in.
-      */}
       <div
         style={{
           display: 'flex',
@@ -120,7 +154,7 @@ export function SwipeableRow({ children, rightActions, className, style }: Props
           willChange: 'transform',
         }}
       >
-        {/* Content — exactly as wide as the container */}
+        {/* Content */}
         <div
           style={{
             flex: `0 0 calc(100% - ${maxReveal}px)`,
@@ -128,31 +162,42 @@ export function SwipeableRow({ children, rightActions, className, style }: Props
             position: 'relative',
           }}
         >
-          {/* Tap-to-close overlay while row is open */}
           {offset < 0 && (
             <div
               className="absolute inset-0 z-10"
-              onClick={() => snapTo(0)}
+              onClick={() => snapTo(0, true)}
             />
           )}
           {children}
         </div>
 
-        {/* Tray — sits just beyond the container's right edge at rest */}
-        <div style={{ display: 'flex', flex: `0 0 ${maxReveal}px` }}>
-          {rightActions.map((action, i) => (
-            <button
-              key={i}
-              onClick={() => { action.onClick(); snapTo(0) }}
-              className="flex-1 flex flex-col items-center justify-center gap-1.5 active:opacity-75"
-              style={{ background: action.bg, color: 'white' }}
-            >
-              <i className={`${action.icon} text-[22px]`} />
-              {action.label && (
-                <span className="text-[11px] font-black tracking-tight">{action.label}</span>
-              )}
-            </button>
-          ))}
+        {/* Action tray */}
+        <div style={{ display: 'flex', flex: `0 0 ${maxReveal}px`, gap: '2px', padding: '3px 3px 3px 6px' }}>
+          {rightActions.map((action, i) => {
+            const isFirst = i === 0
+            const isLast = i === rightActions.length - 1
+            const revealRatio = Math.min(1, Math.abs(offset) / maxReveal)
+            const scale = 0.82 + revealRatio * 0.18
+            return (
+              <button
+                key={i}
+                onClick={() => { action.onClick(); snapTo(0, true) }}
+                className="flex-1 flex flex-col items-center justify-center gap-1.5 active:opacity-75 transition-opacity"
+                style={{
+                  background: action.bg,
+                  color: 'white',
+                  borderRadius: isFirst && isLast ? '14px' : isFirst ? '14px 6px 6px 14px' : isLast ? '6px 14px 14px 6px' : '6px',
+                  transform: `scale(${scale})`,
+                  transition: isDraggingRef.current ? 'none' : 'transform 0.2s ease',
+                }}
+              >
+                <i className={`${action.icon} text-[20px]`} />
+                {action.label && (
+                  <span className="text-[11px] font-black tracking-tight leading-none">{action.label}</span>
+                )}
+              </button>
+            )
+          })}
         </div>
       </div>
     </div>
