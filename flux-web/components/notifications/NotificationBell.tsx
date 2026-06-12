@@ -384,17 +384,16 @@ export default function NotificationBell() {
                           Monto reportado: {formatCurrency(Number(d.amount))}
                         </p>
                         <p className="text-[13px] font-medium leading-snug" style={{ color: 'var(--f-text-4)' }}>
-                          ¿Realmente recibiste este pago? Si confirmas, el saldo se cierra automáticamente.
+                          ¿Realmente recibiste este pago? Si confirmas, el saldo compartido se cierra. Si seleccionas una cuenta, se registra también como ingreso en tu saldo.
                         </p>
-                        {/* Optional account to credit on confirm */}
                         <select
                           value={confirmAccountId}
                           onChange={e => setConfirmAccountId(e.target.value)}
                           className="w-full rounded-[10px] px-3 py-2 text-[15px] font-semibold outline-none"
                           style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)', colorScheme: 'dark' }}
                         >
-                          <option value="">Sin registrar en cuenta</option>
-                          {accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name}</option>)}
+                          <option value="">Solo cerrar saldo (sin mover cuenta)</option>
+                          {accounts.map(acc => <option key={acc.id} value={acc.id}>Registrar en: {acc.name}</option>)}
                         </select>
                         {rejectingId === n.id ? (
                           <div className="flex gap-2">
@@ -442,7 +441,7 @@ export default function NotificationBell() {
                           Tu parte: {formatCurrency(Number(d.participant_amount))}
                         </p>
                         <p className="text-[13px] mt-1 font-medium leading-snug" style={{ color: 'var(--f-text-4)' }}>
-                          Si aceptas, quedará en tu tab <strong style={{ color: 'var(--f-text-3)' }}>Compartidos</strong>. Paga cuando puedas.
+                          Si aceptas, quedará en <strong style={{ color: 'var(--f-text-3)' }}>Compartidos</strong>. Tu saldo no cambia ahora — solo cuando registres el pago.
                         </p>
                         <div className="flex gap-2 mt-3">
                           <button
@@ -498,7 +497,7 @@ export default function NotificationBell() {
                           Monto: {formatCurrency(Number(d.participant_amount))}
                         </p>
                         <p className="text-[13px] mt-1 font-medium leading-snug" style={{ color: 'var(--f-text-4)' }}>
-                          Si aceptas, aparecerá en tu <strong style={{ color: 'var(--f-text-3)' }}>Compartidos</strong> como deuda pendiente.
+                          Si aceptas, aparecerá en <strong style={{ color: 'var(--f-text-3)' }}>Compartidos</strong>. Tu saldo no cambia ahora — solo cuando registres el pago allí.
                         </p>
                         <div className="flex gap-2 mt-3">
                           <button

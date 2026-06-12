@@ -276,7 +276,7 @@ export async function sendSharedExpenseInviteEmail(opts: {
        <p style="color:#6E6E73;font-size:13px;margin:0 0 4px">2. Toca <strong style="color:#1D1D1F">Sí, lo debo</strong> para guardarlo</p>
        <p style="color:#6E6E73;font-size:13px;margin:0">3. Ve a <strong style="color:#1D1D1F">Compartidos</strong> cuando lo hayas pagado y regístralo</p>
      </div>
-     <p style="color:#6E6E73;font-size:12px;margin:12px 0 0">No tienes que pagar ahora — solo confirma que reconoces el gasto.</p>`,
+     <p style="color:#6E6E73;font-size:12px;margin:12px 0 0">No tienes que pagar ahora. Al aceptar, <strong style="color:#1D1D1F">tu saldo y cuentas no cambian</strong> — solo cuando registres el pago desde Compartidos.</p>`,
     { url: APP_URL, label: 'Ver en FluxApp Finance', color: '#007AFF' },
   )
   return send(opts.to, `${opts.fromName} pagó ${opts.concept} — te toca ${opts.amount}`, html)
