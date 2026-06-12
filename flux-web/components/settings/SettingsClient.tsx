@@ -35,6 +35,12 @@ type Tab = 'shortcuts' | 'categorias' | 'cuentas' | 'planificados' | 'personas' 
 
 function BottomSheet({ onClose, children, title }: { onClose: () => void; children: React.ReactNode; title?: string }) {
   const sheetRef = useRef<HTMLDivElement>(null)
+  const [closing, setClosing] = useState(false)
+
+  function handleClose() {
+    setClosing(true)
+    setTimeout(onClose, 260)
+  }
 
   useEffect(() => {
     const y = window.scrollY
@@ -72,10 +78,10 @@ function BottomSheet({ onClose, children, title }: { onClose: () => void; childr
 
   return createPortal(
     <>
-      <div className="fixed inset-0 z-[200] bg-black/60 animate-fade-in" onClick={onClose} />
+      <div className={`fixed inset-0 z-[200] bg-black/60 ${closing ? 'animate-fade-out' : 'animate-fade-in'}`} onClick={handleClose} />
       <div
         ref={sheetRef}
-        className="fixed bottom-0 left-0 right-0 z-[200] rounded-t-[28px] animate-slide-up mx-auto max-w-lg"
+        className={`fixed bottom-0 left-0 right-0 z-[200] rounded-t-[28px] mx-auto max-w-lg ${closing ? 'animate-slide-down' : 'animate-slide-up'}`}
         style={{
           background: 'var(--f-bg-elevated)',
           paddingBottom: 'calc(1.5rem + var(--safe-bottom))',
@@ -88,7 +94,7 @@ function BottomSheet({ onClose, children, title }: { onClose: () => void; childr
         {title && (
           <div className="flex items-center justify-between px-5 pt-5 pb-3">
             <p className="text-[17px] font-black" style={{ color: 'var(--f-text)' }}>{title}</p>
-            <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'var(--f-bg-input)' }}>
+            <button onClick={handleClose} className="w-7 h-7 rounded-full flex items-center justify-center active:scale-90 transition-transform" style={{ background: 'var(--f-bg-input)' }}>
               <i className="fa-solid fa-xmark text-xs" style={{ color: 'var(--f-text-3)' }} />
             </button>
           </div>
@@ -188,7 +194,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
     startUsernameTx(async () => {
       const res = await setUsername(usernameInput)
       if (res.error) toast.error(res.error)
-      else { toast.success('@' + usernameInput + ' guardado'); setEditingUsername(false) }
+      else { toast.success('@' + usernameInput + ' guardado'); setEditingUsername(false); router.refresh() }
     })
   }
 
@@ -196,7 +202,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
     startPhoneTx(async () => {
       const res = await updatePhone(phoneInput)
       if (res.error) toast.error(res.error)
-      else { toast.success('Teléfono actualizado'); setEditingPhone(false) }
+      else { toast.success('Teléfono actualizado'); setEditingPhone(false); router.refresh() }
     })
   }
 
@@ -204,7 +210,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
     startNameTx(async () => {
       const res = await updateProfile(nameInput)
       if (res.error) toast.error(res.error)
-      else { toast.success('Nombre actualizado'); setEditingName(false) }
+      else { toast.success('Nombre actualizado'); setEditingName(false); router.refresh() }
     })
   }
 
@@ -214,7 +220,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
     startDefBudgetTx(async () => {
       const res = await saveDefaultBudget(amount)
       if (res.error) toast.error(res.error)
-      else { toast.success('Presupuesto predeterminado guardado'); setEditingDefBudget(false) }
+      else { toast.success('Presupuesto predeterminado guardado'); setEditingDefBudget(false); router.refresh() }
     })
   }
 
@@ -682,6 +688,7 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
   isPending: boolean
   startTransition: (fn: () => void) => void
 }) {
+  const router = useRouter()
   const [editing, setEditing] = useState<Partial<Category> | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
@@ -690,7 +697,7 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
     startTransition(async () => {
       const res = await saveCategory({ name: editing.name!, icon_id: editing.icon_id ?? 'IC-009', color_id: editing.color_id ?? 'COL-21', id: editing.id })
       if (res.error) toast.error(res.error)
-      else { toast.success('Categoría guardada'); setEditing(null) }
+      else { toast.success('Categoría guardada'); setEditing(null); router.refresh() }
     })
   }
 
@@ -698,7 +705,7 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
     startTransition(async () => {
       const res = await deleteCategory(id)
       if (res.error) toast.error(res.error)
-      else { toast.success('Eliminada'); setDeleteConfirm(null) }
+      else { toast.success('Eliminada'); setDeleteConfirm(null); router.refresh() }
     })
   }
 
@@ -830,6 +837,7 @@ function AccountsTab({ accounts, isPending, startTransition }: {
   isPending: boolean
   startTransition: (fn: () => void) => void
 }) {
+  const router = useRouter()
   const [editing, setEditing] = useState<Partial<Account> | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [ordered, setOrdered] = useState<Account[]>(accounts)
@@ -847,7 +855,7 @@ function AccountsTab({ accounts, isPending, startTransition }: {
     startTransition(async () => {
       const res = await saveAccount({ name: editing.name!, payment_method_id: editing.payment_method_id ?? 'MP-EFECTIVO', id: editing.id, payment_day: editing.payment_day, color_id: editing.color_id ?? 'COL-01' })
       if (res.error) toast.error(res.error)
-      else { toast.success('Cuenta guardada'); setEditing(null); window.dispatchEvent(new CustomEvent('flux:refresh')) }
+      else { toast.success('Cuenta guardada'); setEditing(null); window.dispatchEvent(new CustomEvent('flux:refresh')); router.refresh() }
     })
   }
 
@@ -855,7 +863,7 @@ function AccountsTab({ accounts, isPending, startTransition }: {
     startTransition(async () => {
       const res = await deleteAccount(id)
       if (res.error) toast.error(res.error)
-      else { toast.success('Eliminada'); setDeleteConfirm(null) }
+      else { toast.success('Eliminada'); setDeleteConfirm(null); window.dispatchEvent(new CustomEvent('flux:refresh')); router.refresh() }
     })
   }
 

@@ -43,6 +43,7 @@ export default function SupportChat({ onBack }: Props = {}) {
   const inputRef       = useRef<HTMLTextAreaElement>(null)
   const containerRef   = useRef<HTMLDivElement>(null)
   const botDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const initialMsgIds  = useRef<Set<string>>(new Set())
 
   useEffect(() => { setMounted(true) }, [])
 
@@ -76,6 +77,7 @@ export default function SupportChat({ onBack }: Props = {}) {
       setConv(conversation)
 
       const msgs = await getMessages(conversation.id)
+      initialMsgIds.current = new Set(msgs.map(m => m.id))
       setMessages(msgs)
       setLoading(false)
       scrollToBottom()
@@ -209,8 +211,10 @@ export default function SupportChat({ onBack }: Props = {}) {
             const isUser = msg.sender === 'user'
             const prevSender = i > 0 ? group.msgs[i - 1].sender : null
             const showAvatar = !isUser && prevSender !== 'admin'
+            const isNew = !initialMsgIds.current.has(msg.id)
+            const enterClass = isNew ? (isUser ? 'animate-msg-in-right' : 'animate-msg-in-left') : ''
             return (
-              <div key={msg.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-1`}>
+              <div key={msg.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-1 ${enterClass}`}>
                 {!isUser && (
                   <div className="w-7 h-7 rounded-full flex-shrink-0 mr-2 mt-auto mb-0.5 flex items-center justify-center"
                     style={{
@@ -243,7 +247,7 @@ export default function SupportChat({ onBack }: Props = {}) {
         </div>
       ))}
       {botTyping && (
-        <div className="flex justify-start mb-1">
+        <div className="flex justify-start mb-1 animate-msg-in-left">
           <div className="w-7 h-7 rounded-full flex-shrink-0 mr-2 mt-auto mb-0.5 flex items-center justify-center"
             style={{ background: 'rgba(0,122,255,0.12)' }}>
             <i className="fa-solid fa-headset text-[10px]" style={{ color: 'var(--f-blue)' }} />

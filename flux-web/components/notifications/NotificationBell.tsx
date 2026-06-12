@@ -94,7 +94,12 @@ export default function NotificationBell() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [assignFriend, setAssignFriend] = useState<{ userId: string; name: string } | null>(null)
 
-  const handleClose = useCallback(() => setOpen(false), [])
+  const [closing, setClosing] = useState(false)
+  const handleClose = useCallback(() => {
+    if (closing) return
+    setClosing(true)
+    setTimeout(() => { setOpen(false); setClosing(false) }, 260)
+  }, [closing])
   const { handleProps: swipeHandleProps, sheetStyle } = useBottomSheetSwipe(handleClose)
 
   // Lock body scroll while panel is open
@@ -268,14 +273,14 @@ export default function NotificationBell() {
     </button>
   )
 
-  const panel = open && mounted && createPortal(
+  const panel = (open || closing) && mounted && createPortal(
     <div
-      className="fixed inset-0 z-[200]"
+      className={`fixed inset-0 z-[200] ${closing ? 'animate-fade-out' : 'animate-fade-in'}`}
       style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
-      onClick={() => setOpen(false)}
+      onClick={handleClose}
     >
       <div
-        className="absolute inset-x-0 bottom-0 rounded-t-[28px] flex flex-col"
+        className={`absolute inset-x-0 bottom-0 rounded-t-[28px] flex flex-col ${closing ? 'animate-slide-down' : 'animate-slide-up'}`}
         style={{
           background: 'var(--f-bg-card)',
           border: '1px solid var(--f-line)',
@@ -305,7 +310,7 @@ export default function NotificationBell() {
               </button>
             )}
             <button
-              onClick={() => setOpen(false)}
+              onClick={handleClose}
               className="w-8 h-8 flex items-center justify-center rounded-full"
               style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
             >

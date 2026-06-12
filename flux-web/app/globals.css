@@ -382,6 +382,23 @@ body {
   }
 }
 
+@keyframes slide-down {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
 @keyframes scale-in {
   from {
     opacity: 0;
@@ -466,6 +483,14 @@ body {
   }
 }
 
+.animate-slide-down {
+  animation: slide-down 0.28s cubic-bezier(0.36, 0, 0.66, 0) both;
+}
+
+.animate-fade-out {
+  animation: fade-out 0.2s ease both;
+}
+
 .animate-fade-up {
   animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -496,6 +521,14 @@ body {
 
 .animate-spring-in {
   animation: rise-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-msg-in-right {
+  animation: slide-from-right 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-msg-in-left {
+  animation: slide-from-left 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .animate-search-expand {

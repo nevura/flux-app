@@ -29,6 +29,11 @@ export default function AppNav({ isReadOnly }: NavProps) {
 
   useEffect(() => { setMounted(true) }, [])
   useEffect(() => { setPendingHref(null) }, [pathname])
+  useEffect(() => {
+    const handler = () => setFabData(null)
+    window.addEventListener('flux:refresh', handler)
+    return () => window.removeEventListener('flux:refresh', handler)
+  }, [])
 
   async function handleFabClick() {
     if (!fabData) {

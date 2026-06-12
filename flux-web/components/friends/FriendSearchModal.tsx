@@ -32,7 +32,9 @@ export default function FriendSearchModal({ onClose, existingFriendships, myUser
   const [showInvite, setShowInvite] = useState(false)
   const [isPending, startTransition] = useTransition()
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const { handleProps: swipeHandleProps, sheetStyle } = useBottomSheetSwipe(onClose)
+  const [closing, setClosing] = useState(false)
+  function handleClose() { if (closing) return; setClosing(true); setTimeout(onClose, 260) }
+  const { handleProps: swipeHandleProps, sheetStyle } = useBottomSheetSwipe(handleClose)
   useBodyScrollLock()
 
   function handleInput(v: string) {
@@ -82,12 +84,12 @@ export default function FriendSearchModal({ onClose, existingFriendships, myUser
   if (!mounted) return null
   return createPortal(
     <div
-      className="fixed inset-0 z-[200] flex items-end justify-center"
+      className={`fixed inset-0 z-[200] flex items-end justify-center ${closing ? 'animate-fade-out' : 'animate-fade-in'}`}
       style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div
-        className="w-full max-w-lg rounded-t-[28px] pb-[max(1.5rem,env(safe-area-inset-bottom))]"
+        className={`w-full max-w-lg rounded-t-[28px] pb-[max(1.5rem,env(safe-area-inset-bottom))] ${closing ? 'animate-slide-down' : 'animate-slide-up'}`}
         style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', ...sheetStyle }}
         onClick={e => e.stopPropagation()}
       >
@@ -98,7 +100,7 @@ export default function FriendSearchModal({ onClose, existingFriendships, myUser
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-2 pb-4">
           <h2 className="text-[20px] font-black" style={{ color: 'var(--f-text)' }}>Agregar amigo</h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full" style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}>
+          <button onClick={handleClose} className="w-8 h-8 flex items-center justify-center rounded-full active:scale-90 transition-transform" style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}>
             <i className="fa-solid fa-xmark text-sm" />
           </button>
         </div>

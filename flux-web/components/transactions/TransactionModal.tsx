@@ -33,7 +33,15 @@ export default function TransactionModal({ transaction, accounts, categories, pe
   const isEdit = Boolean(transaction)
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const { handleProps: swipeHandleProps, sheetStyle } = useBottomSheetSwipe(onClose)
+  const [closing, setClosing] = useState(false)
+
+  function handleClose() {
+    if (closing) return
+    setClosing(true)
+    setTimeout(onClose, 260)
+  }
+
+  const { handleProps: swipeHandleProps, sheetStyle } = useBottomSheetSwipe(handleClose)
   useBodyScrollLock()
   const [confirmDelete, setConfirmDelete] = useState(false)
   const needsConfirm = isEdit && transaction?.is_validated === false
@@ -44,7 +52,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
     toast.success('Movimiento confirmado')
     router.refresh()
     window.dispatchEvent(new CustomEvent('flux:refresh'))
-    onClose()
+    handleClose()
   }
 
   const [type, setType] = useState<TxType>(transaction?.type ?? presetType ?? 'TR-GASTO')
@@ -242,9 +250,9 @@ export default function TransactionModal({ transaction, accounts, categories, pe
       if (res.error) { toast.error(res.error); return }
       toast.success(isEdit ? 'Movimiento actualizado' : 'Movimiento guardado')
       window.dispatchEvent(new CustomEvent('flux:refresh'))
-      onClose()
+      handleClose()
       if (!isEdit) {
-        router.push('/transactions')
+        setTimeout(() => router.push('/transactions'), 260)
       }
     })
   }
@@ -257,7 +265,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
       toast.success('Deuda marcada como pagada')
       router.refresh()
       window.dispatchEvent(new CustomEvent('flux:refresh'))
-      onClose()
+      handleClose()
     })
   }
 
@@ -268,7 +276,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
       if (res.error) { toast.error(res.error); return }
       toast.success('Movimiento eliminado')
       window.dispatchEvent(new CustomEvent('flux:refresh'))
-      onClose()
+      handleClose()
     })
   }
 
@@ -276,14 +284,14 @@ export default function TransactionModal({ transaction, accounts, categories, pe
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-[60] animate-fade-in"
+        className={`fixed inset-0 z-[60] ${closing ? 'animate-fade-out' : 'animate-fade-in'}`}
         style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
-        onClick={onClose}
+        onClick={handleClose}
       />
 
       {/* Sheet */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-[60] animate-slide-up flex flex-col mx-auto max-w-lg"
+        className={`fixed bottom-0 left-0 right-0 z-[60] ${closing ? 'animate-slide-down' : 'animate-slide-up'} flex flex-col mx-auto max-w-lg`}
         style={{
           maxHeight: '94dvh',
           background: 'var(--f-bg-elevated)',
@@ -324,7 +332,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                   key={t}
                   type="button"
                   onClick={() => setType(t)}
-                  className="flex-1 py-2.5 rounded-[14px] text-[13px] font-black flex items-center justify-center gap-1.5 transition-all"
+                  className="flex-1 py-2.5 rounded-[14px] text-[13px] font-black flex items-center justify-center gap-1.5 transition-all active:scale-[0.96]"
                   style={type === t ? {
                     background: `color-mix(in srgb, ${c.rawColor} 13%, transparent)`,
                     border: `1px solid color-mix(in srgb, ${c.rawColor} 35%, transparent)`,
@@ -391,11 +399,12 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                 value={concept}
                 onChange={e => setConcept(e.target.value)}
                 placeholder={type === 'TR-GASTO' ? 'Ej: Súper, Uber…' : type === 'TR-INGRESO' ? 'Ej: Sueldo, Venta…' : 'Ej: Ahorro mensual…'}
-                className="w-full rounded-[14px] px-4 py-3.5 text-[16px] font-bold placeholder:font-medium outline-none transition-all"
+                className="w-full rounded-[14px] px-4 py-3.5 text-[16px] font-bold placeholder:font-medium outline-none"
                 style={{
                   background: 'var(--f-bg-input)',
                   border: '1px solid var(--f-line)',
                   color: 'var(--f-text)',
+                  transition: 'border-color 0.2s ease',
                 }}
                 onFocus={e => { e.currentTarget.style.borderColor = cfg.rawColor + '80' }}
                 onBlur={e => { e.currentTarget.style.borderColor = 'var(--f-line)' }}
@@ -417,7 +426,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                         key={cat.id}
                         type="button"
                         onClick={() => setCatId(selected ? '' : cat.id)}
-                        className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-[12px] transition-all"
+                        className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-[12px] transition-all active:scale-[0.92]"
                         style={selected ? {
                           background: `color-mix(in srgb, ${cfg.rawColor} 10%, transparent)`,
                           border: `1px solid color-mix(in srgb, ${cfg.rawColor} 30%, transparent)`,
@@ -549,7 +558,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                 <button
                   type="button"
                   onClick={() => setExcludeMode(excludeMode === 'none' ? (splitEnabled ? 'shared_only' : 'all') : 'none')}
-                  className="w-full flex items-center justify-between px-4 py-3.5 rounded-[14px] transition-all"
+                  className="w-full flex items-center justify-between px-4 py-3.5 rounded-[14px] transition-all active:scale-[0.98]"
                   style={{
                     background: excludeMode !== 'none' ? 'rgba(255,159,10,0.1)' : 'var(--f-bg-input)',
                     border: `1px solid ${excludeMode !== 'none' ? 'rgba(255,159,10,0.3)' : 'var(--f-line)'}`,
@@ -583,7 +592,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                         key={opt.id}
                         type="button"
                         onClick={() => setExcludeMode(opt.id)}
-                        className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-[12px] transition-all"
+                        className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-[12px] transition-all active:scale-[0.97]"
                         style={excludeMode === opt.id
                           ? { background: 'rgba(255,159,10,0.15)', border: '1px solid rgba(255,159,10,0.4)' }
                           : { background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
@@ -608,7 +617,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                   <button
                     type="button"
                     onClick={() => { setSplitEnabled(v => !v); setIOweEnabled(false) }}
-                    className="flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-[14px] transition-all"
+                    className="flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-[14px] transition-all active:scale-[0.96]"
                     style={splitEnabled
                       ? { background: 'var(--f-transfer-bg)', border: '1px solid var(--f-transfer-border)' }
                       : { background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
@@ -625,7 +634,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                   <button
                     type="button"
                     onClick={() => { setIOweEnabled(v => !v); setSplitEnabled(false) }}
-                    className="flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-[14px] transition-all"
+                    className="flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-[14px] transition-all active:scale-[0.96]"
                     style={iOweEnabled
                       ? { background: 'rgba(255,149,0,0.1)', border: '1px solid rgba(255,149,0,0.35)' }
                       : { background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
@@ -662,7 +671,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                         { id: 'custom' as const, label: 'Personalizado', sub: 'Monto libre por persona', icon: 'fa-solid fa-sliders' },
                       ]).map(opt => (
                         <button key={opt.id} type="button" onClick={() => setIoweMode(opt.id)}
-                          className="flex-1 flex flex-col items-center gap-1 py-2.5 px-2 rounded-[12px] transition-all"
+                          className="flex-1 flex flex-col items-center gap-1 py-2.5 px-2 rounded-[12px] transition-all active:scale-[0.96]"
                           style={ioweMode === opt.id
                             ? { background: 'rgba(255,149,0,0.12)', border: '1px solid rgba(255,149,0,0.4)' }
                             : { background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}>

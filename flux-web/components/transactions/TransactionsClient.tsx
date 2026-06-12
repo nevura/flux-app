@@ -285,7 +285,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
           <div className="relative flex-1">
             <button
               onClick={() => { setTypeDropOpen(o => !o); setCatDropOpen(false) }}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-[12px] text-[14px] font-bold"
+              className="w-full flex items-center justify-between px-3 py-2 rounded-[12px] text-[14px] font-bold transition-all active:scale-[0.97]"
               style={{
                 background: filterTypes.length > 0 ? 'var(--f-accent-bg)' : 'var(--f-bg-input)',
                 border: filterTypes.length > 0 ? '1px solid var(--f-accent-border)' : '1px solid var(--f-line)',
@@ -299,8 +299,8 @@ export default function TransactionsClient({ initialTransactions, categories, ac
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setTypeDropOpen(false)} />
                 <div
-                  className="absolute top-full mt-1 left-0 right-0 rounded-[16px] p-2 z-50"
-                  style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-shadow-pop)' }}
+                  className="absolute top-full mt-1 left-0 right-0 rounded-[16px] p-2 z-50 animate-scale-in"
+                  style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-shadow-pop)', transformOrigin: 'top center' }}
                 >
                   {TYPE_OPTIONS.map(opt => {
                     const checked = filterTypes.includes(opt.value)
@@ -335,7 +335,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
           <div className="relative flex-1">
             <button
               onClick={() => { setCatDropOpen(o => !o); setTypeDropOpen(false) }}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-[12px] text-[14px] font-bold"
+              className="w-full flex items-center justify-between px-3 py-2 rounded-[12px] text-[14px] font-bold transition-all active:scale-[0.97]"
               style={{
                 background: filterCats.length > 0 ? 'var(--f-accent-bg)' : 'var(--f-bg-input)',
                 border: filterCats.length > 0 ? '1px solid var(--f-accent-border)' : '1px solid var(--f-line)',
@@ -349,8 +349,8 @@ export default function TransactionsClient({ initialTransactions, categories, ac
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setCatDropOpen(false)} />
                 <div
-                  className="absolute top-full mt-1 left-0 right-0 rounded-[16px] p-2 z-50 max-h-64 overflow-y-auto"
-                  style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-shadow-pop)' }}
+                  className="absolute top-full mt-1 left-0 right-0 rounded-[16px] p-2 z-50 max-h-64 overflow-y-auto animate-scale-in"
+                  style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-shadow-pop)', transformOrigin: 'top center' }}
                 >
                   {categories.filter(c => c.id !== 'CAT-AUDIT').map(cat => {
                     const d = getCategoryDisplay(cat)
@@ -414,7 +414,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
               {hasPending && (
                 <button
                   onClick={() => { setShowPending(p => !p); if (showShared) { setShowShared(false); setSharedResults(null) }; setFilterTypes([]); setFilterCats([]) }}
-                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[13px] font-bold transition-all animate-spring-in"
+                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[13px] font-bold transition-all animate-spring-in active:scale-[0.95]"
                   style={{
                     background: showPending ? 'var(--f-pending-bg)' : 'var(--f-bg-input)',
                     border: showPending ? '1px solid var(--f-pending-border)' : '1px solid var(--f-line)',
@@ -429,7 +429,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
               <button
                 onClick={toggleShared}
                 disabled={isLoadingShared}
-                className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[13px] font-bold transition-all disabled:opacity-60 animate-spring-in"
+                className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[13px] font-bold transition-all disabled:opacity-60 animate-spring-in active:scale-[0.95]"
                 style={{
                   animationDelay: hasPending ? '0.06s' : '0s',
                   background: showShared ? 'var(--f-transfer-bg)' : 'var(--f-bg-input)',
@@ -447,7 +447,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
               <button
                 data-coach="tx-search"
                 onClick={() => setSearchOpen(true)}
-                className="flex-shrink-0 ml-auto w-9 h-9 rounded-[12px] flex items-center justify-center transition-all"
+                className="flex-shrink-0 ml-auto w-9 h-9 rounded-[12px] flex items-center justify-center transition-all active:scale-[0.9]"
                 style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
               >
                 <i className="fa-solid fa-magnifying-glass text-xs" style={{ color: 'var(--f-text-2)' }} />

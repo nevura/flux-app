@@ -28,7 +28,15 @@ interface Props {
 export default function AuditModal({ accounts, onClose }: Props) {
   const [inputs, setInputs] = useState<Record<string, string>>({})
   const [isPending, startTransition] = useTransition()
-  const { handleProps: swipeHandleProps, sheetStyle } = useBottomSheetSwipe(onClose)
+  const [closing, setClosing] = useState(false)
+
+  function handleClose() {
+    if (closing) return
+    setClosing(true)
+    setTimeout(onClose, 260)
+  }
+
+  const { handleProps: swipeHandleProps, sheetStyle } = useBottomSheetSwipe(handleClose)
   useBodyScrollLock()
 
   function getComputed(accId: string, isTDC: boolean): number | null {
@@ -62,19 +70,19 @@ export default function AuditModal({ accounts, onClose }: Props) {
         if (res.error) { toast.error(`${acc.name}: ${res.error}`); return }
       }
       toast.success(`${toApply.length} ajuste(s) aplicado(s)`)
-      onClose()
+      handleClose()
     })
   }
 
   return (
     <>
       <div
-        className="fixed inset-0 z-[60] animate-fade-in"
+        className={`fixed inset-0 z-[60] ${closing ? 'animate-fade-out' : 'animate-fade-in'}`}
         style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
-        onClick={onClose}
+        onClick={handleClose}
       />
       <div
-        className="fixed bottom-0 left-0 right-0 z-[60] animate-slide-up flex flex-col mx-auto max-w-lg"
+        className={`fixed bottom-0 left-0 right-0 z-[60] ${closing ? 'animate-slide-down' : 'animate-slide-up'} flex flex-col mx-auto max-w-lg`}
         style={{
           maxHeight: '92dvh',
           background: 'var(--f-bg-elevated)',

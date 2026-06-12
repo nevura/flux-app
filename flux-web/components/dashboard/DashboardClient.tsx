@@ -612,7 +612,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
                   return (
                     <button
                       key={s.id}
-                      className="w-full flex items-center gap-3 active:opacity-70 transition-opacity text-left animate-spring-in"
+                      className="w-full flex items-center gap-3 active:scale-[0.98] transition-transform text-left animate-spring-in"
                       style={{ animationDelay: `${i * 0.06}s` }}
                       onClick={() => setScheduledAction({ id: s.id, name: s.name, amount: Number(s.amount), type: s.type })}
                     >
@@ -718,7 +718,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
                   <button
                     key={acc.id}
                     onClick={() => openTdcModal(acc)}
-                    className="w-full flex items-center gap-3 px-4 py-3.5 active:opacity-70 transition-opacity text-left"
+                    className="w-full flex items-center gap-3 px-4 py-3.5 active:opacity-80 active:scale-[0.99] transition-all text-left"
                     style={i > 0 ? { borderTop: '1px solid var(--f-line-faint)' } : {}}
                   >
                     <div

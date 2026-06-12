@@ -29,8 +29,11 @@ export function SwipeableRow({ children, rightActions, className, style }: Props
   const [offset, setOffset] = useState(0)
   const maxReveal = rightActions.length * ACTION_W
 
+  const snapDirRef = useRef<'open' | 'close'>('close')
+
   function snapTo(val: number) {
     isDraggingRef.current = false
+    snapDirRef.current = val < 0 ? 'open' : 'close'
     offsetRef.current = val
     baseOffset.current = val
     setOffset(val)
@@ -89,9 +92,12 @@ export function SwipeableRow({ children, rightActions, className, style }: Props
     }
   }, [maxReveal])
 
+  // Open: spring with slight overshoot — Close: smooth decelerate
   const transition = isDraggingRef.current
     ? 'none'
-    : 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)'
+    : snapDirRef.current === 'open'
+      ? 'transform 0.38s cubic-bezier(0.34, 1.3, 0.64, 1)'
+      : 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)'
 
   return (
     <div
