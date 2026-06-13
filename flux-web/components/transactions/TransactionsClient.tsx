@@ -202,7 +202,6 @@ export default function TransactionsClient({ initialTransactions, categories, ac
               style={{ color: 'var(--f-text)' }}
             >
               {MONTHS_ES[displayMonth - 1]} {displayYear}
-              {isDataStale && <i className="fa-solid fa-spinner fa-spin text-[14px] ml-1" style={{ color: 'var(--f-text-4)' }} />}
               <i className="fa-solid fa-chevron-down text-[12px]" style={{ color: 'var(--f-text-3)' }} />
             </button>
             {!isCurrentMonth && (
@@ -492,14 +491,11 @@ export default function TransactionsClient({ initialTransactions, categories, ac
       <div
         key={`${year}-${month}-${search}-${showShared}`}
         className={`px-4 py-4 max-w-lg mx-auto ${!isDataStale ? (slideDir === 'right' ? 'animate-slide-from-right' : slideDir === 'left' ? 'animate-slide-from-left' : 'animate-fade-up') : ''}`}
-        style={{
-          opacity: isDataStale ? 0.4 : 1,
-          transform: isDataStale
-            ? `translateX(${slideDir === 'right' ? '-14px' : slideDir === 'left' ? '14px' : '0'})`
-            : 'translateX(0)',
-          transition: isDataStale ? 'opacity 0.2s ease, transform 0.2s ease' : 'none',
-          pointerEvents: isDataStale ? 'none' : undefined,
-        }}
+        style={isDataStale ? {
+          opacity: 0,
+          transition: 'opacity 0.13s ease-in',
+          pointerEvents: 'none',
+        } : undefined}
       >
         {grouped.length === 0 ? (
           <div className="text-center py-16" style={{ color: 'var(--f-text-4)' }}>
