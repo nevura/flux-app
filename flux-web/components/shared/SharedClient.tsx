@@ -1,7 +1,5 @@
 'use client'
 
-'use client'
-
 import React, { useMemo, useState, useTransition, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { SwipeableRow } from '@/components/shared/SwipeableRow'

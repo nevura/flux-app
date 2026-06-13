@@ -98,7 +98,8 @@ export function SwipeableRow({ children, rightActions, className, style }: Props
     function onTouchEnd() {
       if (dirRef.current === 'v') return
       if (dirRef.current === null) {
-        if (offsetRef.current < 0) snapTo(0, true)
+        // Pure tap — don't interfere. Content overlay and action buttons
+        // handle close/action via their own onClick handlers.
         return
       }
 
@@ -172,23 +173,19 @@ export function SwipeableRow({ children, rightActions, className, style }: Props
         </div>
 
         {/* Action tray */}
-        <div style={{ display: 'flex', flex: `0 0 ${maxReveal}px`, gap: '2px', padding: '3px 3px 3px 6px' }}>
+        <div style={{ display: 'flex', flex: `0 0 ${maxReveal}px`, gap: '2px', padding: '3px 3px 3px 5px' }}>
           {rightActions.map((action, i) => {
             const isFirst = i === 0
             const isLast = i === rightActions.length - 1
-            const revealRatio = Math.min(1, Math.abs(offset) / maxReveal)
-            const scale = 0.82 + revealRatio * 0.18
             return (
               <button
                 key={i}
                 onClick={() => { action.onClick(); snapTo(0, true) }}
-                className="flex-1 flex flex-col items-center justify-center gap-1.5 active:opacity-75 transition-opacity"
+                className="flex-1 flex flex-col items-center justify-center gap-1.5 active:brightness-90"
                 style={{
                   background: action.bg,
                   color: 'white',
                   borderRadius: isFirst && isLast ? '14px' : isFirst ? '14px 6px 6px 14px' : isLast ? '6px 14px 14px 6px' : '6px',
-                  transform: `scale(${scale})`,
-                  transition: isDraggingRef.current ? 'none' : 'transform 0.2s ease',
                 }}
               >
                 <i className={`${action.icon} text-[20px]`} />

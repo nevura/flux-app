@@ -169,6 +169,8 @@ export default function TransactionsClient({ initialTransactions, categories, ac
 
   const now = new Date()
   const isCurrentMonth = displayYear === now.getFullYear() && displayMonth === (now.getMonth() + 1)
+  // True while the Supabase query runs: display shows new month but props still have old data
+  const isDataStale = year !== displayYear || month !== displayMonth
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--f-bg)' }}>
@@ -200,7 +202,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
               style={{ color: 'var(--f-text)' }}
             >
               {MONTHS_ES[displayMonth - 1]} {displayYear}
-              {isNavigating && <i className="fa-solid fa-spinner fa-spin text-[14px] ml-1" style={{ color: 'var(--f-text-4)' }} />}
+              {isDataStale && <i className="fa-solid fa-spinner fa-spin text-[14px] ml-1" style={{ color: 'var(--f-text-4)' }} />}
               <i className="fa-solid fa-chevron-down text-[12px]" style={{ color: 'var(--f-text-3)' }} />
             </button>
             {!isCurrentMonth && (
@@ -487,7 +489,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
         </div>
       )}
 
-      {isNavigating && (
+      {isDataStale && (
         <div
           className={`px-4 py-4 max-w-lg mx-auto space-y-4 animate-pulse ${slideDir === 'right' ? 'animate-slide-from-right' : slideDir === 'left' ? 'animate-slide-from-left' : 'animate-fade-in'}`}
         >
@@ -504,7 +506,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
         </div>
       )}
 
-      {!isNavigating && (
+      {!isDataStale && (
       <div
         key={`${year}-${month}-${search}-${showShared}`}
         className={`px-4 py-4 max-w-lg mx-auto ${slideDir === 'right' ? 'animate-slide-from-right' : slideDir === 'left' ? 'animate-slide-from-left' : 'animate-fade-up'}`}
