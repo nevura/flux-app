@@ -489,27 +489,17 @@ export default function TransactionsClient({ initialTransactions, categories, ac
         </div>
       )}
 
-      {isDataStale && (
-        <div
-          className={`px-4 py-4 max-w-lg mx-auto space-y-4 animate-pulse ${slideDir === 'right' ? 'animate-slide-from-right' : slideDir === 'left' ? 'animate-slide-from-left' : 'animate-fade-in'}`}
-        >
-          {[0,1,2,3].map(i => (
-            <div key={i}>
-              <div className="h-3 w-20 rounded-full mb-2" style={{ background: 'var(--f-bg-card)' }} />
-              <div className="space-y-1.5">
-                {[0,1].map(j => (
-                  <div key={j} className="h-16 rounded-[18px]" style={{ background: 'var(--f-bg-card)' }} />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {!isDataStale && (
       <div
         key={`${year}-${month}-${search}-${showShared}`}
-        className={`px-4 py-4 max-w-lg mx-auto ${slideDir === 'right' ? 'animate-slide-from-right' : slideDir === 'left' ? 'animate-slide-from-left' : 'animate-fade-up'}`}
+        className={`px-4 py-4 max-w-lg mx-auto ${!isDataStale ? (slideDir === 'right' ? 'animate-slide-from-right' : slideDir === 'left' ? 'animate-slide-from-left' : 'animate-fade-up') : ''}`}
+        style={{
+          opacity: isDataStale ? 0.4 : 1,
+          transform: isDataStale
+            ? `translateX(${slideDir === 'right' ? '-14px' : slideDir === 'left' ? '14px' : '0'})`
+            : 'translateX(0)',
+          transition: isDataStale ? 'opacity 0.2s ease, transform 0.2s ease' : 'none',
+          pointerEvents: isDataStale ? 'none' : undefined,
+        }}
       >
         {grouped.length === 0 ? (
           <div className="text-center py-16" style={{ color: 'var(--f-text-4)' }}>
@@ -593,7 +583,6 @@ export default function TransactionsClient({ initialTransactions, categories, ac
         )}
         <div className="h-4" />
       </div>
-      )}
 
       {modalOpen && createPortal(
         <TransactionModal

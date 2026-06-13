@@ -722,7 +722,6 @@ export default function SharedClient({ transactions, people, accounts, categorie
             {actionModal.type === 'partial' && (
               <div className="space-y-3">
                 <input
-                  autoFocus
                   type="number"
                   inputMode="decimal"
                   min="0"
@@ -766,7 +765,6 @@ export default function SharedClient({ transactions, people, accounts, categorie
             {actionModal.type === 'collectPartial' && (
               <div className="space-y-3">
                 <input
-                  autoFocus
                   type="number"
                   inputMode="decimal"
                   min="0"
