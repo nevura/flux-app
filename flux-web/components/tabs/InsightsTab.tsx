@@ -96,7 +96,6 @@ export default function InsightsTab({ userId, active, refreshSignal }: Props) {
 
   useEffect(() => {
     if (loadedRef.current) {
-      setData(null)
       load(year, month)
     }
   }, [year, month]) // eslint-disable-line react-hooks/exhaustive-deps

@@ -491,11 +491,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
       <div
         key={`${year}-${month}-${search}-${showShared}`}
         className={`px-4 py-4 max-w-lg mx-auto ${!isDataStale ? (slideDir === 'right' ? 'animate-slide-from-right' : slideDir === 'left' ? 'animate-slide-from-left' : 'animate-fade-up') : ''}`}
-        style={isDataStale ? {
-          opacity: 0,
-          transition: 'opacity 0.13s ease-in',
-          pointerEvents: 'none',
-        } : undefined}
+        style={isDataStale ? { pointerEvents: 'none' } : undefined}
       >
         {grouped.length === 0 ? (
           <div className="text-center py-16" style={{ color: 'var(--f-text-4)' }}>
@@ -505,7 +501,11 @@ export default function TransactionsClient({ initialTransactions, categories, ac
         ) : (
           <div className="space-y-4">
             {grouped.map(([day, txs], gi) => (
-              <div key={day} className="animate-fade-up" style={{ animationDelay: `${gi * 0.04}s` }}>
+              <div
+                key={day}
+                className={isDataStale ? 'animate-exit-up' : 'animate-fade-up'}
+                style={{ animationDelay: `${isDataStale ? gi * 50 : gi * 40}ms` }}
+              >
                 <p className="text-[12px] font-black uppercase tracking-[2px] mb-2 px-1" style={{ color: 'var(--f-text-3)' }}>
                   {formatDateShort(day + 'T12:00:00')}
                 </p>

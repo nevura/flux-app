@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useRef, useCallback, useEffect, useTransition } from 'react'
+import { useState, useMemo, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatCurrency, getCategoryDisplay, getColor } from '@/lib/utils'
 import { MONTHS_ES } from '@/lib/constants'
@@ -124,10 +124,10 @@ function DonutChart({ slices }: { slices: Array<{ label: string; value: number; 
 
 export default function InsightsClient({ transactions, categories, monthlySummary, year, month }: Props) {
   const router = useRouter()
-  const [isNavigating, startNavigate] = useTransition()
   const [pickerOpen, setPickerOpen] = useState(false)
   const [pickerYear, setPickerYear] = useState(year)
   const [activeScreen, setActiveScreen] = useState(0)
+  const [slideDir, setSlideDir] = useState<'right' | 'left' | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const catMap = useMemo(() => Object.fromEntries(categories.map(c => [c.id, c])), [categories])
 
@@ -138,20 +138,24 @@ export default function InsightsClient({ transactions, categories, monthlySummar
   useEffect(() => { setDisplayMonth(month); setDisplayYear(year) }, [month, year])
 
   const isCurrentMonth = displayYear === now.getFullYear() && displayMonth === (now.getMonth() + 1)
+  const isDataStale = year !== displayYear || month !== displayMonth
 
   function navigate(dir: -1 | 1) {
     let m = displayMonth + dir, y = displayYear
     if (m < 1) { m = 12; y-- }
     if (m > 12) { m = 1; y++ }
+    setSlideDir(dir === 1 ? 'right' : 'left')
     setDisplayMonth(m)
     setDisplayYear(y)
-    startNavigate(() => router.push(`/insights?year=${y}&month=${m}`))
+    router.push(`/insights?year=${y}&month=${m}`)
   }
 
   function navigatePicker(y: number, m: number) {
+    const isFuture = y > displayYear || (y === displayYear && m > displayMonth)
+    setSlideDir(isFuture ? 'right' : 'left')
     setDisplayMonth(m)
     setDisplayYear(y)
-    startNavigate(() => router.push(`/insights?year=${y}&month=${m}`))
+    router.push(`/insights?year=${y}&month=${m}`)
   }
 
   const handleScroll = useCallback(() => {
@@ -248,7 +252,6 @@ export default function InsightsClient({ transactions, categories, monthlySummar
               style={{ color: 'var(--f-text)' }}
             >
               {MONTHS_ES[displayMonth - 1]} {displayYear}
-              {isNavigating && <i className="fa-solid fa-spinner fa-spin text-[14px]" style={{ color: 'var(--f-text-4)' }} />}
               <i className="fa-solid fa-chevron-down text-[12px]" style={{ color: 'var(--f-text-3)' }} />
             </button>
             {!isCurrentMonth && (
@@ -345,13 +348,11 @@ export default function InsightsClient({ transactions, categories, monthlySummar
       <div
         ref={scrollRef}
         key={`${year}-${month}`}
-        className="flex overflow-x-auto animate-fade-up"
+        className={`flex overflow-x-auto ${!isDataStale ? (slideDir === 'right' ? 'animate-slide-from-right' : slideDir === 'left' ? 'animate-slide-from-left' : 'animate-fade-up') : ''}`}
         style={{
           scrollSnapType: 'x mandatory', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch',
-          opacity: isNavigating ? 0.45 : 1,
-          transition: 'opacity 0.22s ease-out',
-          pointerEvents: isNavigating ? 'none' : undefined,
-        } as React.CSSProperties}
+          ...(isDataStale ? { opacity: 0, transition: 'opacity 0.13s ease-in', pointerEvents: 'none' as const } : {}),
+        }}
         onScroll={handleScroll}
       >
 
