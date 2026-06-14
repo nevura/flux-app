@@ -390,8 +390,8 @@ export default function GuiaPage() {
                   </div>
                   {/* Fade hint — shows there are more cards to scroll */}
                   <div
-                    className="absolute right-0 top-0 w-14 pointer-events-none"
-                    style={{ bottom: 16, background: 'linear-gradient(to left, #ffffff, transparent)' }}
+                    className="absolute right-0 top-0 w-24 pointer-events-none"
+                    style={{ bottom: 16, background: 'linear-gradient(to left, #ffffff 30%, transparent)' }}
                   />
                 </div>
               </div>
