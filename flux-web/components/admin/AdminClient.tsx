@@ -1042,31 +1042,26 @@ function FxBackfillTool() {
   const [isPending, startTransition] = useTransition()
   const [result, setResult] = useState<string | null>(null)
 
-  function run(from: string, to: string) {
+  function run() {
     setResult(null)
     startTransition(async () => {
-      const r = await backfillExchangeRates(from, to, '2025-01-01')
-      setResult(r.error ? `Error: ${r.error}` : `✓ ${r.inserted} tasas guardadas`)
+      const r = await backfillExchangeRates('2025-01-01')
+      setResult(r.error ? `Error: ${r.error}` : `✓ ${r.inserted} días guardados (EUR/USD/GBP/CAD/JPY/BRL → MXN)`)
     })
   }
 
   return (
     <section className="mt-6 rounded-[20px] p-5" style={{ background: LIGHT, border: '1px solid rgba(0,0,0,0.07)' }}>
       <p className="text-[12px] font-black uppercase tracking-[3px] mb-3" style={{ color: GRAY }}>Historial de tipo de cambio</p>
-      <p className="text-[13px] font-medium mb-4" style={{ color: GRAY }}>Descarga tasas BCE desde 2025-01-01. Solo es necesario hacerlo una vez por par de divisas.</p>
-      <div className="flex flex-wrap gap-2">
-        {[['EUR','MXN'],['USD','MXN'],['GBP','MXN'],['CAD','MXN'],['JPY','MXN'],['BRL','MXN']].map(([from, to]) => (
-          <button
-            key={`${from}-${to}`}
-            onClick={() => run(from, to)}
-            disabled={isPending}
-            className="px-3 py-2 rounded-[10px] text-[13px] font-bold transition-all active:scale-95 disabled:opacity-50"
-            style={{ background: '#fff', border: '1px solid rgba(0,122,255,0.3)', color: BLUE }}
-          >
-            {from} → {to}
-          </button>
-        ))}
-      </div>
+      <p className="text-[13px] font-medium mb-4" style={{ color: GRAY }}>Descarga tasas BCE desde 2025-01-01 para todos los pares. Un registro por día (JSON). Solo necesario una vez.</p>
+      <button
+        onClick={run}
+        disabled={isPending}
+        className="px-4 py-2.5 rounded-[10px] text-[14px] font-bold transition-all active:scale-95 disabled:opacity-50"
+        style={{ background: '#fff', border: '1px solid rgba(0,122,255,0.3)', color: BLUE }}
+      >
+        <i className="fa-solid fa-download mr-2" />Backfill desde enero 2025
+      </button>
       {isPending && <p className="text-[13px] font-bold mt-3" style={{ color: BLUE }}><i className="fa-solid fa-spinner fa-spin mr-2" />Descargando…</p>}
       {result && <p className="text-[13px] font-bold mt-3" style={{ color: result.startsWith('✓') ? GREEN : RED }}>{result}</p>}
     </section>
