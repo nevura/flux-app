@@ -140,7 +140,7 @@ const sections: Record<string, Section> = {
     title: 'Atajos de iPhone',
     intro: {
       text: 'Los Atajos de iPhone permiten que FluxApp registre tus gastos automáticamente al pagar con Apple Pay, sin que tengas que abrir la app. La configuración toma menos de 5 minutos.',
-      tip: '⚠️ Los Atajos solo funcionan con conexión a internet. Si el Atajo marca error, registra el gasto manualmente o con el Atajo de Registro Rápido.',
+      tip: '⚠️ El nombre de tu cuenta en FluxApp debe ser IDÉNTICO al nombre de tu tarjeta en Ajustes → Wallet y Apple Pay (hasta el acento importa). Los Atajos solo funcionan con internet — si hay error, registra el gasto manualmente.',
     },
     videos: [
       'Cómo instalar el Atajo Apple Pay',
@@ -350,42 +350,49 @@ export default function GuiaPage() {
                   <i className="fa-solid fa-images mr-2" />
                   {tutorial.title}
                 </p>
-                <div
-                  className="flex gap-3 overflow-x-auto pb-4"
-                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                >
-                  {tutorial.steps.map((step, si) => (
-                    <div
-                      key={si}
-                      className="flex flex-col items-center gap-3 flex-shrink-0 rounded-[16px] p-4"
-                      style={{ background: LIGHT, border: '1px solid rgba(0,0,0,0.05)', width: 158 }}
-                    >
-                      {/* Step number badge */}
+                <div className="relative">
+                  <div
+                    className="flex gap-3 overflow-x-auto pb-4"
+                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                  >
+                    {tutorial.steps.map((step, si) => (
                       <div
-                        className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
-                        style={{ background: BLUE }}
+                        key={si}
+                        className="flex flex-col items-center gap-3 flex-shrink-0 rounded-[16px] p-4"
+                        style={{ background: LIGHT, border: '1px solid rgba(0,0,0,0.05)', width: 158 }}
                       >
-                        <span className="text-[12px] font-black text-white">{step.label}</span>
-                      </div>
-                      {/* Description */}
-                      <p className="text-[11px] font-semibold text-center leading-snug" style={{ color: DARK }}>
-                        {step.desc}
-                      </p>
-                      {/* Photo */}
-                      {step.imageSrc ? (
-                        <div className="w-full rounded-[10px] overflow-hidden" style={{ position: 'relative', paddingTop: '177.78%', background: '#f8f8f8' }}>
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={step.imageSrc}
-                            alt={step.photoLabel}
-                            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }}
-                          />
+                        {/* Step number badge */}
+                        <div
+                          className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+                          style={{ background: BLUE }}
+                        >
+                          <span className="text-[12px] font-black text-white">{step.label}</span>
                         </div>
-                      ) : (
-                        <PhotoPlaceholder hint={step.photoLabel} />
-                      )}
-                    </div>
-                  ))}
+                        {/* Description — flex-1 keeps photos bottom-aligned across all cards */}
+                        <p className="text-[11px] font-semibold text-center leading-snug" style={{ color: DARK, flex: 1 }}>
+                          {step.desc}
+                        </p>
+                        {/* Photo */}
+                        {step.imageSrc ? (
+                          <div className="w-full rounded-[10px] overflow-hidden" style={{ position: 'relative', paddingTop: '177.78%', background: '#f8f8f8' }}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={step.imageSrc}
+                              alt={step.photoLabel}
+                              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }}
+                            />
+                          </div>
+                        ) : (
+                          <PhotoPlaceholder hint={step.photoLabel} />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {/* Fade hint — shows there are more cards to scroll */}
+                  <div
+                    className="absolute right-0 top-0 w-14 pointer-events-none"
+                    style={{ bottom: 16, background: 'linear-gradient(to left, #ffffff, transparent)' }}
+                  />
                 </div>
               </div>
             ))}
