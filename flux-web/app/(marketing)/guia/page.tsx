@@ -243,6 +243,26 @@ const sections: Record<string, Section> = {
       { icon: 'fa-scale-balanced', title: 'Auditoría de saldo', desc: 'Si el saldo en Flux no coincide con tu banco, toca el ícono de balanza en la cuenta. Ingresa el saldo real y Flux genera un ajuste automático para cuadrar la diferencia.', tip: 'Haz una auditoría mensual para mantener tus números precisos.' },
       { icon: 'fa-calendar-check', title: 'Pago de TDC desde inicio', desc: 'Si configuraste la fecha de corte de tu TDC, Flux muestra un recordatorio en el Dashboard. Toca "Registrar pago" para mover el monto de tu cuenta débito a la TDC y limpiar la deuda.' },
     ],
+    photoTutorials: [
+      {
+        title: 'Agregar una cuenta',
+        steps: [
+          { label: '1', desc: 'Ve a Configuración y toca "Cuentas"', photoLabel: '"Cuentas" resaltado en Configuración' },
+          { label: '2', desc: 'Toca el botón + para agregar una nueva cuenta', photoLabel: 'Botón + Nueva cuenta resaltado' },
+          { label: '3', desc: 'Elige el tipo: Efectivo, Débito o Crédito', photoLabel: 'Selector de tipo de cuenta' },
+          { label: '4', desc: 'Ingresa el nombre, elige color e ícono', photoLabel: 'Formulario con nombre, color e ícono' },
+          { label: '5', desc: 'Establece el saldo inicial y guarda', photoLabel: 'Campo de saldo inicial rellenado' },
+        ],
+      },
+      {
+        title: 'Auditoría de saldo',
+        steps: [
+          { label: '1', desc: 'En Cuentas, toca el ícono de balanza (⚖) de la cuenta que no cuadra', photoLabel: 'Ícono de balanza resaltado en la cuenta' },
+          { label: '2', desc: 'Ingresa el saldo real que te muestra tu banco', photoLabel: 'Pantalla de auditoría con campo de saldo real' },
+          { label: '3', desc: 'Flux genera el ajuste y cuadra la diferencia', photoLabel: 'Ajuste automático generado visible' },
+        ],
+      },
+    ],
   },
 
   // ── Compartidos ─────────────────────────────────────────────────────────────
@@ -261,6 +281,35 @@ const sections: Record<string, Section> = {
       { icon: 'fa-hand-holding-dollar', title: 'Ingreso compartido (por cobrar)', desc: 'Al crear un ingreso, activa "Ingreso futuro / pendiente de cobro". El monto no entra a tu cuenta hasta que marques el cobro.' },
       { icon: 'fa-coins', title: 'Liquida deudas', desc: 'En Compartidos, abre a una persona y usa "Saldar todo" o "Abonar" para registrar pagos parciales. Flux crea los movimientos automáticamente.' },
     ],
+    photoTutorials: [
+      {
+        title: 'Agregar y vincular amigos',
+        steps: [
+          { label: '1', desc: 'Ve a la pestaña Compartidos y toca el ícono de personas (esquina superior)', photoLabel: 'Pestaña Compartidos con ícono de amigos resaltado' },
+          { label: '2', desc: 'Busca a tu amigo escribiendo su @usuario', photoLabel: 'Buscador con @usuario escrito y resultado' },
+          { label: '3', desc: 'Toca "Enviar solicitud" — cuando la acepten quedan vinculados', photoLabel: 'Botón "Enviar solicitud" resaltado' },
+          { label: '4', desc: 'En Configuración → Personas, toca el ícono de vínculo para conectar un contacto con su cuenta de Flux', photoLabel: 'Ícono de vínculo resaltado en la lista de Personas' },
+        ],
+      },
+      {
+        title: 'Gasto compartido — tú pagaste (THEY)',
+        steps: [
+          { label: '1', desc: 'Al crear un gasto, activa el toggle "Compartir gasto"', photoLabel: 'Toggle "Compartir gasto" activado resaltado' },
+          { label: '2', desc: 'Selecciona la persona y el modo: partes iguales o personalizado', photoLabel: 'Selector de persona y modo de división' },
+          { label: '3', desc: 'Ajusta los montos por persona y confirma', photoLabel: 'Montos asignados por persona' },
+          { label: '4', desc: 'El gasto aparece en Compartidos mostrando quién te debe y cuánto', photoLabel: 'Gasto compartido en Compartidos con deuda visible' },
+        ],
+      },
+      {
+        title: 'Lo pagó otra persona (IOWE) y cómo liquidar',
+        steps: [
+          { label: '1', desc: 'Al crear un gasto, activa "Lo pagó otra persona" — el monto NO sale de tu cuenta', photoLabel: 'Toggle IOWE activado resaltado' },
+          { label: '2', desc: 'El gasto queda como "Por pagar" en Movimientos', photoLabel: 'Gasto marcado como "Por pagar" en Movimientos' },
+          { label: '3', desc: 'Cuando pagues, en Compartidos toca a la persona y elige "Saldar todo" o "Abonar"', photoLabel: 'Botones Saldar/Abonar resaltados' },
+          { label: '4', desc: 'Elige la cuenta desde la que pagas y confirma', photoLabel: 'Selector de cuenta y confirmación del pago' },
+        ],
+      },
+    ],
   },
 
   // ── Planificación ───────────────────────────────────────────────────────────
@@ -276,6 +325,27 @@ const sections: Record<string, Section> = {
       { icon: 'fa-bullseye', title: 'Presupuesto mensual', desc: 'Ve a Configuración → Presupuesto y define cuánto quieres gastar al mes. La barra en el Dashboard muestra cuánto llevas vs tu límite.' },
       { icon: 'fa-sliders', title: 'Personalizar por mes', desc: 'En el Dashboard, toca el ícono de lápiz junto al presupuesto para ajustar el monto solo para ese mes, sin cambiar el valor predeterminado.' },
     ],
+    photoTutorials: [
+      {
+        title: 'Crear un recurrente',
+        steps: [
+          { label: '1', desc: 'Ve a Configuración y toca "Planificados"', photoLabel: '"Planificados" resaltado en Configuración' },
+          { label: '2', desc: 'Toca el botón + para crear un nuevo planificado', photoLabel: 'Botón + Nuevo planificado resaltado' },
+          { label: '3', desc: 'Define el nombre, monto, categoría y cuenta', photoLabel: 'Formulario de planificado con campos rellenados' },
+          { label: '4', desc: 'Elige la frecuencia (mensual, semanal...) y la próxima fecha de cobro', photoLabel: 'Selector de frecuencia y fecha' },
+          { label: '5', desc: 'El recurrente aparece en la lista y se generará automáticamente en esa fecha', photoLabel: 'Planificado guardado en la lista' },
+        ],
+      },
+      {
+        title: 'Configurar y personalizar el presupuesto',
+        steps: [
+          { label: '1', desc: 'Ve a Configuración y toca "Presupuesto"', photoLabel: '"Presupuesto" resaltado en Configuración' },
+          { label: '2', desc: 'Ingresa el límite de gasto mensual que quieres mantener', photoLabel: 'Campo de límite mensual rellenado' },
+          { label: '3', desc: 'La barra de progreso aparece en el Dashboard mostrando cuánto llevas gastado', photoLabel: 'Barra de presupuesto visible en el Dashboard' },
+          { label: '4', desc: 'Toca el lápiz ✏ junto al presupuesto para ajustar el límite solo del mes actual', photoLabel: 'Ícono lápiz resaltado junto al presupuesto del mes' },
+        ],
+      },
+    ],
   },
 
   // ── Estadísticas ────────────────────────────────────────────────────────────
@@ -289,6 +359,17 @@ const sections: Record<string, Section> = {
       { icon: 'fa-chart-pie', title: 'Desglose por categoría', desc: 'Las barras en Estadísticas muestran cuánto gastaste en cada categoría este mes. Toca una categoría para ver los movimientos individuales.' },
       { icon: 'fa-calendar-days', title: 'Comparación mensual', desc: 'Navega entre meses con las flechas para comparar tus gastos históricos y ver si estás mejorando tus hábitos.' },
       { icon: 'fa-arrow-trend-up', title: 'Ingresos vs gastos', desc: 'El resumen mensual muestra total de ingresos, total de gastos y el neto. Un neto positivo significa que ahorraste ese mes.' },
+    ],
+    photoTutorials: [
+      {
+        title: 'Interpretar tus estadísticas',
+        steps: [
+          { label: '1', desc: 'Toca el ícono de gráfica en la barra inferior para ir a Estadísticas', photoLabel: 'Ícono de Estadísticas en la nav resaltado' },
+          { label: '2', desc: 'La línea azul es tu saldo real día a día. La naranja es tu ritmo ideal según el presupuesto', photoLabel: 'Gráfica de tendencia con líneas azul y naranja visibles' },
+          { label: '3', desc: 'Las barras muestran gasto por categoría — toca una para ver sus movimientos', photoLabel: 'Barras de categorías con una seleccionada/expandida' },
+          { label: '4', desc: 'Usa las flechas ‹ › para navegar entre meses y comparar tu historial', photoLabel: 'Flechas de navegación de meses resaltadas' },
+        ],
+      },
     ],
   },
 

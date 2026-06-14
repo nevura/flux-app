@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { GUIDE_SECTIONS } from '@/lib/guide'
 import { toast } from 'sonner'
 import OnboardingModal from '@/components/onboarding/OnboardingModal'
@@ -20,6 +21,22 @@ export default function GuideTab() {
 
   return (
     <div className="space-y-5">
+      {/* Guide link */}
+      <Link
+        href="/guia"
+        className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all active:scale-95"
+        style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)' }}
+      >
+        <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(0,122,255,0.12)' }}>
+          <i className="fa-solid fa-book-open text-[14px]" style={{ color: 'var(--f-blue)' }} />
+        </div>
+        <div className="flex-1 text-left">
+          <p className="text-[16px] font-black" style={{ color: 'var(--f-text)' }}>Guía con fotos</p>
+          <p className="text-[13px] font-semibold mt-0.5" style={{ color: 'var(--f-text-4)' }}>Tutoriales paso a paso en la web</p>
+        </div>
+        <i className="fa-solid fa-arrow-up-right-from-square text-[13px]" style={{ color: 'var(--f-text-4)' }} />
+      </Link>
+
       {/* Tour button */}
       <button
         onClick={() => setShowTour(true)}
