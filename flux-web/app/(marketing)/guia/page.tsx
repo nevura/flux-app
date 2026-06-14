@@ -353,7 +353,7 @@ export default function GuiaPage() {
                 <div className="relative">
                   <div
                     className="flex gap-3 overflow-x-auto pb-4"
-                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', paddingRight: '6rem' }}
                   >
                     {tutorial.steps.map((step, si) => (
                       <div
