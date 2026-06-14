@@ -82,6 +82,22 @@ export const ONBOARDING_SLIDES: OnboardingSlide[] = [
     tip: 'Entre más cuentas tengas registradas, más preciso será tu saldo total',
   },
   {
+    id: 'divisas',
+    icon: 'fa-solid fa-earth-americas',
+    iconBg: 'rgba(52,199,89,0.12)',
+    iconColor: 'var(--f-income)',
+    title: 'Cuentas en otra divisa',
+    subtitle: 'USD, EUR y más',
+    bullets: [
+      'Cada cuenta puede estar en una divisa diferente — actívala al crear o editar la cuenta',
+      'Para EUR, USD, GBP, CAD, JPY y BRL: el tipo de cambio del BCE se llena automáticamente',
+      'Al registrar un gasto el tipo de cambio aparece pre-llenado — puedes editarlo si necesitas',
+      'Los totales globales siempre se ven en tu divisa base (configurable en Perfil)',
+    ],
+    tip: '💡 Si tus cuentas son todas en MXN, ignora esta función — no cambia nada para ti',
+    guideLink: { label: 'Ver guía de divisas', href: '/guia' },
+  },
+  {
     id: 'presupuesto',
     icon: 'fa-solid fa-chart-pie',
     iconBg: 'rgba(255,69,58,0.12)',

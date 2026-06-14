@@ -86,6 +86,7 @@ const tabs = [
   { id: 'inicio',        label: 'Agregar a inicio',  icon: 'fa-house' },
   { id: 'atajos',        label: 'Atajos',             icon: 'fa-bolt' },
   { id: 'cuentas',       label: 'Cuentas',            icon: 'fa-credit-card' },
+  { id: 'divisas',       label: 'Divisas',            icon: 'fa-earth-americas' },
   { id: 'compartidos',   label: 'Compartidos',        icon: 'fa-users' },
   { id: 'planificacion', label: 'Planificación',      icon: 'fa-rotate' },
   { id: 'estadisticas',  label: 'Estadísticas',       icon: 'fa-chart-line' },
@@ -261,6 +262,54 @@ const sections: Record<string, Section> = {
           { label: '2', desc: 'Ingresa el saldo real que te muestra tu banco', photoLabel: 'Pantalla de auditoría con campo de saldo real' },
           { label: '3', desc: 'Flux genera el ajuste y cuadra la diferencia', photoLabel: 'Ajuste automático generado visible' },
         ],
+      },
+    ],
+  },
+
+  // ── Divisas ─────────────────────────────────────────────────────────────────
+  divisas: {
+    title: 'Divisas y tipo de cambio',
+    intro: {
+      text: 'Cada cuenta en Flux puede estar en una divisa diferente. El tipo de cambio se obtiene automáticamente del Banco Central Europeo (BCE) para las divisas más comunes — no tienes que buscarlo tú.',
+      tip: '💡 Los totales globales (saldo, presupuesto, estadísticas) siempre se muestran en tu divisa base, que configuras en Perfil.',
+    },
+    videos: [],
+    steps: [
+      {
+        icon: 'fa-credit-card',
+        title: 'Divisa de una cuenta',
+        desc: 'Al crear o editar una cuenta en Configuración → Cuentas, elige su divisa. Todas las cuentas son MXN por defecto. Puedes tener varias cuentas en distintas divisas al mismo tiempo.',
+      },
+      {
+        icon: 'fa-earth-americas',
+        title: 'Divisa base (tu moneda de referencia)',
+        desc: 'En Configuración → Perfil selecciona tu divisa base. Es la moneda en la que se muestran los totales globales — saldo en Inicio, gráficas en Estadísticas, presupuesto. Por defecto es MXN.',
+      },
+      {
+        icon: 'fa-rotate',
+        title: 'Tipo de cambio automático (BCE)',
+        desc: 'Para EUR, USD, GBP, CAD, JPY y BRL: Flux obtiene el tipo de cambio diario del Banco Central Europeo automáticamente. Al registrar un gasto, el campo de tipo de cambio se llena con la tasa oficial del día que elijas.',
+        tip: 'El tipo de cambio se actualiza cada día al mediodía. Los fines de semana usa el último día hábil.',
+      },
+      {
+        icon: 'fa-plus',
+        title: 'Registrar un gasto en divisa extranjera',
+        desc: 'Selecciona la cuenta en moneda extranjera → el tipo de cambio aparece pre-llenado con la tasa del BCE para la fecha del movimiento. Solo necesitas ingresar el monto en la divisa de la cuenta.',
+      },
+      {
+        icon: 'fa-pencil',
+        title: 'Tipo de cambio manual',
+        desc: 'Si necesitas mayor precisión, puedes editar el campo de tipo de cambio directamente. Una vez que lo editas, Flux lo marca como "Tasa manual" y no lo sobreescribe automáticamente.',
+      },
+      {
+        icon: 'fa-triangle-exclamation',
+        title: 'ARS, COP, CLP — sin tasa automática',
+        desc: 'Peso argentino, peso colombiano y peso chileno no forman parte del sistema BCE. Para estas divisas deberás ingresar el tipo de cambio manualmente al registrar cada movimiento.',
+      },
+      {
+        icon: 'fa-chart-line',
+        title: 'Cómo se muestran los totales',
+        desc: 'Los montos por transacción se muestran en su divisa original (ej: $50 USD). Los totales agregados (saldo, estadísticas, presupuesto) se convierten a tu divisa base usando el tipo de cambio guardado en cada movimiento.',
       },
     ],
   },
