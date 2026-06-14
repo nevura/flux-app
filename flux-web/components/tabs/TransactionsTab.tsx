@@ -12,6 +12,7 @@ interface TabData {
   categories: Category[]
   accounts: AccountWithBalance[]
   people: Person[]
+  baseCurrency: string
   year: number
   month: number
 }
@@ -47,7 +48,7 @@ export default function TransactionsTab({ userId, active, refreshSignal }: Props
 
   const load = useCallback(async (y: number, m: number) => {
     const { from, to } = monthRange(y, m)
-    const [{ data: txs }, { data: pendingAll }, { data: cats }, { data: accs }, { data: people }] = await Promise.all([
+    const [{ data: txs }, { data: pendingAll }, { data: cats }, { data: accs }, { data: people }, { data: profileRow }] = await Promise.all([
       supabase.from('transactions').select('*').eq('user_id', userId)
         .gte('transaction_date', from.slice(0, 10)).lte('transaction_date', to.slice(0, 10))
         .order('transaction_date', { ascending: false }),
@@ -58,6 +59,7 @@ export default function TransactionsTab({ userId, active, refreshSignal }: Props
       supabase.from('categories').select('*').or(`user_id.eq.${userId},user_id.is.null`).order('sort_order'),
       supabase.from('accounts').select('*').eq('user_id', userId).eq('is_active', true).order('sort_order'),
       supabase.from('people').select('*').eq('user_id', userId),
+      supabase.from('profiles').select('currency').eq('id', userId).single(),
     ])
     // Merge pending from other months (dedup by id)
     const monthlyTxs = (txs ?? []) as Transaction[]
@@ -68,6 +70,7 @@ export default function TransactionsTab({ userId, active, refreshSignal }: Props
       categories: (cats ?? []) as Category[],
       accounts: (accs ?? []) as AccountWithBalance[],
       people: (people ?? []) as Person[],
+      baseCurrency: profileRow?.currency ?? 'MXN',
       year: y,
       month: m,
     })
@@ -108,6 +111,7 @@ export default function TransactionsTab({ userId, active, refreshSignal }: Props
       categories={data.categories}
       accounts={data.accounts}
       people={data.people}
+      baseCurrency={data.baseCurrency}
       year={data.year}
       month={data.month}
     />

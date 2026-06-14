@@ -22,11 +22,12 @@ interface Props {
   categories: Category[]
   accounts: AccountWithBalance[]
   people: Person[]
+  baseCurrency?: string
   year: number
   month: number
 }
 
-export default function TransactionsClient({ initialTransactions, categories, accounts, people, year, month }: Props) {
+export default function TransactionsClient({ initialTransactions, categories, accounts, people, baseCurrency = 'MXN', year, month }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [isNavigating, startNavigate] = useTransition()
@@ -586,6 +587,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
           accounts={accounts}
           categories={categories}
           people={people}
+          baseCurrency={baseCurrency}
           onClose={() => setModalOpen(false)}
         />,
         document.body

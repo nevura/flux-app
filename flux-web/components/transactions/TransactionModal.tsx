@@ -19,6 +19,7 @@ interface Props {
   people: Person[]
   onClose: () => void
   presetType?: 'TR-GASTO' | 'TR-INGRESO' | 'TR-TRANSFER'
+  baseCurrency?: string
 }
 
 type TxType = 'TR-GASTO' | 'TR-INGRESO' | 'TR-TRANSFER'
@@ -29,7 +30,7 @@ const TYPE_CONFIG = {
   'TR-TRANSFER': { label: 'Transferencia',   color: 'var(--f-transfer)', rawColor: '#64D2FF', icon: 'fa-solid fa-shuffle' },
 }
 
-export default function TransactionModal({ transaction, accounts, categories, people, onClose, presetType }: Props) {
+export default function TransactionModal({ transaction, accounts, categories, people, onClose, presetType, baseCurrency = 'MXN' }: Props) {
   const isEdit = Boolean(transaction)
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -83,6 +84,19 @@ export default function TransactionModal({ transaction, accounts, categories, pe
   const [catId, setCatId] = useState(transaction?.category_id ?? '')
   const [accId, setAccId] = useState(transaction?.account_id ?? accounts[0]?.id ?? '')
   const [destId, setDestId] = useState(transaction?.destination_account_id ?? '')
+  const selectedAccount = accounts.find(a => a.id === accId)
+  const accountCurrency = selectedAccount?.currency ?? 'MXN'
+  const needsExchangeRate = accountCurrency !== baseCurrency
+  const [exchangeRate, setExchangeRate] = useState<string>(
+    transaction?.exchange_rate != null && transaction.exchange_rate !== 1
+      ? String(transaction.exchange_rate)
+      : String(selectedAccount?.display_exchange_rate ?? 1)
+  )
+  // Re-seed exchange rate when the user switches accounts
+  useEffect(() => {
+    const acc = accounts.find(a => a.id === accId)
+    setExchangeRate(String(acc?.display_exchange_rate ?? 1))
+  }, [accId]) // eslint-disable-line react-hooks/exhaustive-deps
   const [date, setDate] = useState(transaction?.transaction_date?.slice(0, 16) ?? getMexicoNow().slice(0, 16))
   type ExcludeMode = 'none' | 'all' | 'shared_only'
   const [excludeMode, setExcludeMode] = useState<ExcludeMode>(
@@ -264,6 +278,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
       split_data: isReceivable ? buildReceivableData() : iOweEnabled ? buildIoweData() : buildSplitData(),
       is_payable: iOweEnabled,
       is_receivable: isReceivable,
+      exchange_rate: needsExchangeRate ? (parseFloat(exchangeRate) || 1) : 1,
     }
     startTransition(async () => {
       const res = isEdit && transaction
@@ -497,6 +512,36 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                 ))}
               </select>
             </div>
+
+            {/* Exchange rate — only visible when account currency ≠ base currency */}
+            {needsExchangeRate && (
+              <div>
+                <p className="text-[11px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>
+                  Tipo de cambio
+                  <span className="ml-1.5 normal-case font-semibold tracking-normal" style={{ color: 'var(--f-text-3)' }}>
+                    1 {accountCurrency} = ? {baseCurrency}
+                  </span>
+                </p>
+                <input
+                  type="number"
+                  min="0.000001"
+                  step="0.01"
+                  value={exchangeRate}
+                  onChange={e => setExchangeRate(e.target.value)}
+                  placeholder="Ej: 18.50"
+                  className="w-full rounded-[14px] px-4 py-3 text-[16px] font-bold outline-none"
+                  style={{
+                    background: 'var(--f-bg-input)',
+                    border: '1px solid var(--f-line)',
+                    color: 'var(--f-text)',
+                    colorScheme: 'dark',
+                  }}
+                />
+                <p className="text-[11px] font-semibold mt-1 px-1" style={{ color: 'var(--f-text-4)' }}>
+                  Se guarda con el movimiento para mantener el historial exacto
+                </p>
+              </div>
+            )}
 
             {/* Destination */}
             {type === 'TR-TRANSFER' && (

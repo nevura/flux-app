@@ -38,7 +38,23 @@ export async function saveAccount(data: Partial<Account> & { name: string; payme
   if (!user) return { error: 'No autorizado' }
 
   const id = data.id || generateAccountId(data.payment_method_id)
-  const { error } = await supabase.from('accounts').upsert({ ...data, id, user_id: user.id })
+
+  // If editing an existing account, block currency changes after the first transaction
+  if (data.id && data.currency) {
+    const [{ data: existing }, { count }] = await Promise.all([
+      supabase.from('accounts').select('currency').eq('id', data.id).eq('user_id', user.id).single(),
+      supabase.from('transactions').select('id', { count: 'exact', head: true })
+        .eq('account_id', data.id).eq('user_id', user.id),
+    ])
+    if (existing && (count ?? 0) > 0 && existing.currency !== data.currency) {
+      return { error: 'No se puede cambiar la divisa de una cuenta con movimientos registrados' }
+    }
+  }
+
+  // Strip display_exchange_rate from upsert payload — it's managed internally
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { display_exchange_rate: _der, ...upsertData } = data as Account
+  const { error } = await supabase.from('accounts').upsert({ ...upsertData, id, user_id: user.id })
   if (error) return { error: error.message }
   revalidatePath('/home')
   revalidatePath('/settings')
@@ -61,6 +77,14 @@ export async function deleteAccount(id: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autorizado' }
+
+  // Block deletion if the account has any transactions
+  const { count } = await supabase.from('transactions').select('id', { count: 'exact', head: true })
+    .eq('account_id', id).eq('user_id', user.id)
+  if ((count ?? 0) > 0) {
+    return { error: 'No se puede eliminar una cuenta con movimientos. Puedes desactivarla en su lugar.' }
+  }
+
   const { error } = await supabase.from('accounts').delete().eq('id', id).eq('user_id', user.id)
   if (error) return { error: error.message }
   revalidatePath('/settings')
@@ -155,6 +179,18 @@ export async function updateThemePreference(theme: 'dark' | 'light') {
 
   const { error } = await supabase.from('profiles').update({ theme_preference: theme }).eq('id', user.id)
   if (error) return { error: error.message }
+  return { error: null }
+}
+
+export async function updateBaseCurrency(currency: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+  const { error } = await supabase.from('profiles').update({ currency }).eq('id', user.id)
+  if (error) return { error: error.message }
+  revalidatePath('/home')
+  revalidatePath('/settings')
+  revalidatePath('/insights')
   return { error: null }
 }
 

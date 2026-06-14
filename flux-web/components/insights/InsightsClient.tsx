@@ -179,18 +179,19 @@ export default function InsightsClient({ transactions, categories, monthlySummar
   }, [year, month])
 
   function effectiveExpenseAmount(t: Transaction): number {
+    const rate = t.exchange_rate ?? 1
     if (t.exclude_mode === 'all') return 0
     if (t.exclude_mode === 'shared_only' && t.split_data) {
       const othersTotal = t.split_data.data.reduce((s, d) => s + d.value, 0)
-      return Math.max(0, Number(t.amount) - othersTotal)
+      return Math.max(0, Number(t.amount) - othersTotal) * rate
     }
-    return Number(t.amount)
+    return Number(t.amount) * rate
   }
 
   const { income, expenses } = useMemo(() => {
     let inc = 0, exp = 0
     for (const t of transactions) {
-      if (t.type === 'TR-INGRESO') inc += Number(t.amount)
+      if (t.type === 'TR-INGRESO') inc += Number(t.amount) * (t.exchange_rate ?? 1)
       else if (t.type === 'TR-GASTO') exp += effectiveExpenseAmount(t)
     }
     return { income: inc, expenses: exp }

@@ -65,16 +65,17 @@ async function notifyLinkedPersonSettled(
   }
 }
 
-export async function getTransactionModalData(): Promise<{ accounts: AccountWithBalance[]; categories: Category[]; people: Person[] }> {
+export async function getTransactionModalData(): Promise<{ accounts: AccountWithBalance[]; categories: Category[]; people: Person[]; baseCurrency: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { accounts: [], categories: [], people: [] }
+  if (!user) return { accounts: [], categories: [], people: [], baseCurrency: 'MXN' }
 
-  const [{ data: accounts }, { data: allCategories }, { data: people }, { data: transactions }] = await Promise.all([
+  const [{ data: accounts }, { data: allCategories }, { data: people }, { data: transactions }, { data: profile }] = await Promise.all([
     supabase.from('accounts').select('*').eq('user_id', user.id).eq('is_active', true).order('sort_order'),
     supabase.from('categories').select('*').or(`user_id.eq.${user.id},user_id.is.null`).order('sort_order'),
     supabase.from('people').select('*').eq('user_id', user.id),
     supabase.from('transactions').select('account_id, amount').eq('user_id', user.id),
+    supabase.from('profiles').select('currency').eq('id', user.id).single(),
   ])
 
   const accountsWithBalance = (accounts ?? []).map(a => ({
@@ -82,7 +83,12 @@ export async function getTransactionModalData(): Promise<{ accounts: AccountWith
     balance: (transactions ?? []).filter(t => t.account_id === a.id).reduce((s, t) => s + (t.amount ?? 0), 0),
   })) as AccountWithBalance[]
 
-  return { accounts: accountsWithBalance, categories: (allCategories ?? []) as Category[], people: (people ?? []) as Person[] }
+  return {
+    accounts: accountsWithBalance,
+    categories: (allCategories ?? []) as Category[],
+    people: (people ?? []) as Person[],
+    baseCurrency: profile?.currency ?? 'MXN',
+  }
 }
 
 export async function addTransaction(form: TransactionForm): Promise<{ error: string | null; id?: string }> {
@@ -92,6 +98,13 @@ export async function addTransaction(form: TransactionForm): Promise<{ error: st
 
   const amount = parseAmount(form.amount)
   const date   = form.transaction_date || getMexicoNow()
+
+  // Fetch account currency info for the source account
+  const { data: accountRow } = await supabase
+    .from('accounts').select('currency, display_exchange_rate')
+    .eq('id', form.account_id).eq('user_id', user.id).maybeSingle()
+  const accountCurrency = accountRow?.currency ?? 'MXN'
+  const exchangeRate = form.exchange_rate ?? accountRow?.display_exchange_rate ?? 1
 
   // Concept validation / auto-fill
   let concept = (form.concept ?? '').trim()
@@ -114,12 +127,18 @@ export async function addTransaction(form: TransactionForm): Promise<{ error: st
     const { data: transferTx, error } = await supabase.from('transactions').insert({
       user_id: user.id, concept,
       type: 'TR-TRANSFER', amount, adjustment: -amount,
+      currency: accountCurrency, exchange_rate: exchangeRate,
       category_id: null, account_id: form.account_id,
       destination_account_id: form.destination_account_id!,
       transaction_date: date, is_validated: true,
       scheduled_id: form.scheduled_id || null,
     }).select('id').single()
     if (error) return { error: error.message }
+    // Keep display_exchange_rate on the source account up to date
+    if (exchangeRate !== (accountRow?.display_exchange_rate ?? 1)) {
+      await supabase.from('accounts').update({ display_exchange_rate: exchangeRate })
+        .eq('id', form.account_id).eq('user_id', user.id)
+    }
     revalidatePath('/home')
     revalidatePath('/transactions')
     return { error: null, id: transferTx?.id }
@@ -134,6 +153,8 @@ export async function addTransaction(form: TransactionForm): Promise<{ error: st
       // IOWE (is_payable): money hasn't moved yet — adjustment = 0
       // is_receivable: income not yet collected — adjustment = 0 until collected
       adjustment: (isPayable || isReceivable) ? 0 : adjustmentFor(form.type, amount),
+      currency: accountCurrency,
+      exchange_rate: exchangeRate,
       category_id: form.category_id || null,
       account_id: form.account_id,
       transaction_date: date,
@@ -145,6 +166,11 @@ export async function addTransaction(form: TransactionForm): Promise<{ error: st
       notes: form.notes || null,
       is_payable: isPayable,
     }).select('id').single()
+    // Keep display_exchange_rate on the account up to date
+    if (newTx && exchangeRate !== (accountRow?.display_exchange_rate ?? 1)) {
+      await supabase.from('accounts').update({ display_exchange_rate: exchangeRate })
+        .eq('id', form.account_id).eq('user_id', user.id)
+    }
     if (error) return { error: error.message }
 
     // Send shared expense invites to linked friends (expenses) OR receivable invites (incomes)
@@ -239,21 +265,23 @@ export async function updateTransaction(id: string, form: TransactionForm) {
 
   const isPayable = form.is_payable ?? false
   const isReceivable = form.is_receivable ?? false
+  const updatePayload: Record<string, unknown> = {
+    concept: form.concept, type: form.type,
+    amount,
+    adjustment: (isPayable || isReceivable) ? 0 : adjustmentFor(form.type, amount),
+    category_id: form.category_id || null,
+    account_id: form.account_id,
+    transaction_date: date,
+    split_data: form.split_data || null,
+    exclude_mode: form.exclude_mode ?? 'none',
+    notes: form.notes || null,
+    is_payable: isPayable,
+    is_receivable: isReceivable,
+  }
+  if (form.exchange_rate !== undefined) updatePayload.exchange_rate = form.exchange_rate
   const { error } = await supabase
     .from('transactions')
-    .update({
-      concept: form.concept, type: form.type,
-      amount,
-      adjustment: (isPayable || isReceivable) ? 0 : adjustmentFor(form.type, amount),
-      category_id: form.category_id || null,
-      account_id: form.account_id,
-      transaction_date: date,
-      split_data: form.split_data || null,
-      exclude_mode: form.exclude_mode ?? 'none',
-      notes: form.notes || null,
-      is_payable: isPayable,
-      is_receivable: isReceivable,
-    })
+    .update(updatePayload)
     .eq('id', id)
     .eq('user_id', user.id)
 

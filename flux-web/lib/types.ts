@@ -47,6 +47,8 @@ export interface Account {
   name: string
   payment_method_id: string
   color_id: string
+  currency: string
+  display_exchange_rate: number
   payment_day: number | null
   credit_limit: number | null
   is_active: boolean
@@ -145,6 +147,8 @@ export interface Transaction {
   type: 'TR-GASTO' | 'TR-INGRESO' | 'TR-TRANSFER'
   amount: number
   adjustment: number
+  currency: string
+  exchange_rate: number
   category_id: string | null
   account_id: string
   destination_account_id: string | null
@@ -189,6 +193,7 @@ export interface Budget {
   month: number
   year: number
   amount: number
+  currency: string
   created_at: string
   updated_at: string
 }
@@ -224,6 +229,7 @@ export interface TransactionForm {
   scheduled_id?: string
   is_payable?: boolean
   is_receivable?: boolean
+  exchange_rate?: number
 }
 
 // ── UI / Computed types ────────────────────────────────────────────────────────

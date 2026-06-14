@@ -15,6 +15,7 @@ interface DashboardData {
   scheduled: ScheduledTransaction[]
   budget: Budget | null
   creditPayments: CreditPayment[]
+  baseCurrency: string
   year: number
   month: number
 }
@@ -73,7 +74,7 @@ export default function DashboardTab({ userId, fullName, email, active, refreshS
       supabase.from('budgets').select('*').eq('user_id', userId).eq('year', year).eq('month', month),
       supabase.from('credit_payments').select('*').eq('user_id', userId).eq('year', year).eq('month', month),
       supabase.from('transactions').select('account_id,adjustment,type,amount,destination_account_id').eq('user_id', userId),
-      supabase.from('profiles').select('default_monthly_budget').eq('id', userId).single(),
+      supabase.from('profiles').select('default_monthly_budget, currency').eq('id', userId).single(),
     ])
 
     const balanceMap: Record<string, number> = {}
@@ -104,6 +105,7 @@ export default function DashboardTab({ userId, fullName, email, active, refreshS
       scheduled: (scheduled ?? []) as ScheduledTransaction[],
       budget: budget as Budget | null,
       creditPayments: (creditPayments ?? []) as CreditPayment[],
+      baseCurrency: profile?.currency ?? 'MXN',
       year,
       month,
     })

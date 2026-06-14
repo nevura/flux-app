@@ -18,9 +18,9 @@ import { createClient } from '@/lib/supabase/client'
 // Days from the earliest loaded date before we start fetching the previous batch
 const LAZY_THRESHOLD_DAYS = 14
 
-function AnimatedCurrency({ value, duration }: { value: number; duration?: number }) {
+function AnimatedCurrency({ value, currency, duration }: { value: number; currency?: string; duration?: number }) {
   const animated = useCountUp(value, duration)
-  return <>{formatCurrency(animated)}</>
+  return <>{formatCurrency(animated, currency)}</>
 }
 
 function AnimatedBar({ pct, color }: { pct: number; color: string }) {
@@ -49,6 +49,7 @@ interface Props {
   scheduled: ScheduledTransaction[]
   budget: Budget | null
   creditPayments: CreditPayment[]
+  baseCurrency?: string
   year: number
   month: number
   subStatus?: string
@@ -56,7 +57,7 @@ interface Props {
   onRefresh?: () => void
 }
 
-export default function DashboardClient({ user, accounts, transactions, loadedFrom, categories, scheduled, budget, creditPayments, year, month, subStatus, subDaysLeft, onRefresh }: Props) {
+export default function DashboardClient({ user, accounts, transactions, loadedFrom, categories, scheduled, budget, creditPayments, baseCurrency = 'MXN', year, month, subStatus, subDaysLeft, onRefresh }: Props) {
   const [spendView, setSpendView] = useState<'daily' | 'weekly'>('daily')
   const [dayOffset, setDayOffset] = useState(0)
   const [weekOffset, setWeekOffset] = useState(0)
@@ -143,7 +144,11 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
   const [isSkipPending, startSkip] = useTransition()
 
   const catMap = useMemo(() => Object.fromEntries(categories.map(c => [c.id, c])), [categories])
-  const totalBalance = useMemo(() => accounts.reduce((s, a) => s + a.balance, 0), [accounts])
+  const isMultiCurrency = useMemo(() => accounts.some(a => (a.currency ?? 'MXN') !== baseCurrency), [accounts, baseCurrency])
+  const totalBalance = useMemo(
+    () => accounts.reduce((s, a) => s + a.balance * (a.display_exchange_rate ?? 1), 0),
+    [accounts],
+  )
 
   const creditPayMap = useMemo(() => Object.fromEntries(creditPayments.map(p => [p.account_id, p])), [creditPayments])
   const nonTdcAccounts = useMemo(() => accounts.filter(a => a.payment_method_id !== 'MP-TDC'), [accounts])
@@ -169,7 +174,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
   const monthExpenses = useMemo(
     () => txList
       .filter(t => t.type === 'TR-GASTO' && t.transaction_date.slice(0, 7) === currentMonthStr)
-      .reduce((s, t) => s + effectiveExpenseAmount(t), 0),
+      .reduce((s, t) => s + effectiveExpenseAmount(t) * (t.exchange_rate ?? 1), 0),
     [txList, currentMonthStr],
   )
 
@@ -354,9 +359,10 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
           style={{ background: 'var(--f-blue)', boxShadow: 'var(--f-shadow-accent)' }}
         >
           <p className="text-[12px] font-black tracking-[3px] uppercase mb-2" style={{ color: 'rgba(255,255,255,0.6)' }}>
-            Saldo actual
+            {isMultiCurrency ? `Saldo aprox. en ${baseCurrency}` : 'Saldo actual'}
           </p>
           <p className="text-[48px] font-black text-white leading-none tracking-tight tabular-nums">
+            {isMultiCurrency && <span className="text-[28px] mr-1" style={{ color: 'rgba(255,255,255,0.55)' }}>≈</span>}
             <AnimatedCurrency value={totalBalance} />
           </p>
         </div>
@@ -687,8 +693,13 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
                     className="text-[22px] font-black tabular-nums leading-none"
                     style={{ color: acc.balance < 0 ? '#2b2b2b' : 'white' }}
                   >
-                    <AnimatedCurrency value={acc.balance} />
+                    <AnimatedCurrency value={acc.balance} currency={acc.currency ?? baseCurrency} />
                   </p>
+                  {(acc.currency ?? 'MXN') !== baseCurrency && (
+                    <p className="text-[10px] font-bold mt-1 tabular-nums" style={{ color: acc.balance < 0 ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.5)' }}>
+                      ≈ {formatCurrency(acc.balance * (acc.display_exchange_rate ?? 1), baseCurrency)}
+                    </p>
+                  )}
                 </div>
               )
             })}

@@ -125,6 +125,19 @@ export const MONTHS_ES = [
   'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre',
 ]
 
+export const SUPPORTED_CURRENCIES: { code: string; name: string; symbol: string }[] = [
+  { code: 'MXN', name: 'Peso mexicano',      symbol: '$' },
+  { code: 'USD', name: 'Dólar estadounidense', symbol: '$' },
+  { code: 'EUR', name: 'Euro',               symbol: '€' },
+  { code: 'GBP', name: 'Libra esterlina',    symbol: '£' },
+  { code: 'CAD', name: 'Dólar canadiense',   symbol: '$' },
+  { code: 'BRL', name: 'Real brasileño',     symbol: 'R$' },
+  { code: 'ARS', name: 'Peso argentino',     symbol: '$' },
+  { code: 'COP', name: 'Peso colombiano',    symbol: '$' },
+  { code: 'CLP', name: 'Peso chileno',       symbol: '$' },
+  { code: 'JPY', name: 'Yen japonés',        symbol: '¥' },
+]
+
 // Shortcut iCloud share links
 export const SHORTCUT_LINKS = {
   applePay: 'https://www.icloud.com/shortcuts/8ed8c9e88af8415e92ef6caebba4cb12',

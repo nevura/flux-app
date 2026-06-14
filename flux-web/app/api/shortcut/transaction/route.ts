@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
   const [subResult, , accountsResult, userCatsResult] = await Promise.all([
     supabaseAdmin.from('profiles').select('subscription_status').eq('id', userId).single(),
     supabaseAdmin.from('shortcut_tokens').update(sourceUpdate).eq('token', token),
-    supabaseAdmin.from('accounts').select('id,name,payment_method_id').eq('user_id', userId).eq('is_active', true),
+    supabaseAdmin.from('accounts').select('id,name,payment_method_id,currency,display_exchange_rate').eq('user_id', userId).eq('is_active', true),
     needsUserCats
       ? supabaseAdmin.from('categories').select('id,name').eq('user_id', userId)
       : Promise.resolve({ data: null }),
@@ -122,13 +122,16 @@ export async function POST(req: NextRequest) {
 
   // Resolve account
   const userAccounts = accountsResult.data ?? []
-  let accountId: string | null = null
+  let resolvedAccount: (typeof userAccounts)[number] | null = null
   if (body.account) {
     const lower = String(body.account).toLowerCase()
-    accountId = userAccounts.find(a => a.id === body.account || a.name.toLowerCase().includes(lower))?.id ?? userAccounts[0]?.id ?? null
+    resolvedAccount = userAccounts.find(a => a.id === body.account || a.name.toLowerCase().includes(lower)) ?? userAccounts[0] ?? null
   } else {
-    accountId = userAccounts[0]?.id ?? null
+    resolvedAccount = userAccounts[0] ?? null
   }
+  const accountId = resolvedAccount?.id ?? null
+  const accountCurrency: string = (resolvedAccount as { currency?: string } | null)?.currency ?? 'MXN'
+  const displayExchangeRate: number = (resolvedAccount as { display_exchange_rate?: number } | null)?.display_exchange_rate ?? 1
 
   if (!accountId) return NextResponse.json({
     error: 'Sin cuenta disponible',
@@ -150,6 +153,7 @@ export async function POST(req: NextRequest) {
     const { error } = await supabaseAdmin.from('transactions').insert({
       user_id: userId, concept: body.concept,
       type: 'TR-TRANSFER', amount, adjustment: -amount,
+      currency: accountCurrency, exchange_rate: displayExchangeRate,
       category_id: null, account_id: accountId,
       destination_account_id: destId,
       transaction_date: date, is_validated: false,
@@ -163,6 +167,8 @@ export async function POST(req: NextRequest) {
       type: txType,
       amount,
       adjustment: adjustmentFor(txType, amount),
+      currency: accountCurrency,
+      exchange_rate: displayExchangeRate,
       category_id: categoryId,
       account_id: accountId,
       transaction_date: date,
@@ -173,5 +179,5 @@ export async function POST(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ status: 'ok', amount, type: txType, account: accountId })
+  return NextResponse.json({ status: 'ok', amount, type: txType, account: accountId, currency: accountCurrency })
 }

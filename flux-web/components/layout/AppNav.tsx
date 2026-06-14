@@ -17,7 +17,7 @@ const TABS = [
   { href: '/shared',       icon: 'fa-solid fa-users',     label: 'Compartidos' },
 ]
 
-interface ModalData { accounts: AccountWithBalance[]; categories: Category[]; people: Person[] }
+interface ModalData { accounts: AccountWithBalance[]; categories: Category[]; people: Person[]; baseCurrency: string }
 
 const TAB_PATHS = ['/home', '/transactions', '/insights', '/shared']
 
@@ -119,6 +119,7 @@ export default function AppNav({ isReadOnly }: NavProps) {
           accounts={fabData.accounts}
           categories={fabData.categories}
           people={fabData.people}
+          baseCurrency={fabData.baseCurrency}
           onClose={() => setFabOpen(false)}
         />,
         document.body

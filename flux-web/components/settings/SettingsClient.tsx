@@ -7,8 +7,8 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { getCategoryDisplay, getPaymentMethod, formatCurrency } from '@/lib/utils'
-import { STATIC_ICONS, STATIC_COLORS, PAYMENT_METHODS, SHORTCUT_LINKS } from '@/lib/constants'
-import { saveCategory, deleteCategory, saveAccount, deleteAccount, reorderAccounts, saveScheduled, deleteScheduled, updateProfile, saveDefaultBudget, updateThemePreference, addPerson, updatePerson, deletePerson } from '@/actions/config'
+import { STATIC_ICONS, STATIC_COLORS, PAYMENT_METHODS, SHORTCUT_LINKS, SUPPORTED_CURRENCIES } from '@/lib/constants'
+import { saveCategory, deleteCategory, saveAccount, deleteAccount, reorderAccounts, saveScheduled, deleteScheduled, updateProfile, saveDefaultBudget, updateThemePreference, addPerson, updatePerson, deletePerson, updateBaseCurrency } from '@/actions/config'
 import SupportChat from '@/components/support/SupportChat'
 import { getUserUnreadCount } from '@/actions/support-chat'
 import { exportTransactionsCSV, importTransactions, type ImportRow } from '@/actions/data'
@@ -167,6 +167,25 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
   const [editingPhone, setEditingPhone] = useState(false)
   const [phoneInput, setPhoneInput] = useState(profile?.phone ?? '')
   const [isPhonePending, startPhoneTx] = useTransition()
+
+  const [currencyInput, setCurrencyInput] = useState(profile?.currency ?? 'MXN')
+  const [showCurrencyWarning, setShowCurrencyWarning] = useState(false)
+  const [isCurrencyPending, startCurrencyTx] = useTransition()
+
+  function handleBaseCurrencyChange(newCurrency: string) {
+    setCurrencyInput(newCurrency)
+    if (newCurrency !== (profile?.currency ?? 'MXN')) {
+      setShowCurrencyWarning(true)
+    }
+  }
+
+  function handleSaveBaseCurrency() {
+    startCurrencyTx(async () => {
+      const res = await updateBaseCurrency(currencyInput)
+      if (res.error) toast.error(res.error)
+      else { toast.success('Divisa base actualizada'); setShowCurrencyWarning(false); router.refresh() }
+    })
+  }
 
   function handleUsernameInput(v: string) {
     const clean = v.toLowerCase().replace(/[^a-z0-9_.\-]/g, '').slice(0, 20)
@@ -403,12 +422,75 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                 </div>
 
                 {/* Correo (read-only) */}
-                <div className="px-4 py-4" style={{ background: 'var(--f-bg-card)' }}>
+                <div className="px-4 py-4" style={{ background: 'var(--f-bg-card)', borderBottom: '1px solid var(--f-line)' }}>
                   <p className="text-[13px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Correo electrónico</p>
                   <p className="text-[17px] font-bold" style={{ color: 'var(--f-text-3)' }}>{profile?.email}</p>
                   <p className="text-[13px] mt-1" style={{ color: 'var(--f-text-4)' }}>El correo no se puede cambiar desde aquí</p>
                 </div>
+
+                {/* Divisa base */}
+                <div className="px-4 py-4" style={{ background: 'var(--f-bg-card)' }}>
+                  <p className="text-[13px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Divisa base</p>
+                  <div className="flex items-center gap-3">
+                    <select
+                      value={currencyInput}
+                      onChange={e => handleBaseCurrencyChange(e.target.value)}
+                      className="flex-1 rounded-[12px] px-3 py-2.5 text-[17px] font-bold [color:var(--f-text)] outline-none appearance-none"
+                      style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)', colorScheme: 'dark' }}
+                    >
+                      {SUPPORTED_CURRENCIES.map(c => (
+                        <option key={c.code} value={c.code}>{c.code} — {c.name}</option>
+                      ))}
+                    </select>
+                    {currencyInput !== (profile?.currency ?? 'MXN') && (
+                      <button
+                        onClick={() => setShowCurrencyWarning(true)}
+                        disabled={isCurrencyPending}
+                        className="px-3 py-2.5 rounded-[12px] text-[15px] font-black text-white disabled:opacity-50"
+                        style={{ background: 'var(--f-blue)', flexShrink: 0 }}
+                      >
+                        {isCurrencyPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Guardar'}
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[13px] mt-1.5" style={{ color: 'var(--f-text-4)' }}>
+                    Se usa para convertir y mostrar el total en estadísticas y saldo
+                  </p>
+                </div>
               </div>
+
+              {/* Warning modal when base currency changes */}
+              {showCurrencyWarning && (
+                <div className="rounded-[16px] p-4 space-y-3" style={{ background: 'rgba(255,159,10,0.12)', border: '1px solid rgba(255,159,10,0.35)' }}>
+                  <div className="flex items-start gap-2.5">
+                    <i className="fa-solid fa-triangle-exclamation text-[16px] mt-0.5 flex-shrink-0" style={{ color: '#ff9f0a' }} />
+                    <div>
+                      <p className="text-[15px] font-black leading-snug" style={{ color: '#ff9f0a' }}>¿Cambiar divisa base a {currencyInput}?</p>
+                      <p className="text-[13px] font-semibold mt-1 leading-snug" style={{ color: 'var(--f-text-3)' }}>
+                        Los tipos de cambio históricos de tus movimientos existentes no se actualizarán automáticamente.
+                        Los saldos convertidos serán aproximados hasta que actualices el tipo de cambio de cada cuenta.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => { setCurrencyInput(profile?.currency ?? 'MXN'); setShowCurrencyWarning(false) }}
+                      className="flex-1 py-2.5 rounded-[12px] text-[15px] font-black"
+                      style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={handleSaveBaseCurrency}
+                      disabled={isCurrencyPending}
+                      className="flex-1 py-2.5 rounded-[12px] text-[15px] font-black text-white disabled:opacity-50"
+                      style={{ background: '#ff9f0a' }}
+                    >
+                      {isCurrencyPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Confirmar'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -853,7 +935,14 @@ function AccountsTab({ accounts, isPending, startTransition }: {
   function handleSave() {
     if (!editing?.name) return
     startTransition(async () => {
-      const res = await saveAccount({ name: editing.name!, payment_method_id: editing.payment_method_id ?? 'MP-EFECTIVO', id: editing.id, payment_day: editing.payment_day, color_id: editing.color_id ?? 'COL-01' })
+      const res = await saveAccount({
+        name: editing.name!,
+        payment_method_id: editing.payment_method_id ?? 'MP-EFECTIVO',
+        id: editing.id,
+        payment_day: editing.payment_day,
+        color_id: editing.color_id ?? 'COL-01',
+        currency: editing.currency ?? 'MXN',
+      })
       if (res.error) toast.error(res.error)
       else { toast.success('Cuenta guardada'); setEditing(null); window.dispatchEvent(new CustomEvent('flux:refresh')); router.refresh() }
     })
@@ -1000,7 +1089,14 @@ function AccountsTab({ accounts, isPending, startTransition }: {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate" style={{ color: 'var(--f-text)' }}>{acc.name}</p>
-                <p className="text-xs" style={{ color: 'var(--f-text-3)' }}>{method.nombre}</p>
+                <p className="text-xs" style={{ color: 'var(--f-text-3)' }}>
+                  {method.nombre}
+                  {acc.currency && acc.currency !== 'MXN' && (
+                    <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-black" style={{ background: 'rgba(0,122,255,0.12)', color: 'var(--f-blue)' }}>
+                      {acc.currency}
+                    </span>
+                  )}
+                </p>
               </div>
               <button onClick={() => setEditing(acc)} className="px-2 flex-shrink-0" style={{ color: 'var(--f-text-3)' }}>
                 <i className="fa-solid fa-pen text-xs" />
@@ -1057,6 +1153,32 @@ function AccountsTab({ accounts, isPending, startTransition }: {
                 </button>
               ))}
             </div>
+            {/* Currency selector */}
+            <div>
+              <label className="text-[12px] font-black uppercase tracking-[1.5px] mb-1.5 block" style={{ color: 'var(--f-text-4)' }}>Divisa</label>
+              <select
+                value={editing.currency ?? 'MXN'}
+                onChange={e => setEditing({ ...editing, currency: e.target.value })}
+                disabled={!!editing.id}
+                className="w-full rounded-xl px-4 py-3 text-sm [color:var(--f-text)] focus:outline-none appearance-none disabled:opacity-50"
+                style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
+              >
+                {SUPPORTED_CURRENCIES.map(c => (
+                  <option key={c.code} value={c.code}>{c.code} — {c.name}</option>
+                ))}
+              </select>
+              {editing.id ? (
+                <p className="text-[11px] font-semibold mt-1 px-1" style={{ color: 'var(--f-text-4)' }}>
+                  <i className="fa-solid fa-lock text-[10px] mr-1" />
+                  La divisa no se puede cambiar una vez hay movimientos registrados
+                </p>
+              ) : (
+                <p className="text-[11px] font-semibold mt-1 px-1" style={{ color: 'var(--f-text-4)' }}>
+                  Se asigna al crear la cuenta y no se puede cambiar después
+                </p>
+              )}
+            </div>
+
             {editing.payment_method_id === 'MP-TDC' && (
               <div>
                 <label className="text-[12px] font-black uppercase tracking-[1.5px] mb-1.5 block" style={{ color: 'var(--f-text-4)' }}>Día de pago</label>

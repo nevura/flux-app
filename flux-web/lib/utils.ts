@@ -11,8 +11,22 @@ export function cn(...inputs: ClassValue[]) {
 
 // ── Formatters ────────────────────────────────────────────────────────────────
 
+const CURRENCY_LOCALE: Record<string, string> = {
+  MXN: 'es-MX',
+  USD: 'en-US',
+  EUR: 'es-ES',
+  GBP: 'en-GB',
+  CAD: 'en-CA',
+  JPY: 'ja-JP',
+  BRL: 'pt-BR',
+  ARS: 'es-AR',
+  COP: 'es-CO',
+  CLP: 'es-CL',
+}
+
 export function formatCurrency(amount: number, currency = 'MXN'): string {
-  return new Intl.NumberFormat('es-MX', {
+  const locale = CURRENCY_LOCALE[currency] ?? 'es-MX'
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
     minimumFractionDigits: 2,

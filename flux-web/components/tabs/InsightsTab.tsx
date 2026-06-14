@@ -53,18 +53,19 @@ export default function InsightsTab({ userId, active, refreshSignal }: Props) {
         .order('transaction_date', { ascending: false }),
       supabase.from('categories').select('*').or(`user_id.eq.${userId},user_id.is.null`).order('sort_order'),
       supabase.from('transactions')
-        .select('type, amount, transaction_date, exclude_mode, split_data')
+        .select('type, amount, exchange_rate, transaction_date, exclude_mode, split_data')
         .eq('user_id', userId)
         .neq('type', 'TR-TRANSFER'),
     ])
 
-    function effectiveAmt(t: { type: string; amount: number; exclude_mode?: string | null; split_data?: { data: { value: number }[] } | null }): number {
+    function effectiveAmt(t: { type: string; amount: number; exchange_rate?: number | null; exclude_mode?: string | null; split_data?: { data: { value: number }[] } | null }): number {
+      const rate = t.exchange_rate ?? 1
       if (t.exclude_mode === 'all') return 0
       if (t.exclude_mode === 'shared_only' && t.split_data?.data) {
         const othersTotal = t.split_data.data.reduce((s, d) => s + d.value, 0)
-        return Math.max(0, Number(t.amount) - othersTotal)
+        return Math.max(0, Number(t.amount) - othersTotal) * rate
       }
-      return Number(t.amount)
+      return Number(t.amount) * rate
     }
 
     const monthMap: Record<string, MonthlyRow> = {}
