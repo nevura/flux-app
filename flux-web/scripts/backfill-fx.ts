@@ -10,12 +10,14 @@ const supabase = createClient(
 )
 
 const PAIRS: [string, string][] = [
-  ['EUR', 'MXN'],
-  ['USD', 'MXN'],
-  ['GBP', 'MXN'],
-  ['CAD', 'MXN'],
-  ['JPY', 'MXN'],
-  ['BRL', 'MXN'],
+  ['AUD', 'MXN'], ['BRL', 'MXN'], ['CAD', 'MXN'], ['CHF', 'MXN'],
+  ['CNY', 'MXN'], ['CZK', 'MXN'], ['DKK', 'MXN'], ['EUR', 'MXN'],
+  ['GBP', 'MXN'], ['HKD', 'MXN'], ['HUF', 'MXN'], ['IDR', 'MXN'],
+  ['ILS', 'MXN'], ['INR', 'MXN'], ['ISK', 'MXN'], ['JPY', 'MXN'],
+  ['KRW', 'MXN'], ['MYR', 'MXN'], ['NOK', 'MXN'], ['NZD', 'MXN'],
+  ['PHP', 'MXN'], ['PLN', 'MXN'], ['RON', 'MXN'], ['SEK', 'MXN'],
+  ['SGD', 'MXN'], ['THB', 'MXN'], ['TRY', 'MXN'], ['USD', 'MXN'],
+  ['ZAR', 'MXN'],
 ]
 
 const START = '2025-01-01'
@@ -25,7 +27,7 @@ async function main() {
   const allRates: Record<string, Record<string, number>> = {}
 
   for (const [from, to] of PAIRS) {
-    const url = `https://api.frankfurter.app/${START}..${TODAY}?from=${from}&to=${to}`
+    const url = `https://api.frankfurter.dev/v1/${START}..${TODAY}?from=${from}&to=${to}`
     console.log(`Fetching ${from} → ${to}…`)
     const res = await fetch(url)
     if (!res.ok) { console.error(`  HTTP ${res.status}`); continue }

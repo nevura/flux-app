@@ -12,16 +12,15 @@ export function cn(...inputs: ClassValue[]) {
 // ── Formatters ────────────────────────────────────────────────────────────────
 
 const CURRENCY_LOCALE: Record<string, string> = {
-  MXN: 'es-MX',
-  USD: 'en-US',
-  EUR: 'es-ES',
-  GBP: 'en-GB',
-  CAD: 'en-CA',
-  JPY: 'ja-JP',
-  BRL: 'pt-BR',
-  ARS: 'es-AR',
-  COP: 'es-CO',
-  CLP: 'es-CL',
+  MXN: 'es-MX', USD: 'en-US', EUR: 'es-ES', GBP: 'en-GB',
+  CAD: 'en-CA', JPY: 'ja-JP', BRL: 'pt-BR', ARS: 'es-AR',
+  COP: 'es-CO', CLP: 'es-CL', AUD: 'en-AU', CHF: 'de-CH',
+  CNY: 'zh-CN', CZK: 'cs-CZ', DKK: 'da-DK', HKD: 'zh-HK',
+  HUF: 'hu-HU', IDR: 'id-ID', ILS: 'he-IL', INR: 'hi-IN',
+  ISK: 'is-IS', KRW: 'ko-KR', MYR: 'ms-MY', NOK: 'nb-NO',
+  NZD: 'en-NZ', PHP: 'fil-PH', PLN: 'pl-PL', RON: 'ro-RO',
+  SEK: 'sv-SE', SGD: 'en-SG', THB: 'th-TH', TRY: 'tr-TR',
+  ZAR: 'en-ZA',
 }
 
 export function formatCurrency(amount: number, currency = 'MXN'): string {

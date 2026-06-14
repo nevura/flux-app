@@ -125,17 +125,42 @@ export const MONTHS_ES = [
   'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre',
 ]
 
-export const SUPPORTED_CURRENCIES: { code: string; name: string; symbol: string }[] = [
-  { code: 'MXN', name: 'Peso mexicano',      symbol: '$' },
-  { code: 'USD', name: 'Dólar estadounidense', symbol: '$' },
-  { code: 'EUR', name: 'Euro',               symbol: '€' },
-  { code: 'GBP', name: 'Libra esterlina',    symbol: '£' },
-  { code: 'CAD', name: 'Dólar canadiense',   symbol: '$' },
-  { code: 'BRL', name: 'Real brasileño',     symbol: 'R$' },
-  { code: 'ARS', name: 'Peso argentino',     symbol: '$' },
-  { code: 'COP', name: 'Peso colombiano',    symbol: '$' },
-  { code: 'CLP', name: 'Peso chileno',       symbol: '$' },
-  { code: 'JPY', name: 'Yen japonés',        symbol: '¥' },
+export const SUPPORTED_CURRENCIES: { code: string; name: string; symbol: string; autoRate?: boolean }[] = [
+  // ECB currencies — tasa automática diaria (Frankfurter/BCE)
+  { code: 'MXN', name: 'Peso mexicano',           symbol: '$',   autoRate: false },
+  { code: 'USD', name: 'Dólar estadounidense',     symbol: '$',   autoRate: true },
+  { code: 'EUR', name: 'Euro',                     symbol: '€',   autoRate: true },
+  { code: 'GBP', name: 'Libra esterlina',          symbol: '£',   autoRate: true },
+  { code: 'CAD', name: 'Dólar canadiense',         symbol: 'C$',  autoRate: true },
+  { code: 'AUD', name: 'Dólar australiano',        symbol: 'A$',  autoRate: true },
+  { code: 'NZD', name: 'Dólar neozelandés',        symbol: 'NZ$', autoRate: true },
+  { code: 'CHF', name: 'Franco suizo',             symbol: 'Fr',  autoRate: true },
+  { code: 'JPY', name: 'Yen japonés',              symbol: '¥',   autoRate: true },
+  { code: 'CNY', name: 'Yuan chino',               symbol: '¥',   autoRate: true },
+  { code: 'HKD', name: 'Dólar de Hong Kong',       symbol: 'HK$', autoRate: true },
+  { code: 'SGD', name: 'Dólar de Singapur',        symbol: 'S$',  autoRate: true },
+  { code: 'KRW', name: 'Won surcoreano',           symbol: '₩',   autoRate: true },
+  { code: 'INR', name: 'Rupia india',              symbol: '₹',   autoRate: true },
+  { code: 'IDR', name: 'Rupia indonesia',          symbol: 'Rp',  autoRate: true },
+  { code: 'MYR', name: 'Ringgit malayo',           symbol: 'RM',  autoRate: true },
+  { code: 'THB', name: 'Baht tailandés',           symbol: '฿',   autoRate: true },
+  { code: 'PHP', name: 'Peso filipino',            symbol: '₱',   autoRate: true },
+  { code: 'ILS', name: 'Séquel israelí',           symbol: '₪',   autoRate: true },
+  { code: 'TRY', name: 'Lira turca',               symbol: '₺',   autoRate: true },
+  { code: 'ZAR', name: 'Rand sudafricano',         symbol: 'R',   autoRate: true },
+  { code: 'BRL', name: 'Real brasileño',           symbol: 'R$',  autoRate: true },
+  { code: 'NOK', name: 'Corona noruega',           symbol: 'kr',  autoRate: true },
+  { code: 'SEK', name: 'Corona sueca',             symbol: 'kr',  autoRate: true },
+  { code: 'DKK', name: 'Corona danesa',            symbol: 'kr',  autoRate: true },
+  { code: 'ISK', name: 'Corona islandesa',         symbol: 'kr',  autoRate: true },
+  { code: 'CZK', name: 'Corona checa',             symbol: 'Kč',  autoRate: true },
+  { code: 'HUF', name: 'Forinto húngaro',          symbol: 'Ft',  autoRate: true },
+  { code: 'PLN', name: 'Esloti polaco',            symbol: 'zł',  autoRate: true },
+  { code: 'RON', name: 'Leu rumano',               symbol: 'lei', autoRate: true },
+  // No-ECB — tasa manual únicamente
+  { code: 'ARS', name: 'Peso argentino',           symbol: '$',   autoRate: false },
+  { code: 'COP', name: 'Peso colombiano',          symbol: '$',   autoRate: false },
+  { code: 'CLP', name: 'Peso chileno',             symbol: '$',   autoRate: false },
 ]
 
 // Shortcut iCloud share links

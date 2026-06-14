@@ -3,16 +3,18 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 
-const FRANKFURTER_BASE = 'https://api.frankfurter.app'
+const FRANKFURTER_BASE = 'https://api.frankfurter.dev/v1'
 
-// Pairs always fetched: foreign currency → MXN (ECB/Frankfurter supported)
+// All ECB/Frankfurter currencies → MXN (29 pairs, one row per day in JSONB)
 const PAIRS: [string, string][] = [
-  ['EUR', 'MXN'],
-  ['USD', 'MXN'],
-  ['GBP', 'MXN'],
-  ['CAD', 'MXN'],
-  ['JPY', 'MXN'],
-  ['BRL', 'MXN'],
+  ['AUD', 'MXN'], ['BRL', 'MXN'], ['CAD', 'MXN'], ['CHF', 'MXN'],
+  ['CNY', 'MXN'], ['CZK', 'MXN'], ['DKK', 'MXN'], ['EUR', 'MXN'],
+  ['GBP', 'MXN'], ['HKD', 'MXN'], ['HUF', 'MXN'], ['IDR', 'MXN'],
+  ['ILS', 'MXN'], ['INR', 'MXN'], ['ISK', 'MXN'], ['JPY', 'MXN'],
+  ['KRW', 'MXN'], ['MYR', 'MXN'], ['NOK', 'MXN'], ['NZD', 'MXN'],
+  ['PHP', 'MXN'], ['PLN', 'MXN'], ['RON', 'MXN'], ['SEK', 'MXN'],
+  ['SGD', 'MXN'], ['THB', 'MXN'], ['TRY', 'MXN'], ['USD', 'MXN'],
+  ['ZAR', 'MXN'],
 ]
 
 // Schema: exchange_rates(date PK, rates JSONB { "EUR_MXN": 21.5, "USD_MXN": 17.2, ... })
