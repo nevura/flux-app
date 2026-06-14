@@ -107,6 +107,20 @@ export default function OnboardingModal({ onDone }: Props) {
             <p className="text-[14px] font-semibold leading-snug" style={{ color: 'var(--f-text-2)' }}>{slide.tip}</p>
           </div>
         )}
+
+        {/* Guide link */}
+        {slide.guideLink && (
+          <a
+            href={slide.guideLink.href}
+            onClick={finish}
+            className="mt-3 flex items-center gap-1.5 text-[14px] font-bold"
+            style={{ color: 'var(--f-blue)' }}
+          >
+            <i className="fa-solid fa-book-open text-[12px]" />
+            {slide.guideLink.label}
+            <i className="fa-solid fa-arrow-right text-[11px]" />
+          </a>
+        )}
       </div>
 
       {/* Bottom nav */}

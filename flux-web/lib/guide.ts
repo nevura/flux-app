@@ -7,6 +7,7 @@ export interface OnboardingSlide {
   subtitle: string
   bullets: string[]
   tip?: string
+  guideLink?: { label: string; href: string }
 }
 
 export const ONBOARDING_SLIDES: OnboardingSlide[] = [
@@ -33,9 +34,11 @@ export const ONBOARDING_SLIDES: OnboardingSlide[] = [
     bullets: [
       'Cada vez que pagues con Apple Pay, Flux registra el gasto automáticamente',
       'Ve a Configuración → Atajos e instala el Atajo de Apple Pay',
-      'Tarda menos de 2 minutos y no necesitas abrir la app para registrar',
+      'Después de instalar, configura la Automatización en la app de Atajos → pestaña "Automatizaciones" (paso esencial)',
+      'Solo funciona con conexión a internet — si hay error, registra manualmente',
     ],
     tip: '💡 El nombre de tu cuenta en Flux debe coincidir exactamente con el nombre de tu tarjeta en Wallet → Apple Pay',
+    guideLink: { label: 'Ver tutorial con fotos paso a paso', href: '/guia' },
   },
   {
     id: 'saldo',
@@ -131,6 +134,7 @@ export const ONBOARDING_SLIDES: OnboardingSlide[] = [
       'Instala el Atajo de Apple Pay para no perderte ningún gasto',
       'Puedes volver a ver esta guía en Configuración → Guía',
     ],
+    guideLink: { label: 'Ver guía completa con fotos', href: '/guia' },
   },
 ]
 
@@ -174,7 +178,7 @@ export const GUIDE_SECTIONS: GuideSection[] = [
         icon: 'fa-solid fa-download',
         iconColor: 'var(--f-blue)',
         title: 'Cómo instalar el Atajo',
-        summary: 'Paso a paso en menos de 2 minutos',
+        summary: 'Paso a paso en menos de 5 minutos',
         bullets: [
           '1. Ve a Configuración → Atajos en FluxApp Finance',
           '2. Toca "Instalar Atajo Apple Pay" — se abre la app de Atajos de iPhone',
@@ -184,6 +188,39 @@ export const GUIDE_SECTIONS: GuideSection[] = [
           '6. Realiza una compra de prueba con Apple Pay — el gasto debe aparecer en Flux',
         ],
         tip: '⚠️ El nombre de la cuenta en Flux debe ser IDÉNTICO al nombre de la tarjeta en Ajustes → Wallet y Apple Pay → [tu tarjeta]. Hasta el acento importa.',
+      },
+      {
+        id: 'automatizacion-atajo',
+        icon: 'fa-solid fa-gears',
+        iconColor: '#bf5af2',
+        title: 'Configura la Automatización',
+        summary: 'Paso esencial para que se active al pagar',
+        bullets: [
+          'Instalar el Atajo no es suficiente — también debes crear la automatización',
+          '1. Abre la app de Atajos → pestaña "Automatizaciones" (ícono del nav)',
+          '2. Toca + para agregar nueva automatización',
+          '3. Selecciona "Wallet" de las opciones',
+          '4. Marca todas tus tarjetas y toca "Siguiente"',
+          '5. Selecciona el Atajo de FluxApp Apple Pay',
+          '6. Abre la automatización creada → toca el botón de automatización → "Ejecutar de inmediato"',
+          '7. Al ejecutar por primera vez, toca "Permitir siempre" en ambos atajos (requisito de iOS)',
+          'Si después agregas una tarjeta nueva al Wallet, debes seleccionarla manualmente en esta automatización',
+        ],
+        tip: '⚠️ Sin este paso, el Atajo NO se activa automáticamente al pagar con Apple Pay',
+      },
+      {
+        id: 'internet-requerido',
+        icon: 'fa-solid fa-wifi',
+        iconColor: '#FF9F0A',
+        title: 'Requiere conexión a internet',
+        summary: 'El Atajo y FluxApp necesitan internet',
+        bullets: [
+          'El Atajo de Apple Pay y FluxApp solo funcionan con conexión a internet',
+          'Si el Atajo marca error, lo más probable es una señal inestable o sin internet',
+          'Solución: usa el Atajo de Registro Rápido o registra el gasto manualmente en la app',
+          'Verifica siempre que el gasto no se haya duplicado si reintentaste',
+        ],
+        tip: '💡 En zonas con mala señal, prefiere registrar manualmente para no perder el gasto',
       },
       {
         id: 'atajos-nombre',

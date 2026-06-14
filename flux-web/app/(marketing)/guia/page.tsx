@@ -15,7 +15,6 @@ function VideoPlaceholder({ title }: { title: string }) {
       className="rounded-[18px] overflow-hidden flex-shrink-0"
       style={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)', width: 200 }}
     >
-      {/* 9:16 aspect ratio */}
       <div style={{ position: 'relative', paddingTop: '177.78%' }}>
         <div style={{
           position: 'absolute', inset: 0,
@@ -43,21 +42,51 @@ function VideoPlaceholder({ title }: { title: string }) {
   )
 }
 
+// ── Photo screenshot placeholder ─────────────────────────────────────────────
+function PhotoPlaceholder({ hint }: { hint: string }) {
+  return (
+    <div
+      className="w-full rounded-[10px] overflow-hidden"
+      style={{
+        background: '#EFF4FF',
+        border: '1.5px dashed rgba(0,122,255,0.28)',
+        position: 'relative',
+        paddingTop: '177.78%',
+      }}
+    >
+      <div style={{
+        position: 'absolute', inset: 0,
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        gap: 6, padding: '0 10px',
+      }}>
+        <i className="fa-regular fa-image text-[16px]" style={{ color: 'rgba(0,122,255,0.38)' }} />
+        <p className="text-[9px] font-semibold text-center leading-tight" style={{ color: 'rgba(0,0,0,0.35)' }}>
+          {hint}
+        </p>
+      </div>
+    </div>
+  )
+}
+
 // ── Data ─────────────────────────────────────────────────────────────────────
 type Step = { icon: string; title: string; desc: string; tip?: string }
+type PhotoStep = { label: string; desc: string; photoLabel: string; imageSrc?: string }
+type PhotoTutorial = { title: string; steps: PhotoStep[] }
 type Section = {
   title: string
   videos: string[]
   steps: Step[]
+  photoTutorials?: PhotoTutorial[]
 }
 
 const tabs = [
-  { id: 'atajos',       label: 'Atajos',        icon: 'fa-bolt' },
-  { id: 'cuentas',      label: 'Cuentas',        icon: 'fa-credit-card' },
-  { id: 'compartidos',  label: 'Compartidos',    icon: 'fa-users' },
-  { id: 'planificacion',label: 'Planificación',  icon: 'fa-rotate' },
-  { id: 'estadisticas', label: 'Estadísticas',   icon: 'fa-chart-line' },
-  { id: 'soporte',      label: 'Cuenta y soporte', icon: 'fa-headset' },
+  { id: 'atajos',        label: 'Atajos',           icon: 'fa-bolt' },
+  { id: 'cuentas',       label: 'Cuentas',           icon: 'fa-credit-card' },
+  { id: 'compartidos',   label: 'Compartidos',       icon: 'fa-users' },
+  { id: 'planificacion', label: 'Planificación',     icon: 'fa-rotate' },
+  { id: 'estadisticas',  label: 'Estadísticas',      icon: 'fa-chart-line' },
+  { id: 'soporte',       label: 'Cuenta y soporte',  icon: 'fa-headset' },
 ]
 
 const sections: Record<string, Section> = {
@@ -69,11 +98,84 @@ const sections: Record<string, Section> = {
       'Cómo usar el Atajo de Registro Rápido',
     ],
     steps: [
-      { icon: 'fa-mobile-screen', title: 'Requisitos', desc: 'Necesitas un iPhone con iOS 16 o superior. Los Atajos usan la app nativa de Apple (pre-instalada en todo iPhone).' },
-      { icon: 'fa-download', title: 'Instala el Atajo Apple Pay', desc: 'Ve a Configuración → Atajos y toca "Instalar Atajo Apple Pay". Se abre la app de Atajos. Acepta la instalación, ingresa tu token de seguridad y el nombre de tu tarjeta.', tip: '⚠️ El nombre de la cuenta en Flux debe ser IDÉNTICO al nombre de la tarjeta en Ajustes → Wallet y Apple Pay. Hasta el acento importa.' },
-      { icon: 'fa-bolt', title: 'Atajo Apple Pay', desc: 'Cada vez que pagas con Apple Pay, el Atajo detecta el monto y el comercio, y lo registra en Flux automáticamente como "Por confirmar".' },
-      { icon: 'fa-keyboard', title: 'Atajo de Registro Rápido', desc: 'Ve a Configuración → Atajos y toca "Instalar Atajo Registro Rápido". Úsalo con Siri o desde la app de Atajos para registrar un gasto en segundos, sin abrir Flux.' },
-      { icon: 'fa-circle-check', title: 'Confirma los gastos', desc: 'Los gastos de Atajos aparecen como "Por confirmar" en Movimientos. Toca ✓ para validarlos — o desliza la tarjeta en la lista.' },
+      {
+        icon: 'fa-mobile-screen',
+        title: 'Requisitos',
+        desc: 'Necesitas un iPhone con iOS 16 o superior. Los Atajos usan la app nativa de Apple (pre-instalada en todo iPhone).',
+      },
+      {
+        icon: 'fa-download',
+        title: 'Instala el Atajo Apple Pay',
+        desc: 'Ve a Configuración → Atajos y toca "Instalar Atajo Apple Pay". Se abre la app de Atajos. Acepta la instalación, ingresa tu token de seguridad y el nombre de tu tarjeta.',
+        tip: '⚠️ El nombre de la cuenta en Flux debe ser IDÉNTICO al nombre de la tarjeta en Ajustes → Wallet y Apple Pay. Hasta el acento importa.',
+      },
+      {
+        icon: 'fa-gears',
+        title: 'Configura la Automatización',
+        desc: 'Instalar el Atajo no es suficiente — también debes crear la automatización que lo activa al pagar. En la app de Atajos, ve a la pestaña "Automatizaciones" → toca + → selecciona "Wallet" → marca todas tus tarjetas → Siguiente → elige el Atajo de FluxApp Apple Pay.',
+        tip: '⚠️ Si agregas una nueva tarjeta al Wallet después, debes seleccionarla manualmente dentro de esta automatización.',
+      },
+      {
+        icon: 'fa-play-circle',
+        title: 'Ejecutar de inmediato',
+        desc: 'Dentro de la automatización recién creada, toca el botón de automatización y selecciona "Ejecutar de inmediato". Al ejecutar por primera vez, iOS pedirá permiso — toca "Permitir siempre" en ambos atajos para que funcionen sin interrupciones.',
+      },
+      {
+        icon: 'fa-bolt',
+        title: 'Atajo Apple Pay',
+        desc: 'Cada vez que pagas con Apple Pay, el Atajo detecta el monto y el comercio, y lo registra en Flux automáticamente como "Por confirmar".',
+      },
+      {
+        icon: 'fa-keyboard',
+        title: 'Atajo de Registro Rápido',
+        desc: 'Ve a Configuración → Atajos y toca "Instalar Atajo Registro Rápido". Úsalo con Siri o desde la app de Atajos para registrar un gasto en segundos, sin abrir Flux.',
+      },
+      {
+        icon: 'fa-wifi',
+        title: 'Requiere conexión a internet',
+        desc: 'El Atajo y FluxApp solo funcionan con conexión a internet. Si el Atajo marca error, lo más probable es una señal inestable. Solución: usa el Atajo de Registro Rápido o registra el gasto manualmente dentro de la app.',
+        tip: '💡 En zonas con mala señal el Atajo puede fallar. Registra el gasto manual y luego verifica que no se haya duplicado.',
+      },
+      {
+        icon: 'fa-circle-check',
+        title: 'Confirma los gastos',
+        desc: 'Los gastos de Atajos aparecen como "Por confirmar" en Movimientos. Toca ✓ para validarlos — o desliza la tarjeta en la lista.',
+      },
+    ],
+    photoTutorials: [
+      {
+        title: 'Agregar FluxApp a la pantalla de inicio',
+        steps: [
+          { label: 'a', desc: 'Abre el link de FluxApp en tu navegador (Safari en iPhone, Chrome en Android)', photoLabel: 'Navegador escribiendo el link de FluxApp', imageSrc: '/guia/agrear-inicio1.PNG' },
+          { label: 'b', desc: 'Toca el botón de Compartir', photoLabel: 'Botón de compartir resaltado', imageSrc: '/guia/agregar-inicio2.PNG' },
+          { label: 'c', desc: 'En Safari, toca "Ver más"', photoLabel: 'Botón "Ver más" resaltado', imageSrc: '/guia/agregar-inicio3.PNG' },
+          { label: 'd', desc: 'Toca "Agregar a inicio"', photoLabel: 'Botón "Agregar a inicio" resaltado', imageSrc: '/guia/agregar-inicio4.PNG' },
+          { label: 'e', desc: 'En Safari, confirma tocando "Agregar"', photoLabel: 'Botón "Agregar" resaltado', imageSrc: '/guia/agregar-inicio5.PNG' },
+          { label: 'f', desc: '¡Listo! El ícono de FluxApp aparece en tu pantalla de inicio', photoLabel: 'Ícono de FluxApp en pantalla de inicio', imageSrc: '/guia/agregar-inicio6.png' },
+        ],
+      },
+      {
+        title: 'Instalar el Atajo y configurar la Automatización',
+        steps: [
+          { label: 'a', desc: 'Dentro de FluxApp, ve a Configuración', photoLabel: 'Botón de Configuración en FluxApp' },
+          { label: 'b', desc: 'Dentro de Configuración, encuentra la sección de Atajos', photoLabel: 'Sección de Atajos en Configuración' },
+          { label: 'c', desc: 'Copia tu token de seguridad', photoLabel: 'Token y botón de copiar resaltados' },
+          { label: 'd', desc: 'Toca el botón "Instalar Atajo"', photoLabel: 'Botón de instalar Atajo resaltado' },
+          { label: 'e', desc: 'En la app de Atajos, toca "Agregar Atajo"', photoLabel: 'Botón "Agregar Atajo" en Atajos' },
+          { label: 'f', desc: 'El Atajo aparece instalado en tu lista de Atajos', photoLabel: 'Atajo de FluxApp instalado en la lista' },
+          { label: 'g', desc: 'Toca los tres puntos (···) para configurar el Atajo', photoLabel: 'Botón ··· resaltado en el Atajo' },
+          { label: 'h', desc: 'Toca el campo de texto donde va el token', photoLabel: 'Campo de texto del token resaltado' },
+          { label: 'i', desc: 'Pega el token y toca "Atrás" para guardar', photoLabel: 'Token pegado, botón Atrás resaltado' },
+          { label: 'j', desc: 'Ve a la pestaña "Automatizaciones" dentro de la app de Atajos', photoLabel: 'Pestaña Automatizaciones en Atajos' },
+          { label: 'k', desc: 'Toca + para agregar una nueva automatización', photoLabel: 'Botón + para nueva automatización' },
+          { label: 'l', desc: 'Selecciona "Wallet" de las opciones de automatización', photoLabel: 'Opción Wallet en el menú' },
+          { label: 'm', desc: 'Selecciona todas tus tarjetas y toca "Siguiente"', photoLabel: 'Tarjetas seleccionadas, botón Siguiente' },
+          { label: 'n', desc: 'Elige el Atajo de FluxApp Apple Pay para seleccionarlo', photoLabel: 'Atajo FluxApp Apple Pay seleccionado' },
+          { label: 'o', desc: 'Abre la automatización creada y toca el botón de automatización', photoLabel: 'Botón de automatización resaltado' },
+          { label: 'p', desc: 'Selecciona "Ejecutar de inmediato"', photoLabel: '"Ejecutar de inmediato" seleccionado' },
+          { label: 'q', desc: 'Al ejecutar por primera vez, toca "Permitir siempre" (en ambos atajos)', photoLabel: 'Mensaje de permiso con "Permitir siempre"' },
+        ],
+      },
     ],
   },
 
@@ -132,7 +234,7 @@ const sections: Record<string, Section> = {
     steps: [
       { icon: 'fa-chart-line', title: 'Gráfica de tendencia', desc: 'La línea azul muestra cómo evoluciona tu saldo día a día. La línea naranja es tu ritmo ideal de gasto según el presupuesto. Si la azul baja más rápido que la naranja, vas gastando de más.' },
       { icon: 'fa-chart-pie', title: 'Desglose por categoría', desc: 'Las barras en Estadísticas muestran cuánto gastaste en cada categoría este mes. Toca una categoría para ver los movimientos individuales.' },
-      { icon: 'fa-calendar-days', title: 'Comparación mensual', desc: 'Navega entre meses con las flechas para comparar tus gastos históricos. Útil para ver si estás mejorando o empeoranfo tus hábitos financieros.' },
+      { icon: 'fa-calendar-days', title: 'Comparación mensual', desc: 'Navega entre meses con las flechas para comparar tus gastos históricos. Útil para ver si estás mejorando o empeorando tus hábitos financieros.' },
       { icon: 'fa-arrow-trend-up', title: 'Ingresos vs gastos', desc: 'El resumen mensual muestra tu balance: total de ingresos, total de gastos, y el neto. Un neto positivo significa que ahorraste ese mes.' },
     ],
   },
@@ -239,6 +341,61 @@ export default function GuiaPage() {
             </div>
           ))}
         </div>
+
+        {/* Photo tutorials */}
+        {section.photoTutorials && section.photoTutorials.length > 0 && (
+          <div className="mt-12 space-y-10">
+            {section.photoTutorials.map((tutorial, ti) => (
+              <div key={ti}>
+                <p className="text-[11px] font-black uppercase tracking-[3px] mb-4" style={{ color: GRAY }}>
+                  <i className="fa-solid fa-images mr-2" />
+                  Tutorial con fotos — {tutorial.title}
+                </p>
+                <div
+                  className="flex gap-3 overflow-x-auto pb-4"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
+                  {tutorial.steps.map((step, si) => (
+                    <div
+                      key={si}
+                      className="flex flex-col items-center gap-3 flex-shrink-0 rounded-[16px] p-4"
+                      style={{
+                        background: LIGHT,
+                        border: '1px solid rgba(0,0,0,0.05)',
+                        width: 158,
+                      }}
+                    >
+                      {/* Step letter badge */}
+                      <div
+                        className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{ background: BLUE }}
+                      >
+                        <span className="text-[11px] font-black text-white uppercase">{step.label}</span>
+                      </div>
+                      {/* Description */}
+                      <p className="text-[11px] font-semibold text-center leading-snug" style={{ color: DARK }}>
+                        {step.desc}
+                      </p>
+                      {/* Photo */}
+                      {step.imageSrc ? (
+                        <div className="w-full rounded-[10px] overflow-hidden" style={{ position: 'relative', paddingTop: '177.78%', background: '#f8f8f8' }}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={step.imageSrc}
+                            alt={step.photoLabel}
+                            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }}
+                          />
+                        </div>
+                      ) : (
+                        <PhotoPlaceholder hint={step.photoLabel} />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Help CTA */}
