@@ -212,6 +212,20 @@ const sections: Record<string, Section> = {
           { label: '2', desc: 'Toca "Permitir" para habilitar las notificaciones del Atajo', photoLabel: 'Permiso de notificaciones', imageSrc: '/guia/permitir-2.PNG' },
         ],
       },
+      {
+        title: 'Widget de Registro Rápido (pantalla de bloqueo u otras)',
+        steps: [
+          { label: '1', desc: 'Mantén presionada la pantalla de bloqueo y toca "Personalizar"', photoLabel: 'Botón Personalizar resaltado', imageSrc: '/guia/widget-regsitro-rapido1.PNG' },
+          { label: '2', desc: 'Toca el área de widgets para agregar uno', photoLabel: '"Agrega widgets" resaltado', imageSrc: '/guia/widget-regsitro-rapido2.PNG' },
+          { label: '3', desc: 'Selecciona "Atajos" de la lista de apps', photoLabel: 'Atajos resaltado en la lista', imageSrc: '/guia/widget-regsitro-rapido3.PNG' },
+          { label: '4', desc: 'Toca el widget "Atajo" para agregarlo', photoLabel: 'Widget Atajo resaltado', imageSrc: '/guia/widget-regsitro-rapido4.PNG' },
+          { label: '5', desc: 'El widget fue agregado — tócalo para configurar qué atajo ejecuta', photoLabel: 'Widget agregado resaltado', imageSrc: '/guia/widget-regsitro-rapido5.PNG' },
+          { label: '6', desc: 'Selecciona "FluxApp Registro Rápido"', photoLabel: 'FluxApp Registro Rápido seleccionado', imageSrc: '/guia/widget-regsitro-rapido6.PNG' },
+          { label: '7', desc: 'Cierra el panel tocando X', photoLabel: 'Botón X resaltado', imageSrc: '/guia/widget-regsitro-rapido7.PNG' },
+          { label: '8', desc: 'Toca "Listo" para guardar los cambios', photoLabel: 'Botón Listo resaltado', imageSrc: '/guia/widget-regsitro-rapido8.PNG' },
+          { label: '9', desc: '¡Listo! Al tocar el widget, el Atajo se ejecuta de inmediato', photoLabel: 'Atajo ejecutándose', imageSrc: '/guia/widget-regsitro-rapido9.PNG' },
+        ],
+      },
     ],
   },
 
@@ -388,11 +402,13 @@ export default function GuiaPage() {
                       </div>
                     ))}
                   </div>
-                  {/* Fade hint — shows there are more cards to scroll */}
-                  <div
-                    className="absolute right-0 top-0 w-24 pointer-events-none"
-                    style={{ bottom: 16, background: 'linear-gradient(to left, #ffffff 30%, transparent)' }}
-                  />
+                  {/* Fade hint — only when there are enough cards to overflow */}
+                  {tutorial.steps.length > 4 && (
+                    <div
+                      className="absolute right-0 top-0 w-24 pointer-events-none"
+                      style={{ bottom: 16, background: 'linear-gradient(to left, #ffffff 30%, transparent)' }}
+                    />
+                  )}
                 </div>
               </div>
             ))}
