@@ -6,9 +6,9 @@ import { useRouter } from 'next/navigation'
 import { formatCurrency, formatDateShort, getCategoryDisplay } from '@/lib/utils'
 import { useCountUp } from '@/lib/hooks'
 
-function AnimatedCurrency({ value }: { value: number }) {
+function AnimatedCurrency({ value, currency }: { value: number; currency?: string }) {
   const animated = useCountUp(value)
-  return <>{formatCurrency(animated)}</>
+  return <>{formatCurrency(animated, currency)}</>
 }
 import { MONTHS_ES } from '@/lib/constants'
 import { searchAllTransactions, fetchSharedTransactions, deleteTransaction, confirmTransaction } from '@/actions/transactions'
@@ -143,8 +143,9 @@ export default function TransactionsClient({ initialTransactions, categories, ac
   const totals = useMemo(() => {
     let income = 0, expenses = 0
     for (const t of filtered) {
-      if (t.type === 'TR-INGRESO') income += Number(t.amount)
-      else if (t.type === 'TR-GASTO') expenses += Number(t.amount)
+      const rate = t.exchange_rate ?? 1
+      if (t.type === 'TR-INGRESO') income += Number(t.amount) * rate
+      else if (t.type === 'TR-GASTO') expenses += Number(t.amount) * rate
     }
     return { income, expenses }
   }, [filtered])
@@ -285,11 +286,11 @@ export default function TransactionsClient({ initialTransactions, categories, ac
         <div className="flex gap-2 mb-4">
           <div className="flex-1 rounded-2xl p-3 text-center" style={{ background: 'var(--f-income-bg)', border: '1px solid var(--f-income-border)' }}>
             <p className="text-[11px] font-black tracking-[2px] uppercase mb-0.5" style={{ color: 'var(--f-income)', opacity: 0.7 }}>Ingresos</p>
-            <p className="text-[18px] font-black tabular-nums" style={{ color: 'var(--f-income)' }}>+<AnimatedCurrency value={totals.income} /></p>
+            <p className="text-[18px] font-black tabular-nums" style={{ color: 'var(--f-income)' }}>+<AnimatedCurrency value={totals.income} currency={baseCurrency} /></p>
           </div>
           <div className="flex-1 rounded-2xl p-3 text-center" style={{ background: 'var(--f-expense-bg)', border: '1px solid var(--f-expense-border)' }}>
             <p className="text-[11px] font-black tracking-[2px] uppercase mb-0.5" style={{ color: 'var(--f-expense)', opacity: 0.7 }}>Gastos</p>
-            <p className="text-[18px] font-black tabular-nums" style={{ color: 'var(--f-expense)' }}>-<AnimatedCurrency value={totals.expenses} /></p>
+            <p className="text-[18px] font-black tabular-nums" style={{ color: 'var(--f-expense)' }}>-<AnimatedCurrency value={totals.expenses} currency={baseCurrency} /></p>
           </div>
         </div>
 
@@ -561,7 +562,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                           </div>
                           <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
                             <p className="text-[16px] font-black tabular-nums" style={{ color: amtColor }}>
-                              {isIncome ? '+' : isExpense ? '-' : ''}{formatCurrency(Number(tx.amount))}
+                              {isIncome ? '+' : isExpense ? '-' : ''}{formatCurrency(Number(tx.amount), tx.currency ?? 'MXN')}
                             </p>
                             {!isTxPending && (tx.is_receivable || tx.is_payable) && (
                               <span className="text-[11px] font-black mt-0.5 inline-block px-1.5 py-0.5 rounded-full" style={{ background: 'var(--f-pending-bg)', color: 'var(--f-pending)' }}>

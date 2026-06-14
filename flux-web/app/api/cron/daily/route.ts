@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { adjustmentFor, getMexicoNow, nextRecurringDate, formatCurrency } from '@/lib/utils'
 import { sendTdcReminderEmail, sendMonthlyAdjustmentEmail, sendTrialExpiryEmail, sendShortcutReminderEmail, sendReengagementEmail } from '@/lib/email'
+import { fetchAndStoreDailyRates } from '@/actions/exchangeRates'
 
 export const maxDuration = 60
 
@@ -402,5 +403,9 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.json({ ok: true, date: todayStr, ...results })
+  // ── 8. Exchange rate history (Frankfurter / ECB) ─────────────────────────
+  const fxResult = await fetchAndStoreDailyRates(todayStr)
+  if (fxResult.error) results.errors.push(`exchange_rates: ${fxResult.error}`)
+
+  return NextResponse.json({ ok: true, date: todayStr, exchange_rates_inserted: fxResult.inserted, ...results })
 }

@@ -15,6 +15,7 @@ interface TabData {
   monthlySummary: MonthlyRow[]
   year: number
   month: number
+  baseCurrency: string
 }
 
 function Skeleton() {
@@ -47,7 +48,7 @@ export default function InsightsTab({ userId, active, refreshSignal }: Props) {
 
   const load = useCallback(async (y: number, m: number) => {
     const { from, to } = monthRange(y, m)
-    const [{ data: txs }, { data: cats }, { data: allTx }] = await Promise.all([
+    const [{ data: txs }, { data: cats }, { data: allTx }, { data: profile }] = await Promise.all([
       supabase.from('transactions').select('*').eq('user_id', userId)
         .gte('transaction_date', from.slice(0, 10)).lte('transaction_date', to.slice(0, 10))
         .order('transaction_date', { ascending: false }),
@@ -56,6 +57,7 @@ export default function InsightsTab({ userId, active, refreshSignal }: Props) {
         .select('type, amount, exchange_rate, transaction_date, exclude_mode, split_data')
         .eq('user_id', userId)
         .neq('type', 'TR-TRANSFER'),
+      supabase.from('profiles').select('currency').eq('id', userId).single(),
     ])
 
     function effectiveAmt(t: { type: string; amount: number; exchange_rate?: number | null; exclude_mode?: string | null; split_data?: { data: { value: number }[] } | null }): number {
@@ -87,6 +89,7 @@ export default function InsightsTab({ userId, active, refreshSignal }: Props) {
       monthlySummary,
       year: y,
       month: m,
+      baseCurrency: profile?.currency ?? 'MXN',
     })
     loadedRef.current = true
   }, [userId, supabase])

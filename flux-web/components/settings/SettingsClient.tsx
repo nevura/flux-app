@@ -1462,7 +1462,7 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold truncate" style={{ color: 'var(--f-text)' }}>{s.name}</p>
               <p className="text-xs" style={{ color: 'var(--f-text-3)' }}>
-                Cada {s.frequency_num} {s.frequency_unit} · {formatCurrency(Number(s.amount))}
+                Cada {s.frequency_num} {s.frequency_unit} · {formatCurrency(Number(s.amount), accounts.find(a => a.id === s.account_id)?.currency ?? 'MXN')}
               </p>
             </div>
             <button onClick={() => openEdit(s)} className="px-1" style={{ color: 'var(--f-text-3)' }}>

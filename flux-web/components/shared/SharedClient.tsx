@@ -7,9 +7,9 @@ import { toast } from 'sonner'
 import { formatCurrency, formatDateShort } from '@/lib/utils'
 import { useCountUp } from '@/lib/hooks'
 
-function AnimatedCurrency({ value }: { value: number }) {
+function AnimatedCurrency({ value, currency }: { value: number; currency?: string }) {
   const animated = useCountUp(value)
-  return <>{formatCurrency(animated)}</>
+  return <>{formatCurrency(animated, currency)}</>
 }
 import { settleParticipant, partialSettle, settleAndRecord, settleAllForPerson, abonoGlobalForPerson, collectReceivable, proposeSyncTransaction } from '@/actions/transactions'
 import { linkPersonToUser } from '@/actions/friends'
@@ -28,6 +28,7 @@ interface ActionModalState {
   isReceivable: boolean
   isTheyOwe: boolean
   concept: string
+  currency: string
 }
 
 interface Props {
@@ -37,6 +38,7 @@ interface Props {
   categories: Category[]
   friendships: Friendship[]
   myUserId: string
+  baseCurrency: string
 }
 
 interface PersonBalance {
@@ -47,7 +49,7 @@ interface PersonBalance {
   pending: Array<{ tx: Transaction; participant: SplitParticipant }>
 }
 
-export default function SharedClient({ transactions, people, accounts, categories, friendships, myUserId }: Props) {
+export default function SharedClient({ transactions, people, accounts, categories, friendships, myUserId, baseCurrency }: Props) {
   const [mounted, setMounted] = useState(false)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -258,13 +260,13 @@ export default function SharedClient({ transactions, people, accounts, categorie
             <div className="rounded-[20px] p-4 animate-spring-in" style={{ background: 'var(--f-income-bg)', border: '1px solid var(--f-income-border)' }}>
               <p className="text-[11px] font-black tracking-[2px] uppercase mb-1" style={{ color: 'var(--f-income)' }}>Me deben</p>
               <p className="text-[22px] font-black tabular-nums leading-none" style={{ color: 'var(--f-income)' }}>
-                +<AnimatedCurrency value={totalOwesMe} />
+                +<AnimatedCurrency value={totalOwesMe} currency={baseCurrency} />
               </p>
             </div>
             <div className="rounded-[20px] p-4 animate-spring-in" style={{ background: 'var(--f-expense-bg)', border: '1px solid var(--f-expense-border)', animationDelay: '0.07s' }}>
               <p className="text-[11px] font-black tracking-[2px] uppercase mb-1" style={{ color: 'var(--f-expense)' }}>Debo</p>
               <p className="text-[22px] font-black tabular-nums leading-none" style={{ color: 'var(--f-expense)' }}>
-                -<AnimatedCurrency value={totalIOwe} />
+                -<AnimatedCurrency value={totalIOwe} currency={baseCurrency} />
               </p>
             </div>
           </div>
@@ -360,7 +362,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                     </div>
                     <div className="text-right flex-shrink-0">
                       <p className="text-[18px] font-black tabular-nums" style={{ color: netPositive ? 'var(--f-income)' : 'var(--f-expense)' }}>
-                        {netPositive ? '+' : '-'}<AnimatedCurrency value={Math.abs(b.net)} />
+                        {netPositive ? '+' : '-'}<AnimatedCurrency value={Math.abs(b.net)} currency={baseCurrency} />
                       </p>
                       <p className="text-[13px] font-bold mt-0.5" style={{ color: 'var(--f-text-4)' }}>
                         {netPositive ? 'me debe' : 'les debo'}
@@ -408,7 +410,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                           value={globalAbonoAmount}
                           onChange={e => setGlobalAbonoAmount(e.target.value)}
                           onKeyDown={e => { if (e.key === 'Enter' && globalAbonoAmount) executeAbonoGlobal(b.person.id, b.person.name) }}
-                          placeholder={`Máx. ${formatCurrency(Math.abs(b.net))}`}
+                          placeholder={`Máx. ${formatCurrency(Math.abs(b.net), baseCurrency)}`}
                           className="flex-1 rounded-[10px] px-3 py-2 text-[16px] font-bold outline-none tabular-nums"
                           style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-border)', color: 'var(--f-text)' }}
                         />
@@ -549,19 +551,19 @@ export default function SharedClient({ transactions, people, accounts, categorie
                                       icon: 'fa-solid fa-check',
                                       label: isTheyOwe ? 'Cobrado' : 'Pagado',
                                       bg: 'var(--f-income)',
-                                      onClick: () => setActionModal({ type: 'settle', txId: tx.id, participantId: participant.id, maxAmount: unpaid, isReceivable, isTheyOwe, concept: tx.concept }),
+                                      onClick: () => setActionModal({ type: 'settle', txId: tx.id, participantId: participant.id, maxAmount: unpaid, isReceivable, isTheyOwe, concept: tx.concept, currency: tx.currency ?? 'MXN' }),
                                     },
                                 {
                                   icon: 'fa-solid fa-coins',
                                   label: isReceivable ? 'Abonar' : 'Abono',
                                   bg: 'var(--f-blue)',
-                                  onClick: () => setActionModal({ type: isReceivable ? 'collectPartial' : 'partial', txId: tx.id, participantId: participant.id, maxAmount: unpaid, isReceivable, isTheyOwe, concept: tx.concept }),
+                                  onClick: () => setActionModal({ type: isReceivable ? 'collectPartial' : 'partial', txId: tx.id, participantId: participant.id, maxAmount: unpaid, isReceivable, isTheyOwe, concept: tx.concept, currency: tx.currency ?? 'MXN' }),
                                 },
                                 {
                                   icon: 'fa-solid fa-trash',
                                   label: isReceivable ? 'Cancelar' : 'Olvidar',
                                   bg: 'var(--f-expense)',
-                                  onClick: () => setActionModal({ type: 'forget', txId: tx.id, participantId: participant.id, maxAmount: unpaid, isReceivable, isTheyOwe, concept: tx.concept }),
+                                  onClick: () => setActionModal({ type: 'forget', txId: tx.id, participantId: participant.id, maxAmount: unpaid, isReceivable, isTheyOwe, concept: tx.concept, currency: tx.currency ?? 'MXN' }),
                                 },
                                 ...(canSync ? [{
                                   icon: 'fa-solid fa-arrows-rotate',
@@ -600,7 +602,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                                 <div className="flex items-center gap-2 flex-shrink-0">
                                   <p className="text-[17px] font-black tabular-nums"
                                     style={{ color: isTheyOwe ? 'var(--f-income)' : 'var(--f-expense)' }}>
-                                    {isTheyOwe ? '+' : '-'}{formatCurrency(unpaid)}
+                                    {isTheyOwe ? '+' : '-'}{formatCurrency(unpaid, tx.currency ?? 'MXN')}
                                   </p>
                                   {isCollectingThis
                                     ? <i className="fa-solid fa-spinner fa-spin text-[12px]" style={{ color: 'var(--f-text-4)' }} />
@@ -677,7 +679,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
               </p>
               <p className="text-[20px] font-black" style={{ color: 'var(--f-text)' }}>{actionModal.concept}</p>
               <p className="text-[15px] font-bold mt-0.5 tabular-nums" style={{ color: actionModal.isTheyOwe ? 'var(--f-income)' : 'var(--f-expense)' }}>
-                {actionModal.isTheyOwe ? '+' : '-'}{formatCurrency(actionModal.maxAmount)} pendiente
+                {actionModal.isTheyOwe ? '+' : '-'}{formatCurrency(actionModal.maxAmount, actionModal.currency)} pendiente
               </p>
             </div>
 
@@ -728,7 +730,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                   step="0.01"
                   value={modalAmount}
                   onChange={e => setModalAmount(e.target.value)}
-                  placeholder={`Máx. ${formatCurrency(actionModal.maxAmount)}`}
+                  placeholder={`Máx. ${formatCurrency(actionModal.maxAmount, actionModal.currency)}`}
                   className="w-full rounded-[14px] px-4 py-3 text-[20px] font-bold outline-none tabular-nums"
                   style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-border)', color: 'var(--f-text)' }}
                 />
@@ -771,7 +773,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                   step="0.01"
                   value={modalAmount}
                   onChange={e => setModalAmount(e.target.value)}
-                  placeholder={`Máx. ${formatCurrency(actionModal.maxAmount)}`}
+                  placeholder={`Máx. ${formatCurrency(actionModal.maxAmount, actionModal.currency)}`}
                   className="w-full rounded-[14px] px-4 py-3 text-[20px] font-bold outline-none tabular-nums"
                   style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-income-border)', color: 'var(--f-text)' }}
                 />

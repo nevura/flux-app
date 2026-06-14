@@ -39,6 +39,36 @@ export async function POST(req: NextRequest) {
         subscription_status: sub.status,
         subscription_ends_at: periodEnd(sub),
       }).eq('id', uid)
+
+      // Apply active promotion (e.g. Fundadores: +30 days free)
+      const { data: promo } = await db
+        .from('promotions')
+        .select('id, extra_days, used_count, max_uses')
+        .eq('active', true)
+        .eq('type', 'trial_extension')
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .single()
+
+      if (promo && promo.used_count < promo.max_uses) {
+        const trialEnd = Math.floor(Date.now() / 1000) + promo.extra_days * 86400
+        try {
+          await stripe.subscriptions.update(sub.id, { trial_end: trialEnd })
+          await db.from('promotion_uses').insert({
+            promotion_id: promo.id,
+            user_id: uid,
+            stripe_subscription_id: sub.id,
+            extra_days_granted: promo.extra_days,
+          })
+          // Atomic increment — only if still under limit
+          await db.from('promotions')
+            .update({ used_count: promo.used_count + 1 })
+            .eq('id', promo.id)
+            .lt('used_count', promo.max_uses)
+        } catch {
+          // Promo application is non-critical — don't fail the webhook
+        }
+      }
       break
     }
 

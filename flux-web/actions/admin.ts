@@ -497,3 +497,67 @@ export async function getBotUsageStats(): Promise<BotUsageStats> {
     by_user,
   }
 }
+
+// ── Promotion management ──────────────────────────────────────────────────────
+
+export interface Promotion {
+  id: string
+  name: string
+  description: string | null
+  type: string
+  extra_days: number
+  max_uses: number
+  used_count: number
+  active: boolean
+  starts_at: string | null
+  ends_at: string | null
+  created_at: string
+}
+
+export interface PromotionUse {
+  id: string
+  promotion_id: string
+  user_id: string
+  stripe_subscription_id: string | null
+  extra_days_granted: number
+  applied_at: string
+  profiles?: { email: string | null; full_name: string | null }
+}
+
+export async function getPromotions(): Promise<Promotion[]> {
+  const admin = createAdminClient()
+  const { data } = await admin.from('promotions').select('*').order('created_at', { ascending: true })
+  return (data ?? []) as Promotion[]
+}
+
+export async function createPromotion(input: { name: string; description?: string; extra_days: number; max_uses: number }): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || user.email !== (process.env.ADMIN_AUTH_EMAIL ?? process.env.ADMIN_EMAIL ?? 'bernardo.perezro06@gmail.com')) {
+    return { error: 'No autorizado' }
+  }
+  const admin = createAdminClient() as any
+  const { error } = await admin.from('promotions').insert(input)
+  return error ? { error: error.message } : {}
+}
+
+export async function togglePromotion(id: string, active: boolean): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || user.email !== (process.env.ADMIN_AUTH_EMAIL ?? process.env.ADMIN_EMAIL ?? 'bernardo.perezro06@gmail.com')) {
+    return { error: 'No autorizado' }
+  }
+  const admin = createAdminClient() as any
+  const { error } = await admin.from('promotions').update({ active }).eq('id', id)
+  return error ? { error: error.message } : {}
+}
+
+export async function getPromotionUses(promotionId: string): Promise<PromotionUse[]> {
+  const admin = createAdminClient() as any
+  const { data } = await admin
+    .from('promotion_uses')
+    .select('*, profiles(email, full_name)')
+    .eq('promotion_id', promotionId)
+    .order('applied_at', { ascending: false })
+  return (data ?? []) as PromotionUse[]
+}

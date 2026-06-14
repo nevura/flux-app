@@ -11,6 +11,7 @@ interface TabData {
   accounts: Account[]
   categories: Category[]
   friendships: Friendship[]
+  baseCurrency: string
 }
 
 function Skeleton() {
@@ -36,12 +37,13 @@ export default function SharedTab({ userId, active, refreshSignal }: Props) {
   const supabase = useRef(createClient()).current
 
   const load = useCallback(async () => {
-    const [{ data: txs }, { data: people }, { data: accs }, { data: cats }, { data: friends }] = await Promise.all([
+    const [{ data: txs }, { data: people }, { data: accs }, { data: cats }, { data: friends }, { data: profile }] = await Promise.all([
       supabase.from('transactions').select('*').eq('user_id', userId).not('split_data', 'is', null),
       supabase.from('people').select('*, linked_profile:profiles!linked_user_id(id, username, full_name)').eq('user_id', userId),
       supabase.from('accounts').select('*').eq('user_id', userId).eq('is_active', true).order('sort_order'),
       supabase.from('categories').select('*').or(`user_id.eq.${userId},user_id.is.null`).order('sort_order'),
       supabase.from('friendships').select('*').or(`requester_id.eq.${userId},addressee_id.eq.${userId}`),
+      supabase.from('profiles').select('currency').eq('id', userId).single(),
     ])
     setData({
       transactions: (txs ?? []) as Transaction[],
@@ -49,6 +51,7 @@ export default function SharedTab({ userId, active, refreshSignal }: Props) {
       accounts: (accs ?? []) as Account[],
       categories: (cats ?? []) as Category[],
       friendships: (friends ?? []) as Friendship[],
+      baseCurrency: profile?.currency ?? 'MXN',
     })
     loadedRef.current = true
   }, [userId, supabase])
@@ -72,5 +75,5 @@ export default function SharedTab({ userId, active, refreshSignal }: Props) {
   }, [userId, supabase, load])
 
   if (!data) return active ? <Skeleton /> : null
-  return <SharedClient {...data} myUserId={userId} />
+  return <SharedClient {...data} myUserId={userId} baseCurrency={data.baseCurrency} />
 }

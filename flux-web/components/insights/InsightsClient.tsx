@@ -7,9 +7,9 @@ import { MONTHS_ES } from '@/lib/constants'
 import type { Transaction, Category } from '@/lib/types'
 import { useCountUp, useAnimatedWidth } from '@/lib/hooks'
 
-function AnimatedCurrency({ value }: { value: number }) {
+function AnimatedCurrency({ value, currency }: { value: number; currency?: string }) {
   const animated = useCountUp(value)
-  return <>{formatCurrency(animated)}</>
+  return <>{formatCurrency(animated, currency)}</>
 }
 
 function AnimatedBar({ pct, color }: { pct: number; color: string }) {
@@ -44,6 +44,7 @@ interface Props {
   monthlySummary: MonthlyRow[]
   year: number
   month: number
+  baseCurrency: string
 }
 
 // ── SVG Donut ──────────────────────────────────────────────────────────────────
@@ -62,7 +63,7 @@ function donutPath(cx: number, cy: number, R: number, r: number, start: number, 
   return `M ${s1.x} ${s1.y} A ${R} ${R} 0 ${large} 1 ${e1.x} ${e1.y} L ${s2.x} ${s2.y} A ${r} ${r} 0 ${large} 0 ${e2.x} ${e2.y} Z`
 }
 
-function DonutChart({ slices }: { slices: Array<{ label: string; value: number; color: string; pct: number }> }) {
+function DonutChart({ slices, currency }: { slices: Array<{ label: string; value: number; color: string; pct: number }>; currency: string }) {
   const [hovered, setHovered] = useState<number | null>(null)
   const total = slices.reduce((s, d) => s + d.value, 0)
   if (total === 0) return null
@@ -105,13 +106,13 @@ function DonutChart({ slices }: { slices: Array<{ label: string; value: number; 
           {active ? (
             <>
               <p className="text-[13px] font-black text-center px-4 leading-tight" style={{ color: active.color }}>{active.label}</p>
-              <p className="text-[22px] font-black tabular-nums mt-0.5" style={{ color: 'var(--f-text)' }}>{formatCurrency(active.value)}</p>
+              <p className="text-[22px] font-black tabular-nums mt-0.5" style={{ color: 'var(--f-text)' }}>{formatCurrency(active.value, currency)}</p>
               <p className="text-[13px] font-black" style={{ color: 'var(--f-text-3)' }}>{active.pct.toFixed(1)}%</p>
             </>
           ) : (
             <>
               <p className="text-[12px] font-black tracking-[2px] uppercase" style={{ color: 'var(--f-text-3)' }}>Total</p>
-              <p className="text-[22px] font-black tabular-nums" style={{ color: 'var(--f-text)' }}>{formatCurrency(total)}</p>
+              <p className="text-[22px] font-black tabular-nums" style={{ color: 'var(--f-text)' }}>{formatCurrency(total, currency)}</p>
             </>
           )}
         </div>
@@ -122,7 +123,7 @@ function DonutChart({ slices }: { slices: Array<{ label: string; value: number; 
 
 // ── Main ───────────────────────────────────────────────────────────────────────
 
-export default function InsightsClient({ transactions, categories, monthlySummary, year, month }: Props) {
+export default function InsightsClient({ transactions, categories, monthlySummary, year, month, baseCurrency }: Props) {
   const router = useRouter()
   const [pickerOpen, setPickerOpen] = useState(false)
   const [pickerYear, setPickerYear] = useState(year)
@@ -366,7 +367,7 @@ export default function InsightsClient({ transactions, categories, monthlySummar
               <p className="text-[12px] font-black tracking-[3px] uppercase mb-4 text-center" style={{ color: 'var(--f-text-3)' }}>
                 Gastos por categoría
               </p>
-              <DonutChart slices={chartSlices} />
+              <DonutChart slices={chartSlices} currency={baseCurrency} />
             </div>
           ) : (
             <div className="rounded-[20px] p-10 text-center" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)' }}>
@@ -394,7 +395,7 @@ export default function InsightsClient({ transactions, categories, monthlySummar
                           <div className="flex justify-between items-baseline">
                             <span className="text-[17px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{d.name}</span>
                             <span className="text-[17px] font-black tabular-nums ml-3 flex-shrink-0" style={{ color: 'var(--f-text)' }}>
-                              {formatCurrency(item.value)}
+                              {formatCurrency(item.value, baseCurrency)}
                             </span>
                           </div>
                           <div className="flex items-center gap-2 mt-1.5">
@@ -427,13 +428,13 @@ export default function InsightsClient({ transactions, categories, monthlySummar
             <div className="rounded-[20px] p-4 animate-fade-up" style={{ background: 'var(--f-income-bg)', border: '1px solid var(--f-income-border)' }}>
               <p className="text-[11px] font-black tracking-[2px] uppercase mb-1" style={{ color: 'var(--f-income)', opacity: 0.7 }}>Ingresos</p>
               <p className="text-[22px] font-black tabular-nums leading-none" style={{ color: 'var(--f-income)' }}>
-                +<AnimatedCurrency value={income} />
+                +<AnimatedCurrency value={income} currency={baseCurrency} />
               </p>
             </div>
             <div className="rounded-[20px] p-4 animate-fade-up" style={{ background: 'var(--f-expense-bg)', border: '1px solid var(--f-expense-border)', animationDelay: '0.05s' }}>
               <p className="text-[11px] font-black tracking-[2px] uppercase mb-1" style={{ color: 'var(--f-expense)', opacity: 0.7 }}>Gastos</p>
               <p className="text-[22px] font-black tabular-nums leading-none" style={{ color: 'var(--f-expense)' }}>
-                -<AnimatedCurrency value={expenses} />
+                -<AnimatedCurrency value={expenses} currency={baseCurrency} />
               </p>
             </div>
           </div>
@@ -450,9 +451,9 @@ export default function InsightsClient({ transactions, categories, monthlySummar
               : expenses
             const saveRate = income > 0 ? Math.max(0, ((income - expenses) / income) * 100) : 0
             const kpis = [
-              { label: 'Tasa de Gasto',  value: formatCurrency(burnRate),                              sub: 'por día',      color: 'var(--f-credit)'   },
-              { label: 'Flujo Neto',     value: (netFlow >= 0 ? '+' : '') + formatCurrency(netFlow),   sub: 'este mes',     color: netFlow >= 0 ? 'var(--f-income)' : 'var(--f-expense)' },
-              { label: 'Prom. Mensual',  value: formatCurrency(avgExpenses),                           sub: 'de gasto',     color: 'var(--f-transfer)' },
+              { label: 'Tasa de Gasto',  value: formatCurrency(burnRate, baseCurrency),                              sub: 'por día',      color: 'var(--f-credit)'   },
+              { label: 'Flujo Neto',     value: (netFlow >= 0 ? '+' : '') + formatCurrency(netFlow, baseCurrency),   sub: 'este mes',     color: netFlow >= 0 ? 'var(--f-income)' : 'var(--f-expense)' },
+              { label: 'Prom. Mensual',  value: formatCurrency(avgExpenses, baseCurrency),                           sub: 'de gasto',     color: 'var(--f-transfer)' },
               { label: 'Tasa de Ahorro', value: `${saveRate.toFixed(0)}%`,                             sub: 'de ingresos',  color: '#BF5AF2' },
             ]
             return (

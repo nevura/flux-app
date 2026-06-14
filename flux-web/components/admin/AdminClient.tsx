@@ -10,9 +10,16 @@ import {
   setUserSubscriptionStatus,
   getEmailLogForUser,
   sendManualEmailToUser,
+  getPromotions,
+  createPromotion,
+  togglePromotion,
+  getPromotionUses,
   type AdminProfile,
   type EmailType,
+  type Promotion,
+  type PromotionUse,
 } from '@/actions/admin'
+import { backfillExchangeRates } from '@/actions/exchangeRates'
 import {
   getAdminConversations,
   getAdminMessages,
@@ -823,7 +830,7 @@ function MetricsView() {
 // ── Main component ────────────────────────────────────────────────────────────
 export default function AdminClient({ profiles }: { profiles: AdminProfile[] }) {
   const router = useRouter()
-  const [view, setView]     = useState<'users' | 'inbox' | 'metrics'>('users')
+  const [view, setView]     = useState<'users' | 'inbox' | 'metrics' | 'promotions'>('users')
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [isPending, startTransition] = useTransition()
@@ -911,7 +918,7 @@ export default function AdminClient({ profiles }: { profiles: AdminProfile[] }) 
           <p className="text-[12px] font-black uppercase tracking-[4px] mb-2" style={{ color: BLUE }}>Panel de control</p>
           {/* Title row */}
           <h1 className="text-[32px] font-black tracking-tight leading-tight mb-0.5" style={{ color: DARK }}>
-            {view === 'users' ? 'Usuarios' : view === 'inbox' ? 'Buzón' : 'Métricas'}
+            {view === 'users' ? 'Usuarios' : view === 'inbox' ? 'Buzón' : view === 'promotions' ? 'Promociones' : 'Métricas'}
           </h1>
           <p className="text-[14px] font-medium mb-4" style={{ color: GRAY }}>
             {view === 'users'
@@ -940,6 +947,11 @@ export default function AdminClient({ profiles }: { profiles: AdminProfile[] }) 
                 className="relative flex-1 py-2.5 rounded-[12px] text-[13px] font-bold transition-all"
                 style={view === 'metrics' ? { background: BLUE, color: '#fff' } : { background: LIGHT, color: GRAY, border: '1px solid rgba(0,0,0,0.07)' }}>
                 <i className="fa-solid fa-chart-line mr-1.5" />Métricas
+              </button>
+              <button onClick={() => setView('promotions')}
+                className="relative flex-1 py-2.5 rounded-[12px] text-[13px] font-bold transition-all"
+                style={view === 'promotions' ? { background: BLUE, color: '#fff' } : { background: LIGHT, color: GRAY, border: '1px solid rgba(0,0,0,0.07)' }}>
+                <i className="fa-solid fa-gift mr-1.5" />Promos
               </button>
           </div>
         </div>
@@ -1011,8 +1023,199 @@ export default function AdminClient({ profiles }: { profiles: AdminProfile[] }) 
         {view === 'inbox' && <AdminInbox />}
 
         {/* ════════════════════════════════ METRICS VIEW ════════════════════════════ */}
-        {view === 'metrics' && <MetricsView />}
+        {view === 'metrics' && (
+          <>
+            <MetricsView />
+            <FxBackfillTool />
+          </>
+        )}
+
+        {/* ════════════════════════════════ PROMOTIONS VIEW ═══════════════════════ */}
+        {view === 'promotions' && <PromotionsPanel />}
       </main>
+    </div>
+  )
+}
+
+// ── FX Backfill Tool ─────────────────────────────────────────────────────────
+function FxBackfillTool() {
+  const [isPending, startTransition] = useTransition()
+  const [result, setResult] = useState<string | null>(null)
+
+  function run(from: string, to: string) {
+    setResult(null)
+    startTransition(async () => {
+      const r = await backfillExchangeRates(from, to, '2025-01-01')
+      setResult(r.error ? `Error: ${r.error}` : `✓ ${r.inserted} tasas guardadas`)
+    })
+  }
+
+  return (
+    <section className="mt-6 rounded-[20px] p-5" style={{ background: LIGHT, border: '1px solid rgba(0,0,0,0.07)' }}>
+      <p className="text-[12px] font-black uppercase tracking-[3px] mb-3" style={{ color: GRAY }}>Historial de tipo de cambio</p>
+      <p className="text-[13px] font-medium mb-4" style={{ color: GRAY }}>Descarga tasas BCE desde 2025-01-01. Solo es necesario hacerlo una vez por par de divisas.</p>
+      <div className="flex flex-wrap gap-2">
+        {[['EUR','MXN'],['USD','MXN'],['GBP','MXN'],['CAD','MXN'],['JPY','MXN'],['BRL','MXN']].map(([from, to]) => (
+          <button
+            key={`${from}-${to}`}
+            onClick={() => run(from, to)}
+            disabled={isPending}
+            className="px-3 py-2 rounded-[10px] text-[13px] font-bold transition-all active:scale-95 disabled:opacity-50"
+            style={{ background: '#fff', border: '1px solid rgba(0,122,255,0.3)', color: BLUE }}
+          >
+            {from} → {to}
+          </button>
+        ))}
+      </div>
+      {isPending && <p className="text-[13px] font-bold mt-3" style={{ color: BLUE }}><i className="fa-solid fa-spinner fa-spin mr-2" />Descargando…</p>}
+      {result && <p className="text-[13px] font-bold mt-3" style={{ color: result.startsWith('✓') ? GREEN : RED }}>{result}</p>}
+    </section>
+  )
+}
+
+// ── Promotions Panel ──────────────────────────────────────────────────────────
+function PromotionsPanel() {
+  const [promotions, setPromotions] = useState<Promotion[]>([])
+  const [uses, setUses] = useState<Record<string, PromotionUse[]>>({})
+  const [expanded, setExpanded] = useState<string | null>(null)
+  const [showForm, setShowForm] = useState(false)
+  const [formName, setFormName] = useState('')
+  const [formDays, setFormDays] = useState('30')
+  const [formMax, setFormMax] = useState('20')
+  const [isPending, startTransition] = useTransition()
+
+  useEffect(() => {
+    getPromotions().then(setPromotions)
+  }, [])
+
+  function handleToggle(id: string, active: boolean) {
+    startTransition(async () => {
+      await togglePromotion(id, active)
+      setPromotions(prev => prev.map(p => p.id === id ? { ...p, active } : p))
+    })
+  }
+
+  function handleExpand(id: string) {
+    if (expanded === id) { setExpanded(null); return }
+    setExpanded(id)
+    if (!uses[id]) {
+      getPromotionUses(id).then(u => setUses(prev => ({ ...prev, [id]: u })))
+    }
+  }
+
+  function handleCreate() {
+    if (!formName.trim()) return
+    startTransition(async () => {
+      const res = await createPromotion({ name: formName.trim(), extra_days: parseInt(formDays) || 30, max_uses: parseInt(formMax) || 20 })
+      if (res.error) { alert(res.error); return }
+      setFormName(''); setFormDays('30'); setFormMax('20'); setShowForm(false)
+      getPromotions().then(setPromotions)
+    })
+  }
+
+  return (
+    <div className="space-y-4 py-2">
+      <div className="flex items-center justify-between">
+        <p className="text-[12px] font-black uppercase tracking-[3px]" style={{ color: GRAY }}>Promociones</p>
+        <button
+          onClick={() => setShowForm(s => !s)}
+          className="px-3 py-1.5 rounded-[10px] text-[13px] font-bold transition-all active:scale-95"
+          style={{ background: BLUE, color: '#fff' }}
+        >
+          <i className="fa-solid fa-plus mr-1.5" />Nueva promo
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="rounded-[16px] p-4 space-y-3" style={{ background: LIGHT, border: '1px solid rgba(0,0,0,0.08)' }}>
+          <input placeholder="Nombre (ej: Fundadores)" value={formName} onChange={e => setFormName(e.target.value)}
+            className="w-full px-3 py-2.5 rounded-[10px] text-[15px] font-bold outline-none"
+            style={{ background: '#fff', border: '1px solid rgba(0,0,0,0.1)', color: DARK }} />
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <p className="text-[11px] font-black uppercase tracking-wider mb-1" style={{ color: GRAY }}>Días extra</p>
+              <input type="number" value={formDays} onChange={e => setFormDays(e.target.value)} min="1"
+                className="w-full px-3 py-2 rounded-[10px] text-[15px] font-bold outline-none"
+                style={{ background: '#fff', border: '1px solid rgba(0,0,0,0.1)', color: DARK }} />
+            </div>
+            <div className="flex-1">
+              <p className="text-[11px] font-black uppercase tracking-wider mb-1" style={{ color: GRAY }}>Máx. usos</p>
+              <input type="number" value={formMax} onChange={e => setFormMax(e.target.value)} min="1"
+                className="w-full px-3 py-2 rounded-[10px] text-[15px] font-bold outline-none"
+                style={{ background: '#fff', border: '1px solid rgba(0,0,0,0.1)', color: DARK }} />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => setShowForm(false)} className="flex-1 py-2 rounded-[10px] text-[14px] font-bold" style={{ background: LIGHT, color: GRAY }}>Cancelar</button>
+            <button onClick={handleCreate} disabled={isPending || !formName.trim()} className="flex-[2] py-2 rounded-[10px] text-[14px] font-black text-white disabled:opacity-50" style={{ background: BLUE }}>
+              {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Crear'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {promotions.length === 0 && (
+        <p className="text-center py-10 text-[14px]" style={{ color: GRAY }}>Sin promociones</p>
+      )}
+
+      {promotions.map(promo => {
+        const pct = promo.max_uses > 0 ? Math.round((promo.used_count / promo.max_uses) * 100) : 0
+        const isExp = expanded === promo.id
+        return (
+          <div key={promo.id} className="rounded-[16px] overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.08)' }}>
+            <button onClick={() => handleExpand(promo.id)} className="w-full px-4 py-4 flex items-center gap-3 text-left" style={{ background: '#fff' }}>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-[16px] font-black" style={{ color: DARK }}>{promo.name}</p>
+                  <span className="text-[11px] font-black px-2 py-0.5 rounded-full"
+                    style={{ background: promo.active ? 'rgba(0,173,64,0.1)' : 'rgba(0,0,0,0.06)', color: promo.active ? GREEN : GRAY }}>
+                    {promo.active ? 'Activa' : 'Inactiva'}
+                  </span>
+                </div>
+                <p className="text-[13px] font-medium" style={{ color: GRAY }}>
+                  +{promo.extra_days} días · {promo.used_count}/{promo.max_uses} usos
+                  <span className="ml-2 font-black" style={{ color: pct >= 90 ? RED : BLUE }}>{pct}%</span>
+                </p>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={e => { e.stopPropagation(); handleToggle(promo.id, !promo.active) }}
+                  className="px-3 py-1.5 rounded-[8px] text-[12px] font-bold transition-all active:scale-95"
+                  style={{ background: promo.active ? 'rgba(255,0,79,0.08)' : 'rgba(0,173,64,0.08)', color: promo.active ? RED : GREEN }}
+                >
+                  {promo.active ? 'Pausar' : 'Activar'}
+                </button>
+                <i className={`fa-solid fa-chevron-${isExp ? 'up' : 'down'} text-[12px]`} style={{ color: GRAY }} />
+              </div>
+            </button>
+
+            {isExp && (
+              <div className="px-4 pb-4" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: LIGHT }}>
+                {!uses[promo.id] ? (
+                  <p className="py-3 text-[13px] text-center" style={{ color: GRAY }}>Cargando…</p>
+                ) : uses[promo.id].length === 0 ? (
+                  <p className="py-3 text-[13px] text-center" style={{ color: GRAY }}>Sin usos aún</p>
+                ) : (
+                  <div className="space-y-2 pt-3">
+                    {uses[promo.id].map(u => (
+                      <div key={u.id} className="flex items-center justify-between py-2 px-3 rounded-[10px]" style={{ background: '#fff' }}>
+                        <div>
+                          <p className="text-[14px] font-bold" style={{ color: DARK }}>{u.profiles?.full_name ?? 'Usuario'}</p>
+                          <p className="text-[12px]" style={{ color: GRAY }}>{u.profiles?.email}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[13px] font-black" style={{ color: GREEN }}>+{u.extra_days_granted} días</p>
+                          <p className="text-[11px]" style={{ color: GRAY }}>{new Date(u.applied_at).toLocaleDateString('es-MX')}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }

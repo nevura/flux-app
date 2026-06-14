@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { addTransaction, updateTransaction, deleteTransaction, confirmTransaction, settlePayable } from '@/actions/transactions'
 import { addPerson } from '@/actions/config'
-import { getCategoryDisplay, getMexicoNow } from '@/lib/utils'
+import { getCategoryDisplay, getMexicoNow, formatCurrency } from '@/lib/utils'
+import { getExchangeRateForDate } from '@/actions/exchangeRates'
 import { useBottomSheetSwipe } from '@/lib/hooks/useBottomSheetSwipe'
 import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock'
 import type { Transaction, AccountWithBalance, Category, Person, SplitData } from '@/lib/types'
@@ -87,17 +88,35 @@ export default function TransactionModal({ transaction, accounts, categories, pe
   const selectedAccount = accounts.find(a => a.id === accId)
   const accountCurrency = selectedAccount?.currency ?? 'MXN'
   const needsExchangeRate = accountCurrency !== baseCurrency
+  const currencyPrefix = ({ EUR: '€', GBP: '£', JPY: '¥', BRL: 'R$' } as Record<string, string>)[accountCurrency] ?? (accountCurrency !== 'MXN' ? accountCurrency : '$')
   const [exchangeRate, setExchangeRate] = useState<string>(
     transaction?.exchange_rate != null && transaction.exchange_rate !== 1
       ? String(transaction.exchange_rate)
       : String(selectedAccount?.display_exchange_rate ?? 1)
   )
+  const [fxRateSource, setFxRateSource] = useState<'historical' | 'account' | 'manual'>('account')
+  const userEditedRateRef = useRef(false)
+  const [date, setDate] = useState(transaction?.transaction_date?.slice(0, 16) ?? getMexicoNow().slice(0, 16))
+
   // Re-seed exchange rate when the user switches accounts
   useEffect(() => {
     const acc = accounts.find(a => a.id === accId)
+    userEditedRateRef.current = false
     setExchangeRate(String(acc?.display_exchange_rate ?? 1))
+    setFxRateSource('account')
   }, [accId]) // eslint-disable-line react-hooks/exhaustive-deps
-  const [date, setDate] = useState(transaction?.transaction_date?.slice(0, 16) ?? getMexicoNow().slice(0, 16))
+
+  // Auto-lookup historical rate from DB when date or account currency changes
+  useEffect(() => {
+    if (!needsExchangeRate || userEditedRateRef.current) return
+    const dateStr = date.slice(0, 10)
+    getExchangeRateForDate(accountCurrency, baseCurrency, dateStr).then(rate => {
+      if (rate != null && !userEditedRateRef.current) {
+        setExchangeRate(String(rate))
+        setFxRateSource('historical')
+      }
+    })
+  }, [date, accountCurrency, baseCurrency, needsExchangeRate]) // eslint-disable-line react-hooks/exhaustive-deps
   type ExcludeMode = 'none' | 'all' | 'shared_only'
   const [excludeMode, setExcludeMode] = useState<ExcludeMode>(
     transaction?.exclude_mode ?? (transaction?.exclude_from_budget ? 'all' : 'none')
@@ -395,14 +414,14 @@ export default function TransactionModal({ transaction, accounts, categories, pe
               </p>
               {iOweEnabled && ioweMode === 'custom' ? (
                 <div className="flex items-center justify-center gap-1">
-                  <span className="text-[28px] font-black" style={{ color: 'var(--f-text-3)' }}>$</span>
+                  <span className="text-[28px] font-black" style={{ color: 'var(--f-text-3)' }}>{currencyPrefix}</span>
                   <span className="text-[44px] font-black tabular-nums" style={{ color: ioweCustomTotal > 0 ? '#FF9F0A' : 'var(--f-text-4)' }}>
                     {ioweCustomTotal > 0 ? ioweCustomTotal.toFixed(2) : '0.00'}
                   </span>
                 </div>
               ) : (
                 <div className="flex items-center justify-center gap-1">
-                  <span className="text-[28px] font-black" style={{ color: 'var(--f-text-3)' }}>$</span>
+                  <span className="text-[28px] font-black" style={{ color: 'var(--f-text-3)' }}>{currencyPrefix}</span>
                   <input
                     type="text"
                     inputMode="decimal"
@@ -527,7 +546,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                   min="0.000001"
                   step="0.01"
                   value={exchangeRate}
-                  onChange={e => setExchangeRate(e.target.value)}
+                  onChange={e => { userEditedRateRef.current = true; setFxRateSource('manual'); setExchangeRate(e.target.value) }}
                   placeholder="Ej: 18.50"
                   className="w-full rounded-[14px] px-4 py-3 text-[16px] font-bold outline-none"
                   style={{
@@ -538,7 +557,11 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                   }}
                 />
                 <p className="text-[11px] font-semibold mt-1 px-1" style={{ color: 'var(--f-text-4)' }}>
-                  Se guarda con el movimiento para mantener el historial exacto
+                  {fxRateSource === 'historical'
+                    ? `Tasa BCE del ${date.slice(0, 10)} · edita si es necesario`
+                    : fxRateSource === 'manual'
+                    ? 'Tasa manual'
+                    : 'Se guarda con el movimiento para mantener el historial exacto'}
                 </p>
               </div>
             )}
@@ -821,7 +844,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                               </button>
                               {selected && ioweMode === 'full' && (
                                 <span className="text-[14px] font-black tabular-nums flex-shrink-0" style={{ color: '#FF9F0A' }}>
-                                  ${fullShare.toFixed(2)}
+                                  {formatCurrency(fullShare, accountCurrency)}
                                 </span>
                               )}
                               {selected && ioweMode === 'custom' && (
@@ -880,7 +903,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                           <i className="fa-solid fa-user text-[11px] mr-1.5" />Tu parte
                         </span>
                         <span className="text-[15px] font-black tabular-nums" style={{ color: 'var(--f-transfer)' }}>
-                          ${((parseFloat(amount) || 0) / (splitSelected.size + 1)).toFixed(2)}
+                          {formatCurrency((parseFloat(amount) || 0) / (splitSelected.size + 1), accountCurrency)}
                         </span>
                       </div>
                     )}
@@ -929,7 +952,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                               />
                             ) : selected ? (
                               <span className="text-[14px] font-black tabular-nums flex-shrink-0" style={{ color: 'var(--f-transfer)' }}>
-                                ${perPerson.toFixed(2)}
+                                {formatCurrency(perPerson, accountCurrency)}
                               </span>
                             ) : null}
                           </div>

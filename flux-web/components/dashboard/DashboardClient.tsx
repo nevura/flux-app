@@ -439,9 +439,9 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
                 <AnimatedCurrency value={monthExpenses} />
               </p>
               <p className="text-[13px] font-semibold mb-2 tabular-nums" style={{ color: 'var(--f-text-3)' }}>
-                de {formatCurrency(budgetAmount)}&nbsp;&nbsp;·&nbsp;&nbsp;
+                de {formatCurrency(budgetAmount, baseCurrency)}&nbsp;&nbsp;·&nbsp;&nbsp;
                 <span style={{ color: budgetOver ? 'var(--f-expense)' : budgetLeft < budgetAmount * 0.20 ? 'var(--f-credit)' : 'var(--f-income)' }}>
-                  {budgetOver ? `excedido ${formatCurrency(Math.abs(budgetLeft))}` : `te quedan ${formatCurrency(budgetLeft)}`}
+                  {budgetOver ? `excedido ${formatCurrency(Math.abs(budgetLeft), baseCurrency)}` : `te quedan ${formatCurrency(budgetLeft, baseCurrency)}`}
                 </span>
               </p>
               <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--f-bg-input)' }}>
@@ -580,7 +580,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
                       <div className="flex items-center justify-between mb-1.5">
                         <p className="text-[11px] font-black tracking-[2px] uppercase" style={{ color: 'var(--f-income)' }}>Ingresos</p>
                         <p className="text-[11px] font-bold tabular-nums" style={{ color: 'var(--f-text-3)' }}>
-                          {formatCurrency(receivedIncomes)} / {formatCurrency(totalIncomes)}
+                          {formatCurrency(receivedIncomes, baseCurrency)} / {formatCurrency(totalIncomes, baseCurrency)}
                         </p>
                       </div>
                       <div className="h-[6px] rounded-full overflow-hidden" style={{ background: 'var(--f-bg-input)' }}>
@@ -593,7 +593,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
                       <div className="flex items-center justify-between mb-1.5">
                         <p className="text-[11px] font-black tracking-[2px] uppercase" style={{ color: 'var(--f-expense)' }}>Gastos</p>
                         <p className="text-[11px] font-bold tabular-nums" style={{ color: 'var(--f-text-3)' }}>
-                          {formatCurrency(paidExpenses)} / {formatCurrency(totalExpenses)}
+                          {formatCurrency(paidExpenses, baseCurrency)} / {formatCurrency(totalExpenses, baseCurrency)}
                         </p>
                       </div>
                       <div className="h-[6px] rounded-full overflow-hidden" style={{ background: 'var(--f-bg-input)' }}>
@@ -637,7 +637,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <p className="text-[15px] font-black tabular-nums" style={{ color: amtColor }}>
-                          {isIncome ? '+' : isExpense ? '−' : ''}{formatCurrency(Number(s.amount))}
+                          {isIncome ? '+' : isExpense ? '−' : ''}{formatCurrency(Number(s.amount), accounts.find(a => a.id === s.account_id)?.currency ?? baseCurrency)}
                         </p>
                         <i className="fa-solid fa-chevron-right text-[11px]" style={{ color: 'var(--f-text-4)' }} />
                       </div>

@@ -136,7 +136,7 @@ export default function AuditModal({ accounts, onClose }: Props) {
                     </div>
                     <p className="text-[15px] font-black tabular-nums"
                       style={{ color: isTDC ? 'var(--f-expense)' : (acc.balance < 0 ? 'var(--f-expense)' : 'var(--f-text-3)') }}>
-                      {isTDC ? `-${formatCurrency(Math.abs(acc.balance))}` : formatCurrency(acc.balance)}
+                      {isTDC ? `-${formatCurrency(Math.abs(acc.balance), acc.currency ?? 'MXN')}` : formatCurrency(acc.balance, acc.currency ?? 'MXN')}
                     </p>
                   </div>
 
@@ -179,11 +179,11 @@ export default function AuditModal({ accounts, onClose }: Props) {
                     <div className="flex items-center justify-between mt-2.5">
                       <p className="text-[14px] font-bold" style={{ color: 'var(--f-text-3)' }}>
                         {isTDC ? 'Deuda real:' : 'Saldo real:'}{' '}
-                        <span style={{ color: 'var(--f-text)' }}>{formatCurrency(Math.abs(computed))}</span>
+                        <span style={{ color: 'var(--f-text)' }}>{formatCurrency(Math.abs(computed), acc.currency ?? 'MXN')}</span>
                       </p>
                       {hasChange && (
                         <p className="text-[14px] font-black tabular-nums" style={{ color: delta! > 0 ? 'var(--f-income)' : 'var(--f-expense)' }}>
-                          {delta! > 0 ? '+' : ''}{formatCurrency(delta!)}
+                          {delta! > 0 ? '+' : ''}{formatCurrency(delta!, acc.currency ?? 'MXN')}
                         </p>
                       )}
                       {!hasChange && (
