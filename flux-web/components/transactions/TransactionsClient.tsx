@@ -136,7 +136,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
       }
       const matchType = filterTypes.length === 0 || filterTypes.includes(t.type)
       const matchCat  = filterCats.length === 0  || filterCats.includes(t.category_id ?? '')
-      const matchAcc  = filterAccounts.length === 0 || filterAccounts.includes(t.account_id ?? '')
+      const matchAcc  = filterAccounts.length === 0 || filterAccounts.includes(t.account_id ?? '') || filterAccounts.includes(t.destination_account_id ?? '')
       return matchType && matchCat && matchAcc
     })
   }, [initialTransactions, sharedResults, allSearchResults, filterTypes, filterCats, filterAccounts, showPending])
