@@ -65,7 +65,7 @@ function FitName({ children, textColor }: { children: React.ReactNode; textColor
     t.style.transformOrigin = 'left center'
   })
   return (
-    <span ref={containerRef} className="block min-w-0 flex-1 overflow-hidden">
+    <span ref={containerRef} className="block min-w-0 flex-1">
       <span ref={textRef} className="inline-block whitespace-nowrap text-[9.5px] font-black tracking-[1.5px] uppercase"
         style={{ color: textColor }}>{children}</span>
     </span>
@@ -732,10 +732,10 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
               return (
                 <div
                   key={acc.id}
-                  className="rounded-[18px] p-4 animate-fade-up"
+                  className="rounded-[18px] p-4 overflow-hidden animate-fade-up"
                   style={{ background: card.bg, boxShadow: card.shadow, animationDelay: `${0.14 + i * 0.04}s` }}
                 >
-                  <div className="flex items-center justify-between gap-1.5 mb-3">
+                  <div className="flex items-center justify-between mb-3">
                     <FitName textColor={acc.balance < 0 ? '#2b2b2b' : '#f3f3f3'}>{acc.name}</FitName>
                     <i className={`${method.icon} text-xs flex-shrink-0`} style={{ color: acc.balance < 0 ? '#2b2b2b' : '#f3f3f3' }} />
                   </div>

@@ -331,135 +331,59 @@ export default function TransactionsClient({ initialTransactions, categories, ac
               </button>
             </div>
           ) : (
+            <>
             <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
 
               {/* Tipo chip */}
-              <div className="relative flex-shrink-0">
-                <button
-                  onClick={() => { setTypeDropOpen(o => !o); setCatDropOpen(false); setAccDropOpen(false) }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[13px] font-bold transition-all active:scale-[0.95]"
-                  style={{
-                    background: filterTypes.length > 0 ? 'var(--f-accent-bg)' : 'var(--f-bg-input)',
-                    border: filterTypes.length > 0 ? '1px solid var(--f-accent-border)' : '1px solid var(--f-line)',
-                    color: filterTypes.length > 0 ? 'var(--f-blue)' : 'var(--f-text-2)',
-                  }}
-                >
-                  <i className="fa-solid fa-layer-group text-[11px]" />
-                  {filterTypes.length > 0 ? `Tipo (${filterTypes.length})` : 'Tipo'}
-                  {filterTypes.length > 0
-                    ? <i className="fa-solid fa-xmark text-[11px]" onClick={e => { e.stopPropagation(); setFilterTypes([]) }} />
-                    : <i className="fa-solid fa-chevron-down text-[10px] opacity-50" />}
-                </button>
-                {typeDropOpen && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setTypeDropOpen(false)} />
-                    <div
-                      className="absolute top-full mt-1 left-0 rounded-[16px] p-2 z-50 animate-scale-in"
-                      style={{ minWidth: 180, background: 'var(--f-bg-card)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-shadow-pop)', transformOrigin: 'top left' }}
-                    >
-                      {TYPE_OPTIONS.map(opt => {
-                        const checked = filterTypes.includes(opt.value)
-                        return (
-                          <button key={opt.value} onClick={() => toggleType(opt.value)}
-                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-left transition-all"
-                            style={{ background: checked ? 'var(--f-accent-bg)' : 'transparent' }}
-                          >
-                            <i className={`${opt.icon} text-[13px] w-3.5 flex-shrink-0`} style={{ color: opt.color }} />
-                            <span className="text-[14px] font-semibold flex-1" style={{ color: checked ? 'var(--f-text)' : 'var(--f-text-2)' }}>{opt.label}</span>
-                            {checked && <i className="fa-solid fa-check text-[11px]" style={{ color: 'var(--f-blue)' }} />}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </>
-                )}
-              </div>
+              <button
+                onClick={() => { setTypeDropOpen(o => !o); setCatDropOpen(false); setAccDropOpen(false) }}
+                className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[13px] font-bold transition-all active:scale-[0.95]"
+                style={{
+                  background: filterTypes.length > 0 ? 'var(--f-accent-bg)' : 'var(--f-bg-input)',
+                  border: filterTypes.length > 0 ? '1px solid var(--f-accent-border)' : '1px solid var(--f-line)',
+                  color: filterTypes.length > 0 ? 'var(--f-blue)' : 'var(--f-text-2)',
+                }}
+              >
+                <i className="fa-solid fa-layer-group text-[11px]" />
+                {filterTypes.length > 0 ? `Tipo (${filterTypes.length})` : 'Tipo'}
+                {filterTypes.length > 0
+                  ? <i className="fa-solid fa-xmark text-[11px]" onClick={e => { e.stopPropagation(); setFilterTypes([]) }} />
+                  : <i className="fa-solid fa-chevron-down text-[10px] opacity-50" />}
+              </button>
 
               {/* Cuenta chip */}
-              <div className="relative flex-shrink-0">
-                <button
-                  onClick={() => { setAccDropOpen(o => !o); setTypeDropOpen(false); setCatDropOpen(false) }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[13px] font-bold transition-all active:scale-[0.95]"
-                  style={{
-                    background: filterAccounts.length > 0 ? 'var(--f-accent-bg)' : 'var(--f-bg-input)',
-                    border: filterAccounts.length > 0 ? '1px solid var(--f-accent-border)' : '1px solid var(--f-line)',
-                    color: filterAccounts.length > 0 ? 'var(--f-blue)' : 'var(--f-text-2)',
-                  }}
-                >
-                  <i className="fa-solid fa-wallet text-[11px]" />
-                  {filterAccounts.length > 0 ? `Cuenta (${filterAccounts.length})` : 'Cuenta'}
-                  {filterAccounts.length > 0
-                    ? <i className="fa-solid fa-xmark text-[11px]" onClick={e => { e.stopPropagation(); setFilterAccounts([]) }} />
-                    : <i className="fa-solid fa-chevron-down text-[10px] opacity-50" />}
-                </button>
-                {accDropOpen && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setAccDropOpen(false)} />
-                    <div
-                      className="absolute top-full mt-1 left-0 rounded-[16px] p-2 z-50 animate-scale-in"
-                      style={{ minWidth: 200, background: 'var(--f-bg-card)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-shadow-pop)', transformOrigin: 'top left' }}
-                    >
-                      {accounts.filter(a => a.is_active).map(acc => {
-                        const checked = filterAccounts.includes(acc.id)
-                        return (
-                          <button key={acc.id} onClick={() => toggleAccount(acc.id)}
-                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-left transition-all"
-                            style={{ background: checked ? 'var(--f-accent-bg)' : 'transparent' }}
-                          >
-                            <span className="text-[14px] font-semibold flex-1 truncate" style={{ color: checked ? 'var(--f-text)' : 'var(--f-text-2)' }}>{acc.name}</span>
-                            {checked && <i className="fa-solid fa-check text-[11px]" style={{ color: 'var(--f-blue)' }} />}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </>
-                )}
-              </div>
+              <button
+                onClick={() => { setAccDropOpen(o => !o); setTypeDropOpen(false); setCatDropOpen(false) }}
+                className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[13px] font-bold transition-all active:scale-[0.95]"
+                style={{
+                  background: filterAccounts.length > 0 ? 'var(--f-accent-bg)' : 'var(--f-bg-input)',
+                  border: filterAccounts.length > 0 ? '1px solid var(--f-accent-border)' : '1px solid var(--f-line)',
+                  color: filterAccounts.length > 0 ? 'var(--f-blue)' : 'var(--f-text-2)',
+                }}
+              >
+                <i className="fa-solid fa-wallet text-[11px]" />
+                {filterAccounts.length > 0 ? `Cuenta (${filterAccounts.length})` : 'Cuenta'}
+                {filterAccounts.length > 0
+                  ? <i className="fa-solid fa-xmark text-[11px]" onClick={e => { e.stopPropagation(); setFilterAccounts([]) }} />
+                  : <i className="fa-solid fa-chevron-down text-[10px] opacity-50" />}
+              </button>
 
               {/* Categoría chip */}
-              <div className="relative flex-shrink-0">
-                <button
-                  onClick={() => { setCatDropOpen(o => !o); setTypeDropOpen(false); setAccDropOpen(false) }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[13px] font-bold transition-all active:scale-[0.95]"
-                  style={{
-                    background: filterCats.length > 0 ? 'var(--f-accent-bg)' : 'var(--f-bg-input)',
-                    border: filterCats.length > 0 ? '1px solid var(--f-accent-border)' : '1px solid var(--f-line)',
-                    color: filterCats.length > 0 ? 'var(--f-blue)' : 'var(--f-text-2)',
-                  }}
-                >
-                  <i className="fa-solid fa-tag text-[11px]" />
-                  {filterCats.length > 0 ? `Cat. (${filterCats.length})` : 'Categoría'}
-                  {filterCats.length > 0
-                    ? <i className="fa-solid fa-xmark text-[11px]" onClick={e => { e.stopPropagation(); setFilterCats([]) }} />
-                    : <i className="fa-solid fa-chevron-down text-[10px] opacity-50" />}
-                </button>
-                {catDropOpen && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setCatDropOpen(false)} />
-                    <div
-                      className="absolute top-full mt-1 left-0 rounded-[16px] p-2 z-50 max-h-64 overflow-y-auto animate-scale-in"
-                      style={{ minWidth: 200, background: 'var(--f-bg-card)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-shadow-pop)', transformOrigin: 'top left' }}
-                    >
-                      {categories.filter(c => c.id !== 'CAT-AUDIT').map(cat => {
-                        const d = getCategoryDisplay(cat)
-                        const checked = filterCats.includes(cat.id)
-                        return (
-                          <button key={cat.id} onClick={() => toggleCat(cat.id)}
-                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-left transition-all"
-                            style={{ background: checked ? 'var(--f-accent-bg)' : 'transparent' }}
-                          >
-                            <div className={`w-5 h-5 rounded-[6px] flex items-center justify-center flex-shrink-0 ${d.bg}`}>
-                              <i className={`${d.icon} ${d.color} text-[11px]`} />
-                            </div>
-                            <span className="text-[14px] font-semibold flex-1 truncate" style={{ color: checked ? 'var(--f-text)' : 'var(--f-text-2)' }}>{cat.name}</span>
-                            {checked && <i className="fa-solid fa-check text-[11px]" style={{ color: 'var(--f-blue)' }} />}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </>
-                )}
-              </div>
+              <button
+                onClick={() => { setCatDropOpen(o => !o); setTypeDropOpen(false); setAccDropOpen(false) }}
+                className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[13px] font-bold transition-all active:scale-[0.95]"
+                style={{
+                  background: filterCats.length > 0 ? 'var(--f-accent-bg)' : 'var(--f-bg-input)',
+                  border: filterCats.length > 0 ? '1px solid var(--f-accent-border)' : '1px solid var(--f-line)',
+                  color: filterCats.length > 0 ? 'var(--f-blue)' : 'var(--f-text-2)',
+                }}
+              >
+                <i className="fa-solid fa-tag text-[11px]" />
+                {filterCats.length > 0 ? `Cat. (${filterCats.length})` : 'Categoría'}
+                {filterCats.length > 0
+                  ? <i className="fa-solid fa-xmark text-[11px]" onClick={e => { e.stopPropagation(); setFilterCats([]) }} />
+                  : <i className="fa-solid fa-chevron-down text-[10px] opacity-50" />}
+              </button>
 
               {/* Por confirmar toggle */}
               {hasPending && (
@@ -507,6 +431,80 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                 <i className="fa-solid fa-magnifying-glass text-xs" style={{ color: 'var(--f-text-2)' }} />
               </button>
             </div>
+
+            {/* Dropdown panels — rendered OUTSIDE the overflow-x-auto row to avoid overflow-y clip */}
+            {typeDropOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setTypeDropOpen(false)} />
+                <div
+                  className="absolute top-full mt-1 left-0 rounded-[16px] p-2 z-50 animate-scale-in"
+                  style={{ minWidth: 180, background: 'var(--f-bg-card)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-shadow-pop)', transformOrigin: 'top left' }}
+                >
+                  {TYPE_OPTIONS.map(opt => {
+                    const checked = filterTypes.includes(opt.value)
+                    return (
+                      <button key={opt.value} onClick={() => toggleType(opt.value)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-left transition-all"
+                        style={{ background: checked ? 'var(--f-accent-bg)' : 'transparent' }}
+                      >
+                        <i className={`${opt.icon} text-[13px] w-3.5 flex-shrink-0`} style={{ color: opt.color }} />
+                        <span className="text-[14px] font-semibold flex-1" style={{ color: checked ? 'var(--f-text)' : 'var(--f-text-2)' }}>{opt.label}</span>
+                        {checked && <i className="fa-solid fa-check text-[11px]" style={{ color: 'var(--f-blue)' }} />}
+                      </button>
+                    )
+                  })}
+                </div>
+              </>
+            )}
+            {accDropOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setAccDropOpen(false)} />
+                <div
+                  className="absolute top-full mt-1 left-0 rounded-[16px] p-2 z-50 animate-scale-in"
+                  style={{ minWidth: 200, background: 'var(--f-bg-card)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-shadow-pop)', transformOrigin: 'top left' }}
+                >
+                  {accounts.filter(a => a.is_active).map(acc => {
+                    const checked = filterAccounts.includes(acc.id)
+                    return (
+                      <button key={acc.id} onClick={() => toggleAccount(acc.id)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-left transition-all"
+                        style={{ background: checked ? 'var(--f-accent-bg)' : 'transparent' }}
+                      >
+                        <span className="text-[14px] font-semibold flex-1 truncate" style={{ color: checked ? 'var(--f-text)' : 'var(--f-text-2)' }}>{acc.name}</span>
+                        {checked && <i className="fa-solid fa-check text-[11px]" style={{ color: 'var(--f-blue)' }} />}
+                      </button>
+                    )
+                  })}
+                </div>
+              </>
+            )}
+            {catDropOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setCatDropOpen(false)} />
+                <div
+                  className="absolute top-full mt-1 left-0 rounded-[16px] p-2 z-50 max-h-64 overflow-y-auto animate-scale-in"
+                  style={{ minWidth: 200, background: 'var(--f-bg-card)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-shadow-pop)', transformOrigin: 'top left' }}
+                >
+                  {categories.filter(c => c.id !== 'CAT-AUDIT').map(cat => {
+                    const d = getCategoryDisplay(cat)
+                    const checked = filterCats.includes(cat.id)
+                    return (
+                      <button key={cat.id} onClick={() => toggleCat(cat.id)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-left transition-all"
+                        style={{ background: checked ? 'var(--f-accent-bg)' : 'transparent' }}
+                      >
+                        <div className={`w-5 h-5 rounded-[6px] flex items-center justify-center flex-shrink-0 ${d.bg}`}>
+                          <i className={`${d.icon} ${d.color} text-[11px]`} />
+                        </div>
+                        <span className="text-[14px] font-semibold flex-1 truncate" style={{ color: checked ? 'var(--f-text)' : 'var(--f-text-2)' }}>{cat.name}</span>
+                        {checked && <i className="fa-solid fa-check text-[11px]" style={{ color: 'var(--f-blue)' }} />}
+                      </button>
+                    )
+                  })}
+                </div>
+              </>
+            )}
+            </>
           )}
         </div>
       </header>
