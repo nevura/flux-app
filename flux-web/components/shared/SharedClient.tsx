@@ -62,15 +62,13 @@ export default function SharedClient({ transactions, people, accounts, categorie
   const [isUnlinking, startUnlink] = useTransition()
   const [unlinkConfirmId, setUnlinkConfirmId] = useState<string | null>(null)
 
-  // Global settle state — keyed by person id
-  const [globalSettleId, setGlobalSettleId] = useState<string | null>(null)
-  const [globalAccountId, setGlobalAccountId] = useState('')
+  // Person-level action modals (replaces inline expand panels)
+  const [abonoModal, setAbonoModal] = useState<PersonBalance | null>(null)
+  const [settleModal, setSettleModal] = useState<PersonBalance | null>(null)
+  const [abonoAmount, setAbonoAmount] = useState('')
+  const [abonoAccId, setAbonoAccId] = useState('')
+  const [settleAccId, setSettleAccId] = useState('')
   const [isGlobalPending, startGlobal] = useTransition()
-
-  // Global abono state
-  const [globalAbonoId, setGlobalAbonoId] = useState<string | null>(null)
-  const [globalAbonoAmount, setGlobalAbonoAmount] = useState('')
-  const [globalAbonoAccountId, setGlobalAbonoAccountId] = useState('')
   const [isAbonoPending, startAbono] = useTransition()
 
   // Receivable collect state
@@ -130,26 +128,26 @@ export default function SharedClient({ transactions, people, accounts, categorie
     })
   }
 
-  function executeGlobalSettle(personId: string, personName: string, withRecord: boolean) {
+  function executeGlobalSettle(personId: string, personName: string) {
     startGlobal(async () => {
-      const res = await settleAllForPerson(personId, personName, withRecord && globalAccountId ? globalAccountId : undefined)
+      const res = await settleAllForPerson(personId, personName, settleAccId || undefined)
       if (res.error) { toast.error(res.error); return }
-      toast.success(withRecord ? 'Saldo liquidado y registrado' : 'Saldo liquidado')
-      setGlobalSettleId(null)
-      setGlobalAccountId('')
+      toast.success(settleAccId ? 'Saldo liquidado y registrado' : 'Saldo liquidado')
+      setSettleModal(null)
+      setSettleAccId('')
     })
   }
 
   function executeAbonoGlobal(personId: string, personName: string) {
-    const amt = parseFloat(globalAbonoAmount.replace(',', '.'))
+    const amt = parseFloat(abonoAmount.replace(',', '.'))
     if (isNaN(amt) || amt <= 0) { toast.error('Monto inválido'); return }
     startAbono(async () => {
-      const res = await abonoGlobalForPerson(personId, personName, amt, globalAbonoAccountId || undefined)
+      const res = await abonoGlobalForPerson(personId, personName, amt, abonoAccId || undefined)
       if (res.error) { toast.error(res.error); return }
-      toast.success(globalAbonoAccountId ? 'Abono registrado' : 'Abono aplicado')
-      setGlobalAbonoId(null)
-      setGlobalAbonoAmount('')
-      setGlobalAbonoAccountId('')
+      toast.success(abonoAccId ? 'Abono registrado' : 'Abono aplicado')
+      setAbonoModal(null)
+      setAbonoAmount('')
+      setAbonoAccId('')
     })
   }
 
@@ -326,8 +324,6 @@ export default function SharedClient({ transactions, people, accounts, categorie
             {balances.map((b, bi) => {
               const isOpen = expanded === b.person.id
               const netPositive = b.net >= 0
-              const isGlobalOpen = globalSettleId === b.person.id
-              const isAbonoOpen = globalAbonoId === b.person.id
               return (
                 <React.Fragment key={b.person.id}>
                   {bi === 0 && hasOwesMe && hasIOwe && (
@@ -344,13 +340,30 @@ export default function SharedClient({ transactions, people, accounts, categorie
                       <div className="flex-1 h-px" style={{ background: 'var(--f-line)' }} />
                     </div>
                   )}
+                <SwipeableRow
+                  className="rounded-[20px]"
+                  rightActions={[
+                    {
+                      icon: 'fa-solid fa-coins',
+                      label: netPositive ? 'Me pagó' : 'Pago',
+                      bg: 'var(--f-blue)',
+                      onClick: () => { setAbonoModal(b); setAbonoAmount(''); setAbonoAccId('') },
+                    },
+                    {
+                      icon: 'fa-solid fa-check-double',
+                      label: netPositive ? 'Cobrar' : 'Liquidar',
+                      bg: netPositive ? 'var(--f-income)' : 'var(--f-expense)',
+                      onClick: () => { setSettleModal(b); setSettleAccId('') },
+                    },
+                  ]}
+                >
                 <div className="rounded-[20px] overflow-hidden animate-spring-in"
                   style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', animationDelay: `${bi * 0.07}s` }}>
 
                   {/* Header row — tap to toggle desglose */}
                   <button
                     className="w-full flex items-center gap-3 px-4 pt-4 pb-3 text-left transition-all active:opacity-70"
-                    onClick={() => { setExpanded(isOpen ? null : b.person.id); setGlobalSettleId(null); setGlobalAbonoId(null) }}
+                    onClick={() => setExpanded(isOpen ? null : b.person.id)}
                   >
                     <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
                       style={{ background: netPositive ? 'var(--f-income-bg)' : 'var(--f-expense-bg)', border: `1px solid ${netPositive ? 'var(--f-income-border)' : 'var(--f-expense-border)'}` }}>
@@ -378,107 +391,6 @@ export default function SharedClient({ transactions, people, accounts, categorie
                       style={{ color: 'var(--f-text-4)', transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}
                     />
                   </button>
-
-                  {/* 2 action buttons */}
-                  <div className="flex gap-2 px-4 pb-3">
-                    <button
-                      onClick={() => { setGlobalAbonoId(isAbonoOpen ? null : b.person.id); setGlobalSettleId(null); setGlobalAbonoAmount(''); setGlobalAbonoAccountId('') }}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[10px] text-[14px] font-black transition-all active:scale-95"
-                      style={{ background: isAbonoOpen ? 'var(--f-accent-bg)' : 'var(--f-bg-input)', color: isAbonoOpen ? 'var(--f-blue)' : 'var(--f-text-3)', border: `1px solid ${isAbonoOpen ? 'var(--f-accent-border)' : 'var(--f-line)'}` }}
-                    >
-                      <i className="fa-solid fa-coins text-[12px]" />
-                      {netPositive ? 'Me pagó' : 'Registrar pago'}
-                    </button>
-                    <button
-                      onClick={() => { setGlobalSettleId(isGlobalOpen ? null : b.person.id); setGlobalAbonoId(null); setGlobalAccountId('') }}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[10px] text-[14px] font-black transition-all active:scale-95"
-                      style={{ background: isGlobalOpen ? 'var(--f-income-bg)' : 'var(--f-bg-input)', color: isGlobalOpen ? 'var(--f-income)' : 'var(--f-text-3)', border: `1px solid ${isGlobalOpen ? 'var(--f-income-border)' : 'var(--f-line)'}` }}
-                    >
-                      <i className="fa-solid fa-check-double text-[12px]" />
-                      {netPositive ? 'Cobrar todo' : 'Liquidar deuda'}
-                    </button>
-                  </div>
-
-                  {/* Global abono panel — compact inline style */}
-                  {isAbonoOpen && (
-                    <div className="mx-4 mb-4 space-y-2 animate-fade-up">
-                      <p className="text-[13px] font-bold" style={{ color: 'var(--f-text-3)' }}>
-                        {netPositive ? `¿Cuánto te pagó ${b.person.name}?` : `¿Cuánto le pagaste a ${b.person.name}?`}
-                      </p>
-                      <div className="flex gap-2">
-                        <input
-                          autoFocus
-                          type="number"
-                          inputMode="decimal"
-                          min="0"
-                          step="0.01"
-                          value={globalAbonoAmount}
-                          onChange={e => setGlobalAbonoAmount(e.target.value)}
-                          onKeyDown={e => { if (e.key === 'Enter' && globalAbonoAmount) executeAbonoGlobal(b.person.id, b.person.name) }}
-                          placeholder={`Máx. ${formatCurrency(Math.abs(b.net), baseCurrency)}`}
-                          className="flex-1 rounded-[10px] px-3 py-2 text-[16px] font-bold outline-none tabular-nums"
-                          style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-border)', color: 'var(--f-text)' }}
-                        />
-                        <button
-                          onClick={() => executeAbonoGlobal(b.person.id, b.person.name)}
-                          disabled={isAbonoPending || !globalAbonoAmount}
-                          className="px-3 rounded-[10px] text-[16px] font-black text-white disabled:opacity-50 transition-all active:scale-95"
-                          style={{ background: 'var(--f-blue)' }}
-                        >
-                          {isAbonoPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'OK'}
-                        </button>
-                      </div>
-                      <select
-                        value={globalAbonoAccountId}
-                        onChange={e => setGlobalAbonoAccountId(e.target.value)}
-                        className="w-full rounded-[10px] px-3 py-2 text-[15px] font-bold outline-none"
-                        style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)', colorScheme: 'dark' }}
-                      >
-                        <option value="">Sin registrar en cuenta</option>
-                        {accounts.map(acc => (
-                          <option key={acc.id} value={acc.id}>{acc.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-
-                  {/* Global settle panel — compact inline style */}
-                  {isGlobalOpen && (
-                    <div className="mx-4 mb-4 space-y-2 animate-fade-up">
-                      <select
-                        value={globalAccountId}
-                        onChange={e => setGlobalAccountId(e.target.value)}
-                        className="w-full rounded-[10px] px-3 py-2 text-[15px] font-bold outline-none"
-                        style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)', colorScheme: 'dark' }}
-                      >
-                        <option value="">Sin registrar en cuenta</option>
-                        {accounts.map(acc => (
-                          <option key={acc.id} value={acc.id}>{acc.name}</option>
-                        ))}
-                      </select>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => { setGlobalSettleId(null); setGlobalAccountId('') }}
-                          className="flex-1 py-2 rounded-[10px] text-[15px] font-black transition-all active:scale-95"
-                          style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
-                        >
-                          Cancelar
-                        </button>
-                        <button
-                          onClick={() => executeGlobalSettle(b.person.id, b.person.name, !!globalAccountId)}
-                          disabled={isGlobalPending}
-                          className="flex-1 py-2 rounded-[10px] text-[15px] font-black text-white disabled:opacity-50 transition-all active:scale-95"
-                          style={{ background: 'var(--f-income)', flex: 2 }}
-                        >
-                          {isGlobalPending
-                            ? <i className="fa-solid fa-spinner fa-spin" />
-                            : globalAccountId
-                              ? (netPositive ? 'Cobrar y registrar' : 'Liquidar y registrar')
-                              : (netPositive ? 'Cobrar todo' : 'Liquidar deuda')}
-                        </button>
-                      </div>
-                    </div>
-                  )}
 
                   {/* Transaction-level breakdown */}
                   {isOpen && (
@@ -622,6 +534,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                     </div>
                   )}
                 </div>
+                </SwipeableRow>
                 </React.Fragment>
               )
             })}
@@ -820,6 +733,123 @@ export default function SharedClient({ transactions, people, accounts, categorie
                 </div>
               </div>
             )}
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Abono modal — "Me pagó" / "Registrar pago" */}
+      {mounted && abonoModal && createPortal(
+        <div
+          className="fixed inset-0 z-50 flex flex-col justify-end"
+          style={{ background: 'var(--f-bg-overlay)' }}
+          onClick={() => setAbonoModal(null)}
+        >
+          <div
+            className="animate-slide-up rounded-t-[28px] p-5 space-y-4"
+            style={{ background: 'var(--f-bg-elevated)', paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="w-10 h-1 rounded-full mx-auto mb-1" style={{ background: 'var(--f-line-strong)' }} />
+            <p className="text-[20px] font-black" style={{ color: 'var(--f-text)' }}>
+              {abonoModal.net > 0 ? `¿Cuánto te pagó ${abonoModal.person.name}?` : `¿Cuánto le pagaste a ${abonoModal.person.name}?`}
+            </p>
+            <p className="text-[14px] font-bold tabular-nums" style={{ color: abonoModal.net > 0 ? 'var(--f-income)' : 'var(--f-expense)' }}>
+              {abonoModal.net > 0 ? '+' : '-'}{formatCurrency(Math.abs(abonoModal.net), baseCurrency)} pendiente
+            </p>
+            <input
+              autoFocus
+              type="number"
+              inputMode="decimal"
+              min="0"
+              step="0.01"
+              value={abonoAmount}
+              onChange={e => setAbonoAmount(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && abonoAmount) executeAbonoGlobal(abonoModal.person.id, abonoModal.person.name) }}
+              placeholder={`Máx. ${formatCurrency(Math.abs(abonoModal.net), baseCurrency)}`}
+              className="w-full rounded-[14px] px-4 py-3 text-[20px] font-bold outline-none tabular-nums"
+              style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-accent-border)', color: 'var(--f-text)' }}
+            />
+            <select
+              value={abonoAccId}
+              onChange={e => setAbonoAccId(e.target.value)}
+              className="w-full rounded-[14px] px-4 py-3 text-[16px] font-bold outline-none"
+              style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)', colorScheme: 'dark' }}
+            >
+              <option value="">Sin registrar en cuenta</option>
+              {accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name}</option>)}
+            </select>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setAbonoModal(null)}
+                className="flex-1 py-3 rounded-[14px] text-[16px] font-black transition-all active:scale-95"
+                style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => executeAbonoGlobal(abonoModal.person.id, abonoModal.person.name)}
+                disabled={isAbonoPending || !abonoAmount}
+                className="flex-[2] py-3 rounded-[14px] text-[16px] font-black text-white disabled:opacity-40 transition-all active:scale-95"
+                style={{ background: 'var(--f-blue)' }}
+              >
+                {isAbonoPending ? <i className="fa-solid fa-spinner fa-spin" /> : abonoAccId ? 'Registrar abono' : 'Aplicar abono'}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Settle modal — "Cobrar todo" / "Liquidar deuda" */}
+      {mounted && settleModal && createPortal(
+        <div
+          className="fixed inset-0 z-50 flex flex-col justify-end"
+          style={{ background: 'var(--f-bg-overlay)' }}
+          onClick={() => setSettleModal(null)}
+        >
+          <div
+            className="animate-slide-up rounded-t-[28px] p-5 space-y-4"
+            style={{ background: 'var(--f-bg-elevated)', paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="w-10 h-1 rounded-full mx-auto mb-1" style={{ background: 'var(--f-line-strong)' }} />
+            <p className="text-[20px] font-black" style={{ color: 'var(--f-text)' }}>
+              {settleModal.net > 0 ? `Cobrar todo a ${settleModal.person.name}` : `Liquidar deuda con ${settleModal.person.name}`}
+            </p>
+            <p className="text-[14px] font-bold tabular-nums" style={{ color: settleModal.net > 0 ? 'var(--f-income)' : 'var(--f-expense)' }}>
+              {settleModal.net > 0 ? '+' : '-'}{formatCurrency(Math.abs(settleModal.net), baseCurrency)} total
+            </p>
+            <select
+              value={settleAccId}
+              onChange={e => setSettleAccId(e.target.value)}
+              className="w-full rounded-[14px] px-4 py-3 text-[16px] font-bold outline-none"
+              style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)', color: 'var(--f-text)', colorScheme: 'dark' }}
+            >
+              <option value="">Sin registrar en cuenta</option>
+              {accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name}</option>)}
+            </select>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setSettleModal(null)}
+                className="flex-1 py-3 rounded-[14px] text-[16px] font-black transition-all active:scale-95"
+                style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => executeGlobalSettle(settleModal.person.id, settleModal.person.name)}
+                disabled={isGlobalPending}
+                className="flex-[2] py-3 rounded-[14px] text-[16px] font-black text-white disabled:opacity-40 transition-all active:scale-95"
+                style={{ background: settleModal.net > 0 ? 'var(--f-income)' : 'var(--f-expense)' }}
+              >
+                {isGlobalPending
+                  ? <i className="fa-solid fa-spinner fa-spin" />
+                  : settleAccId
+                    ? (settleModal.net > 0 ? 'Cobrar y registrar' : 'Liquidar y registrar')
+                    : (settleModal.net > 0 ? 'Cobrar todo' : 'Liquidar deuda')}
+              </button>
+            </div>
           </div>
         </div>,
         document.body

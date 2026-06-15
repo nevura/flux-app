@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useTransition, useEffect, useRef } from 'react'
+import { useState, useMemo, useTransition, useEffect, useRef, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -24,6 +24,31 @@ function AnimatedCurrency({ value, currency = 'MXN', duration }: { value: number
     <span className="inline-flex items-baseline gap-0.5 max-w-full overflow-hidden">
       <span className="tabular-nums min-w-0 overflow-hidden">{formatCurrency(animated, currency)}</span>
       <span className="text-[10px] font-bold opacity-40 flex-shrink-0">{currency}</span>
+    </span>
+  )
+}
+
+function FitBalance({ value, currency, textColor }: { value: number; currency: string; textColor: string }) {
+  const containerRef = useRef<HTMLSpanElement>(null)
+  const textRef = useRef<HTMLSpanElement>(null)
+  const animated = useCountUp(value, 900)
+
+  useLayoutEffect(() => {
+    const c = containerRef.current
+    const t = textRef.current
+    if (!c || !t) return
+    t.style.transform = 'scale(1)'
+    const scale = Math.min(1, c.clientWidth / t.scrollWidth)
+    t.style.transform = scale < 1 ? `scale(${scale})` : 'none'
+    t.style.transformOrigin = 'left center'
+  }, [animated, currency])
+
+  return (
+    <span ref={containerRef} className="block w-full overflow-hidden">
+      <span ref={textRef} className="inline-flex items-baseline gap-0.5 whitespace-nowrap" style={{ color: textColor }}>
+        <span className="text-[22px] font-black tabular-nums leading-none">{formatCurrency(animated, currency)}</span>
+        <span className="text-[10px] font-bold opacity-40">{currency}</span>
+      </span>
     </span>
   )
 }
@@ -697,12 +722,11 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
                     </p>
                     <i className={`${method.icon} text-xs flex-shrink-0`} style={{ color: acc.balance < 0 ? '#2b2b2b' : '#f3f3f3' }} />
                   </div>
-                  <p
-                    className="text-[22px] font-black tabular-nums leading-none"
-                    style={{ color: acc.balance < 0 ? '#2b2b2b' : 'white' }}
-                  >
-                    <AnimatedCurrency value={acc.balance} currency={acc.currency ?? baseCurrency} />
-                  </p>
+                  <FitBalance
+                    value={acc.balance}
+                    currency={acc.currency ?? baseCurrency}
+                    textColor={acc.balance < 0 ? '#2b2b2b' : 'white'}
+                  />
                   {(acc.currency ?? 'MXN') !== baseCurrency && (
                     <p className="text-[10px] font-bold mt-1 tabular-nums" style={{ color: acc.balance < 0 ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.5)' }}>
                       ≈ {formatCurrency(acc.balance * (acc.display_exchange_rate ?? 1), baseCurrency)} {baseCurrency}

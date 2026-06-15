@@ -53,6 +53,13 @@ export default function AppShell({ userId, fullName, email, isReadOnly, subStatu
     if (prev !== activeTab) {
       const saved = scrollPositions.current[activeTab] ?? 0
       window.scrollTo({ top: saved, behavior: 'instant' })
+      // Trigger fade-in animation on the newly visible tab
+      const el = document.getElementById(`tab-${activeTab}`)
+      if (el) {
+        el.classList.remove('tab-entering')
+        void el.offsetWidth // force reflow so animation restarts
+        el.classList.add('tab-entering')
+      }
     }
     prevTabRef.current = activeTab
   }, [activeTab])
@@ -74,7 +81,7 @@ export default function AppShell({ userId, fullName, email, isReadOnly, subStatu
       <PullToRefresh>
         <main className="flex-1 pb-[calc(5rem+var(--safe-bottom))]">
           {/* All tabs mounted simultaneously — only active one is visible */}
-          <div style={{ display: activeTab === 'home' ? 'block' : 'none' }}>
+          <div id="tab-home" style={{ display: activeTab === 'home' ? 'block' : 'none' }}>
             <DashboardTab
               userId={userId}
               fullName={fullName}
@@ -86,17 +93,17 @@ export default function AppShell({ userId, fullName, email, isReadOnly, subStatu
             />
           </div>
 
-          <div style={{ display: activeTab === 'transactions' ? 'block' : 'none' }}>
+          <div id="tab-transactions" style={{ display: activeTab === 'transactions' ? 'block' : 'none' }}>
             <Suspense>
               <TransactionsTab {...tabProps} active={activeTab === 'transactions'} />
             </Suspense>
           </div>
 
-          <div style={{ display: activeTab === 'shared' ? 'block' : 'none' }}>
+          <div id="tab-shared" style={{ display: activeTab === 'shared' ? 'block' : 'none' }}>
             <SharedTab {...tabProps} active={activeTab === 'shared'} />
           </div>
 
-          <div style={{ display: activeTab === 'insights' ? 'block' : 'none' }}>
+          <div id="tab-insights" style={{ display: activeTab === 'insights' ? 'block' : 'none' }}>
             <Suspense>
               <InsightsTab {...tabProps} active={activeTab === 'insights'} />
             </Suspense>
