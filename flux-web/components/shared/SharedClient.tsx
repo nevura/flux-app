@@ -16,6 +16,24 @@ function AnimatedCurrency({ value, currency = 'MXN' }: { value: number; currency
     </span>
   )
 }
+
+function FitText({ children, className, style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
+  const containerRef = React.useRef<HTMLSpanElement>(null)
+  const textRef = React.useRef<HTMLSpanElement>(null)
+  React.useLayoutEffect(() => {
+    const c = containerRef.current, t = textRef.current
+    if (!c || !t) return
+    t.style.transform = 'scale(1)'
+    const scale = Math.min(1, c.clientWidth / t.scrollWidth)
+    t.style.transform = scale < 1 ? `scale(${scale})` : 'none'
+    t.style.transformOrigin = 'left center'
+  })
+  return (
+    <span ref={containerRef} className={`block w-full overflow-hidden ${className ?? ''}`} style={style}>
+      <span ref={textRef} className="inline-block whitespace-nowrap">{children}</span>
+    </span>
+  )
+}
 import { settleParticipant, partialSettle, settleAndRecord, settleAllForPerson, abonoGlobalForPerson, collectReceivable, proposeSyncTransaction } from '@/actions/transactions'
 import { linkPersonToUser } from '@/actions/friends'
 import CoachMarkTour from '@/components/onboarding/CoachMarkTour'
@@ -274,15 +292,15 @@ export default function SharedClient({ transactions, people, accounts, categorie
           <div data-coach="shared-summary" className="grid grid-cols-2 gap-3">
             <div className="rounded-[20px] p-4 animate-spring-in" style={{ background: 'var(--f-income-bg)', border: '1px solid var(--f-income-border)' }}>
               <p className="text-[11px] font-black tracking-[2px] uppercase mb-1" style={{ color: 'var(--f-income)' }}>Me deben</p>
-              <p className="text-[22px] font-black tabular-nums leading-none" style={{ color: 'var(--f-income)' }}>
+              <FitText className="text-[22px] font-black tabular-nums leading-none" style={{ color: 'var(--f-income)' }}>
                 +<AnimatedCurrency value={totalOwesMe} currency={baseCurrency} />
-              </p>
+              </FitText>
             </div>
             <div className="rounded-[20px] p-4 animate-spring-in" style={{ background: 'var(--f-expense-bg)', border: '1px solid var(--f-expense-border)', animationDelay: '0.07s' }}>
               <p className="text-[11px] font-black tracking-[2px] uppercase mb-1" style={{ color: 'var(--f-expense)' }}>Debo</p>
-              <p className="text-[22px] font-black tabular-nums leading-none" style={{ color: 'var(--f-expense)' }}>
+              <FitText className="text-[22px] font-black tabular-nums leading-none" style={{ color: 'var(--f-expense)' }}>
                 -<AnimatedCurrency value={totalIOwe} currency={baseCurrency} />
-              </p>
+              </FitText>
             </div>
           </div>
         )}
@@ -374,32 +392,32 @@ export default function SharedClient({ transactions, people, accounts, categorie
 
                   {/* Header row — tap to toggle desglose */}
                   <button
-                    className="w-full flex items-center gap-3 px-4 pt-4 pb-3 text-left transition-all active:opacity-70"
+                    className="w-full flex items-center gap-2.5 px-4 pt-3.5 pb-3 text-left transition-all active:opacity-70"
                     onClick={() => setExpanded(isOpen ? null : b.person.id)}
                   >
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
                       style={{ background: netPositive ? 'var(--f-income-bg)' : 'var(--f-expense-bg)', border: `1px solid ${netPositive ? 'var(--f-income-border)' : 'var(--f-expense-border)'}` }}>
-                      <i className="fa-solid fa-user text-sm" style={{ color: netPositive ? 'var(--f-income)' : 'var(--f-expense)' }} />
+                      <i className="fa-solid fa-user text-xs" style={{ color: netPositive ? 'var(--f-income)' : 'var(--f-expense)' }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[18px] font-black" style={{ color: 'var(--f-text)' }}>{b.person.name}</p>
-                      <p className="text-[14px] mt-0.5 font-bold" style={{ color: 'var(--f-text-4)' }}>
-                        {b.pending.length} gasto{b.pending.length !== 1 ? 's' : ''} pendiente{b.pending.length !== 1 ? 's' : ''}
+                      <p className="text-[16px] font-black leading-tight" style={{ color: 'var(--f-text)' }}>{b.person.name}</p>
+                      <p className="text-[12px] mt-0.5 font-bold" style={{ color: 'var(--f-text-4)' }}>
+                        {b.pending.length} pendiente{b.pending.length !== 1 ? 's' : ''}
                         {b.person.linked_profile?.username && (
                           <> · <span style={{ color: 'var(--f-blue)' }}>@{b.person.linked_profile.username}</span></>
                         )}
                       </p>
                     </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className="text-[18px] font-black tabular-nums" style={{ color: netPositive ? 'var(--f-income)' : 'var(--f-expense)' }}>
+                    <div className="text-right flex-shrink-0 max-w-[40%]">
+                      <FitText className="text-[16px] font-black tabular-nums leading-tight" style={{ color: netPositive ? 'var(--f-income)' : 'var(--f-expense)' }}>
                         {netPositive ? '+' : '-'}<AnimatedCurrency value={Math.abs(b.net)} currency={baseCurrency} />
-                      </p>
-                      <p className="text-[13px] font-bold mt-0.5" style={{ color: 'var(--f-text-4)' }}>
+                      </FitText>
+                      <p className="text-[11px] font-bold mt-0.5" style={{ color: 'var(--f-text-4)' }}>
                         {netPositive ? 'me debe' : 'les debo'}
                       </p>
                     </div>
                     <i
-                      className="fa-solid fa-chevron-right text-[13px] flex-shrink-0 ml-1 transition-transform duration-200"
+                      className="fa-solid fa-chevron-right text-[12px] flex-shrink-0 transition-transform duration-200"
                       style={{ color: 'var(--f-text-4)', transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}
                     />
                   </button>

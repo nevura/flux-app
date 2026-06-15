@@ -373,17 +373,18 @@ export default function InsightsClient({ transactions, categories, monthlySummar
       {/* Swipeable screens */}
       <div
         ref={scrollRef}
-        key={`${year}-${month}`}
-        className={`flex overflow-x-auto ${!isDataStale ? (slideDir === 'right' ? 'animate-slide-from-right' : slideDir === 'left' ? 'animate-slide-from-left' : 'animate-fade-up') : ''}`}
+        className="flex overflow-x-auto"
         style={{
           scrollSnapType: 'x mandatory', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch',
-          ...(isDataStale ? { opacity: 0, transition: 'opacity 0.13s ease-in', pointerEvents: 'none' as const } : {}),
+          opacity: isDataStale ? 0.35 : 1, transition: 'opacity 0.12s ease',
+          pointerEvents: isDataStale ? 'none' as const : undefined,
         }}
         onScroll={handleScroll}
       >
 
         {/* ── Screen 1: Gastos por categoría ── */}
-        <div className="flex-shrink-0 w-full px-4 py-4 space-y-4" style={{ scrollSnapAlign: 'start' }}>
+        <div className="flex-shrink-0 w-full" style={{ scrollSnapAlign: 'start', overflow: 'hidden' }}>
+        <div key={`cat-${year}-${month}`} className={`px-4 py-4 space-y-4 ${slideDir === 'right' ? 'animate-slide-from-right' : slideDir === 'left' ? 'animate-slide-from-left' : 'animate-fade-up'}`}>
 
           {/* Donut chart */}
           {byCategory.length > 0 ? (
@@ -442,10 +443,12 @@ export default function InsightsClient({ transactions, categories, monthlySummar
             </div>
           )}
           <div className="h-24" />
-        </div>
+        </div>{/* /inner animated wrapper */}
+        </div>{/* /screen 1 */}
 
         {/* ── Screen 2: Tendencia ── */}
-        <div className="flex-shrink-0 w-full px-4 py-4 space-y-4" style={{ scrollSnapAlign: 'start' }}>
+        <div className="flex-shrink-0 w-full" style={{ scrollSnapAlign: 'start', overflow: 'hidden' }}>
+        <div key={`trend-${year}-${month}`} className={`px-4 py-4 space-y-4 ${slideDir === 'right' ? 'animate-slide-from-right' : slideDir === 'left' ? 'animate-slide-from-left' : 'animate-fade-up'}`}>
 
           {/* Income / Expense summary */}
           <div className="grid grid-cols-2 gap-3">
@@ -537,8 +540,9 @@ export default function InsightsClient({ transactions, categories, monthlySummar
           )}
 
           <div className="h-24" />
-        </div>
-      </div>
+        </div>{/* /inner animated wrapper */}
+        </div>{/* /screen 2 */}
+      </div>{/* /scroll container */}
     </div>
   )
 }
