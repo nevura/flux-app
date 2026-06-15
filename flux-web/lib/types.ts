@@ -185,6 +185,7 @@ export interface ScheduledTransaction {
   last_charge_date: string | null
   last_notification_date: string | null
   split_data: SplitData | null
+  original_currency: string | null
   created_at: string
   updated_at: string
 }

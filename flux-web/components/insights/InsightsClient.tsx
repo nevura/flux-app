@@ -9,7 +9,12 @@ import { useCountUp, useAnimatedWidth } from '@/lib/hooks'
 
 function AnimatedCurrency({ value, currency = 'MXN' }: { value: number; currency?: string }) {
   const animated = useCountUp(value)
-  return <>{formatCurrency(animated, currency)} <span className="text-[10px] font-bold opacity-40 ml-0.5">{currency}</span></>
+  return (
+    <span className="inline-flex items-baseline gap-0.5 max-w-full overflow-hidden">
+      <span className="tabular-nums min-w-0 overflow-hidden">{formatCurrency(animated, currency)}</span>
+      <span className="text-[10px] font-bold opacity-40 flex-shrink-0">{currency}</span>
+    </span>
+  )
 }
 
 function AnimatedBar({ pct, color }: { pct: number; color: string }) {
@@ -450,18 +455,19 @@ export default function InsightsClient({ transactions, categories, monthlySummar
               ? monthlySummary.reduce((s, r) => s + r.expenses, 0) / monthlySummary.length
               : expenses
             const saveRate = income > 0 ? Math.max(0, ((income - expenses) / income) * 100) : 0
-            const kpis = [
-              { label: 'Tasa de Gasto',  value: formatCurrency(burnRate, baseCurrency),                              sub: 'por día',      color: 'var(--f-credit)'   },
-              { label: 'Flujo Neto',     value: (netFlow >= 0 ? '+' : '') + formatCurrency(netFlow, baseCurrency),   sub: 'este mes',     color: netFlow >= 0 ? 'var(--f-income)' : 'var(--f-expense)' },
-              { label: 'Prom. Mensual',  value: formatCurrency(avgExpenses, baseCurrency),                           sub: 'de gasto',     color: 'var(--f-transfer)' },
-              { label: 'Tasa de Ahorro', value: `${saveRate.toFixed(0)}%`,                             sub: 'de ingresos',  color: '#BF5AF2' },
+            const codeTag = <span className="text-[11px] font-bold opacity-40 ml-0.5">{baseCurrency}</span>
+            const kpis: { label: string; value: React.ReactNode; sub: string; color: string }[] = [
+              { label: 'Tasa de Gasto',  value: <>{formatCurrency(burnRate, baseCurrency)}{codeTag}</>,                                              sub: 'por día',      color: 'var(--f-credit)'   },
+              { label: 'Flujo Neto',     value: <>{netFlow >= 0 ? '+' : ''}{formatCurrency(netFlow, baseCurrency)}{codeTag}</>,                      sub: 'este mes',     color: netFlow >= 0 ? 'var(--f-income)' : 'var(--f-expense)' },
+              { label: 'Prom. Mensual',  value: <>{formatCurrency(avgExpenses, baseCurrency)}{codeTag}</>,                                            sub: 'de gasto',     color: 'var(--f-transfer)' },
+              { label: 'Tasa de Ahorro', value: `${saveRate.toFixed(0)}%`,                                                                            sub: 'de ingresos',  color: '#BF5AF2' },
             ]
             return (
               <div className="grid grid-cols-2 gap-2">
                 {kpis.map((k, i) => (
                   <div key={k.label} className="rounded-[16px] px-4 py-2 animate-fade-up" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', animationDelay: `${0.06 + i * 0.04}s` }}>
                     <p className="text-[12px] font-black tracking-[2px] uppercase mt-0.5 mb-2" style={{ color: 'var(--f-text-3)' }}>{k.label}</p>
-                    <p className="text-[23px] font-black tabular-nums leading-none" style={{ color: k.color }}>{k.value}</p>
+                    <p className="text-[21px] font-black tabular-nums leading-none overflow-hidden" style={{ color: k.color }}>{k.value}</p>
                     <p className="text-[14px] font-black tracking-[0.5px] mt-0.5 mb-0" style={{ color: 'var(--f-text)' }}>{k.sub}</p>
                   </div>
                 ))}

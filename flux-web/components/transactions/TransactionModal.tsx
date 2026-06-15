@@ -438,7 +438,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
             {/* Amount — big centered display */}
             <div className="text-center">
               <p className="text-[12px] font-black tracking-[3px] uppercase mb-3" style={{ color: 'var(--f-text-4)' }}>
-                {iOweEnabled ? 'Total que debo' : isOriginalMode ? `Monto en ${originalCurrency}` : 'Monto'}
+                {iOweEnabled ? 'Total que debo' : 'Monto'}
               </p>
               {iOweEnabled && ioweMode === 'custom' ? (
                 <div className="flex items-center justify-center gap-1">
@@ -449,7 +449,26 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                 </div>
               ) : (
                 <div className="flex items-center justify-center gap-1">
-                  <span className="text-[28px] font-black" style={{ color: 'var(--f-text-3)' }}>{currencyPrefix}</span>
+                  {type !== 'TR-TRANSFER' ? (
+                    <select
+                      value={originalCurrency}
+                      onChange={e => {
+                        if (e.target.value !== originalCurrency) {
+                          userEditedRateRef.current = false
+                          setOriginalCurrency(e.target.value)
+                          setFxRateSource('account')
+                        }
+                      }}
+                      className="text-[20px] font-black bg-transparent border-none outline-none appearance-none cursor-pointer"
+                      style={{ color: isOriginalMode ? cfg.color : 'var(--f-text-3)', colorScheme: 'dark' }}
+                    >
+                      {SUPPORTED_CURRENCIES.map(c => (
+                        <option key={c.code} value={c.code}>{c.code}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="text-[28px] font-black" style={{ color: 'var(--f-text-3)' }}>{currencyPrefix}</span>
+                  )}
                   <input
                     type="text"
                     inputMode="decimal"
@@ -559,47 +578,6 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                 ))}
               </select>
             </div>
-
-            {/* Original currency selector — shown for non-transfer transactions */}
-            {type !== 'TR-TRANSFER' && (
-              <div>
-                <p className="text-[11px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>
-                  Moneda del cobro
-                  {isOriginalMode && (
-                    <span className="ml-1.5 normal-case font-semibold tracking-normal" style={{ color: 'var(--f-text-3)' }}>
-                      · convirtiendo a {accountCurrency}
-                    </span>
-                  )}
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {SUPPORTED_CURRENCIES.map(c => (
-                    <button
-                      key={c.code}
-                      type="button"
-                      onClick={() => {
-                        if (c.code !== originalCurrency) {
-                          userEditedRateRef.current = false
-                          setOriginalCurrency(c.code)
-                          setFxRateSource('account')
-                        }
-                      }}
-                      className="px-2.5 py-1 rounded-[10px] text-[12px] font-bold transition-all active:scale-[0.92]"
-                      style={originalCurrency === c.code ? {
-                        background: `color-mix(in srgb, ${cfg.rawColor} 15%, transparent)`,
-                        border: `1px solid color-mix(in srgb, ${cfg.rawColor} 40%, transparent)`,
-                        color: cfg.color,
-                      } : {
-                        background: 'var(--f-bg-input)',
-                        border: '1px solid var(--f-line)',
-                        color: 'var(--f-text-3)',
-                      }}
-                    >
-                      {c.code}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* Exchange rate — visible when original currency ≠ account currency, OR account ≠ base */}
             {needsExchangeRate && (

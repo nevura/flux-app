@@ -1228,6 +1228,7 @@ type SchedForm = {
   ioweMode: 'full' | 'custom'
   ioweSelected: string[]
   ioweAmounts: Record<string, string>
+  originalCurrency?: string
 }
 
 const EMPTY_FORM: SchedForm = {
@@ -1237,6 +1238,7 @@ const EMPTY_FORM: SchedForm = {
   payment_day: '', notification_days: 1, status: 'ACTIVO',
   splitEnabled: false, quickMode: 'equal', splitSelected: [], manualAmounts: {},
   ioweEnabled: false, ioweMode: 'full', ioweSelected: [], ioweAmounts: {},
+  originalCurrency: undefined,
 }
 
 function evalExpr(s: string): number {
@@ -1328,6 +1330,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, baseCurrency = 
       ioweMode: sd?.splitMode === 'IOWE' && (sd.data?.length ?? 0) > 1 ? 'custom' : 'full',
       ioweSelected: sd?.splitMode === 'IOWE' ? sd.data?.map(d => d.id) ?? [] : [],
       ioweAmounts: Object.fromEntries(sd?.splitMode === 'IOWE' ? sd.data?.map(d => [d.id, String(d.value)]) ?? [] : []),
+      originalCurrency: s.original_currency ?? undefined,
     })
   }
 
@@ -1385,6 +1388,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, baseCurrency = 
         notification_days: snap.notification_days,
         status: snap.status,
         split_data: split_data as import('@/lib/types').SplitData | null,
+        original_currency: snap.originalCurrency || null,
       }
       const res = await saveScheduled(payload)
       if (res.error) { toast.error(res.error); return }
@@ -1534,7 +1538,20 @@ function ScheduledTab({ scheduled, categories, accounts, people, baseCurrency = 
               <div className="text-center">
                 <p className="text-[12px] font-black tracking-[3px] uppercase mb-3" style={{ color: 'var(--f-text-4)' }}>Monto</p>
                 <div className="flex items-center justify-center gap-1">
-                  <span className="text-[28px] font-black" style={{ color: 'var(--f-text-3)' }}>$</span>
+                  {editing.type !== 'TR-TRANSFER' ? (
+                    <select
+                      value={editing.originalCurrency ?? (accounts.find(a => a.id === editing.account_id)?.currency ?? 'MXN')}
+                      onChange={e => setEditing({ ...editing, originalCurrency: e.target.value })}
+                      className="text-[20px] font-black bg-transparent border-none outline-none appearance-none cursor-pointer"
+                      style={{ color: 'var(--f-text-3)', colorScheme: 'dark' }}
+                    >
+                      {SUPPORTED_CURRENCIES.map(c => (
+                        <option key={c.code} value={c.code}>{c.code}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="text-[28px] font-black" style={{ color: 'var(--f-text-3)' }}>$</span>
+                  )}
                   <input
                     type="number"
                     min="0.01"

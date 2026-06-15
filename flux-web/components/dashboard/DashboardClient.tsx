@@ -20,7 +20,12 @@ const LAZY_THRESHOLD_DAYS = 14
 
 function AnimatedCurrency({ value, currency = 'MXN', duration }: { value: number; currency?: string; duration?: number }) {
   const animated = useCountUp(value, duration)
-  return <>{formatCurrency(animated, currency)} <span className="text-[10px] font-bold opacity-40 ml-0.5">{currency}</span></>
+  return (
+    <span className="inline-flex items-baseline gap-0.5 max-w-full overflow-hidden">
+      <span className="tabular-nums min-w-0 overflow-hidden">{formatCurrency(animated, currency)}</span>
+      <span className="text-[10px] font-bold opacity-40 flex-shrink-0">{currency}</span>
+    </span>
+  )
 }
 
 function AnimatedBar({ pct, color }: { pct: number; color: string }) {

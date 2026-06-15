@@ -6,9 +6,14 @@ import { useRouter } from 'next/navigation'
 import { formatCurrency, formatDateShort, getCategoryDisplay } from '@/lib/utils'
 import { useCountUp } from '@/lib/hooks'
 
-function AnimatedCurrency({ value, currency }: { value: number; currency?: string }) {
+function AnimatedCurrency({ value, currency = 'MXN' }: { value: number; currency?: string }) {
   const animated = useCountUp(value)
-  return <>{formatCurrency(animated, currency)}</>
+  return (
+    <span className="inline-flex items-baseline gap-0.5 max-w-full overflow-hidden">
+      <span className="tabular-nums min-w-0 overflow-hidden">{formatCurrency(animated, currency)}</span>
+      <span className="text-[10px] font-bold opacity-40 flex-shrink-0">{currency}</span>
+    </span>
+  )
 }
 import { MONTHS_ES } from '@/lib/constants'
 import { searchAllTransactions, fetchSharedTransactions, deleteTransaction, confirmTransaction } from '@/actions/transactions'
