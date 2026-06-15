@@ -278,7 +278,10 @@ export default function InsightsClient({ transactions, categories, monthlySummar
               style={{ color: 'var(--f-text)' }}
             >
               {MONTHS_ES[displayMonth - 1]} {displayYear}
-              <i className="fa-solid fa-chevron-down text-[12px]" style={{ color: 'var(--f-text-3)' }} />
+              {isDataStale
+                ? <i className="fa-solid fa-spinner fa-spin text-[13px]" style={{ color: 'var(--f-blue)' }} />
+                : <i className="fa-solid fa-chevron-down text-[12px]" style={{ color: 'var(--f-text-3)' }} />
+              }
             </button>
             {!isCurrentMonth && (
               <button onClick={() => router.push('/insights')} className="text-[15px] font-black tracking-[1.2px] block" style={{ color: 'var(--f-blue)' }}>
@@ -376,7 +379,8 @@ export default function InsightsClient({ transactions, categories, monthlySummar
         className="flex overflow-x-auto"
         style={{
           scrollSnapType: 'x mandatory', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch',
-          opacity: isDataStale ? 0.35 : 1, transition: 'opacity 0.12s ease',
+          opacity: isDataStale ? 0 : 1,
+          transition: isDataStale ? 'opacity 0.08s ease-in' : 'opacity 0.25s ease-out',
           pointerEvents: isDataStale ? 'none' as const : undefined,
         }}
         onScroll={handleScroll}

@@ -121,7 +121,7 @@ export default function AuditModal({ accounts, onClose }: Props) {
                 <div
                   key={acc.id}
                   className="rounded-[16px] p-4"
-                  style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)' }}
+                  style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line-strong)' }}
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -135,7 +135,7 @@ export default function AuditModal({ accounts, onClose }: Props) {
                       )}
                     </div>
                     <p className="text-[15px] font-black tabular-nums"
-                      style={{ color: isTDC ? 'var(--f-expense)' : (acc.balance < 0 ? 'var(--f-expense)' : 'var(--f-text-3)') }}>
+                      style={{ color: isTDC ? 'var(--f-expense)' : (acc.balance < 0 ? 'var(--f-expense)' : 'var(--f-text-2)') }}>
                       {isTDC ? `-${formatCurrency(Math.abs(acc.balance), acc.currency ?? 'MXN')}` : formatCurrency(acc.balance, acc.currency ?? 'MXN')}
                     </p>
                   </div>
@@ -159,7 +159,7 @@ export default function AuditModal({ accounts, onClose }: Props) {
                         background: isTDC ? 'var(--f-expense-bg)' : 'var(--f-bg-input)',
                         border: `1px solid ${hasChange
                           ? (delta! > 0 ? 'var(--f-income-border)' : 'var(--f-expense-border)')
-                          : isTDC ? 'var(--f-expense-border)' : 'var(--f-line)'}`,
+                          : isTDC ? 'var(--f-expense-border)' : 'var(--f-line-strong)'}`,
                         color: 'var(--f-text)',
                       }}
                       inputMode="decimal"
