@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useRef, useCallback, useEffect } from 'react'
+import { useState, useMemo, useRef, useCallback, useEffect, useLayoutEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatCurrency, getCategoryDisplay, getColor } from '@/lib/utils'
 import { MONTHS_ES } from '@/lib/constants'
@@ -24,6 +24,25 @@ function AnimatedBar({ pct, color }: { pct: number; color: string }) {
       className="h-full rounded-full"
       style={{ width: `${w}%`, background: color, transition: 'width 1500ms cubic-bezier(0.22,1,0.36,1)' }}
     />
+  )
+}
+
+function FitText({ children, className, style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
+  const containerRef = useRef<HTMLSpanElement>(null)
+  const textRef = useRef<HTMLSpanElement>(null)
+  useLayoutEffect(() => {
+    const c = containerRef.current
+    const t = textRef.current
+    if (!c || !t) return
+    t.style.transform = 'scale(1)'
+    const scale = Math.min(1, c.clientWidth / t.scrollWidth)
+    t.style.transform = scale < 1 ? `scale(${scale})` : 'none'
+    t.style.transformOrigin = 'left center'
+  })
+  return (
+    <span ref={containerRef} className={`block w-full overflow-hidden ${className ?? ''}`} style={style}>
+      <span ref={textRef} className="inline-block whitespace-nowrap">{children}</span>
+    </span>
   )
 }
 
@@ -432,15 +451,15 @@ export default function InsightsClient({ transactions, categories, monthlySummar
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-[20px] p-4 animate-fade-up" style={{ background: 'var(--f-income-bg)', border: '1px solid var(--f-income-border)' }}>
               <p className="text-[11px] font-black tracking-[2px] uppercase mb-1" style={{ color: 'var(--f-income)', opacity: 0.7 }}>Ingresos</p>
-              <p className="text-[22px] font-black tabular-nums leading-none" style={{ color: 'var(--f-income)' }}>
+              <FitText className="text-[22px] font-black tabular-nums leading-none" style={{ color: 'var(--f-income)' }}>
                 +<AnimatedCurrency value={income} currency={baseCurrency} />
-              </p>
+              </FitText>
             </div>
             <div className="rounded-[20px] p-4 animate-fade-up" style={{ background: 'var(--f-expense-bg)', border: '1px solid var(--f-expense-border)', animationDelay: '0.05s' }}>
               <p className="text-[11px] font-black tracking-[2px] uppercase mb-1" style={{ color: 'var(--f-expense)', opacity: 0.7 }}>Gastos</p>
-              <p className="text-[22px] font-black tabular-nums leading-none" style={{ color: 'var(--f-expense)' }}>
+              <FitText className="text-[22px] font-black tabular-nums leading-none" style={{ color: 'var(--f-expense)' }}>
                 -<AnimatedCurrency value={expenses} currency={baseCurrency} />
-              </p>
+              </FitText>
             </div>
           </div>
 
@@ -467,7 +486,7 @@ export default function InsightsClient({ transactions, categories, monthlySummar
                 {kpis.map((k, i) => (
                   <div key={k.label} className="rounded-[16px] px-4 py-2 animate-fade-up" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', animationDelay: `${0.06 + i * 0.04}s` }}>
                     <p className="text-[12px] font-black tracking-[2px] uppercase mt-0.5 mb-2" style={{ color: 'var(--f-text-3)' }}>{k.label}</p>
-                    <p className="text-[21px] font-black tabular-nums leading-none overflow-hidden" style={{ color: k.color }}>{k.value}</p>
+                    <FitText className="text-[21px] font-black tabular-nums leading-none" style={{ color: k.color }}>{k.value}</FitText>
                     <p className="text-[14px] font-black tracking-[0.5px] mt-0.5 mb-0" style={{ color: 'var(--f-text)' }}>{k.sub}</p>
                   </div>
                 ))}

@@ -758,7 +758,6 @@ export default function SharedClient({ transactions, people, accounts, categorie
               {abonoModal.net > 0 ? '+' : '-'}{formatCurrency(Math.abs(abonoModal.net), baseCurrency)} pendiente
             </p>
             <input
-              autoFocus
               type="number"
               inputMode="decimal"
               min="0"
