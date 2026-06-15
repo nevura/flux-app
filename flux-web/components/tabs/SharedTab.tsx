@@ -34,7 +34,11 @@ interface Props {
 export default function SharedTab({ userId, active, refreshSignal }: Props) {
   const [data, setData] = useState<TabData | null>(null)
   const loadedRef = useRef(false)
+  const staleRef  = useRef(false)
+  const activeRef = useRef(false)
   const supabase = useRef(createClient()).current
+
+  useEffect(() => { activeRef.current = active }, [active])
 
   const load = useCallback(async () => {
     const [{ data: txs }, { data: people }, { data: accs }, { data: cats }, { data: friends }, { data: profile }] = await Promise.all([
@@ -57,7 +61,9 @@ export default function SharedTab({ userId, active, refreshSignal }: Props) {
   }, [userId, supabase])
 
   useEffect(() => {
-    if (active && !loadedRef.current) load()
+    if (!active) return
+    if (!loadedRef.current) { load(); return }
+    if (staleRef.current) { staleRef.current = false; load() }
   }, [active, load])
 
   useEffect(() => {
@@ -68,7 +74,8 @@ export default function SharedTab({ userId, active, refreshSignal }: Props) {
     const channel = supabase
       .channel(`shared:${userId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions', filter: `user_id=eq.${userId}` }, () => {
-        load()
+        if (activeRef.current) load()
+        else staleRef.current = true
       })
       .subscribe()
     return () => { supabase.removeChannel(channel) }

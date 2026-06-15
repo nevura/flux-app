@@ -70,6 +70,8 @@ export default function SharedClient({ transactions, people, accounts, categorie
   const [settleAccId, setSettleAccId] = useState('')
   const [isGlobalPending, startGlobal] = useTransition()
   const [isAbonoPending, startAbono] = useTransition()
+  const [abonoExiting, setAbonoExiting] = useState(false)
+  const [settleExiting, setSettleExiting] = useState(false)
 
   // Receivable collect state
   const [collectingKey, setCollectingKey] = useState<string | null>(null)
@@ -90,6 +92,16 @@ export default function SharedClient({ transactions, people, accounts, categorie
     setActionModal(null)
     setModalAmount('')
     setModalAccount('')
+  }
+
+  function closeAbonoModal() {
+    setAbonoExiting(true)
+    setTimeout(() => { setAbonoModal(null); setAbonoExiting(false) }, 210)
+  }
+
+  function closeSettleModal() {
+    setSettleExiting(true)
+    setTimeout(() => { setSettleModal(null); setSettleExiting(false) }, 210)
   }
 
   function executeSettle(txId: string, participantId: string) {
@@ -742,11 +754,11 @@ export default function SharedClient({ transactions, people, accounts, categorie
       {mounted && abonoModal && createPortal(
         <div
           className="fixed inset-0 z-50 flex flex-col justify-end"
-          style={{ background: 'var(--f-bg-overlay)' }}
-          onClick={() => setAbonoModal(null)}
+          style={{ background: 'var(--f-bg-overlay)', opacity: abonoExiting ? 0 : 1, transition: 'opacity 200ms ease' }}
+          onClick={closeAbonoModal}
         >
           <div
-            className="animate-slide-up rounded-t-[28px] p-5 space-y-4"
+            className={`${abonoExiting ? 'animate-sheet-exit' : 'animate-slide-up'} rounded-t-[28px] p-5 space-y-4`}
             style={{ background: 'var(--f-bg-elevated)', paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
             onClick={e => e.stopPropagation()}
           >
@@ -780,7 +792,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
             </select>
             <div className="flex gap-3">
               <button
-                onClick={() => setAbonoModal(null)}
+                onClick={closeAbonoModal}
                 className="flex-1 py-3 rounded-[14px] text-[16px] font-black transition-all active:scale-95"
                 style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
               >
@@ -804,11 +816,11 @@ export default function SharedClient({ transactions, people, accounts, categorie
       {mounted && settleModal && createPortal(
         <div
           className="fixed inset-0 z-50 flex flex-col justify-end"
-          style={{ background: 'var(--f-bg-overlay)' }}
-          onClick={() => setSettleModal(null)}
+          style={{ background: 'var(--f-bg-overlay)', opacity: settleExiting ? 0 : 1, transition: 'opacity 200ms ease' }}
+          onClick={closeSettleModal}
         >
           <div
-            className="animate-slide-up rounded-t-[28px] p-5 space-y-4"
+            className={`${settleExiting ? 'animate-sheet-exit' : 'animate-slide-up'} rounded-t-[28px] p-5 space-y-4`}
             style={{ background: 'var(--f-bg-elevated)', paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
             onClick={e => e.stopPropagation()}
           >
@@ -830,7 +842,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
             </select>
             <div className="flex gap-3">
               <button
-                onClick={() => setSettleModal(null)}
+                onClick={closeSettleModal}
                 className="flex-1 py-3 rounded-[14px] text-[16px] font-black transition-all active:scale-95"
                 style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-3)' }}
               >

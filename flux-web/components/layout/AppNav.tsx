@@ -59,12 +59,26 @@ export default function AppNav({ isReadOnly }: NavProps) {
       <Link
         href={tab.href}
         onClick={() => { if (!isCurrentPath) setPendingHref(tab.href) }}
-        className="flex flex-1 items-center justify-center rounded-[18px] transition-all duration-150 select-none active:scale-90 py-4"
-        style={active ? { background: 'var(--f-bg-input)' } : undefined}
+        className="flex flex-1 flex-col items-center justify-center rounded-[18px] select-none active:scale-90 py-3 gap-1"
+        style={{ transition: 'background 150ms ease', ...(active ? { background: 'var(--f-bg-input)' } : {}) }}
       >
+        {/* Spring indicator pill */}
+        <div style={{
+          height: 3, width: 20,
+          borderRadius: 99,
+          background: 'var(--f-blue)',
+          opacity: active ? 1 : 0,
+          transform: active ? 'scaleX(1)' : 'scaleX(0)',
+          transition: 'opacity 200ms ease, transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+        }} />
         <i
-          className={`${tab.icon} transition-all duration-150`}
-          style={{ color: active ? 'var(--f-text)' : 'var(--f-text-3)', fontSize: '20px' }}
+          className={tab.icon}
+          style={{
+            color: active ? 'var(--f-text)' : 'var(--f-text-3)',
+            fontSize: '20px',
+            transform: active ? 'scale(1.1)' : 'scale(1)',
+            transition: 'transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1), color 150ms ease',
+          }}
         />
       </Link>
     )

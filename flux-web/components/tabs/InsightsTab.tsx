@@ -34,9 +34,14 @@ interface Props {
   refreshSignal: number
 }
 
+type HistoryRow = { type: string; amount: number; exchange_rate?: number | null; transaction_date: string; exclude_mode?: string | null; split_data?: { data: { value: number }[] } | null }
+
 export default function InsightsTab({ userId, active, refreshSignal }: Props) {
   const [data, setData] = useState<TabData | null>(null)
-  const loadedRef = useRef(false)
+  const loadedRef    = useRef(false)
+  const staleRef     = useRef(false)
+  const activeRef    = useRef(false)
+  const historyCache = useRef<HistoryRow[] | null>(null)
   const supabase = useRef(createClient()).current
   const searchParams = useSearchParams()
 
@@ -46,21 +51,31 @@ export default function InsightsTab({ userId, active, refreshSignal }: Props) {
   const year  = yearParam  ? parseInt(yearParam)  : now.getFullYear()
   const month = monthParam ? parseInt(monthParam) : now.getMonth() + 1
 
+  useEffect(() => { activeRef.current = active }, [active])
+
   const load = useCallback(async (y: number, m: number) => {
     const { from, to } = monthRange(y, m)
-    const [{ data: txs }, { data: cats }, { data: allTx }, { data: profile }] = await Promise.all([
+
+    // Run month-specific queries in parallel; history is fetched only once then cached
+    const historyPromise = historyCache.current
+      ? Promise.resolve(historyCache.current)
+      : supabase.from('transactions')
+          .select('type, amount, exchange_rate, transaction_date, exclude_mode, split_data')
+          .eq('user_id', userId)
+          .neq('type', 'TR-TRANSFER')
+          .then(({ data }) => { historyCache.current = (data ?? []) as HistoryRow[]; return historyCache.current })
+
+    const [{ data: txs }, { data: cats }, { data: profile }] = await Promise.all([
       supabase.from('transactions').select('*').eq('user_id', userId)
         .gte('transaction_date', from.slice(0, 10)).lte('transaction_date', to.slice(0, 10))
         .order('transaction_date', { ascending: false }),
       supabase.from('categories').select('*').or(`user_id.eq.${userId},user_id.is.null`).order('sort_order'),
-      supabase.from('transactions')
-        .select('type, amount, exchange_rate, transaction_date, exclude_mode, split_data')
-        .eq('user_id', userId)
-        .neq('type', 'TR-TRANSFER'),
       supabase.from('profiles').select('currency').eq('id', userId).single(),
     ])
 
-    function effectiveAmt(t: { type: string; amount: number; exchange_rate?: number | null; exclude_mode?: string | null; split_data?: { data: { value: number }[] } | null }): number {
+    const allTx = await historyPromise
+
+    function effectiveAmt(t: HistoryRow): number {
       const rate = t.exchange_rate ?? 1
       if (t.exclude_mode === 'all') return 0
       if (t.exclude_mode === 'shared_only' && t.split_data?.data) {
@@ -71,7 +86,7 @@ export default function InsightsTab({ userId, active, refreshSignal }: Props) {
     }
 
     const monthMap: Record<string, MonthlyRow> = {}
-    for (const t of allTx ?? []) {
+    for (const t of allTx) {
       const d = new Date(t.transaction_date)
       const key = `${d.getFullYear()}-${d.getMonth() + 1}`
       if (!monthMap[key]) monthMap[key] = { year: d.getFullYear(), month: d.getMonth() + 1, income: 0, expenses: 0 }
@@ -92,27 +107,29 @@ export default function InsightsTab({ userId, active, refreshSignal }: Props) {
       baseCurrency: profile?.currency ?? 'MXN',
     })
     loadedRef.current = true
-  }, [userId, supabase])
+  }, [userId, supabase]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (active && !loadedRef.current) load(year, month)
+    if (!active) return
+    if (!loadedRef.current) { load(year, month); return }
+    if (staleRef.current) { staleRef.current = false; load(year, month) }
   }, [active]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (loadedRef.current) {
-      load(year, month)
-    }
+    if (loadedRef.current) load(year, month)
   }, [year, month]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (refreshSignal > 0 && active) load(year, month)
+    if (refreshSignal > 0 && active) { historyCache.current = null; load(year, month) }
   }, [refreshSignal]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const channel = supabase
       .channel(`insights:${userId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions', filter: `user_id=eq.${userId}` }, () => {
-        load(year, month)
+        historyCache.current = null
+        if (activeRef.current) load(year, month)
+        else staleRef.current = true
       })
       .subscribe()
     return () => { supabase.removeChannel(channel) }

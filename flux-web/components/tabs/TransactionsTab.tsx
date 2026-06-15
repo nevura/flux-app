@@ -37,6 +37,8 @@ interface Props {
 export default function TransactionsTab({ userId, active, refreshSignal }: Props) {
   const [data, setData] = useState<TabData | null>(null)
   const loadedRef = useRef(false)
+  const staleRef  = useRef(false)
+  const activeRef = useRef(false)
   const supabase = useRef(createClient()).current
   const searchParams = useSearchParams()
 
@@ -45,6 +47,8 @@ export default function TransactionsTab({ userId, active, refreshSignal }: Props
   const now = new Date()
   const year  = yearParam  ? parseInt(yearParam)  : now.getFullYear()
   const month = monthParam ? parseInt(monthParam) : now.getMonth() + 1
+
+  useEffect(() => { activeRef.current = active }, [active])
 
   const load = useCallback(async (y: number, m: number) => {
     const { from, to } = monthRange(y, m)
@@ -77,9 +81,11 @@ export default function TransactionsTab({ userId, active, refreshSignal }: Props
     loadedRef.current = true
   }, [userId, supabase])
 
-  // Load on first activation
+  // Load on first activation; reload if stale from a realtime event while tab was hidden
   useEffect(() => {
-    if (active && !loadedRef.current) load(year, month)
+    if (!active) return
+    if (!loadedRef.current) { load(year, month); return }
+    if (staleRef.current) { staleRef.current = false; load(year, month) }
   }, [active]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reload when month/year URL params change (from month nav inside TransactionsClient)
@@ -97,7 +103,8 @@ export default function TransactionsTab({ userId, active, refreshSignal }: Props
     const channel = supabase
       .channel(`txlist:${userId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions', filter: `user_id=eq.${userId}` }, () => {
-        load(year, month)
+        if (activeRef.current) load(year, month)
+        else staleRef.current = true
       })
       .subscribe()
     return () => { supabase.removeChannel(channel) }

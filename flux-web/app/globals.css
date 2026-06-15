@@ -561,6 +561,15 @@ body {
   animation: tab-fade-in 220ms cubic-bezier(0.25, 1, 0.5, 1);
 }
 
+@keyframes sheet-exit {
+  from { transform: translateY(0);    opacity: 1; }
+  to   { transform: translateY(100%); opacity: 0; }
+}
+
+.animate-sheet-exit {
+  animation: sheet-exit 220ms cubic-bezier(0.32, 0, 0.67, 0) forwards;
+}
+
 /* ─────────────────────────────────────────────────────────────────────────────
    MISC
 ───────────────────────────────────────────────────────────────────────────── */
