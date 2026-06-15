@@ -555,11 +555,15 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                 <div className="space-y-1.5">
                   {txs.map((tx, ti) => {
                     const isTransfer = tx.type === 'TR-TRANSFER'
+                    const isDestinationView = isTransfer &&
+                      filterAccounts.length > 0 &&
+                      filterAccounts.includes(tx.destination_account_id ?? '') &&
+                      !filterAccounts.includes(tx.account_id ?? '')
                     const cat = catMap[tx.category_id ?? '']
                     const d = isTransfer
                       ? { icon: 'fa-solid fa-shuffle', color: 'text-sky-400', bg: 'bg-sky-500/20', name: `${accMap[tx.account_id]?.name ?? '?'} → ${accMap[tx.destination_account_id ?? '']?.name ?? '?'}` }
                       : getCategoryDisplay(cat)
-                    const isIncome   = tx.type === 'TR-INGRESO'
+                    const isIncome   = tx.type === 'TR-INGRESO' || isDestinationView
                     const isExpense  = tx.type === 'TR-GASTO'
                     const amtColor   = isIncome ? 'var(--f-income)' : isExpense ? 'var(--f-expense)' : 'var(--f-transfer)'
                     const isTxPending = !tx.is_validated
@@ -604,9 +608,11 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                           <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
                             <p className="text-[16px] font-black tabular-nums" style={{ color: amtColor }}>
                               {isIncome ? '+' : isExpense ? '-' : ''}
-                              {tx.original_amount != null && tx.original_currency
-                                ? <>{formatCurrency(Number(tx.original_amount), tx.original_currency)} <span className="text-[10px] font-bold opacity-40">{tx.original_currency}</span></>
-                                : <>{formatCurrency(Number(tx.amount), tx.currency ?? 'MXN')} <span className="text-[10px] font-bold opacity-40">{tx.currency ?? 'MXN'}</span></>
+                              {isDestinationView
+                                ? (() => { const destAmt = tx.destination_amount ?? tx.amount; const destCur = accMap[tx.destination_account_id ?? '']?.currency ?? tx.currency ?? 'MXN'; return <>{formatCurrency(Number(destAmt), destCur)} <span className="text-[10px] font-bold opacity-40">{destCur}</span></> })()
+                                : tx.original_amount != null && tx.original_currency
+                                  ? <>{formatCurrency(Number(tx.original_amount), tx.original_currency)} <span className="text-[10px] font-bold opacity-40">{tx.original_currency}</span></>
+                                  : <>{formatCurrency(Number(tx.amount), tx.currency ?? 'MXN')} <span className="text-[10px] font-bold opacity-40">{tx.currency ?? 'MXN'}</span></>
                               }
                             </p>
                             {tx.original_amount != null && tx.original_currency && (
