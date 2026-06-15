@@ -110,10 +110,13 @@ export default function TransactionModal({ transaction, accounts, categories, pe
   )
   const [fxRateSource, setFxRateSource] = useState<'historical' | 'account' | 'manual'>('account')
   const userEditedRateRef = useRef(false)
+  const isFirstAccountMount = useRef(true)
   const [date, setDate] = useState(transaction?.transaction_date?.slice(0, 16) ?? getMexicoNow().slice(0, 16))
 
-  // Re-seed exchange rate and original currency when the user switches accounts
+  // Re-seed exchange rate and original currency when the user switches accounts.
+  // Skip the initial mount so edit-mode values (original_currency) are preserved.
   useEffect(() => {
+    if (isFirstAccountMount.current) { isFirstAccountMount.current = false; return }
     const acc = accounts.find(a => a.id === accId)
     userEditedRateRef.current = false
     setOriginalCurrency(acc?.currency ?? 'MXN')
@@ -448,7 +451,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                   </span>
                 </div>
               ) : (
-                <div className="flex items-center justify-center gap-1">
+                <div className="relative flex items-center justify-center">
                   {type !== 'TR-TRANSFER' ? (
                     <select
                       value={originalCurrency}
@@ -459,7 +462,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                           setFxRateSource('account')
                         }
                       }}
-                      className="text-[20px] font-black bg-transparent border-none outline-none appearance-none cursor-pointer"
+                      className="absolute left-2 text-[16px] font-black bg-transparent border-none outline-none appearance-none cursor-pointer"
                       style={{ color: isOriginalMode ? cfg.color : 'var(--f-text-3)', colorScheme: 'dark' }}
                     >
                       {SUPPORTED_CURRENCIES.map(c => (
@@ -467,7 +470,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                       ))}
                     </select>
                   ) : (
-                    <span className="text-[28px] font-black" style={{ color: 'var(--f-text-3)' }}>{currencyPrefix}</span>
+                    <span className="absolute left-2 text-[24px] font-black" style={{ color: 'var(--f-text-3)' }}>{currencyPrefix}</span>
                   )}
                   <input
                     type="text"
@@ -479,7 +482,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                       if (v > 0) setAmount(String(v))
                     }}
                     placeholder="0.00"
-                    className="bg-transparent border-none outline-none text-[44px] font-black tabular-nums text-center w-full max-w-[220px]"
+                    className="bg-transparent border-none outline-none text-[44px] font-black tabular-nums text-center w-full max-w-[280px]"
                     style={{ color: amount ? cfg.color : 'var(--f-text-4)' }}
                   />
                 </div>
