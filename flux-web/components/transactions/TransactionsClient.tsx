@@ -437,7 +437,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setTypeDropOpen(false)} />
                 <div
-                  className="absolute top-full mt-1 left-0 rounded-[16px] p-2 z-50 animate-scale-in"
+                  className="absolute top-full mt-1 left-0 rounded-[16px] p-2 z-50 max-h-64 overflow-y-auto animate-scale-in"
                   style={{ minWidth: 180, background: 'var(--f-bg-card)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-shadow-pop)', transformOrigin: 'top left' }}
                 >
                   {TYPE_OPTIONS.map(opt => {
@@ -460,7 +460,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setAccDropOpen(false)} />
                 <div
-                  className="absolute top-full mt-1 left-0 rounded-[16px] p-2 z-50 animate-scale-in"
+                  className="absolute top-full mt-1 left-0 rounded-[16px] p-2 z-50 max-h-64 overflow-y-auto animate-scale-in"
                   style={{ minWidth: 200, background: 'var(--f-bg-card)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-shadow-pop)', transformOrigin: 'top left' }}
                 >
                   {accounts.filter(a => a.is_active).map(acc => {

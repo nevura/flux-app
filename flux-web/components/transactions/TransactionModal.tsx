@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { addTransaction, updateTransaction, deleteTransaction, confirmTransaction, settlePayable } from '@/actions/transactions'
 import { addPerson } from '@/actions/config'
-import { getCategoryDisplay, getMexicoNow, formatCurrency } from '@/lib/utils'
+import { getCategoryDisplay, formatCurrency } from '@/lib/utils'
 import { getExchangeRateForDate } from '@/actions/exchangeRates'
 import { SUPPORTED_CURRENCIES } from '@/lib/constants'
 import { useBottomSheetSwipe } from '@/lib/hooks/useBottomSheetSwipe'
@@ -90,7 +90,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
       : ''
   )
   const [catId, setCatId] = useState(transaction?.category_id ?? '')
-  const [accId, setAccId] = useState(transaction?.account_id ?? accounts[0]?.id ?? '')
+  const [accId, setAccId] = useState(transaction?.account_id ?? '')
   const [destId, setDestId] = useState(transaction?.destination_account_id ?? '')
   const selectedAccount = accounts.find(a => a.id === accId)
   const accountCurrency = selectedAccount?.currency ?? 'MXN'
@@ -116,7 +116,11 @@ export default function TransactionModal({ transaction, accounts, categories, pe
   const [fxRateSource, setFxRateSource] = useState<'historical' | 'account' | 'manual'>('account')
   const userEditedRateRef = useRef(false)
   const isFirstAccountMount = useRef(true)
-  const [date, setDate] = useState(transaction?.transaction_date?.slice(0, 16) ?? getMexicoNow().slice(0, 16))
+  const [date, setDate] = useState(() => {
+    if (transaction?.transaction_date) return transaction.transaction_date.slice(0, 16)
+    const d = new Date()
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+  })
 
   // Re-seed exchange rate and original currency when the user switches accounts.
   // Skip the initial mount so edit-mode values (original_currency) are preserved.
@@ -300,6 +304,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
   }
 
   async function handleSubmit() {
+    if (!accId) { toast.error('Selecciona una cuenta'); return }
     if (iOweEnabled) {
       if (ioweSelected.size === 0) { toast.error('Selecciona a quién le debes'); return }
       if (ioweMode === 'custom' && ioweCustomTotal <= 0) { toast.error('Agrega el monto que debes'); return }
@@ -587,6 +592,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                   colorScheme: 'dark',
                 }}
               >
+                <option value="">Seleccionar cuenta</option>
                 {accounts.map(acc => (
                   <option key={acc.id} value={acc.id}>{acc.name}</option>
                 ))}
