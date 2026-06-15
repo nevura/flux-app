@@ -372,6 +372,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                   )}
                 <SwipeableRow
                   className="rounded-[20px]"
+                  disabled={isOpen}
                   rightActions={[
                     {
                       icon: 'fa-solid fa-coins',

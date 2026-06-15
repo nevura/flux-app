@@ -73,7 +73,7 @@ export default function DashboardTab({ userId, fullName, email, active, refreshS
       supabase.from('scheduled_transactions').select('*').eq('user_id', userId).eq('status', 'ACTIVO'),
       supabase.from('budgets').select('*').eq('user_id', userId).eq('year', year).eq('month', month),
       supabase.from('credit_payments').select('*').eq('user_id', userId).eq('year', year).eq('month', month),
-      supabase.from('transactions').select('account_id,adjustment,type,amount,destination_account_id').eq('user_id', userId),
+      supabase.from('transactions').select('account_id,adjustment,type,amount,destination_account_id,destination_amount').eq('user_id', userId),
       supabase.from('profiles').select('default_monthly_budget, currency').eq('id', userId).single(),
     ])
 
@@ -81,7 +81,7 @@ export default function DashboardTab({ userId, fullName, email, active, refreshS
     for (const t of allTx ?? []) {
       balanceMap[t.account_id] = (balanceMap[t.account_id] ?? 0) + Number(t.adjustment)
       if (t.type === 'TR-TRANSFER' && t.destination_account_id) {
-        balanceMap[t.destination_account_id] = (balanceMap[t.destination_account_id] ?? 0) + Number(t.amount)
+        balanceMap[t.destination_account_id] = (balanceMap[t.destination_account_id] ?? 0) + Number(t.destination_amount ?? t.amount)
       }
     }
 

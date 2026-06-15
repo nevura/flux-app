@@ -124,12 +124,14 @@ export async function addTransaction(form: TransactionForm): Promise<{ error: st
       const dst = accs?.find(a => a.id === form.destination_account_id)?.name ?? 'cuenta'
       concept = `Transferencia de ${src} a ${dst}`
     }
+    const destAmount = form.destination_amount != null ? form.destination_amount : null
     const { data: transferTx, error } = await supabase.from('transactions').insert({
       user_id: user.id, concept,
       type: 'TR-TRANSFER', amount, adjustment: -amount,
       currency: accountCurrency, exchange_rate: exchangeRate,
       category_id: null, account_id: form.account_id,
       destination_account_id: form.destination_account_id!,
+      destination_amount: destAmount,
       transaction_date: date, is_validated: true,
       scheduled_id: form.scheduled_id || null,
     }).select('id').single()

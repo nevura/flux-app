@@ -53,6 +53,25 @@ function FitBalance({ value, currency, textColor }: { value: number; currency: s
   )
 }
 
+function FitName({ children, textColor }: { children: React.ReactNode; textColor: string }) {
+  const containerRef = useRef<HTMLSpanElement>(null)
+  const textRef = useRef<HTMLSpanElement>(null)
+  useLayoutEffect(() => {
+    const c = containerRef.current, t = textRef.current
+    if (!c || !t) return
+    t.style.transform = 'scale(1)'
+    const scale = Math.min(1, c.clientWidth / t.scrollWidth)
+    t.style.transform = scale < 1 ? `scale(${scale})` : 'none'
+    t.style.transformOrigin = 'left center'
+  })
+  return (
+    <span ref={containerRef} className="block min-w-0 flex-1 overflow-hidden">
+      <span ref={textRef} className="inline-block whitespace-nowrap text-[9.5px] font-black tracking-[1.5px] uppercase"
+        style={{ color: textColor }}>{children}</span>
+    </span>
+  )
+}
+
 function AnimatedBar({ pct, color }: { pct: number; color: string }) {
   const w = useAnimatedWidth(pct)
   return (
@@ -716,10 +735,8 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
                   className="rounded-[18px] p-4 animate-fade-up"
                   style={{ background: card.bg, boxShadow: card.shadow, animationDelay: `${0.14 + i * 0.04}s` }}
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="text-[9.5px] font-black tracking-[1.5px] uppercase truncate pr-1" style={{ color: acc.balance < 0 ? '#2b2b2b' : '#f3f3f3' }}>
-                      {acc.name}
-                    </p>
+                  <div className="flex items-center justify-between gap-1.5 mb-3">
+                    <FitName textColor={acc.balance < 0 ? '#2b2b2b' : '#f3f3f3'}>{acc.name}</FitName>
                     <i className={`${method.icon} text-xs flex-shrink-0`} style={{ color: acc.balance < 0 ? '#2b2b2b' : '#f3f3f3' }} />
                   </div>
                   <FitBalance

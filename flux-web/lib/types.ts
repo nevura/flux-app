@@ -163,6 +163,7 @@ export interface Transaction {
   notes: string | null
   original_amount: number | null
   original_currency: string | null
+  destination_amount: number | null
   created_at: string
   updated_at: string
 }
@@ -235,6 +236,7 @@ export interface TransactionForm {
   exchange_rate?: number
   original_amount?: number
   original_currency?: string
+  destination_amount?: number
 }
 
 // ── UI / Computed types ────────────────────────────────────────────────────────

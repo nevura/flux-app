@@ -14,11 +14,12 @@ interface Props {
   rightActions: SwipeAction[]
   className?: string
   style?: React.CSSProperties
+  disabled?: boolean
 }
 
 const ACTION_W = 76
 
-export function SwipeableRow({ children, rightActions, className, style }: Props) {
+export function SwipeableRow({ children, rightActions, className, style, disabled }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const startX = useRef(0)
   const startY = useRef(0)
@@ -50,7 +51,7 @@ export function SwipeableRow({ children, rightActions, className, style }: Props
 
   useEffect(() => {
     const el = containerRef.current
-    if (!el || maxReveal === 0) return
+    if (!el || maxReveal === 0 || disabled) return
 
     function onTouchStart(e: TouchEvent) {
       const t = e.touches[0]
@@ -75,6 +76,8 @@ export function SwipeableRow({ children, rightActions, className, style }: Props
         return
       }
       if (dirRef.current !== 'h') return
+
+      e.stopPropagation()
 
       // Track velocity (px/ms)
       const now = Date.now()

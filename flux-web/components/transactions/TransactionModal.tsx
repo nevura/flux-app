@@ -94,15 +94,20 @@ export default function TransactionModal({ transaction, accounts, categories, pe
   const [destId, setDestId] = useState(transaction?.destination_account_id ?? '')
   const selectedAccount = accounts.find(a => a.id === accId)
   const accountCurrency = selectedAccount?.currency ?? 'MXN'
+  const destAccount = accounts.find(a => a.id === destId)
+  const destCurrency = destAccount?.currency ?? accountCurrency
+  const isCrossCurrencyTransfer = type === 'TR-TRANSFER' && !!destAccount && destCurrency !== accountCurrency
   const [originalCurrency, setOriginalCurrency] = useState<string>(
     transaction?.original_currency ?? accountCurrency
   )
   const isOriginalMode = originalCurrency !== accountCurrency
-  const needsExchangeRate = isOriginalMode || accountCurrency !== baseCurrency
+  const needsExchangeRate = isCrossCurrencyTransfer || isOriginalMode || accountCurrency !== baseCurrency
   const displayCurrency = isOriginalMode ? originalCurrency : accountCurrency
   const currencyPrefix = ({ EUR: '€', GBP: '£', JPY: '¥', BRL: 'R$', KRW: '₩', INR: '₹', IDR: 'Rp', MYR: 'RM', THB: '฿', PHP: '₱', ILS: '₪', TRY: '₺' } as Record<string, string>)[displayCurrency] ?? (displayCurrency !== 'MXN' ? displayCurrency : '$')
   const [exchangeRate, setExchangeRate] = useState<string>(
-    transaction?.original_amount != null && transaction.original_currency
+    transaction?.destination_amount != null && transaction.destination_account_id
+      ? String(Math.round((transaction.destination_amount / transaction.amount) * 1e6) / 1e6)
+      : transaction?.original_amount != null && transaction.original_currency
       ? String(Math.round((transaction.amount / transaction.original_amount) * 1e6) / 1e6)
       : transaction?.exchange_rate != null && transaction.exchange_rate !== 1
       ? String(transaction.exchange_rate)
@@ -128,15 +133,15 @@ export default function TransactionModal({ transaction, accounts, categories, pe
   useEffect(() => {
     if (!needsExchangeRate || userEditedRateRef.current) return
     const dateStr = date.slice(0, 10)
-    const fromCcy = isOriginalMode ? originalCurrency : accountCurrency
-    const toCcy   = isOriginalMode ? accountCurrency  : baseCurrency
+    const fromCcy = isCrossCurrencyTransfer ? accountCurrency : isOriginalMode ? originalCurrency : accountCurrency
+    const toCcy   = isCrossCurrencyTransfer ? destCurrency    : isOriginalMode ? accountCurrency  : baseCurrency
     getExchangeRateForDate(fromCcy, toCcy, dateStr).then(rate => {
       if (rate != null && !userEditedRateRef.current) {
         setExchangeRate(String(rate))
         setFxRateSource('historical')
       }
     })
-  }, [date, accountCurrency, baseCurrency, originalCurrency, needsExchangeRate, isOriginalMode]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [date, accountCurrency, baseCurrency, originalCurrency, needsExchangeRate, isOriginalMode, isCrossCurrencyTransfer, destCurrency]) // eslint-disable-line react-hooks/exhaustive-deps
   type ExcludeMode = 'none' | 'all' | 'shared_only'
   const [excludeMode, setExcludeMode] = useState<ExcludeMode>(
     transaction?.exclude_mode ?? (transaction?.exclude_from_budget ? 'all' : 'none')
@@ -324,11 +329,17 @@ export default function TransactionModal({ transaction, accounts, categories, pe
       is_payable: iOweEnabled,
       is_receivable: isReceivable,
       // exchange_rate = account→base. When original mode, rate is original→account (different!).
-      exchange_rate: isOriginalMode
+      // For cross-currency transfers, keep exchange_rate as the source account's display rate.
+      exchange_rate: isCrossCurrencyTransfer
+        ? (selectedAccount?.display_exchange_rate ?? 1)
+        : isOriginalMode
         ? (accountCurrency !== baseCurrency ? (selectedAccount?.display_exchange_rate ?? 1) : 1)
         : needsExchangeRate ? rate : 1,
       original_amount: isOriginalMode ? parsedRaw : undefined,
       original_currency: isOriginalMode ? originalCurrency : undefined,
+      destination_amount: isCrossCurrencyTransfer
+        ? Math.round(parsedRaw * rate * 100) / 100
+        : undefined,
     }
     startTransition(async () => {
       const res = isEdit && transaction
@@ -582,8 +593,8 @@ export default function TransactionModal({ transaction, accounts, categories, pe
               </select>
             </div>
 
-            {/* Exchange rate — visible when original currency ≠ account currency, OR account ≠ base */}
-            {needsExchangeRate && (
+            {/* Exchange rate — expenses/income only (not cross-currency transfers, those show after destination) */}
+            {needsExchangeRate && !isCrossCurrencyTransfer && (
               <div>
                 <p className="text-[11px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>
                   Tipo de cambio
@@ -629,7 +640,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                 </p>
                 <select
                   value={destId}
-                  onChange={e => setDestId(e.target.value)}
+                  onChange={e => { setDestId(e.target.value); userEditedRateRef.current = false }}
                   className="w-full rounded-[14px] px-4 py-3 text-[16px] font-bold outline-none appearance-none"
                   style={{
                     background: 'var(--f-bg-input)',
@@ -640,9 +651,46 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                 >
                   <option value="">Selecciona cuenta destino</option>
                   {accounts.filter(a => a.id !== accId).map(acc => (
-                    <option key={acc.id} value={acc.id}>{acc.name}</option>
+                    <option key={acc.id} value={acc.id}>{acc.name} {acc.currency !== accountCurrency ? `(${acc.currency})` : ''}</option>
                   ))}
                 </select>
+              </div>
+            )}
+
+            {/* Exchange rate for cross-currency transfers — shown after destination picker */}
+            {isCrossCurrencyTransfer && (
+              <div>
+                <p className="text-[11px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>
+                  Tipo de cambio
+                  <span className="ml-1.5 normal-case font-semibold tracking-normal" style={{ color: 'var(--f-transfer)' }}>
+                    1 {accountCurrency} = ? {destCurrency}
+                  </span>
+                </p>
+                <input
+                  type="number"
+                  min="0.000001"
+                  step="0.01"
+                  value={exchangeRate}
+                  onChange={e => { userEditedRateRef.current = true; setFxRateSource('manual'); setExchangeRate(e.target.value) }}
+                  placeholder="Ej: 0.052"
+                  className="w-full rounded-[14px] px-4 py-3 text-[16px] font-bold outline-none"
+                  style={{
+                    background: 'var(--f-bg-input)',
+                    border: '1px solid var(--f-transfer)',
+                    color: 'var(--f-text)',
+                    colorScheme: 'dark',
+                  }}
+                />
+                {(parseFloat(amount) || 0) > 0 && (
+                  <p className="text-[12px] font-bold mt-1.5 px-1" style={{ color: 'var(--f-transfer)' }}>
+                    Destino ≈ {formatCurrency(Math.round((parseFloat(amount) || 0) * (parseFloat(exchangeRate) || 1) * 100) / 100, destCurrency)} {destCurrency}
+                  </p>
+                )}
+                <p className="text-[11px] font-semibold mt-1 px-1" style={{ color: 'var(--f-text-4)' }}>
+                  {fxRateSource === 'historical'
+                    ? `Tasa BCE del ${date.slice(0, 10)} · edita si es necesario`
+                    : 'Tasa manual — se guarda para mantener el historial exacto'}
+                </p>
               </div>
             )}
 
