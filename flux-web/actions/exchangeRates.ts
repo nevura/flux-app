@@ -35,7 +35,13 @@ export async function getExchangeRateForDate(
     .limit(1)
     .single()
 
-  return data?.rates?.[`${fromCurrency}_${toCurrency}`] ?? null
+  if (!data?.rates) return null
+  const direct = data.rates[`${fromCurrency}_${toCurrency}`]
+  if (direct != null) return direct
+  // DB only stores X→MXN pairs; invert for MXN→X lookups
+  const inverse = data.rates[`${toCurrency}_${fromCurrency}`]
+  if (inverse != null) return Math.round((1 / inverse) * 1e6) / 1e6
+  return null
 }
 
 export async function fetchAndStoreDailyRates(targetDate?: string): Promise<{ inserted: number; error?: string }> {

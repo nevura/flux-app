@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { markNotificationsRead, respondFriendRequest, deleteNotification, clearAllNotifications } from '@/actions/friends'
 import { acceptSharedExpense, declineSharedExpense, confirmSettledExpense, rejectSettledExpense, acceptReceivableInvite, declineReceivableInvite, acceptSyncProposal, declineSyncProposal } from '@/actions/transactions'
+import { getExchangeRateForDate } from '@/actions/exchangeRates'
 import { formatCurrency } from '@/lib/utils'
 import { useBottomSheetSwipe } from '@/lib/hooks/useBottomSheetSwipe'
 import { SwipeableRow } from '@/components/shared/SwipeableRow'
@@ -93,6 +94,15 @@ export default function NotificationBell() {
   const [confirmAccountId, setConfirmAccountId] = useState('')
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [assignFriend, setAssignFriend] = useState<{ userId: string; name: string } | null>(null)
+  const [userCurrency, setUserCurrency] = useState('MXN')
+  const [crossCurrencyPending, setCrossCurrencyPending] = useState<{
+    notifId: string
+    expenseCurrency: string
+    amount: number
+    concept: string
+    convertedAmount: number | null
+  } | null>(null)
+  const [crossCurrencyLoading, setCrossCurrencyLoading] = useState(false)
 
   const [closing, setClosing] = useState(false)
   const handleClose = useCallback(() => {
@@ -147,12 +157,14 @@ export default function NotificationBell() {
     setOpen(true)
     setLoading(true)
     const supabase = createClient()
-    const [{ data: notifs }, { data: accs }] = await Promise.all([
+    const [{ data: notifs }, { data: accs }, { data: profile }] = await Promise.all([
       supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(30),
       supabase.from('accounts').select('id, name').eq('is_active', true).order('sort_order'),
+      supabase.from('profiles').select('currency').maybeSingle(),
     ])
     setList(notifs ?? [])
     setAccounts(accs ?? [])
+    setUserCurrency((profile as any)?.currency ?? 'MXN')
     setLoading(false)
     if (unread > 0) {
       setUnread(0)
@@ -169,8 +181,39 @@ export default function NotificationBell() {
   }
 
   function handleAcceptExpense(notifId: string) {
+    const notif = list.find(n => n.id === notifId)
+    const d = (notif?.data ?? {}) as Record<string, unknown>
+    const expenseCurrency = String(d.currency ?? 'MXN')
+
+    if (expenseCurrency !== userCurrency) {
+      const amount = Number(d.participant_amount ?? 0)
+      setCrossCurrencyPending({ notifId, expenseCurrency, amount, concept: String(d.concept ?? ''), convertedAmount: null })
+      setCrossCurrencyLoading(true)
+      const today = new Date().toISOString().slice(0, 10)
+      getExchangeRateForDate(expenseCurrency, userCurrency, today).then(rate => {
+        const converted = rate != null ? Math.round(amount * rate * 100) / 100 : null
+        setCrossCurrencyPending(prev => prev ? { ...prev, convertedAmount: converted } : null)
+        setCrossCurrencyLoading(false)
+      })
+      return
+    }
+
     startTransition(async () => {
       const res = await acceptSharedExpense(notifId)
+      if (res.error) { toast.error(res.error); return }
+      toast.success('Guardado en Compartidos — paga cuando puedas y regístralo allí')
+      setList(prev => prev.map(n => n.id === notifId ? { ...n, read: true } : n))
+    })
+  }
+
+  function doAccept(mode: 'original' | 'convert') {
+    if (!crossCurrencyPending) return
+    const { notifId, expenseCurrency, amount, convertedAmount } = crossCurrencyPending
+    const finalCurrency = mode === 'convert' ? userCurrency : expenseCurrency
+    const finalAmount = mode === 'convert' ? (convertedAmount ?? amount) : amount
+    setCrossCurrencyPending(null)
+    startTransition(async () => {
+      const res = await acceptSharedExpense(notifId, finalCurrency, finalAmount)
       if (res.error) { toast.error(res.error); return }
       toast.success('Guardado en Compartidos — paga cuando puedas y regístralo allí')
       setList(prev => prev.map(n => n.id === notifId ? { ...n, read: true } : n))
@@ -557,10 +600,65 @@ export default function NotificationBell() {
     document.body
   )
 
+  const crossCurrencyModal = crossCurrencyPending && mounted && createPortal(
+    <div className="fixed inset-0 z-[300] flex items-end">
+      <div className="absolute inset-0 bg-black/60" onClick={() => !isPending && setCrossCurrencyPending(null)} />
+      <div
+        className="relative w-full rounded-t-[24px] p-6 pb-10 animate-slide-up"
+        style={{ background: 'var(--f-bg-card)' }}
+      >
+        <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: 'var(--f-text-5)' }} />
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--f-transfer-bg)' }}>
+            <i className="fa-solid fa-arrow-right-arrow-left" style={{ color: 'var(--f-transfer)' }} />
+          </div>
+          <div>
+            <p className="text-[16px] font-black" style={{ color: 'var(--f-text-1)' }}>Divisa diferente</p>
+            <p className="text-[13px]" style={{ color: 'var(--f-text-4)' }}>
+              Este gasto es en <strong style={{ color: 'var(--f-text-2)' }}>{crossCurrencyPending.expenseCurrency}</strong>, pero tu cuenta usa <strong style={{ color: 'var(--f-text-2)' }}>{userCurrency}</strong>
+            </p>
+          </div>
+        </div>
+        <p className="text-[26px] font-black tabular-nums mb-5 text-center" style={{ color: 'var(--f-transfer)' }}>
+          {formatCurrency(crossCurrencyPending.amount, crossCurrencyPending.expenseCurrency)}
+        </p>
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={() => doAccept('convert')}
+            disabled={isPending || crossCurrencyLoading || crossCurrencyPending.convertedAmount === null}
+            className="w-full py-4 rounded-[16px] text-[15px] font-black text-white flex items-center justify-between px-5 disabled:opacity-50 transition-all active:scale-95"
+            style={{ background: 'var(--f-transfer)' }}
+          >
+            <span>Convertir a {userCurrency}</span>
+            <span className="tabular-nums">
+              {crossCurrencyLoading
+                ? <i className="fa-solid fa-spinner fa-spin" />
+                : crossCurrencyPending.convertedAmount != null
+                  ? formatCurrency(crossCurrencyPending.convertedAmount, userCurrency)
+                  : '—'
+              }
+            </span>
+          </button>
+          <button
+            onClick={() => doAccept('original')}
+            disabled={isPending}
+            className="w-full py-4 rounded-[16px] text-[15px] font-black flex items-center justify-between px-5 disabled:opacity-50 transition-all active:scale-95"
+            style={{ background: 'var(--f-bg-input)', color: 'var(--f-text-2)' }}
+          >
+            <span>Guardar en {crossCurrencyPending.expenseCurrency}</span>
+            <span className="tabular-nums">{formatCurrency(crossCurrencyPending.amount, crossCurrencyPending.expenseCurrency)}</span>
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  )
+
   return (
     <>
       {bellButton}
       {panel}
+      {crossCurrencyModal}
       {assignFriend && (
         <AssignFriendModal
           linkedUserId={assignFriend.userId}

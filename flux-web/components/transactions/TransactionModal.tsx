@@ -115,6 +115,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
   )
   const [fxRateSource, setFxRateSource] = useState<'historical' | 'account' | 'manual'>('account')
   const userEditedRateRef = useRef(false)
+  const userEditedCurrencyRef = useRef(false)
   const isFirstAccountMount = useRef(true)
   const [date, setDate] = useState(() => {
     if (transaction?.transaction_date) return transaction.transaction_date.slice(0, 16)
@@ -128,7 +129,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
     if (isFirstAccountMount.current) { isFirstAccountMount.current = false; return }
     const acc = accounts.find(a => a.id === accId)
     userEditedRateRef.current = false
-    setOriginalCurrency(acc?.currency ?? 'MXN')
+    if (!userEditedCurrencyRef.current) setOriginalCurrency(acc?.currency ?? 'MXN')
     setExchangeRate(String(acc?.display_exchange_rate ?? 1))
     setFxRateSource('account')
   }, [accId]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -473,6 +474,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                       value={originalCurrency}
                       onChange={e => {
                         if (e.target.value !== originalCurrency) {
+                          userEditedCurrencyRef.current = true
                           userEditedRateRef.current = false
                           setOriginalCurrency(e.target.value)
                           setFxRateSource('account')
@@ -486,7 +488,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                       ))}
                     </select>
                   ) : (
-                    <span className="absolute left-2 text-[24px] font-black" style={{ color: 'var(--f-text-3)' }}>{currencyPrefix}</span>
+                    <span className="absolute left-2 text-[16px] font-black tracking-wider" style={{ color: 'var(--f-transfer)' }}>{accountCurrency}</span>
                   )}
                   <input
                     type="text"

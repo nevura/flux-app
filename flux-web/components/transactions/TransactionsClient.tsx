@@ -475,6 +475,8 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                       </button>
                     )
                   })}
+                  <div className="sticky bottom-0 -mx-2 -mb-2 h-8 pointer-events-none rounded-b-[14px]"
+                    style={{ background: 'linear-gradient(to bottom, transparent, var(--f-bg-card))' }} />
                 </div>
               </>
             )}
@@ -501,6 +503,8 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                       </button>
                     )
                   })}
+                  <div className="sticky bottom-0 -mx-2 -mb-2 h-8 pointer-events-none rounded-b-[14px]"
+                    style={{ background: 'linear-gradient(to bottom, transparent, var(--f-bg-card))' }} />
                 </div>
               </>
             )}

@@ -1075,7 +1075,11 @@ export async function searchAllTransactions(query: string) {
 
 // Accept = acknowledge the debt only. No money movement. The actual payment
 // happens later when the recipient marks as settled from Compartidos.
-export async function acceptSharedExpense(notificationId: string) {
+export async function acceptSharedExpense(
+  notificationId: string,
+  currencyOverride?: string,
+  amountOverride?: number,
+) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autorizado' }
@@ -1085,7 +1089,7 @@ export async function acceptSharedExpense(notificationId: string) {
   if (!notif) return { error: 'Notificación no encontrada' }
 
   const d = notif.data as Record<string, unknown>
-  const participantAmount = Number(d.participant_amount)
+  const participantAmount = amountOverride ?? Number(d.participant_amount)
   const today = getMexicoNow().slice(0, 10)
   const fromUserId = String(d.from_user_id)
   const admin = createAdminClient()
@@ -1156,7 +1160,7 @@ export async function acceptSharedExpense(notificationId: string) {
     }
     const { error } = await supabase
       .from('transactions')
-      .update({ amount: participantAmount, split_data: updatedSplit, currency: String(d.currency ?? 'MXN') })
+      .update({ amount: participantAmount, split_data: updatedSplit, currency: currencyOverride ?? String(d.currency ?? 'MXN') })
       .eq('id', existingIowe.id)
       .eq('user_id', user.id)
     txError = error
@@ -1167,7 +1171,7 @@ export async function acceptSharedExpense(notificationId: string) {
       type: 'TR-GASTO',
       amount: participantAmount,
       adjustment: 0,
-      currency: String(d.currency ?? 'MXN'),
+      currency: currencyOverride ?? String(d.currency ?? 'MXN'),
       category_id: d.category_id && String(d.category_id).startsWith('CAT-DEF-') ? String(d.category_id) : null,
       account_id: null,
       transaction_date: today,
