@@ -8,6 +8,7 @@ import { addTransaction, updateTransaction, deleteTransaction, confirmTransactio
 import { addPerson } from '@/actions/config'
 import { getCategoryDisplay, getMexicoNow, formatCurrency } from '@/lib/utils'
 import { getExchangeRateForDate } from '@/actions/exchangeRates'
+import { SUPPORTED_CURRENCIES } from '@/lib/constants'
 import { useBottomSheetSwipe } from '@/lib/hooks/useBottomSheetSwipe'
 import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock'
 import type { Transaction, AccountWithBalance, Category, Person, SplitData } from '@/lib/types'
@@ -81,16 +82,29 @@ export default function TransactionModal({ transaction, accounts, categories, pe
 
   const [type, setType] = useState<TxType>(transaction?.type ?? presetType ?? 'TR-GASTO')
   const [concept, setConcept] = useState(transaction?.concept ?? '')
-  const [amount, setAmount] = useState(transaction ? String(transaction.amount) : '')
+  const [amount, setAmount] = useState(
+    transaction
+      ? transaction.original_amount != null
+        ? String(transaction.original_amount)
+        : String(transaction.amount)
+      : ''
+  )
   const [catId, setCatId] = useState(transaction?.category_id ?? '')
   const [accId, setAccId] = useState(transaction?.account_id ?? accounts[0]?.id ?? '')
   const [destId, setDestId] = useState(transaction?.destination_account_id ?? '')
   const selectedAccount = accounts.find(a => a.id === accId)
   const accountCurrency = selectedAccount?.currency ?? 'MXN'
-  const needsExchangeRate = accountCurrency !== baseCurrency
-  const currencyPrefix = ({ EUR: '€', GBP: '£', JPY: '¥', BRL: 'R$' } as Record<string, string>)[accountCurrency] ?? (accountCurrency !== 'MXN' ? accountCurrency : '$')
+  const [originalCurrency, setOriginalCurrency] = useState<string>(
+    transaction?.original_currency ?? accountCurrency
+  )
+  const isOriginalMode = originalCurrency !== accountCurrency
+  const needsExchangeRate = isOriginalMode || accountCurrency !== baseCurrency
+  const displayCurrency = isOriginalMode ? originalCurrency : accountCurrency
+  const currencyPrefix = ({ EUR: '€', GBP: '£', JPY: '¥', BRL: 'R$', KRW: '₩', INR: '₹', IDR: 'Rp', MYR: 'RM', THB: '฿', PHP: '₱', ILS: '₪', TRY: '₺' } as Record<string, string>)[displayCurrency] ?? (displayCurrency !== 'MXN' ? displayCurrency : '$')
   const [exchangeRate, setExchangeRate] = useState<string>(
-    transaction?.exchange_rate != null && transaction.exchange_rate !== 1
+    transaction?.original_amount != null && transaction.original_currency
+      ? String(Math.round((transaction.amount / transaction.original_amount) * 1e6) / 1e6)
+      : transaction?.exchange_rate != null && transaction.exchange_rate !== 1
       ? String(transaction.exchange_rate)
       : String(selectedAccount?.display_exchange_rate ?? 1)
   )
@@ -98,25 +112,28 @@ export default function TransactionModal({ transaction, accounts, categories, pe
   const userEditedRateRef = useRef(false)
   const [date, setDate] = useState(transaction?.transaction_date?.slice(0, 16) ?? getMexicoNow().slice(0, 16))
 
-  // Re-seed exchange rate when the user switches accounts
+  // Re-seed exchange rate and original currency when the user switches accounts
   useEffect(() => {
     const acc = accounts.find(a => a.id === accId)
     userEditedRateRef.current = false
+    setOriginalCurrency(acc?.currency ?? 'MXN')
     setExchangeRate(String(acc?.display_exchange_rate ?? 1))
     setFxRateSource('account')
   }, [accId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-lookup historical rate from DB when date or account currency changes
+  // Auto-lookup historical rate from DB when date, account currency, or original currency changes
   useEffect(() => {
     if (!needsExchangeRate || userEditedRateRef.current) return
     const dateStr = date.slice(0, 10)
-    getExchangeRateForDate(accountCurrency, baseCurrency, dateStr).then(rate => {
+    const fromCcy = isOriginalMode ? originalCurrency : accountCurrency
+    const toCcy   = isOriginalMode ? accountCurrency  : baseCurrency
+    getExchangeRateForDate(fromCcy, toCcy, dateStr).then(rate => {
       if (rate != null && !userEditedRateRef.current) {
         setExchangeRate(String(rate))
         setFxRateSource('historical')
       }
     })
-  }, [date, accountCurrency, baseCurrency, needsExchangeRate]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [date, accountCurrency, baseCurrency, originalCurrency, needsExchangeRate, isOriginalMode]) // eslint-disable-line react-hooks/exhaustive-deps
   type ExcludeMode = 'none' | 'all' | 'shared_only'
   const [excludeMode, setExcludeMode] = useState<ExcludeMode>(
     transaction?.exclude_mode ?? (transaction?.exclude_from_budget ? 'all' : 'none')
@@ -283,8 +300,14 @@ export default function TransactionModal({ transaction, accounts, categories, pe
     if (receivableEnabled && type === 'TR-INGRESO' && !receivablePersonId) {
       toast.error('Selecciona a quién le cobrarás'); return
     }
-    const effectiveAmount = iOweEnabled && ioweMode === 'custom' ? String(ioweCustomTotal) : amount
+    const rawAmount = iOweEnabled && ioweMode === 'custom' ? String(ioweCustomTotal) : amount
     const isReceivable = receivableEnabled && type === 'TR-INGRESO' && !!receivablePersonId
+    const rate = parseFloat(exchangeRate) || 1
+    const parsedRaw = parseFloat(rawAmount) || 0
+    // When entering in original currency: convert to account currency for storage
+    const effectiveAmount = isOriginalMode
+      ? String(Math.round(parsedRaw * rate * 100) / 100)
+      : rawAmount
     const form = {
       concept, type,
       amount: effectiveAmount,
@@ -297,7 +320,12 @@ export default function TransactionModal({ transaction, accounts, categories, pe
       split_data: isReceivable ? buildReceivableData() : iOweEnabled ? buildIoweData() : buildSplitData(),
       is_payable: iOweEnabled,
       is_receivable: isReceivable,
-      exchange_rate: needsExchangeRate ? (parseFloat(exchangeRate) || 1) : 1,
+      // exchange_rate = account→base. When original mode, rate is original→account (different!).
+      exchange_rate: isOriginalMode
+        ? (accountCurrency !== baseCurrency ? (selectedAccount?.display_exchange_rate ?? 1) : 1)
+        : needsExchangeRate ? rate : 1,
+      original_amount: isOriginalMode ? parsedRaw : undefined,
+      original_currency: isOriginalMode ? originalCurrency : undefined,
     }
     startTransition(async () => {
       const res = isEdit && transaction
@@ -410,7 +438,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
             {/* Amount — big centered display */}
             <div className="text-center">
               <p className="text-[12px] font-black tracking-[3px] uppercase mb-3" style={{ color: 'var(--f-text-4)' }}>
-                {iOweEnabled ? 'Total que debo' : 'Monto'}
+                {iOweEnabled ? 'Total que debo' : isOriginalMode ? `Monto en ${originalCurrency}` : 'Monto'}
               </p>
               {iOweEnabled && ioweMode === 'custom' ? (
                 <div className="flex items-center justify-center gap-1">
@@ -532,13 +560,54 @@ export default function TransactionModal({ transaction, accounts, categories, pe
               </select>
             </div>
 
-            {/* Exchange rate — only visible when account currency ≠ base currency */}
+            {/* Original currency selector — shown for non-transfer transactions */}
+            {type !== 'TR-TRANSFER' && (
+              <div>
+                <p className="text-[11px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>
+                  Moneda del cobro
+                  {isOriginalMode && (
+                    <span className="ml-1.5 normal-case font-semibold tracking-normal" style={{ color: 'var(--f-text-3)' }}>
+                      · convirtiendo a {accountCurrency}
+                    </span>
+                  )}
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {SUPPORTED_CURRENCIES.map(c => (
+                    <button
+                      key={c.code}
+                      type="button"
+                      onClick={() => {
+                        if (c.code !== originalCurrency) {
+                          userEditedRateRef.current = false
+                          setOriginalCurrency(c.code)
+                          setFxRateSource('account')
+                        }
+                      }}
+                      className="px-2.5 py-1 rounded-[10px] text-[12px] font-bold transition-all active:scale-[0.92]"
+                      style={originalCurrency === c.code ? {
+                        background: `color-mix(in srgb, ${cfg.rawColor} 15%, transparent)`,
+                        border: `1px solid color-mix(in srgb, ${cfg.rawColor} 40%, transparent)`,
+                        color: cfg.color,
+                      } : {
+                        background: 'var(--f-bg-input)',
+                        border: '1px solid var(--f-line)',
+                        color: 'var(--f-text-3)',
+                      }}
+                    >
+                      {c.code}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Exchange rate — visible when original currency ≠ account currency, OR account ≠ base */}
             {needsExchangeRate && (
               <div>
                 <p className="text-[11px] font-black tracking-[2px] uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>
                   Tipo de cambio
                   <span className="ml-1.5 normal-case font-semibold tracking-normal" style={{ color: 'var(--f-text-3)' }}>
-                    1 {accountCurrency} = ? {baseCurrency}
+                    1 {isOriginalMode ? originalCurrency : accountCurrency} = ? {isOriginalMode ? accountCurrency : baseCurrency}
                   </span>
                 </p>
                 <input
@@ -556,6 +625,11 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                     colorScheme: 'dark',
                   }}
                 />
+                {isOriginalMode && (parseFloat(amount) || 0) > 0 && (
+                  <p className="text-[12px] font-bold mt-1.5 px-1" style={{ color: 'var(--f-text-3)' }}>
+                    ≈ {formatCurrency(Math.round((parseFloat(amount) || 0) * (parseFloat(exchangeRate) || 1) * 100) / 100, accountCurrency)} {accountCurrency}
+                  </p>
+                )}
                 <p className="text-[11px] font-semibold mt-1 px-1" style={{ color: 'var(--f-text-4)' }}>
                   {fxRateSource === 'historical'
                     ? `Tasa BCE del ${date.slice(0, 10)} · edita si es necesario`

@@ -562,8 +562,17 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                           </div>
                           <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
                             <p className="text-[16px] font-black tabular-nums" style={{ color: amtColor }}>
-                              {isIncome ? '+' : isExpense ? '-' : ''}{formatCurrency(Number(tx.amount), tx.currency ?? 'MXN')}
+                              {isIncome ? '+' : isExpense ? '-' : ''}
+                              {tx.original_amount != null && tx.original_currency
+                                ? <>{formatCurrency(Number(tx.original_amount), tx.original_currency)} <span className="text-[10px] font-bold opacity-40">{tx.original_currency}</span></>
+                                : <>{formatCurrency(Number(tx.amount), tx.currency ?? 'MXN')} <span className="text-[10px] font-bold opacity-40">{tx.currency ?? 'MXN'}</span></>
+                              }
                             </p>
+                            {tx.original_amount != null && tx.original_currency && (
+                              <span className="text-[11px] font-semibold" style={{ color: 'var(--f-text-4)' }}>
+                                ≈ {formatCurrency(Number(tx.amount), tx.currency ?? 'MXN')} {tx.currency ?? 'MXN'}
+                              </span>
+                            )}
                             {!isTxPending && (tx.is_receivable || tx.is_payable) && (
                               <span className="text-[11px] font-black mt-0.5 inline-block px-1.5 py-0.5 rounded-full" style={{ background: 'var(--f-pending-bg)', color: 'var(--f-pending)' }}>
                                 {tx.is_receivable ? 'Por cobrar' : 'Por pagar'}

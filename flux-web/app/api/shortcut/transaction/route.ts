@@ -175,6 +175,8 @@ export async function POST(req: NextRequest) {
       is_validated: false,
       notes: body.notes ?? null,
       source: txSource,
+      original_currency: body.original_currency ? String(body.original_currency) : null,
+      original_amount: body.original_currency ? amount : null,
     })
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   }

@@ -267,17 +267,25 @@ export async function chargeScheduled(id: string, skip: boolean) {
 
   if (!skip) {
     const amount = Number(sched.amount)
+    // Fetch account currency at charge time (same pattern as addTransaction)
+    const { data: acct } = await supabase
+      .from('accounts').select('currency, display_exchange_rate')
+      .eq('id', sched.account_id).eq('user_id', user.id).maybeSingle()
+    const currency = acct?.currency ?? 'MXN'
+    const exchange_rate = acct?.display_exchange_rate ?? 1
     const { error: txErr } = await supabase.from('transactions').insert({
       user_id: user.id,
       concept: sched.name,
       type: sched.type,
       amount,
       adjustment: sched.type === 'TR-TRANSFER' ? -amount : adjustmentFor(sched.type, amount),
+      currency,
+      exchange_rate,
       category_id: sched.category_id ?? null,
       account_id: sched.account_id,
       destination_account_id: sched.destination_account_id ?? null,
       transaction_date: today,
-      is_validated: true, // user explicitly advanced — no need to confirm twice
+      is_validated: true,
       scheduled_id: id,
     })
     if (txErr) return { error: txErr.message }

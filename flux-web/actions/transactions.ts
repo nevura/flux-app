@@ -165,6 +165,8 @@ export async function addTransaction(form: TransactionForm): Promise<{ error: st
       exclude_mode: form.exclude_mode ?? 'none',
       notes: form.notes || null,
       is_payable: isPayable,
+      original_amount: form.original_amount ?? null,
+      original_currency: form.original_currency ?? null,
     }).select('id').single()
     // Keep display_exchange_rate on the account up to date
     if (newTx && exchangeRate !== (accountRow?.display_exchange_rate ?? 1)) {
@@ -204,6 +206,7 @@ export async function addTransaction(form: TransactionForm): Promise<{ error: st
                 participant_person_id: lp.id,
                 category_id: form.category_id || null,
                 is_receivable: isReceivable,
+                currency: accountCurrency,
               },
             })
             // Send invite email to each linked participant
@@ -259,6 +262,11 @@ export async function updateTransaction(id: string, form: TransactionForm) {
     return addTransaction(form)
   }
 
+  // Fetch account currency for notification data
+  const { data: accountRow } = await supabase
+    .from('accounts').select('currency').eq('id', form.account_id).eq('user_id', user.id).maybeSingle()
+  const accountCurrency = accountRow?.currency ?? 'MXN'
+
   // Fetch existing split_data to compare which participants are new
   const { data: existingTx } = await supabase
     .from('transactions').select('split_data').eq('id', id).eq('user_id', user.id).single()
@@ -279,6 +287,8 @@ export async function updateTransaction(id: string, form: TransactionForm) {
     is_receivable: isReceivable,
   }
   if (form.exchange_rate !== undefined) updatePayload.exchange_rate = form.exchange_rate
+  if (form.original_amount !== undefined) updatePayload.original_amount = form.original_amount ?? null
+  if (form.original_currency !== undefined) updatePayload.original_currency = form.original_currency ?? null
   const { error } = await supabase
     .from('transactions')
     .update(updatePayload)
@@ -339,6 +349,7 @@ export async function updateTransaction(id: string, form: TransactionForm) {
             participant_person_id: lp.id,
             category_id: form.category_id || null,
             is_receivable: isReceivable,
+            currency: accountCurrency,
           }
 
           if (isNew) {
@@ -1143,7 +1154,7 @@ export async function acceptSharedExpense(notificationId: string) {
     }
     const { error } = await supabase
       .from('transactions')
-      .update({ amount: participantAmount, split_data: updatedSplit })
+      .update({ amount: participantAmount, split_data: updatedSplit, currency: String(d.currency ?? 'MXN') })
       .eq('id', existingIowe.id)
       .eq('user_id', user.id)
     txError = error
@@ -1154,6 +1165,7 @@ export async function acceptSharedExpense(notificationId: string) {
       type: 'TR-GASTO',
       amount: participantAmount,
       adjustment: 0,
+      currency: String(d.currency ?? 'MXN'),
       category_id: d.category_id && String(d.category_id).startsWith('CAT-DEF-') ? String(d.category_id) : null,
       account_id: null,
       transaction_date: today,

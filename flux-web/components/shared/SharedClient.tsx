@@ -7,9 +7,9 @@ import { toast } from 'sonner'
 import { formatCurrency, formatDateShort } from '@/lib/utils'
 import { useCountUp } from '@/lib/hooks'
 
-function AnimatedCurrency({ value, currency }: { value: number; currency?: string }) {
+function AnimatedCurrency({ value, currency = 'MXN' }: { value: number; currency?: string }) {
   const animated = useCountUp(value)
-  return <>{formatCurrency(animated, currency)}</>
+  return <>{formatCurrency(animated, currency)} <span className="text-[10px] font-bold opacity-40 ml-0.5">{currency}</span></>
 }
 import { settleParticipant, partialSettle, settleAndRecord, settleAllForPerson, abonoGlobalForPerson, collectReceivable, proposeSyncTransaction } from '@/actions/transactions'
 import { linkPersonToUser } from '@/actions/friends'
@@ -602,7 +602,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                                 <div className="flex items-center gap-2 flex-shrink-0">
                                   <p className="text-[17px] font-black tabular-nums"
                                     style={{ color: isTheyOwe ? 'var(--f-income)' : 'var(--f-expense)' }}>
-                                    {isTheyOwe ? '+' : '-'}{formatCurrency(unpaid, tx.currency ?? 'MXN')}
+                                    {isTheyOwe ? '+' : '-'}{formatCurrency(unpaid, tx.currency ?? 'MXN')} <span className="text-[10px] font-bold opacity-40">{tx.currency ?? 'MXN'}</span>
                                   </p>
                                   {isCollectingThis
                                     ? <i className="fa-solid fa-spinner fa-spin text-[12px]" style={{ color: 'var(--f-text-4)' }} />

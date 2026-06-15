@@ -578,7 +578,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
             <AccountsTab accounts={accounts} isPending={isPending} startTransition={startTransition} />
           )}
           {section === 'planificados' && (
-            <ScheduledTab scheduled={scheduled} categories={categories} accounts={accounts} people={people} />
+            <ScheduledTab scheduled={scheduled} categories={categories} accounts={accounts} people={people} baseCurrency={profile?.currency ?? 'MXN'} />
           )}
           {section === 'personas' && (
             <PeopleTab people={people} isPending={isPending} startTransition={startTransition} />
@@ -1255,11 +1255,12 @@ const TYPE_CONFIG = {
   'TR-TRANSFER': { label: 'Transferencia', color: '#64D2FF', icon: 'fa-solid fa-shuffle' },
 }
 
-function ScheduledTab({ scheduled, categories, accounts, people }: {
+function ScheduledTab({ scheduled, categories, accounts, people, baseCurrency = 'MXN' }: {
   scheduled: ScheduledTransaction[]
   categories: Category[]
   accounts: Account[]
   people: Person[]
+  baseCurrency?: string
 }) {
   const [editing, setEditing] = useState<SchedForm | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
@@ -1441,7 +1442,7 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
             <p className="text-[14px] font-bold" style={{ color: 'var(--f-text-2)' }}>Gastos recurrentes / mes</p>
           </div>
           <p className="text-[17px] font-black tabular-nums" style={{ color: 'var(--f-expense)' }}>
-            −{formatCurrency(monthlyExpenses)}
+            −{formatCurrency(monthlyExpenses, baseCurrency)} <span className="text-[10px] font-bold opacity-40">{baseCurrency}</span>
           </p>
         </div>
       )}
@@ -1462,7 +1463,7 @@ function ScheduledTab({ scheduled, categories, accounts, people }: {
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold truncate" style={{ color: 'var(--f-text)' }}>{s.name}</p>
               <p className="text-xs" style={{ color: 'var(--f-text-3)' }}>
-                Cada {s.frequency_num} {s.frequency_unit} · {formatCurrency(Number(s.amount), accounts.find(a => a.id === s.account_id)?.currency ?? 'MXN')}
+                Cada {s.frequency_num} {s.frequency_unit} · {formatCurrency(Number(s.amount), accounts.find(a => a.id === s.account_id)?.currency ?? 'MXN')} {accounts.find(a => a.id === s.account_id)?.currency ?? 'MXN'}
               </p>
             </div>
             <button onClick={() => openEdit(s)} className="px-1" style={{ color: 'var(--f-text-3)' }}>

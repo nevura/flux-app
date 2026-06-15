@@ -7,9 +7,9 @@ import { MONTHS_ES } from '@/lib/constants'
 import type { Transaction, Category } from '@/lib/types'
 import { useCountUp, useAnimatedWidth } from '@/lib/hooks'
 
-function AnimatedCurrency({ value, currency }: { value: number; currency?: string }) {
+function AnimatedCurrency({ value, currency = 'MXN' }: { value: number; currency?: string }) {
   const animated = useCountUp(value)
-  return <>{formatCurrency(animated, currency)}</>
+  return <>{formatCurrency(animated, currency)} <span className="text-[10px] font-bold opacity-40 ml-0.5">{currency}</span></>
 }
 
 function AnimatedBar({ pct, color }: { pct: number; color: string }) {
@@ -106,13 +106,13 @@ function DonutChart({ slices, currency }: { slices: Array<{ label: string; value
           {active ? (
             <>
               <p className="text-[13px] font-black text-center px-4 leading-tight" style={{ color: active.color }}>{active.label}</p>
-              <p className="text-[22px] font-black tabular-nums mt-0.5" style={{ color: 'var(--f-text)' }}>{formatCurrency(active.value, currency)}</p>
+              <p className="text-[22px] font-black tabular-nums mt-0.5" style={{ color: 'var(--f-text)' }}>{formatCurrency(active.value, currency)} <span className="text-[11px] font-bold opacity-40">{currency}</span></p>
               <p className="text-[13px] font-black" style={{ color: 'var(--f-text-3)' }}>{active.pct.toFixed(1)}%</p>
             </>
           ) : (
             <>
               <p className="text-[12px] font-black tracking-[2px] uppercase" style={{ color: 'var(--f-text-3)' }}>Total</p>
-              <p className="text-[22px] font-black tabular-nums" style={{ color: 'var(--f-text)' }}>{formatCurrency(total, currency)}</p>
+              <p className="text-[22px] font-black tabular-nums" style={{ color: 'var(--f-text)' }}>{formatCurrency(total, currency)} <span className="text-[11px] font-bold opacity-40">{currency}</span></p>
             </>
           )}
         </div>
@@ -395,7 +395,7 @@ export default function InsightsClient({ transactions, categories, monthlySummar
                           <div className="flex justify-between items-baseline">
                             <span className="text-[17px] font-bold truncate" style={{ color: 'var(--f-text)' }}>{d.name}</span>
                             <span className="text-[17px] font-black tabular-nums ml-3 flex-shrink-0" style={{ color: 'var(--f-text)' }}>
-                              {formatCurrency(item.value, baseCurrency)}
+                              {formatCurrency(item.value, baseCurrency)} <span className="text-[10px] font-bold opacity-40">{baseCurrency}</span>
                             </span>
                           </div>
                           <div className="flex items-center gap-2 mt-1.5">

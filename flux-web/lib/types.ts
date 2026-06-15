@@ -161,6 +161,8 @@ export interface Transaction {
   is_receivable: boolean
   is_payable: boolean
   notes: string | null
+  original_amount: number | null
+  original_currency: string | null
   created_at: string
   updated_at: string
 }
@@ -230,6 +232,8 @@ export interface TransactionForm {
   is_payable?: boolean
   is_receivable?: boolean
   exchange_rate?: number
+  original_amount?: number
+  original_currency?: string
 }
 
 // ── UI / Computed types ────────────────────────────────────────────────────────
@@ -276,4 +280,5 @@ export interface ShortcutPayload {
   // Identifies which shortcut made the call: 'apple_pay' | 'quick_register'
   // Add this field to both iCloud shortcuts so usage can be tracked separately.
   source?: string
+  original_currency?: string
 }

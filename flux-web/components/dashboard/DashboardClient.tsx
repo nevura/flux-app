@@ -18,9 +18,9 @@ import { createClient } from '@/lib/supabase/client'
 // Days from the earliest loaded date before we start fetching the previous batch
 const LAZY_THRESHOLD_DAYS = 14
 
-function AnimatedCurrency({ value, currency, duration }: { value: number; currency?: string; duration?: number }) {
+function AnimatedCurrency({ value, currency = 'MXN', duration }: { value: number; currency?: string; duration?: number }) {
   const animated = useCountUp(value, duration)
-  return <>{formatCurrency(animated, currency)}</>
+  return <>{formatCurrency(animated, currency)} <span className="text-[10px] font-bold opacity-40 ml-0.5">{currency}</span></>
 }
 
 function AnimatedBar({ pct, color }: { pct: number; color: string }) {
@@ -363,7 +363,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
           </p>
           <p className="text-[48px] font-black text-white leading-none tracking-tight tabular-nums">
             {isMultiCurrency && <span className="text-[28px] mr-1" style={{ color: 'rgba(255,255,255,0.55)' }}>≈</span>}
-            <AnimatedCurrency value={totalBalance} />
+            <AnimatedCurrency value={totalBalance} currency={baseCurrency} />
           </p>
         </div>
 
@@ -436,12 +436,12 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
           ) : budgetAmount > 0 ? (
             <>
               <p className="text-[28px] font-black tabular-nums leading-none mb-1" style={{ color: 'var(--f-text)' }}>
-                <AnimatedCurrency value={monthExpenses} />
+                <AnimatedCurrency value={monthExpenses} currency={baseCurrency} />
               </p>
               <p className="text-[13px] font-semibold mb-2 tabular-nums" style={{ color: 'var(--f-text-3)' }}>
-                de {formatCurrency(budgetAmount, baseCurrency)}&nbsp;&nbsp;·&nbsp;&nbsp;
+                de {formatCurrency(budgetAmount, baseCurrency)} <span className="text-[10px] font-bold opacity-40">{baseCurrency}</span>&nbsp;&nbsp;·&nbsp;&nbsp;
                 <span style={{ color: budgetOver ? 'var(--f-expense)' : budgetLeft < budgetAmount * 0.20 ? 'var(--f-credit)' : 'var(--f-income)' }}>
-                  {budgetOver ? `excedido ${formatCurrency(Math.abs(budgetLeft), baseCurrency)}` : `te quedan ${formatCurrency(budgetLeft, baseCurrency)}`}
+                  {budgetOver ? <>excedido {formatCurrency(Math.abs(budgetLeft), baseCurrency)} <span className="text-[10px] font-bold opacity-40">{baseCurrency}</span></> : <>te quedan {formatCurrency(budgetLeft, baseCurrency)} <span className="text-[10px] font-bold opacity-40">{baseCurrency}</span></>}
                 </span>
               </p>
               <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--f-bg-input)' }}>
@@ -489,7 +489,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
                 <i className="fa-solid fa-chevron-left text-xs" style={{ color: 'var(--f-text)' }} />
               </button>
               <p className="text-[38px] font-black leading-none tabular-nums flex-1 text-center" style={{ color: 'var(--f-text)' }}>
-                <AnimatedCurrency value={spendView === 'daily' ? dailySpend : weeklySpend} duration={100} />
+                <AnimatedCurrency value={spendView === 'daily' ? dailySpend : weeklySpend} currency={baseCurrency} duration={100} />
               </p>
               <button
                 onClick={() => spendView === 'daily' ? setDayOffset(o => o + 1) : setWeekOffset(o => o + 1)}
@@ -548,14 +548,17 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
           const monthOccurrences = (s: ScheduledTransaction) =>
             (isPaidThisMonth(s) ? 1 : 0) + (isPendingThisMonth(s) ? 1 : 0)
 
+          const toBase = (s: ScheduledTransaction) =>
+            accounts.find(a => a.id === s.account_id)?.display_exchange_rate ?? 1
+
           const activeExpenses = scheduled.filter(s => s.status === 'ACTIVO' && s.type === 'TR-GASTO' && isThisMonthItem(s))
-          const totalExpenses = activeExpenses.reduce((sum, s) => sum + Number(s.amount) * monthOccurrences(s), 0)
-          const paidExpenses = activeExpenses.filter(isPaidThisMonth).reduce((sum, s) => sum + Number(s.amount), 0)
+          const totalExpenses = activeExpenses.reduce((sum, s) => sum + Number(s.amount) * monthOccurrences(s) * toBase(s), 0)
+          const paidExpenses = activeExpenses.filter(isPaidThisMonth).reduce((sum, s) => sum + Number(s.amount) * toBase(s), 0)
           const expensePct = totalExpenses > 0 ? Math.min((paidExpenses / totalExpenses) * 100, 100) : 0
 
           const activeIncomes = scheduled.filter(s => s.status === 'ACTIVO' && s.type === 'TR-INGRESO' && isThisMonthItem(s))
-          const totalIncomes = activeIncomes.reduce((sum, s) => sum + Number(s.amount) * monthOccurrences(s), 0)
-          const receivedIncomes = activeIncomes.filter(isPaidThisMonth).reduce((sum, s) => sum + Number(s.amount), 0)
+          const totalIncomes = activeIncomes.reduce((sum, s) => sum + Number(s.amount) * monthOccurrences(s) * toBase(s), 0)
+          const receivedIncomes = activeIncomes.filter(isPaidThisMonth).reduce((sum, s) => sum + Number(s.amount) * toBase(s), 0)
           const incomePct = totalIncomes > 0 ? Math.min((receivedIncomes / totalIncomes) * 100, 100) : 0
 
           const upcomingList = scheduled
@@ -580,7 +583,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
                       <div className="flex items-center justify-between mb-1.5">
                         <p className="text-[11px] font-black tracking-[2px] uppercase" style={{ color: 'var(--f-income)' }}>Ingresos</p>
                         <p className="text-[11px] font-bold tabular-nums" style={{ color: 'var(--f-text-3)' }}>
-                          {formatCurrency(receivedIncomes, baseCurrency)} / {formatCurrency(totalIncomes, baseCurrency)}
+                          {formatCurrency(receivedIncomes, baseCurrency)} / {formatCurrency(totalIncomes, baseCurrency)} <span className="text-[9px] font-bold opacity-40">{baseCurrency}</span>
                         </p>
                       </div>
                       <div className="h-[6px] rounded-full overflow-hidden" style={{ background: 'var(--f-bg-input)' }}>
@@ -593,7 +596,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
                       <div className="flex items-center justify-between mb-1.5">
                         <p className="text-[11px] font-black tracking-[2px] uppercase" style={{ color: 'var(--f-expense)' }}>Gastos</p>
                         <p className="text-[11px] font-bold tabular-nums" style={{ color: 'var(--f-text-3)' }}>
-                          {formatCurrency(paidExpenses, baseCurrency)} / {formatCurrency(totalExpenses, baseCurrency)}
+                          {formatCurrency(paidExpenses, baseCurrency)} / {formatCurrency(totalExpenses, baseCurrency)} <span className="text-[9px] font-bold opacity-40">{baseCurrency}</span>
                         </p>
                       </div>
                       <div className="h-[6px] rounded-full overflow-hidden" style={{ background: 'var(--f-bg-input)' }}>
@@ -637,7 +640,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <p className="text-[15px] font-black tabular-nums" style={{ color: amtColor }}>
-                          {isIncome ? '+' : isExpense ? '−' : ''}{formatCurrency(Number(s.amount), accounts.find(a => a.id === s.account_id)?.currency ?? baseCurrency)}
+                          {isIncome ? '+' : isExpense ? '−' : ''}{formatCurrency(Number(s.amount), accounts.find(a => a.id === s.account_id)?.currency ?? baseCurrency)} <span className="text-[9px] font-bold opacity-40">{accounts.find(a => a.id === s.account_id)?.currency ?? baseCurrency}</span>
                         </p>
                         <i className="fa-solid fa-chevron-right text-[11px]" style={{ color: 'var(--f-text-4)' }} />
                       </div>
@@ -697,7 +700,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
                   </p>
                   {(acc.currency ?? 'MXN') !== baseCurrency && (
                     <p className="text-[10px] font-bold mt-1 tabular-nums" style={{ color: acc.balance < 0 ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.5)' }}>
-                      ≈ {formatCurrency(acc.balance * (acc.display_exchange_rate ?? 1), baseCurrency)}
+                      ≈ {formatCurrency(acc.balance * (acc.display_exchange_rate ?? 1), baseCurrency)} {baseCurrency}
                     </p>
                   )}
                 </div>
