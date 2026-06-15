@@ -393,7 +393,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
             {isMultiCurrency ? `Saldo en ${baseCurrency}` : 'Saldo actual'}
           </p>
           <p className="text-[48px] font-black text-white leading-none tracking-tight tabular-nums">
-            {isMultiCurrency && <span className="text-[28px] mr-1" style={{ color: 'rgba(255,255,255,0.55)' }}>≈</span>}
+
             <AnimatedCurrency value={totalBalance} currency={baseCurrency} />
           </p>
         </div>
