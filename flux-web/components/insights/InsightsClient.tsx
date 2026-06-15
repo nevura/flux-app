@@ -87,12 +87,12 @@ function donutPath(cx: number, cy: number, R: number, r: number, start: number, 
   return `M ${s1.x} ${s1.y} A ${R} ${R} 0 ${large} 1 ${e1.x} ${e1.y} L ${s2.x} ${s2.y} A ${r} ${r} 0 ${large} 0 ${e2.x} ${e2.y} Z`
 }
 
-function DonutChart({ slices, currency }: { slices: Array<{ label: string; value: number; color: string; pct: number }>; currency: string }) {
+function DonutChart({ slices, currency, exiting }: { slices: Array<{ label: string; value: number; color: string; pct: number }>; currency: string; exiting?: boolean }) {
   const [hovered, setHovered] = useState<number | null>(null)
   const total = slices.reduce((s, d) => s + d.value, 0)
   if (total === 0) return null
 
-  const cx = 100, cy = 100, R = 85, r = 55
+  const cx = 100, cy = 100, R = 85, r = 62
   const GAP = 0.015
   let angle = -Math.PI / 2
 
@@ -109,8 +109,11 @@ function DonutChart({ slices, currency }: { slices: Array<{ label: string; value
   return (
     <div className="flex flex-col items-center">
       <div className="relative w-[240px] h-[240px]">
-        <svg viewBox="0 0 200 200" className="w-full h-full">
-          <g style={{ transformOrigin: '100px 100px', animation: 'donut-enter 0.8s cubic-bezier(0.16,1,0.3,1) both' }}>
+        <svg
+          viewBox="0 0 200 200"
+          className={`w-full h-full donut-anim ${exiting ? 'donut-draw-out' : 'donut-draw-in'}`}
+        >
+          <g>
             {paths.map(p => (
               <path
                 key={p.i}
@@ -126,19 +129,22 @@ function DonutChart({ slices, currency }: { slices: Array<{ label: string; value
             ))}
           </g>
         </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          {active ? (
-            <>
-              <p className="text-[13px] font-black text-center px-4 leading-tight" style={{ color: active.color }}>{active.label}</p>
-              <p className="text-[22px] font-black tabular-nums mt-0.5" style={{ color: 'var(--f-text)' }}>{formatCurrency(active.value, currency)} <span className="text-[11px] font-bold opacity-40">{currency}</span></p>
-              <p className="text-[13px] font-black" style={{ color: 'var(--f-text-3)' }}>{active.pct.toFixed(1)}%</p>
-            </>
-          ) : (
-            <>
-              <p className="text-[12px] font-black tracking-[2px] uppercase" style={{ color: 'var(--f-text-3)' }}>Total</p>
-              <p className="text-[22px] font-black tabular-nums" style={{ color: 'var(--f-text)' }}>{formatCurrency(total, currency)} <span className="text-[11px] font-bold opacity-40">{currency}</span></p>
-            </>
-          )}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="flex flex-col items-center gap-0.5" style={{ width: '120px' }}>
+            {active ? (
+              <>
+                <p className="text-[12px] font-black text-center leading-tight w-full" style={{ color: active.color }}>{active.label}</p>
+                <p className="text-[17px] font-black tabular-nums text-center w-full" style={{ color: 'var(--f-text)' }}>{formatCurrency(active.value, currency)}</p>
+                <p className="text-[11px] font-black text-center" style={{ color: 'var(--f-text-3)' }}>{currency} · {active.pct.toFixed(1)}%</p>
+              </>
+            ) : (
+              <>
+                <p className="text-[11px] font-black tracking-[2px] uppercase text-center" style={{ color: 'var(--f-text-3)' }}>Total</p>
+                <p className="text-[17px] font-black tabular-nums text-center w-full" style={{ color: 'var(--f-text)' }}>{formatCurrency(total, currency)}</p>
+                <p className="text-[10px] font-bold opacity-40 text-center" style={{ color: 'var(--f-text)' }}>{currency}</p>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -278,10 +284,7 @@ export default function InsightsClient({ transactions, categories, monthlySummar
               style={{ color: 'var(--f-text)' }}
             >
               {MONTHS_ES[displayMonth - 1]} {displayYear}
-              {isDataStale
-                ? <i className="fa-solid fa-spinner fa-spin text-[13px]" style={{ color: 'var(--f-blue)' }} />
-                : <i className="fa-solid fa-chevron-down text-[12px]" style={{ color: 'var(--f-text-3)' }} />
-              }
+              <i className="fa-solid fa-chevron-down text-[12px]" style={{ color: 'var(--f-text-3)' }} />
             </button>
             {!isCurrentMonth && (
               <button onClick={() => router.push('/insights')} className="text-[15px] font-black tracking-[1.2px] block" style={{ color: 'var(--f-blue)' }}>
@@ -379,8 +382,8 @@ export default function InsightsClient({ transactions, categories, monthlySummar
         className="flex overflow-x-auto"
         style={{
           scrollSnapType: 'x mandatory', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch',
-          opacity: isDataStale ? 0 : 1,
-          transition: isDataStale ? 'opacity 0.08s ease-in' : 'opacity 0.25s ease-out',
+          opacity: isDataStale ? 0.4 : 1,
+          transition: 'opacity 0.2s ease',
           pointerEvents: isDataStale ? 'none' as const : undefined,
         }}
         onScroll={handleScroll}
@@ -396,7 +399,7 @@ export default function InsightsClient({ transactions, categories, monthlySummar
               <p className="text-[12px] font-black tracking-[3px] uppercase mb-4 text-center" style={{ color: 'var(--f-text-3)' }}>
                 Gastos por categoría
               </p>
-              <DonutChart slices={chartSlices} currency={baseCurrency} />
+              <DonutChart slices={chartSlices} currency={baseCurrency} exiting={isDataStale} />
             </div>
           ) : (
             <div className="rounded-[20px] p-10 text-center" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)' }}>
