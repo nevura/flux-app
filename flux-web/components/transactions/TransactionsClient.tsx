@@ -153,13 +153,23 @@ export default function TransactionsClient({ initialTransactions, categories, ac
 
   const totals = useMemo(() => {
     let income = 0, expenses = 0
+    const singleAccId = filterAccounts.length === 1 ? filterAccounts[0] : null
+    const displayCurrency = singleAccId ? (accMap[singleAccId]?.currency ?? baseCurrency) : baseCurrency
     for (const t of filtered) {
-      const rate = t.exchange_rate ?? 1
-      if (t.type === 'TR-INGRESO') income += Number(t.amount) * rate
-      else if (t.type === 'TR-GASTO') expenses += Number(t.amount) * rate
+      if (singleAccId) {
+        // Amounts are already in the account's native currency — no rate conversion needed
+        const isDestView = t.type === 'TR-TRANSFER' && t.destination_account_id === singleAccId
+        if (isDestView) income += Number(t.destination_amount ?? t.amount)
+        else if (t.type === 'TR-INGRESO') income += Number(t.amount)
+        else if (t.type === 'TR-GASTO') expenses += Number(t.amount)
+      } else {
+        const rate = t.exchange_rate ?? 1
+        if (t.type === 'TR-INGRESO') income += Number(t.amount) * rate
+        else if (t.type === 'TR-GASTO') expenses += Number(t.amount) * rate
+      }
     }
-    return { income, expenses }
-  }, [filtered])
+    return { income, expenses, displayCurrency }
+  }, [filtered, filterAccounts, accMap, baseCurrency])
 
   function openEdit(tx: Transaction) { setEditing(tx); setModalOpen(true) }
 
@@ -298,11 +308,11 @@ export default function TransactionsClient({ initialTransactions, categories, ac
         <div className="flex gap-2 mb-4">
           <div className="flex-1 rounded-2xl p-3 text-center" style={{ background: 'var(--f-income-bg)', border: '1px solid var(--f-income-border)' }}>
             <p className="text-[11px] font-black tracking-[2px] uppercase mb-0.5" style={{ color: 'var(--f-income)', opacity: 0.7 }}>Ingresos</p>
-            <p className="text-[18px] font-black tabular-nums" style={{ color: 'var(--f-income)' }}>+<AnimatedCurrency value={totals.income} currency={baseCurrency} /></p>
+            <p className="text-[18px] font-black tabular-nums" style={{ color: 'var(--f-income)' }}>+<AnimatedCurrency value={totals.income} currency={totals.displayCurrency} /></p>
           </div>
           <div className="flex-1 rounded-2xl p-3 text-center" style={{ background: 'var(--f-expense-bg)', border: '1px solid var(--f-expense-border)' }}>
             <p className="text-[11px] font-black tracking-[2px] uppercase mb-0.5" style={{ color: 'var(--f-expense)', opacity: 0.7 }}>Gastos</p>
-            <p className="text-[18px] font-black tabular-nums" style={{ color: 'var(--f-expense)' }}>-<AnimatedCurrency value={totals.expenses} currency={baseCurrency} /></p>
+            <p className="text-[18px] font-black tabular-nums" style={{ color: 'var(--f-expense)' }}>-<AnimatedCurrency value={totals.expenses} currency={totals.displayCurrency} /></p>
           </div>
         </div>
 
