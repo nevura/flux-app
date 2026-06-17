@@ -129,9 +129,13 @@ export default function TransactionModal({ transaction, accounts, categories, pe
     if (isFirstAccountMount.current) { isFirstAccountMount.current = false; return }
     const acc = accounts.find(a => a.id === accId)
     userEditedRateRef.current = false
-    if (!userEditedCurrencyRef.current) setOriginalCurrency(acc?.currency ?? 'MXN')
-    setExchangeRate(String(acc?.display_exchange_rate ?? 1))
-    setFxRateSource('account')
+    if (!userEditedCurrencyRef.current) {
+      setOriginalCurrency(acc?.currency ?? 'MXN')
+      setExchangeRate(String(acc?.display_exchange_rate ?? 1))
+      setFxRateSource('account')
+    }
+    // If user already set a custom currency, the auto-lookup useEffect will
+    // re-fetch the correct originalCurrency → new accountCurrency rate.
   }, [accId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-lookup historical rate from DB when date, account currency, or original currency changes
