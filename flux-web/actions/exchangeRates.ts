@@ -3,21 +3,25 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 
-const FRANKFURTER_BASE = 'https://api.frankfurter.dev/v1'
+// Frankfurter v2 — 165 currencies including all LATAM (ARS, COP, CLP, PEN, UYU…)
+// v2 docs: https://frankfurter.dev
+const FRANKFURTER_BASE = 'https://api.frankfurter.dev/v2'
 
-// All ECB/Frankfurter currencies → MXN (29 pairs, one row per day in JSONB)
-const PAIRS: [string, string][] = [
-  ['AUD', 'MXN'], ['BRL', 'MXN'], ['CAD', 'MXN'], ['CHF', 'MXN'],
-  ['CNY', 'MXN'], ['CZK', 'MXN'], ['DKK', 'MXN'], ['EUR', 'MXN'],
-  ['GBP', 'MXN'], ['HKD', 'MXN'], ['HUF', 'MXN'], ['IDR', 'MXN'],
-  ['ILS', 'MXN'], ['INR', 'MXN'], ['ISK', 'MXN'], ['JPY', 'MXN'],
-  ['KRW', 'MXN'], ['MYR', 'MXN'], ['NOK', 'MXN'], ['NZD', 'MXN'],
-  ['PHP', 'MXN'], ['PLN', 'MXN'], ['RON', 'MXN'], ['SEK', 'MXN'],
-  ['SGD', 'MXN'], ['THB', 'MXN'], ['TRY', 'MXN'], ['USD', 'MXN'],
-  ['ZAR', 'MXN'],
-]
+// Schema: exchange_rates(date PK, rates JSONB { "USD_MXN": 17.22, "ARS_MXN": 0.012, … })
+// All pairs stored as X_MXN (how many MXN buys 1 unit of X).
+// Inverse lookup (e.g. MXN→USD) is handled in getExchangeRateForDate.
 
-// Schema: exchange_rates(date PK, rates JSONB { "EUR_MXN": 21.5, "USD_MXN": 17.2, ... })
+type RateEntry = { date: string; base: string; quote: string; rate: number }
+
+/** Convert v2 /rates?base=MXN response into the X_MXN JSONB map we store. */
+function buildRateMap(entries: RateEntry[]): Record<string, number> {
+  const rates: Record<string, number> = {}
+  for (const e of entries) {
+    // e.rate = "1 MXN buys N quote", so quote_MXN = 1 / e.rate
+    if (e.rate > 0) rates[`${e.quote}_MXN`] = Math.round((1 / e.rate) * 1e6) / 1e6
+  }
+  return rates
+}
 
 export async function getExchangeRateForDate(
   fromCurrency: string,
@@ -44,36 +48,45 @@ export async function getExchangeRateForDate(
   return null
 }
 
+/**
+ * Fetch all 164+ currency pairs vs MXN for a single date and upsert into exchange_rates.
+ * v2 returns everything in one request (vs. 29+ separate calls with v1).
+ */
 export async function fetchAndStoreDailyRates(targetDate?: string): Promise<{ inserted: number; error?: string }> {
   const dateStr = targetDate ?? new Date(Date.now() - 86400000).toISOString().slice(0, 10)
 
-  const rates: Record<string, number> = {}
-
-  for (const [from, to] of PAIRS) {
-    try {
-      const res = await fetch(`${FRANKFURTER_BASE}/${dateStr}?from=${from}&to=${to}`, {
-        headers: { Accept: 'application/json' },
-        next: { revalidate: 0 },
-      })
-      if (!res.ok) continue
-      const json = await res.json() as { rates?: Record<string, number> }
-      const rate = json.rates?.[to]
-      if (rate != null) rates[`${from}_${to}`] = rate
-    } catch {
-      // skip on network error
-    }
+  let json: RateEntry[]
+  try {
+    const res = await fetch(`${FRANKFURTER_BASE}/rates?base=MXN&date=${dateStr}`, {
+      headers: { Accept: 'application/json' },
+      next: { revalidate: 0 },
+    })
+    if (!res.ok) return { inserted: 0 }
+    json = await res.json()
+  } catch {
+    return { inserted: 0, error: 'Network error' }
   }
 
+  if (!Array.isArray(json) || json.length === 0) return { inserted: 0 }
+
+  const rates = buildRateMap(json)
   if (Object.keys(rates).length === 0) return { inserted: 0 }
+
+  // Use the date actually returned by the API (may differ from requested on holidays)
+  const actualDate = json[0]?.date ?? dateStr
 
   const db = createAdminClient() as any
   const { error } = await db
     .from('exchange_rates')
-    .upsert({ date: dateStr, rates, source: 'frankfurter', updated_at: new Date().toISOString() })
+    .upsert({ date: actualDate, rates, source: 'frankfurter', updated_at: new Date().toISOString() })
   if (error) return { inserted: 0, error: error.message }
   return { inserted: 1 }
 }
 
+/**
+ * Admin-only: backfill from startDate to today using v2.
+ * One API call per date (returns all 164 currencies), then bulk upsert.
+ */
 export async function backfillExchangeRates(
   startDate: string,
 ): Promise<{ inserted: number; error?: string }> {
@@ -84,31 +97,41 @@ export async function backfillExchangeRates(
   }
 
   const today = new Date().toISOString().slice(0, 10)
-  const allRates: Record<string, Record<string, number>> = {}
 
-  for (const [from, to] of PAIRS) {
+  // Build list of calendar dates from startDate to today
+  const dates: string[] = []
+  const cur = new Date(startDate + 'T12:00:00Z')
+  const end = new Date(today + 'T12:00:00Z')
+  while (cur <= end) {
+    dates.push(cur.toISOString().slice(0, 10))
+    cur.setUTCDate(cur.getUTCDate() + 1)
+  }
+
+  // Fetch each date (API returns the nearest available trading day)
+  const seen = new Set<string>()
+  const rows: Array<{ date: string; rates: Record<string, number>; source: string; updated_at: string }> = []
+
+  for (const dateStr of dates) {
     try {
-      const res = await fetch(`${FRANKFURTER_BASE}/${startDate}..${today}?from=${from}&to=${to}`, {
+      const res = await fetch(`${FRANKFURTER_BASE}/rates?base=MXN&date=${dateStr}`, {
         headers: { Accept: 'application/json' },
         next: { revalidate: 0 },
       })
       if (!res.ok) continue
-      const json = await res.json() as { rates?: Record<string, Record<string, number>> }
-      for (const [date, rateMap] of Object.entries(json.rates ?? {})) {
-        if (!allRates[date]) allRates[date] = {}
-        allRates[date][`${from}_${to}`] = rateMap[to]
+      const json: RateEntry[] = await res.json()
+      if (!Array.isArray(json) || json.length === 0) continue
+      const actualDate = json[0]?.date ?? dateStr
+      if (seen.has(actualDate)) continue // skip duplicate trading-day responses
+      seen.add(actualDate)
+      const rates = buildRateMap(json)
+      if (Object.keys(rates).length > 0) {
+        rows.push({ date: actualDate, rates, source: 'frankfurter', updated_at: new Date().toISOString() })
       }
     } catch {
       // skip on network error
     }
   }
 
-  const rows = Object.entries(allRates).map(([date, rates]) => ({
-    date,
-    rates,
-    source: 'frankfurter',
-    updated_at: new Date().toISOString(),
-  }))
   if (rows.length === 0) return { inserted: 0 }
 
   const db = createAdminClient() as any
