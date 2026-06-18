@@ -11,7 +11,6 @@ import type { AccountWithBalance, Transaction, Category, ScheduledTransaction, B
 import AuditModal from './AuditModal'
 import { useCountUp, useAnimatedWidth } from '@/lib/hooks'
 import NotificationBell from '@/components/notifications/NotificationBell'
-import SubscriptionBanner from '@/components/subscription/SubscriptionBanner'
 import CoachMarkTour from '@/components/onboarding/CoachMarkTour'
 import { createClient } from '@/lib/supabase/client'
 
@@ -83,12 +82,10 @@ interface Props {
   baseCurrency?: string
   year: number
   month: number
-  subStatus?: string
-  subDaysLeft?: number | null
   onRefresh?: () => void
 }
 
-export default function DashboardClient({ user, accounts, transactions, loadedFrom, categories, scheduled, budget, creditPayments, baseCurrency = 'MXN', year, month, subStatus, subDaysLeft, onRefresh }: Props) {
+export default function DashboardClient({ user, accounts, transactions, loadedFrom, categories, scheduled, budget, creditPayments, baseCurrency = 'MXN', year, month, onRefresh }: Props) {
   const [spendView, setSpendView] = useState<'daily' | 'weekly'>('daily')
   const [dayOffset, setDayOffset] = useState(0)
   const [weekOffset, setWeekOffset] = useState(0)
@@ -374,11 +371,6 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
           </div>
           <div data-coach="home-bell"><NotificationBell /></div>
         </div>
-        {subStatus && (
-          <div className="mt-3 -mx-5">
-            <SubscriptionBanner status={subStatus} daysLeft={subDaysLeft ?? null} />
-          </div>
-        )}
       </header>
 
       <div className="px-4 pt-4 space-y-7 max-w-lg mx-auto pb-32">

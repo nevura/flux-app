@@ -77,6 +77,12 @@ function notifLabel(n: Notification): { icon: string; iconColor: string; text: s
         iconColor: '#FF9F0A',
         text: `Tu prueba vence en ${d.days_left} ${Number(d.days_left) === 1 ? 'día' : 'días'} — ve a Ajustes`,
       }
+    case 'grace_started':
+      return {
+        icon: 'fa-solid fa-triangle-exclamation',
+        iconColor: 'var(--f-expense)',
+        text: `Tu prueba terminó — tienes ${d.grace_days} días de gracia para suscribirte`,
+      }
     default:
       return { icon: 'fa-solid fa-bell', iconColor: 'var(--f-text-3)', text: 'Notificación' }
   }

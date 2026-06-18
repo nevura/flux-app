@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { adjustmentFor, getMexicoNow, nextRecurringDate, formatCurrency } from '@/lib/utils'
-import { sendTdcReminderEmail, sendMonthlyAdjustmentEmail, sendTrialExpiryEmail, sendShortcutReminderEmail, sendReengagementEmail } from '@/lib/email'
+import { sendTdcReminderEmail, sendMonthlyAdjustmentEmail, sendTrialExpiryEmail, sendShortcutReminderEmail, sendReengagementEmail, sendGraceStartedEmail } from '@/lib/email'
 import { fetchAndStoreDailyRates } from '@/actions/exchangeRates'
 
 export const maxDuration = 60
@@ -194,10 +194,26 @@ export async function GET(request: Request) {
   const graceCutoffStr = graceCutoff.toISOString().slice(0, 10)
 
   // trialing → grace (trial terminó hace ≤2 días)
-  await (admin.from('profiles') as any)
+  const { data: enteredGrace } = await (admin.from('profiles') as any)
     .update({ subscription_status: 'grace' })
     .eq('subscription_status', 'trialing')
     .lt('trial_ends_at', todayStr)
+    .select('id, email')
+
+  for (const p of (enteredGrace ?? [])) {
+    try {
+      await (admin.from('notifications') as any).insert({
+        user_id: p.id,
+        type: 'grace_started',
+        data: { grace_days: '2' },
+      })
+      if (p.email) {
+        sendGraceStartedEmail({ to: p.email, graceDays: 2, upgradeUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://fluxappfinance.com'}/settings?tab=subscription` }).catch(() => {})
+      }
+    } catch (e) {
+      results.errors.push(`grace_started(${p.id}): ${String(e)}`)
+    }
+  }
 
   // trialing/grace → expired (pasaron los 2 días de gracia)
   await (admin.from('profiles') as any)

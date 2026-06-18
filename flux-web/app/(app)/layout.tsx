@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import ReadOnlyOverlay from '@/components/subscription/ReadOnlyOverlay'
 import WelcomeBanner from '@/components/subscription/WelcomeBanner'
+import SubscriptionBanner from '@/components/subscription/SubscriptionBanner'
 import ThemeSync from '@/components/layout/ThemeSync'
 import WakeOnFocus from '@/components/layout/WakeOnFocus'
 import UsernameSetupModal from '@/components/onboarding/UsernameSetupModal'
@@ -35,7 +36,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <ThemeSync theme={(profile?.theme_preference as 'dark' | 'light') ?? 'dark'} />
       <WakeOnFocus />
       {sub.status === 'trialing' && <WelcomeBanner daysLeft={sub.daysLeft} />}
-      {sub.isReadOnly && <ReadOnlyOverlay />}
+      <SubscriptionBanner status={sub.status} daysLeft={sub.daysLeft} />
+      {sub.isReadOnly && <ReadOnlyOverlay status={sub.status === 'canceled' ? 'canceled' : 'expired'} />}
       {needsSetup && (
         <UsernameSetupModal
           suggestedUsername={suggestUsername(profile?.full_name ?? null, profile?.email ?? null)}
@@ -51,8 +53,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         fullName={profile?.full_name ?? null}
         email={user.email ?? ''}
         isReadOnly={sub.isReadOnly}
-        subStatus={sub.status}
-        subDaysLeft={sub.daysLeft}
       >
         {children}
       </AppShell>

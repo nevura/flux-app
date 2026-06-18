@@ -1,7 +1,8 @@
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 
-export type SubscriptionStatus = 'trialing' | 'active' | 'grace' | 'expired' | 'canceled'
+export type { SubscriptionStatus } from '@/lib/subscriptionStatus'
+import type { SubscriptionStatus } from '@/lib/subscriptionStatus'
 
 export interface SubscriptionInfo {
   status: SubscriptionStatus

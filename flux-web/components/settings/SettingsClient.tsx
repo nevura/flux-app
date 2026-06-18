@@ -257,7 +257,8 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
   const defaultCategories = categories.filter(c => c.user_id === null)
   const displayName = nameInput || profile?.full_name
 
-  const trialDaysLeft = profile?.subscription_status === 'trialing' && profile?.trial_ends_at
+  const isGrace = profile?.subscription_status === 'grace'
+  const subDaysLeft = (profile?.subscription_status === 'trialing' || isGrace) && profile?.trial_ends_at
     ? Math.max(0, Math.ceil((new Date(profile.trial_ends_at).getTime() - Date.now()) / 86_400_000))
     : null
 
@@ -647,23 +648,31 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
 
       <div className="px-4 py-5 max-w-lg mx-auto space-y-3 animate-fade-up">
 
-        {/* Trial banner */}
-        {trialDaysLeft !== null && (
+        {/* Trial / grace banner */}
+        {subDaysLeft !== null && (
           <button
             onClick={() => setSection('suscripcion')}
             className="w-full rounded-[18px] px-4 py-3.5 flex items-center gap-3 text-left transition-all active:scale-[0.98]"
-            style={{ background: 'rgba(255,159,10,0.1)', border: '1px solid rgba(255,159,10,0.35)' }}
+            style={isGrace
+              ? { background: 'var(--f-expense-bg)', border: '1px solid var(--f-expense-border)' }
+              : { background: 'rgba(255,159,10,0.1)', border: '1px solid rgba(255,159,10,0.35)' }}
           >
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,159,10,0.18)' }}>
-              <i className="fa-solid fa-clock text-sm" style={{ color: '#FF9F0A' }} />
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: isGrace ? 'var(--f-expense-border)' : 'rgba(255,159,10,0.18)' }}>
+              <i className={`fa-solid ${isGrace ? 'fa-triangle-exclamation' : 'fa-clock'} text-sm`}
+                style={{ color: isGrace ? 'var(--f-expense)' : '#FF9F0A' }} />
             </div>
             <div className="flex-1">
-              <p className="text-[15px] font-black" style={{ color: '#FF9F0A' }}>
-                {trialDaysLeft === 0 ? 'Tu prueba expira hoy' : `${trialDaysLeft} día${trialDaysLeft === 1 ? '' : 's'} de prueba restantes`}
+              <p className="text-[15px] font-black" style={{ color: isGrace ? 'var(--f-expense)' : '#FF9F0A' }}>
+                {isGrace
+                  ? (subDaysLeft > 0 ? `Período de gracia: ${subDaysLeft} día${subDaysLeft === 1 ? '' : 's'}` : 'Tu acceso completo expira pronto')
+                  : (subDaysLeft === 0 ? 'Tu prueba expira hoy' : `${subDaysLeft} día${subDaysLeft === 1 ? '' : 's'} de prueba restantes`)}
               </p>
-              <p className="text-[13px] font-semibold" style={{ color: 'rgba(255,159,10,0.7)' }}>Toca para suscribirte y no perder acceso</p>
+              <p className="text-[13px] font-semibold" style={{ color: isGrace ? 'var(--f-expense)' : 'rgba(255,159,10,0.7)' }}>
+                {isGrace ? 'Tu prueba terminó — suscríbete antes de pasar a modo lectura' : 'Toca para suscribirte y no perder acceso'}
+              </p>
             </div>
-            <i className="fa-solid fa-chevron-right text-xs" style={{ color: 'rgba(255,159,10,0.5)' }} />
+            <i className="fa-solid fa-chevron-right text-xs" style={{ color: isGrace ? 'var(--f-expense)' : 'rgba(255,159,10,0.5)' }} />
           </button>
         )}
 
@@ -698,9 +707,11 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                     style={{
                       color: isPlan && profile?.subscription_status === 'active'
                         ? 'var(--f-income)'
-                        : isPlan && trialDaysLeft !== null
-                          ? '#FF9F0A'
-                          : 'var(--f-blue)',
+                        : isPlan && isGrace
+                          ? 'var(--f-expense)'
+                          : isPlan && subDaysLeft !== null
+                            ? '#FF9F0A'
+                            : 'var(--f-blue)',
                     }}
                   />
                 </div>
@@ -709,8 +720,10 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                   <p className="text-[14px]" style={{ color: 'var(--f-text-4)' }}>
                     {isPlan && profile?.subscription_status === 'active'
                       ? 'Flux Pro · Activo'
-                      : isPlan && trialDaysLeft !== null
-                        ? `${trialDaysLeft} días de prueba`
+                      : isPlan && isGrace
+                        ? `Período de gracia${subDaysLeft !== null ? `: ${subDaysLeft} día${subDaysLeft === 1 ? '' : 's'}` : ''}`
+                        : isPlan && subDaysLeft !== null
+                          ? `${subDaysLeft} días de prueba`
                         : s.key === 'soporte' && supportUnread > 0
                           ? 'Tienes una respuesta nueva'
                           : s.description}
@@ -2109,6 +2122,62 @@ function SubscriptionTab({ profile }: { profile: Profile | null }) {
             />
           </div>
         )}
+      </div>
+    )
+  }
+
+  if (status === 'grace' || status === 'expired') {
+    const isGraceStatus = status === 'grace'
+    const daysLeft = profile?.trial_ends_at
+      ? Math.max(0, Math.ceil((new Date(profile.trial_ends_at).getTime() - Date.now()) / 86_400_000))
+      : null
+    return (
+      <div className="space-y-4">
+        <div
+          className="rounded-[20px] p-5"
+          style={{ background: 'var(--f-expense-bg)', border: '1px solid var(--f-expense-border)', boxShadow: '0 0 32px var(--f-expense-bg)' }}
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-11 h-11 rounded-[14px] flex items-center justify-center" style={{ background: 'var(--f-expense-border)' }}>
+              <i className="fa-solid fa-triangle-exclamation text-lg" style={{ color: 'var(--f-expense)' }} />
+            </div>
+            <div>
+              <p className="text-[17px] font-black text-white">
+                {isGraceStatus ? 'Período de gracia' : 'Tu prueba terminó'}
+              </p>
+              <p className="text-[14px] font-semibold" style={{ color: 'var(--f-expense)' }}>
+                {isGraceStatus
+                  ? (daysLeft !== null ? `${daysLeft} día${daysLeft === 1 ? '' : 's'} de acceso completo restantes` : 'Acceso completo termina pronto')
+                  : 'Estás en modo solo lectura'}
+              </p>
+            </div>
+          </div>
+          <p className="text-[14px] mb-4" style={{ color: 'var(--f-text-3)' }}>
+            {isGraceStatus
+              ? 'Tu prueba terminó. Tienes unos días más de acceso completo — después, tus datos seguirán guardados pero solo podrás verlos, no agregar ni editar.'
+              : 'Tu período de prueba y de gracia terminaron. Tus datos siguen guardados — suscríbete para recuperar acceso completo.'}
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          <p className="text-[13px] font-black uppercase tracking-[2px]" style={{ color: 'var(--f-text-4)' }}>Planes</p>
+          <PriceCard
+            label="Mensual"
+            price="$89"
+            period="/mes"
+            badge={null}
+            loading={loadingMonthly}
+            onSelect={() => handleCheckout(PRICE_MONTHLY, setLoadingMonthly)}
+          />
+          <PriceCard
+            label="Anual"
+            price="$829"
+            period="/año"
+            badge="Ahorra 2 meses"
+            loading={loadingYearly}
+            onSelect={() => handleCheckout(PRICE_YEARLY, setLoadingYearly)}
+          />
+        </div>
       </div>
     )
   }

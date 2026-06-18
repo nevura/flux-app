@@ -176,6 +176,17 @@ export async function sendTrialExpiryEmail(opts: { to: string; daysLeft: number;
   return send(opts.to, `Tu prueba de FluxApp Finance vence en ${opts.daysLeft} días`, html)
 }
 
+export async function sendGraceStartedEmail(opts: { to: string; graceDays: number; upgradeUrl: string }) {
+  const html = base(
+    'Tu prueba terminó',
+    `<p style="color:#6E6E73;margin:0 0 16px">Tu período de prueba gratuita terminó. Tienes ${opts.graceDays} días más de acceso completo para suscribirte — después, tu cuenta pasa a modo solo lectura (tus datos seguirán guardados).</p>
+     ${card(`<p style="color:#6E6E73;font-size:13px;margin:0 0 4px;text-align:center">Días de gracia restantes</p>
+             <p style="color:#FF3B30;font-size:48px;font-weight:900;margin:0;text-align:center;line-height:1">${opts.graceDays}</p>`)}`,
+    { url: opts.upgradeUrl, label: 'Ver planes de suscripción', color: '#FF3B30' },
+  )
+  return send(opts.to, 'Tu prueba terminó — tienes días de gracia para suscribirte', html)
+}
+
 // ── Support ──────────────────────────────────────────────────────────────────
 
 export async function sendSupportReplyEmail(opts: { to: string; userName: string; originalMessage: string; reply: string }) {

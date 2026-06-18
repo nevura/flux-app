@@ -24,12 +24,10 @@ interface Props {
   fullName: string | null
   email: string
   isReadOnly: boolean
-  subStatus?: string
-  subDaysLeft?: number | null
   children: React.ReactNode
 }
 
-export default function AppShell({ userId, fullName, email, isReadOnly, subStatus, subDaysLeft, children }: Props) {
+export default function AppShell({ userId, fullName, email, isReadOnly, children }: Props) {
   const pathname = usePathname()
   const activeTab = pathToTab(pathname)
   const prevTabRef = useRef<TabKey | null>(null)
@@ -88,8 +86,6 @@ export default function AppShell({ userId, fullName, email, isReadOnly, subStatu
               email={email}
               active={activeTab === 'home'}
               refreshSignal={refreshSignal}
-              subStatus={subStatus}
-              subDaysLeft={subDaysLeft}
             />
           </div>
 

@@ -1,6 +1,12 @@
 'use client'
 
-export default function ReadOnlyOverlay() {
+interface Props {
+  status: 'expired' | 'canceled'
+}
+
+export default function ReadOnlyOverlay({ status }: Props) {
+  const isCanceled = status === 'canceled'
+
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center px-6"
       style={{ background: 'rgba(2,6,23,0.92)', backdropFilter: 'blur(12px)' }}>
@@ -13,7 +19,9 @@ export default function ReadOnlyOverlay() {
         </div>
 
         <div>
-          <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--f-text)' }}>Tu prueba terminó</h2>
+          <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--f-text)' }}>
+            {isCanceled ? 'Tu suscripción fue cancelada' : 'Tu prueba terminó'}
+          </h2>
           <p className="text-sm leading-relaxed" style={{ color: 'var(--f-text-3)' }}>
             Estás en modo lectura. Puedes ver y filtrar tus transacciones, pero no puedes agregar ni editar nada.
           </p>

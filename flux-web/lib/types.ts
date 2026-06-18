@@ -10,7 +10,7 @@ export interface Profile {
   timezone: string
   currency: string
   default_monthly_budget: number | null
-  subscription_status: 'trialing' | 'active' | 'canceled' | 'past_due' | 'unpaid' | 'incomplete' | null
+  subscription_status: 'trialing' | 'active' | 'grace' | 'expired' | 'canceled' | 'past_due' | 'unpaid' | 'incomplete' | null
   stripe_customer_id: string | null
   stripe_subscription_id: string | null
   trial_ends_at: string | null
@@ -104,6 +104,7 @@ export type NotificationType =
   | 'tdc_due'
   | 'budget_alert'
   | 'trial_expiring'
+  | 'grace_started'
   | 'shortcut_reminder'
   | 'reengagement'
 
