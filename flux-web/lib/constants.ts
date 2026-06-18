@@ -302,6 +302,37 @@ export const SUPPORTED_CURRENCIES: { code: string; name: string; symbol: string;
   { code: 'XCG', name: 'Florín caribeño',                  symbol: 'Cg',     autoRate: true },
 ]
 
+// ── Currency sort helpers ──────────────────────────────────────────────────────
+
+const COMMON_CURRENCY_CODES = ['MXN', 'USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CHF']
+
+/** Pure alphabetical by Spanish name — for onboarding and base-currency pickers */
+export function getAlphabeticalCurrencies() {
+  return [...SUPPORTED_CURRENCIES].sort((a, b) =>
+    a.name.localeCompare(b.name, 'es')
+  )
+}
+
+/**
+ * Smart sort for transaction / account pickers:
+ * preferred code first → common currencies (MXN, USD, EUR…) → rest A→Z
+ */
+export function getSmartSortedCurrencies(preferredCode?: string) {
+  const sorted = [...SUPPORTED_CURRENCIES].sort((a, b) =>
+    a.name.localeCompare(b.name, 'es')
+  )
+  const preferred = preferredCode
+    ? sorted.filter(c => c.code === preferredCode)
+    : []
+  const common = sorted.filter(
+    c => COMMON_CURRENCY_CODES.includes(c.code) && c.code !== preferredCode
+  )
+  const rest = sorted.filter(
+    c => !COMMON_CURRENCY_CODES.includes(c.code) && c.code !== preferredCode
+  )
+  return [...preferred, ...common, ...rest]
+}
+
 // Shortcut iCloud share links
 export const SHORTCUT_LINKS = {
   applePay: 'https://www.icloud.com/shortcuts/8ed8c9e88af8415e92ef6caebba4cb12',

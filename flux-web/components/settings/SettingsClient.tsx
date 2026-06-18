@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { getCategoryDisplay, getPaymentMethod, formatCurrency } from '@/lib/utils'
-import { STATIC_ICONS, STATIC_COLORS, PAYMENT_METHODS, SHORTCUT_LINKS, SUPPORTED_CURRENCIES } from '@/lib/constants'
+import { STATIC_ICONS, STATIC_COLORS, PAYMENT_METHODS, SHORTCUT_LINKS, getAlphabeticalCurrencies, getSmartSortedCurrencies } from '@/lib/constants'
 import { saveCategory, deleteCategory, saveAccount, deleteAccount, reorderAccounts, saveScheduled, deleteScheduled, updateProfile, saveDefaultBudget, updateThemePreference, addPerson, updatePerson, deletePerson, updateBaseCurrency } from '@/actions/config'
 import SupportChat from '@/components/support/SupportChat'
 import { getUserUnreadCount } from '@/actions/support-chat'
@@ -438,7 +438,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                       className="flex-1 rounded-[12px] px-3 py-2.5 text-[17px] font-bold [color:var(--f-text)] outline-none appearance-none"
                       style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)', colorScheme: 'dark' }}
                     >
-                      {SUPPORTED_CURRENCIES.map(c => (
+                      {getAlphabeticalCurrencies().map(c => (
                         <option key={c.code} value={c.code}>{c.code} — {c.name}</option>
                       ))}
                     </select>
@@ -1163,7 +1163,7 @@ function AccountsTab({ accounts, isPending, startTransition }: {
                 className="w-full rounded-xl px-4 py-3 text-sm [color:var(--f-text)] focus:outline-none appearance-none disabled:opacity-50"
                 style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
               >
-                {SUPPORTED_CURRENCIES.map(c => (
+                {getSmartSortedCurrencies().map(c => (
                   <option key={c.code} value={c.code}>{c.code} — {c.name}</option>
                 ))}
               </select>
@@ -1545,7 +1545,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, baseCurrency = 
                       className="text-[20px] font-black bg-transparent border-none outline-none appearance-none cursor-pointer"
                       style={{ color: 'var(--f-text-3)', colorScheme: 'dark' }}
                     >
-                      {SUPPORTED_CURRENCIES.map(c => (
+                      {getSmartSortedCurrencies().map(c => (
                         <option key={c.code} value={c.code}>{c.code}</option>
                       ))}
                     </select>
