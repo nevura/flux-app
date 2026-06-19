@@ -187,6 +187,18 @@ export async function sendGraceStartedEmail(opts: { to: string; graceDays: numbe
   return send(opts.to, 'Tu prueba terminó — tienes días de gracia para suscribirte', html)
 }
 
+/** Generic fallback used by lib/notify.ts for notification types that don't
+ * have a dedicated branded template — keeps every notification type covered
+ * by instant email without requiring a bespoke template for each one. */
+export async function sendGenericNotificationEmail(opts: { to: string; subject: string; text: string }) {
+  const html = base(
+    opts.subject,
+    `<p style="color:#6E6E73;margin:0">${opts.text}</p>`,
+    { url: APP_URL + '/home', label: 'Abrir Flux' },
+  )
+  return send(opts.to, opts.subject, html)
+}
+
 // ── Support ──────────────────────────────────────────────────────────────────
 
 export async function sendSupportReplyEmail(opts: { to: string; userName: string; originalMessage: string; reply: string }) {

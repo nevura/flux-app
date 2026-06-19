@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { adjustmentFor, parseAmount, getMexicoNow, formatCurrency } from '@/lib/utils'
 import { sendSharedExpenseInviteEmail, sendSharedExpensePaidEmail } from '@/lib/email'
+import { notify } from '@/lib/notify'
 import type { TransactionForm, SplitParticipant, AccountWithBalance, Category, Person } from '@/lib/types'
 
 // Sends expense_settled_confirm notification to a person if they have a linked Flux user.
@@ -29,9 +30,12 @@ async function notifyLinkedPersonSettled(
   const { data: myProfile } = await supabase
     .from('profiles').select('username, full_name').eq('id', myUserId).single()
   const admin = createAdminClient()
+  const { data: recipientProfile } = await (admin.from('profiles') as any)
+    .select('email, full_name').eq('id', person.linked_user_id).single()
+
   try {
-    await (admin.from('notifications') as any).insert({
-      user_id: person.linked_user_id,
+    await notify({
+      userId: person.linked_user_id,
       type: 'expense_settled_confirm',
       data: {
         from_user_id: myUserId,
@@ -45,24 +49,19 @@ async function notifyLinkedPersonSettled(
         from_tx_id: extra?.from_tx_id ?? null,
         from_participant_id: extra?.from_participant_id ?? null,
       },
+      to: recipientProfile?.email,
+      email: recipientProfile?.email
+        ? () => sendSharedExpensePaidEmail({
+            to: recipientProfile.email,
+            toName: recipientProfile.full_name ?? '',
+            fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
+            fromUsername: myProfile?.username ?? '',
+            concept,
+            amount: formatCurrency(amount),
+          })
+        : undefined,
     })
   } catch { /* ignore — notification is best-effort */ }
-
-  // Send email to the person being notified (best-effort)
-  const { data: recipientProfile } = await (admin.from('profiles') as any)
-    .select('email, full_name').eq('id', person.linked_user_id).single()
-  if (recipientProfile?.email) {
-    try {
-      await sendSharedExpensePaidEmail({
-        to: recipientProfile.email,
-        toName: recipientProfile.full_name ?? '',
-        fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
-        fromUsername: myProfile?.username ?? '',
-        concept,
-        amount: formatCurrency(amount),
-      })
-    } catch {}
-  }
 }
 
 export async function getTransactionModalData(): Promise<{ accounts: AccountWithBalance[]; categories: Category[]; people: Person[]; baseCurrency: string }> {
@@ -194,8 +193,11 @@ export async function addTransaction(form: TransactionForm): Promise<{ error: st
             const participant = form.split_data!.data.find(p => p.id === lp.id)
             if (!participant) continue
             invitedNames.push(participant.nombre)
-            await (admin.from('notifications') as any).insert({
-              user_id: lp.linked_user_id,
+            // Send invite email to each linked participant
+            const { data: recipientProfile } = await (admin.from('profiles') as any)
+              .select('email, full_name').eq('id', lp.linked_user_id).single()
+            await notify({
+              userId: lp.linked_user_id,
               type: isReceivable ? 'receivable_invite' : 'shared_expense_invite',
               data: {
                 transaction_id: newTx.id,
@@ -210,28 +212,24 @@ export async function addTransaction(form: TransactionForm): Promise<{ error: st
                 is_receivable: isReceivable,
                 currency: accountCurrency,
               },
+              to: recipientProfile?.email,
+              email: recipientProfile?.email
+                ? () => sendSharedExpenseInviteEmail({
+                    to: recipientProfile.email,
+                    toName: recipientProfile.full_name ?? '',
+                    fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
+                    fromUsername: myProfile?.username ?? '',
+                    concept: form.concept,
+                    amount: formatCurrency(participant.value),
+                  })
+                : undefined,
             })
-            // Send invite email to each linked participant
-            const { data: recipientProfile } = await (admin.from('profiles') as any)
-              .select('email, full_name').eq('id', lp.linked_user_id).single()
-            if (recipientProfile?.email) {
-              try {
-                await sendSharedExpenseInviteEmail({
-                  to: recipientProfile.email,
-                  toName: recipientProfile.full_name ?? '',
-                  fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
-                  fromUsername: myProfile?.username ?? '',
-                  concept: form.concept,
-                  amount: formatCurrency(participant.value),
-                })
-              } catch {}
-            }
           }
 
           // Notify creator that invites were sent
           if (invitedNames.length > 0) {
-            await supabase.from('notifications').insert({
-              user_id: user.id,
+            await notify({
+              userId: user.id,
               type: 'shared_expense_sent',
               data: {
                 concept: form.concept,
@@ -239,6 +237,7 @@ export async function addTransaction(form: TransactionForm): Promise<{ error: st
                 invited_names: invitedNames,
                 is_receivable: isReceivable,
               },
+              to: user.email,
             })
           }
         }
@@ -360,30 +359,33 @@ export async function updateTransaction(id: string, form: TransactionForm) {
             updatedNames.push(participant.nombre)
           }
 
-          await (admin.from('notifications') as any).insert({ user_id: lp.linked_user_id, type: notifType, data: notifData })
-
           const { data: recipientProfile } = await (admin.from('profiles') as any)
             .select('email, full_name').eq('id', lp.linked_user_id).single()
-          if (recipientProfile?.email) {
-            try {
-              await sendSharedExpenseInviteEmail({
-                to: recipientProfile.email,
-                toName: recipientProfile.full_name ?? '',
-                fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
-                fromUsername: myProfile?.username ?? '',
-                concept: isNew ? form.concept : `[Actualizado] ${form.concept}`,
-                amount: formatCurrency(participant.value),
-              })
-            } catch {}
-          }
+          await notify({
+            userId: lp.linked_user_id,
+            type: notifType,
+            data: notifData,
+            to: recipientProfile?.email,
+            email: recipientProfile?.email
+              ? () => sendSharedExpenseInviteEmail({
+                  to: recipientProfile.email,
+                  toName: recipientProfile.full_name ?? '',
+                  fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
+                  fromUsername: myProfile?.username ?? '',
+                  concept: isNew ? form.concept : `[Actualizado] ${form.concept}`,
+                  amount: formatCurrency(participant.value),
+                })
+              : undefined,
+          })
         }
 
         const notifiedNames = [...invitedNames, ...updatedNames]
         if (notifiedNames.length > 0) {
-          await supabase.from('notifications').insert({
-            user_id: user.id,
+          await notify({
+            userId: user.id,
             type: 'shared_expense_sent',
             data: { concept: form.concept, total_amount: amount, invited_names: notifiedNames },
+            to: user.email,
           })
         }
       }
@@ -796,9 +798,11 @@ async function notifyLinkedPersonReceivable(
   const { data: myProfile } = await supabase
     .from('profiles').select('username, full_name').eq('id', myUserId).single()
   const admin = createAdminClient()
+  const { data: recipientProfile } = await (admin.from('profiles') as any)
+    .select('email').eq('id', person.linked_user_id).single()
   try {
-    await (admin.from('notifications') as any).insert({
-      user_id: person.linked_user_id,
+    await notify({
+      userId: person.linked_user_id,
       type: type === 'settled' ? 'receivable_settled' : 'receivable_abono',
       data: {
         from_user_id: myUserId,
@@ -807,6 +811,7 @@ async function notifyLinkedPersonReceivable(
         concept,
         amount,
       },
+      to: recipientProfile?.email,
     })
   } catch { /* best-effort */ }
 }
@@ -970,8 +975,10 @@ export async function confirmSettledExpense(notificationId: string, accountId?: 
 
     // Notify the person who settled that their payment was confirmed
     try {
-      await (admin.from('notifications') as any).insert({
-        user_id: String(d.from_user_id),
+      const { data: recipientProfile } = await (admin.from('profiles') as any)
+        .select('email').eq('id', String(d.from_user_id)).single()
+      await notify({
+        userId: String(d.from_user_id),
         type: 'expense_settled',
         data: {
           from_user_id: user.id,
@@ -980,6 +987,7 @@ export async function confirmSettledExpense(notificationId: string, accountId?: 
           concept: String(d.concept),
           amount: Number(d.amount),
         },
+        to: recipientProfile?.email,
       })
     } catch { /* ignore */ }
   }
@@ -1024,8 +1032,10 @@ export async function rejectSettledExpense(notificationId: string) {
 
     // Notify B that A rejected their payment claim
     try {
-      await (admin.from('notifications') as any).insert({
-        user_id: String(d.from_user_id),
+      const { data: recipientProfile } = await (admin.from('profiles') as any)
+        .select('email').eq('id', String(d.from_user_id)).single()
+      await notify({
+        userId: String(d.from_user_id),
         type: 'expense_settle_rejected',
         data: {
           from_user_id: user.id,
@@ -1034,6 +1044,7 @@ export async function rejectSettledExpense(notificationId: string) {
           concept: String(d.concept),
           amount: Number(d.amount),
         },
+        to: recipientProfile?.email,
       })
     } catch { /* ignore */ }
   }
@@ -1188,8 +1199,10 @@ export async function acceptSharedExpense(
   const { data: myProfile } = await supabase
     .from('profiles').select('username, full_name').eq('id', user.id).single()
   try {
-    await (admin.from('notifications') as any).insert({
-      user_id: fromUserId,
+    const { data: recipientProfile } = await (admin.from('profiles') as any)
+      .select('email').eq('id', fromUserId).single()
+    await notify({
+      userId: fromUserId,
       type: 'shared_expense_accepted',
       data: {
         from_user_id: user.id,
@@ -1198,6 +1211,7 @@ export async function acceptSharedExpense(
         concept: String(d.concept),
         amount: participantAmount,
       },
+      to: recipientProfile?.email,
     })
   } catch { /* ignore */ }
 
@@ -1222,8 +1236,10 @@ export async function declineSharedExpense(notificationId: string) {
     const { data: myProfile } = await supabase.from('profiles').select('username, full_name').eq('id', user.id).single()
     const admin = createAdminClient()
     try {
-      await (admin.from('notifications') as any).insert({
-        user_id: String(d.from_user_id),
+      const { data: recipientProfile } = await (admin.from('profiles') as any)
+        .select('email').eq('id', String(d.from_user_id)).single()
+      await notify({
+        userId: String(d.from_user_id),
         type: 'shared_expense_declined',
         data: {
           from_user_id: user.id,
@@ -1232,6 +1248,7 @@ export async function declineSharedExpense(notificationId: string) {
           concept: String(d.concept),
           amount: Number(d.participant_amount),
         },
+        to: recipientProfile?.email,
       })
     } catch { /* ignore */ }
   }
@@ -1314,8 +1331,10 @@ export async function acceptReceivableInvite(notificationId: string) {
   const { data: myProfile } = await supabase
     .from('profiles').select('username, full_name').eq('id', user.id).single()
   try {
-    await (admin.from('notifications') as any).insert({
-      user_id: fromUserId,
+    const { data: recipientProfile } = await (admin.from('profiles') as any)
+      .select('email').eq('id', fromUserId).single()
+    await notify({
+      userId: fromUserId,
       type: 'shared_expense_accepted',
       data: {
         from_user_id: user.id,
@@ -1324,6 +1343,7 @@ export async function acceptReceivableInvite(notificationId: string) {
         concept: String(d.concept),
         amount: participantAmount,
       },
+      to: recipientProfile?.email,
     })
   } catch { /* ignore */ }
 
@@ -1348,8 +1368,10 @@ export async function declineReceivableInvite(notificationId: string) {
     const { data: myProfile } = await supabase.from('profiles').select('username, full_name').eq('id', user.id).single()
     const admin = createAdminClient()
     try {
-      await (admin.from('notifications') as any).insert({
-        user_id: String(d.from_user_id),
+      const { data: recipientProfile } = await (admin.from('profiles') as any)
+        .select('email').eq('id', String(d.from_user_id)).single()
+      await notify({
+        userId: String(d.from_user_id),
         type: 'shared_expense_declined',
         data: {
           from_user_id: user.id,
@@ -1358,6 +1380,7 @@ export async function declineReceivableInvite(notificationId: string) {
           concept: String(d.concept),
           amount: Number(d.participant_amount),
         },
+        to: recipientProfile?.email,
       })
     } catch { /* ignore */ }
   }
@@ -1421,8 +1444,10 @@ export async function proposeSyncTransaction(txId: string, participantPersonId: 
     .from('profiles').select('username, full_name').eq('id', user.id).single()
 
   const admin = createAdminClient()
-  await (admin.from('notifications') as any).insert({
-    user_id: person.linked_user_id,
+  const { data: recipientProfile } = await (admin.from('profiles') as any)
+    .select('email').eq('id', person.linked_user_id).single()
+  await notify({
+    userId: person.linked_user_id,
     type: 'sync_proposal',
     data: {
       transaction_id: txId,
@@ -1435,6 +1460,7 @@ export async function proposeSyncTransaction(txId: string, participantPersonId: 
       participant_person_id: participantPersonId,
       category_id: tx.category_id || null,
     },
+    to: recipientProfile?.email,
   })
 
   return { error: null }
@@ -1460,8 +1486,10 @@ export async function declineSyncProposal(notificationId: string) {
     const { data: myProfile } = await supabase.from('profiles').select('username, full_name').eq('id', user.id).single()
     const admin = createAdminClient()
     try {
-      await (admin.from('notifications') as any).insert({
-        user_id: String(d.from_user_id),
+      const { data: recipientProfile } = await (admin.from('profiles') as any)
+        .select('email').eq('id', String(d.from_user_id)).single()
+      await notify({
+        userId: String(d.from_user_id),
         type: 'sync_declined',
         data: {
           from_user_id: user.id,
@@ -1469,6 +1497,7 @@ export async function declineSyncProposal(notificationId: string) {
           from_name: myProfile?.full_name ?? '',
           concept: String(d.concept),
         },
+        to: recipientProfile?.email,
       })
     } catch { /* ignore */ }
   }

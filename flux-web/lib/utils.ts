@@ -104,6 +104,25 @@ export function adjustmentFor(type: string, amount: number): number {
   return 0 // Transfer rows handled separately
 }
 
+/** Returns the budget-effective amount for an expense transaction, respecting
+ * exclude_mode ('all' excludes entirely, 'shared_only' excludes others' shares)
+ * and converting to base currency via exchange_rate. Shared by Dashboard,
+ * Insights, and the budget-alert notification calc so they never drift apart. */
+export function effectiveExpenseAmount(t: {
+  amount: number | string
+  exclude_mode?: string | null
+  split_data?: { data: { value: number }[] } | null
+  exchange_rate?: number | null
+}): number {
+  const rate = t.exchange_rate ?? 1
+  if (t.exclude_mode === 'all') return 0
+  if (t.exclude_mode === 'shared_only' && t.split_data) {
+    const othersTotal = t.split_data.data.reduce((s, d) => s + d.value, 0)
+    return Math.max(0, Number(t.amount) - othersTotal) * rate
+  }
+  return Number(t.amount) * rate
+}
+
 export function nextRecurringDate(
   from: Date,
   num: number,

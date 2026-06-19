@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useRef, useCallback, useEffect, useLayoutEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { formatCurrency, getCategoryDisplay, getColor } from '@/lib/utils'
+import { formatCurrency, getCategoryDisplay, getColor, effectiveExpenseAmount } from '@/lib/utils'
 import { MONTHS_ES } from '@/lib/constants'
 import type { Transaction, Category } from '@/lib/types'
 import { useCountUp, useAnimatedWidth } from '@/lib/hooks'
@@ -208,16 +208,6 @@ export default function InsightsClient({ transactions, categories, monthlySummar
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [year, month])
-
-  function effectiveExpenseAmount(t: Transaction): number {
-    const rate = t.exchange_rate ?? 1
-    if (t.exclude_mode === 'all') return 0
-    if (t.exclude_mode === 'shared_only' && t.split_data) {
-      const othersTotal = t.split_data.data.reduce((s, d) => s + d.value, 0)
-      return Math.max(0, Number(t.amount) - othersTotal) * rate
-    }
-    return Number(t.amount) * rate
-  }
 
   const { income, expenses } = useMemo(() => {
     let inc = 0, exp = 0

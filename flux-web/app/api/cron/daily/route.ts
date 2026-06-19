@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { adjustmentFor, getMexicoNow, nextRecurringDate, formatCurrency } from '@/lib/utils'
 import { sendTdcReminderEmail, sendMonthlyAdjustmentEmail, sendTrialExpiryEmail, sendShortcutReminderEmail, sendReengagementEmail, sendGraceStartedEmail } from '@/lib/email'
 import { fetchAndStoreDailyRates } from '@/actions/exchangeRates'
+import { notify } from '@/lib/notify'
 
 export const maxDuration = 60
 
@@ -202,14 +203,15 @@ export async function GET(request: Request) {
 
   for (const p of (enteredGrace ?? [])) {
     try {
-      await (admin.from('notifications') as any).insert({
-        user_id: p.id,
+      await notify({
+        userId: p.id,
         type: 'grace_started',
         data: { grace_days: '2' },
+        to: p.email,
+        email: p.email
+          ? () => sendGraceStartedEmail({ to: p.email, graceDays: 2, upgradeUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://fluxappfinance.com'}/settings?tab=subscription` })
+          : undefined,
       })
-      if (p.email) {
-        sendGraceStartedEmail({ to: p.email, graceDays: 2, upgradeUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://fluxappfinance.com'}/settings?tab=subscription` }).catch(() => {})
-      }
     } catch (e) {
       results.errors.push(`grace_started(${p.id}): ${String(e)}`)
     }
@@ -256,15 +258,13 @@ export async function GET(request: Request) {
 
       const daysLeft = Math.ceil((new Date(p.trial_ends_at).getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
 
-      await (admin.from('notifications') as any).insert({
-        user_id: p.id,
+      await notify({
+        userId: p.id,
         type: 'trial_expiring',
         data: { days_left: String(daysLeft) },
+        to: p.email,
+        email: p.email ? () => sendTrialExpiryEmail({ to: p.email, daysLeft, upgradeUrl: `${appUrl}/settings` }) : undefined,
       })
-
-      if (p.email) {
-        sendTrialExpiryEmail({ to: p.email, daysLeft, upgradeUrl: `${appUrl}/settings` }).catch(() => {})
-      }
 
       results.trialWarnings++
     } catch (e) {
@@ -314,14 +314,14 @@ export async function GET(request: Request) {
 
         if (alreadySent) continue
 
-        await (admin.from('notifications') as any).insert({
-          user_id: p.id,
+        const userName = p.full_name ?? p.email?.split('@')[0] ?? 'ahí'
+        await notify({
+          userId: p.id,
           type: 'shortcut_reminder',
           data: {},
+          to: p.email,
+          email: () => sendShortcutReminderEmail({ to: p.email, userName }),
         })
-
-        const userName = p.full_name ?? p.email?.split('@')[0] ?? 'ahí'
-        sendShortcutReminderEmail({ to: p.email, userName }).catch(() => {})
         results.shortcutReminders++
       } catch (e) {
         results.errors.push(`shortcut_reminder(${p.id}): ${String(e)}`)
@@ -398,19 +398,19 @@ export async function GET(request: Request) {
             ? Math.floor((today.getTime() - new Date(lastTxAt).getTime()) / (1000 * 60 * 60 * 24))
             : 7
 
-          await (admin.from('notifications') as any).insert({
-            user_id: p.id,
+          const userName = p.full_name ?? p.email?.split('@')[0] ?? 'ahí'
+          await notify({
+            userId: p.id,
             type: 'reengagement',
             data: { days_since: String(daysSince) },
-          })
-
-          const userName = p.full_name ?? p.email?.split('@')[0] ?? 'ahí'
-          sendReengagementEmail({
             to: p.email,
-            userName,
-            daysSince,
-            hasShortcut: !!shortcutUsedMap[p.id],
-          }).catch(() => {})
+            email: () => sendReengagementEmail({
+              to: p.email,
+              userName,
+              daysSince,
+              hasShortcut: !!shortcutUsedMap[p.id],
+            }),
+          })
           results.reengagements++
         } catch (e) {
           results.errors.push(`reengagement(${p.id}): ${String(e)}`)

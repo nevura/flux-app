@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendFriendRequestEmail, sendFriendAcceptedEmail } from '@/lib/email'
+import { notify } from '@/lib/notify'
 import type { PublicProfile } from '@/lib/types'
 
 // ── Username ──────────────────────────────────────────────────────────────────
@@ -142,16 +143,6 @@ export async function sendFriendRequest(addresseeId: string) {
     .single()
 
   const admin = createAdminClient()
-  await (admin.from('notifications') as any).insert({
-    user_id: addresseeId,
-    type: 'friend_request',
-    data: {
-      from_user_id: user.id,
-      from_username: myProfile?.username ?? '',
-      from_name: myProfile?.full_name ?? '',
-      friendship_id: newFriendship?.id ?? '',
-    },
-  })
 
   // Fetch addressee profile (for email + auto-link)
   const { data: addresseeProfile } = await (admin.from('profiles') as any)
@@ -159,14 +150,25 @@ export async function sendFriendRequest(addresseeId: string) {
     .eq('id', addresseeId)
     .single() as { data: { email: string | null; full_name: string | null; username: string | null } | null }
 
-  if (addresseeProfile?.email) {
-    await sendFriendRequestEmail({
-      to: addresseeProfile.email,
-      toName: addresseeProfile.full_name ?? '',
-      fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
-      fromUsername: myProfile?.username ?? '',
-    }).catch(console.error)
-  }
+  await notify({
+    userId: addresseeId,
+    type: 'friend_request',
+    data: {
+      from_user_id: user.id,
+      from_username: myProfile?.username ?? '',
+      from_name: myProfile?.full_name ?? '',
+      friendship_id: newFriendship?.id ?? '',
+    },
+    to: addresseeProfile?.email,
+    email: addresseeProfile?.email
+      ? () => sendFriendRequestEmail({
+          to: addresseeProfile.email!,
+          toName: addresseeProfile.full_name ?? '',
+          fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
+          fromUsername: myProfile?.username ?? '',
+        })
+      : undefined,
+  })
 
   // Auto-link: ensure addressee (B) exists in sender's (A) people table on send
   const bName = addresseeProfile?.full_name ?? `@${addresseeProfile?.username ?? 'amigo'}`
@@ -217,33 +219,30 @@ export async function respondFriendRequest(friendshipId: string, accept: boolean
     .single()
 
   const notifType = accept ? 'friend_accepted' : 'friend_declined'
-  const adminResp = createAdminClient()
-  await (adminResp.from('notifications') as any).insert({
-    user_id: friendship.requester_id,
+  const admin = createAdminClient()
+  const { data: requesterProfile } = await (admin.from('profiles') as any)
+    .select('email, full_name, username')
+    .eq('id', friendship.requester_id)
+    .single() as { data: { email: string | null; full_name: string | null; username: string | null } | null }
+
+  await notify({
+    userId: friendship.requester_id,
     type: notifType,
     data: {
       from_user_id: user.id,
       from_username: myProfile?.username ?? '',
       from_name: myProfile?.full_name ?? '',
     },
+    to: accept ? requesterProfile?.email : undefined,
+    email: accept && requesterProfile?.email
+      ? () => sendFriendAcceptedEmail({
+          to: requesterProfile.email!,
+          toName: requesterProfile.full_name ?? '',
+          acceptedByName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
+          acceptedByUsername: myProfile?.username ?? '',
+        })
+      : undefined,
   })
-
-  if (accept) {
-    const admin = createAdminClient()
-    const { data: requesterProfile } = await (admin.from('profiles') as any)
-      .select('email, full_name, username')
-      .eq('id', friendship.requester_id)
-      .single() as { data: { email: string | null; full_name: string | null; username: string | null } | null }
-
-    if (requesterProfile?.email) {
-      await sendFriendAcceptedEmail({
-        to: requesterProfile.email,
-        toName: requesterProfile.full_name ?? '',
-        acceptedByName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
-        acceptedByUsername: myProfile?.username ?? '',
-      }).catch(console.error)
-    }
-  }
 
   // Mark the friend_request notification as read for current user
   await supabase

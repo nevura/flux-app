@@ -1,8 +1,9 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { getMexicoNow, currentYearMonth, formatCurrency } from '@/lib/utils'
+import { getMexicoNow, currentYearMonth, formatCurrency, effectiveExpenseAmount } from '@/lib/utils'
 import { sendScheduledDueEmail, sendTdcDueEmail, sendBudgetAlertEmail } from '@/lib/email'
+import { notify } from '@/lib/notify'
 
 export async function generateSystemNotifications() {
   const supabase = await createClient()
@@ -64,7 +65,7 @@ export async function generateSystemNotifications() {
       .single(),
     supabase
       .from('transactions')
-      .select('amount')
+      .select('amount, exclude_mode, split_data, exchange_rate')
       .eq('user_id', user.id)
       .eq('type', 'TR-GASTO')
       .gte('transaction_date', monthStart)
@@ -121,7 +122,7 @@ export async function generateSystemNotifications() {
   // Budget alert
   const budgetLimit = (budgetRow as any)?.amount ?? (profileRow as any)?.default_monthly_budget
   if (budgetLimit && Number(budgetLimit) > 0) {
-    const spent = ((monthExpenses ?? []) as any[]).reduce((s: number, t: any) => s + Number(t.amount), 0)
+    const spent = ((monthExpenses ?? []) as any[]).reduce((s: number, t: any) => s + effectiveExpenseAmount(t), 0)
     const percent = Math.round((spent / Number(budgetLimit)) * 100)
     const alertedLevels = new Set(((budgetAlertsSent ?? []) as any[]).map((n: any) => String((n.data as any)?.level)))
     const period = `${year}-${String(month).padStart(2, '0')}`
@@ -141,26 +142,25 @@ export async function generateSystemNotifications() {
     }
   }
 
-  if (inserts.length > 0) {
-    await supabase.from('notifications').insert(inserts)
-
-    // Fire-and-forget emails — don't block the response
-    const email = user.email
-    if (email) {
-      for (const n of inserts) {
-        if (n.type === 'scheduled_due') {
-          sendScheduledDueEmail({ to: email, name: n.data.name, amount: formatCurrency(Number(n.data.amount)) }).catch(() => {})
-        } else if (n.type === 'tdc_due') {
-          sendTdcDueEmail({ to: email, accountName: n.data.name, daysUntil: Number(n.data.days_until) }).catch(() => {})
-        } else if (n.type === 'budget_alert') {
-          sendBudgetAlertEmail({
+  const email = user.email
+  for (const n of inserts) {
+    await notify({
+      userId: user.id,
+      type: n.type,
+      data: n.data,
+      to: email,
+      email: !email ? undefined : n.type === 'scheduled_due'
+        ? () => sendScheduledDueEmail({ to: email, name: n.data.name, amount: formatCurrency(Number(n.data.amount)) })
+        : n.type === 'tdc_due'
+        ? () => sendTdcDueEmail({ to: email, accountName: n.data.name, daysUntil: Number(n.data.days_until) })
+        : n.type === 'budget_alert'
+        ? () => sendBudgetAlertEmail({
             to: email,
             percent: Number(n.data.level),
             spent: formatCurrency(Number(n.data.spent)),
             limit: formatCurrency(Number(n.data.limit)),
-          }).catch(() => {})
-        }
-      }
-    }
+          })
+        : undefined,
+    })
   }
 }

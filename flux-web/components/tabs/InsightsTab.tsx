@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { monthRange } from '@/lib/utils'
+import { monthRange, effectiveExpenseAmount } from '@/lib/utils'
 import InsightsClient from '@/components/insights/InsightsClient'
 import type { Transaction, Category } from '@/lib/types'
 
@@ -75,22 +75,12 @@ export default function InsightsTab({ userId, active, refreshSignal }: Props) {
 
     const allTx = await historyPromise
 
-    function effectiveAmt(t: HistoryRow): number {
-      const rate = t.exchange_rate ?? 1
-      if (t.exclude_mode === 'all') return 0
-      if (t.exclude_mode === 'shared_only' && t.split_data?.data) {
-        const othersTotal = t.split_data.data.reduce((s, d) => s + d.value, 0)
-        return Math.max(0, Number(t.amount) - othersTotal) * rate
-      }
-      return Number(t.amount) * rate
-    }
-
     const monthMap: Record<string, MonthlyRow> = {}
     for (const t of allTx) {
       const d = new Date(t.transaction_date)
       const key = `${d.getFullYear()}-${d.getMonth() + 1}`
       if (!monthMap[key]) monthMap[key] = { year: d.getFullYear(), month: d.getMonth() + 1, income: 0, expenses: 0 }
-      const eff = effectiveAmt(t)
+      const eff = effectiveExpenseAmount(t)
       if (t.type === 'TR-INGRESO') monthMap[key].income   += eff
       else                         monthMap[key].expenses += eff
     }

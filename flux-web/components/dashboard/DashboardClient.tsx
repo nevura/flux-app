@@ -4,7 +4,7 @@ import { useState, useMemo, useTransition, useEffect, useRef, useLayoutEffect } 
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { formatCurrency, getCategoryDisplay, getPaymentMethod } from '@/lib/utils'
+import { formatCurrency, getCategoryDisplay, getPaymentMethod, effectiveExpenseAmount } from '@/lib/utils'
 import { MONTHS_ES } from '@/lib/constants'
 import { saveBudget, chargeScheduled, saveCreditPayment, deleteCreditPayment } from '@/actions/config'
 import type { AccountWithBalance, Transaction, Category, ScheduledTransaction, Budget, CreditPayment } from '@/lib/types'
@@ -189,20 +189,10 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
 
   const currentMonthStr = `${year}-${String(month).padStart(2, '0')}`
 
-  // Returns the budget-effective amount for a transaction, respecting exclude_mode
-  function effectiveExpenseAmount(t: Transaction): number {
-    if (t.exclude_mode === 'all') return 0
-    if (t.exclude_mode === 'shared_only' && t.split_data) {
-      const othersTotal = t.split_data.data.reduce((s, d) => s + d.value, 0)
-      return Math.max(0, Number(t.amount) - othersTotal)
-    }
-    return Number(t.amount)
-  }
-
   const monthExpenses = useMemo(
     () => txList
       .filter(t => t.type === 'TR-GASTO' && t.transaction_date.slice(0, 7) === currentMonthStr)
-      .reduce((s, t) => s + effectiveExpenseAmount(t) * (t.exchange_rate ?? 1), 0),
+      .reduce((s, t) => s + effectiveExpenseAmount(t), 0),
     [txList, currentMonthStr],
   )
 
@@ -463,12 +453,12 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
               </p>
               <p className="text-[13px] font-semibold mb-2 tabular-nums" style={{ color: 'var(--f-text-3)' }}>
                 de {formatCurrency(budgetAmount, baseCurrency)} <span className="text-[10px] font-bold opacity-40">{baseCurrency}</span>&nbsp;&nbsp;·&nbsp;&nbsp;
-                <span style={{ color: budgetOver ? 'var(--f-expense)' : budgetLeft < budgetAmount * 0.20 ? 'var(--f-credit)' : 'var(--f-income)' }}>
+                <span style={{ color: budgetOver ? 'var(--f-expense)' : budgetLeft < budgetAmount * 0.20 ? 'var(--f-warning)' : 'var(--f-income)' }}>
                   {budgetOver ? <>excedido {formatCurrency(Math.abs(budgetLeft), baseCurrency)} <span className="text-[10px] font-bold opacity-40">{baseCurrency}</span></> : <>te quedan {formatCurrency(budgetLeft, baseCurrency)} <span className="text-[10px] font-bold opacity-40">{baseCurrency}</span></>}
                 </span>
               </p>
               <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--f-bg-input)' }}>
-                <AnimatedBar pct={budgetPct} color={budgetOver ? 'var(--f-expense)' : budgetLeft < budgetAmount * 0.20 ? 'var(--f-credit)' : 'var(--f-income)'} />
+                <AnimatedBar pct={budgetPct} color={budgetOver ? 'var(--f-expense)' : budgetLeft < budgetAmount * 0.20 ? 'var(--f-warning)' : 'var(--f-income)'} />
               </div>
             </>
           ) : (
