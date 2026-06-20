@@ -81,6 +81,16 @@ export async function sendApprovalRejectedEmail(opts: { to: string }) {
   return send(opts.to, 'Solicitud de acceso a FluxApp Finance', html)
 }
 
+export async function sendPasswordResetEmail(opts: { to: string; resetUrl: string }) {
+  const html = base(
+    'Restablece tu contraseña',
+    `<p style="color:#6E6E73;margin:0 0 12px">Recibimos una solicitud para restablecer la contraseña de tu cuenta en FluxApp Finance.</p>
+     <p style="color:#6E6E73;margin:0">Este enlace expira en 1 hora. Si no fuiste tú, ignora este correo — tu contraseña no cambiará.</p>`,
+    { url: opts.resetUrl, label: 'Restablecer contraseña' },
+  )
+  return send(opts.to, 'Restablece tu contraseña — FluxApp Finance', html)
+}
+
 // ── TDC & monthly reminders ──────────────────────────────────────────────────
 
 export async function sendTdcReminderEmail(opts: { to: string; accountName: string; paymentDay: number }) {

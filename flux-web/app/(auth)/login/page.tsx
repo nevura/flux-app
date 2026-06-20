@@ -32,7 +32,15 @@ export default function LoginPage() {
         window.location.href = '/home'
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Error al iniciar sesión')
+      if (mode === 'login') {
+        const msg = err instanceof Error ? err.message : ''
+        // "Email not confirmed" is legitimate, actionable feedback — show it as-is.
+        // Everything else (wrong password, unknown email, etc.) gets one generic
+        // message so a bad guess can't be used to confirm whether an email exists.
+        toast.error(msg.includes('Email not confirmed') ? 'Confirma tu correo antes de iniciar sesión' : 'Correo o contraseña incorrectos')
+      } else {
+        toast.error(err instanceof Error ? err.message : 'Error al crear la cuenta')
+      }
     } finally {
       setLoading(false)
     }
@@ -96,14 +104,21 @@ export default function LoginPage() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Contraseña</label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Contraseña</label>
+              {mode === 'login' && (
+                <a href="/forgot-password" className="text-xs font-semibold text-[#007AFF] hover:underline">
+                  ¿Olvidaste tu contraseña?
+                </a>
+              )}
+            </div>
             <input
               type="password"
               required
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="••••••••"
-              minLength={6}
+              minLength={8}
               className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-[#007AFF] transition-colors"
             />
           </div>

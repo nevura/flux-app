@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
+  const next = searchParams.get('next')
 
   if (!code) {
     return NextResponse.redirect(`${origin}/login?error=no_code`)
@@ -36,6 +37,13 @@ export async function GET(request: Request) {
 
   if (!user) {
     return NextResponse.redirect(`${origin}/login?error=no_user`)
+  }
+
+  // Password-recovery sessions skip the new-user/approval logic below entirely
+  // — that logic doesn't apply (and could misfire) for an existing user
+  // resetting their password.
+  if (next) {
+    return NextResponse.redirect(`${origin}${next}`)
   }
 
   const admin = createAdminClient()
