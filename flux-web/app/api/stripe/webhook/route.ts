@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { getStripe, periodEnd } from '@/lib/stripe'
+import { getStripe, periodEnd, mapStripeStatus } from '@/lib/stripe'
 
 const stripe = getStripe()
 
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       if (!uid || !session.subscription) break
 
       const sub = await stripe.subscriptions.retrieve(session.subscription as string, { expand: ['items'] })
-      const patch: Record<string, unknown> = { stripe_subscription_id: sub.id, subscription_status: sub.status }
+      const patch: Record<string, unknown> = { stripe_subscription_id: sub.id, subscription_status: mapStripeStatus(sub.status) }
       const ends = periodEnd(sub)
       if (ends) patch.subscription_ends_at = ends
       await db.from('profiles').update(patch).eq('id', uid)
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     case 'customer.subscription.updated': {
       const sub = event.data.object as Stripe.Subscription
       const customerId = sub.customer as string
-      const patch: Record<string, unknown> = { stripe_subscription_id: sub.id, subscription_status: sub.status }
+      const patch: Record<string, unknown> = { stripe_subscription_id: sub.id, subscription_status: mapStripeStatus(sub.status) }
       const ends = periodEnd(sub)
       if (ends) patch.subscription_ends_at = ends
       await db.from('profiles').update(patch).eq('stripe_customer_id', customerId)
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
       const subId = (invoice as unknown as { subscription?: string }).subscription
       if (!subId) break
       const sub = await stripe.subscriptions.retrieve(subId, { expand: ['items'] })
-      const patch: Record<string, unknown> = { stripe_subscription_id: sub.id, subscription_status: sub.status }
+      const patch: Record<string, unknown> = { stripe_subscription_id: sub.id, subscription_status: mapStripeStatus(sub.status) }
       const ends = periodEnd(sub)
       if (ends) patch.subscription_ends_at = ends
       await db.from('profiles').update(patch).eq('stripe_customer_id', sub.customer as string)

@@ -219,10 +219,15 @@ export async function GET(request: Request) {
   }
 
   // trialing/grace → expired (pasaron los 2 días de gracia)
+  // Guard against expiring someone who actually has a live paid Stripe
+  // subscription — trial_ends_at is the app's own pre-paid free-trial date
+  // and is irrelevant once a user has converted, but a stale/mismatched
+  // status (e.g. webhook race) could otherwise expire a paying customer.
   await (admin.from('profiles') as any)
     .update({ subscription_status: 'expired' })
     .in('subscription_status', ['trialing', 'grace'])
     .lt('trial_ends_at', graceCutoffStr)
+    .or(`stripe_subscription_id.is.null,subscription_ends_at.lt.${todayStr}`)
 
   // active → grace si la suscripción de Stripe venció (sin pago)
   // Before demoting, re-verify against Stripe directly — a missed/late webhook
