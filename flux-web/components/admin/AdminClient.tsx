@@ -12,8 +12,12 @@ import {
   sendManualEmailToUser,
   getPromotions,
   createPromotion,
+  updatePromotion,
+  deletePromotion,
   togglePromotion,
   getPromotionUses,
+  exemptUserFromPromotion,
+  revokePromotionUse,
   type AdminProfile,
   type EmailType,
   type Promotion,
@@ -1074,19 +1078,28 @@ function PromotionsPanel() {
   const [uses, setUses] = useState<Record<string, PromotionUse[]>>({})
   const [expanded, setExpanded] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [formName, setFormName] = useState('')
+  const [formDesc, setFormDesc] = useState('')
   const [formDays, setFormDays] = useState('30')
   const [formMax, setFormMax] = useState('20')
+  const [exemptEmail, setExemptEmail] = useState<Record<string, string>>({})
   const [isPending, startTransition] = useTransition()
 
   useEffect(() => {
     getPromotions().then(setPromotions)
   }, [])
 
+  function refresh() {
+    getPromotions().then(setPromotions)
+  }
+
   function handleToggle(id: string, active: boolean) {
     startTransition(async () => {
-      await togglePromotion(id, active)
+      const res = await togglePromotion(id, active)
+      if (res.error) { toast.error(res.error); return }
       setPromotions(prev => prev.map(p => p.id === id ? { ...p, active } : p))
+      toast.success(active ? 'Promo activada' : 'Promo pausada')
     })
   }
 
@@ -1098,13 +1111,66 @@ function PromotionsPanel() {
     }
   }
 
-  function handleCreate() {
+  function resetForm() {
+    setFormName(''); setFormDesc(''); setFormDays('30'); setFormMax('20')
+    setShowForm(false); setEditingId(null)
+  }
+
+  function startEdit(promo: Promotion) {
+    setEditingId(promo.id)
+    setFormName(promo.name)
+    setFormDesc(promo.description ?? '')
+    setFormDays(String(promo.extra_days))
+    setFormMax(String(promo.max_uses))
+    setShowForm(true)
+    setExpanded(null)
+  }
+
+  function handleSubmit() {
     if (!formName.trim()) return
+    const input = { name: formName.trim(), description: formDesc.trim() || undefined, extra_days: parseInt(formDays) || 30, max_uses: parseInt(formMax) || 20 }
     startTransition(async () => {
-      const res = await createPromotion({ name: formName.trim(), extra_days: parseInt(formDays) || 30, max_uses: parseInt(formMax) || 20 })
-      if (res.error) { alert(res.error); return }
-      setFormName(''); setFormDays('30'); setFormMax('20'); setShowForm(false)
-      getPromotions().then(setPromotions)
+      const res = editingId ? await updatePromotion(editingId, input) : await createPromotion(input)
+      if (res.error) { toast.error(res.error); return }
+      toast.success(editingId ? 'Promo actualizada' : 'Promo creada')
+      resetForm()
+      refresh()
+    })
+  }
+
+  function handleDelete(promo: Promotion) {
+    if (!window.confirm(`¿Eliminar "${promo.name}"? Esto no afecta los días ya otorgados, solo borra la promo.`)) return
+    startTransition(async () => {
+      const res = await deletePromotion(promo.id)
+      if (res.error) { toast.error(res.error); return }
+      toast.success('Promo eliminada')
+      setExpanded(null)
+      refresh()
+    })
+  }
+
+  function handleExempt(promoId: string) {
+    const email = (exemptEmail[promoId] ?? '').trim()
+    if (!email) return
+    startTransition(async () => {
+      const res = await exemptUserFromPromotion(promoId, email)
+      if (res.error) { toast.error(res.error); return }
+      toast.success(`${email} quedó excluido de esta promo`)
+      setExemptEmail(prev => ({ ...prev, [promoId]: '' }))
+      setUses(prev => { const { [promoId]: _, ...rest } = prev; return rest }) // force reload
+      getPromotionUses(promoId).then(u => setUses(prev => ({ ...prev, [promoId]: u })))
+    })
+  }
+
+  function handleRevoke(use: PromotionUse, promoId: string) {
+    const label = use.extra_days_granted > 0 ? `revocar los +${use.extra_days_granted} días de` : 'quitar la exclusión de'
+    if (!window.confirm(`¿Seguro que quieres ${label} ${use.profiles?.email ?? 'este usuario'}?`)) return
+    startTransition(async () => {
+      const res = await revokePromotionUse(use.id, promoId)
+      if (res.error) { toast.error(res.error); return }
+      toast.success('Listo')
+      setUses(prev => ({ ...prev, [promoId]: prev[promoId].filter(u => u.id !== use.id) }))
+      refresh()
     })
   }
 
@@ -1112,19 +1178,27 @@ function PromotionsPanel() {
     <div className="space-y-4 py-2">
       <div className="flex items-center justify-between">
         <p className="text-[12px] font-black uppercase tracking-[3px]" style={{ color: GRAY }}>Promociones</p>
-        <button
-          onClick={() => setShowForm(s => !s)}
-          className="px-3 py-1.5 rounded-[10px] text-[13px] font-bold transition-all active:scale-95"
-          style={{ background: BLUE, color: '#fff' }}
-        >
-          <i className="fa-solid fa-plus mr-1.5" />Nueva promo
-        </button>
+        {!showForm && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="px-3 py-1.5 rounded-[10px] text-[13px] font-bold transition-all active:scale-95"
+            style={{ background: BLUE, color: '#fff' }}
+          >
+            <i className="fa-solid fa-plus mr-1.5" />Nueva promo
+          </button>
+        )}
       </div>
 
       {showForm && (
         <div className="rounded-[16px] p-4 space-y-3" style={{ background: LIGHT, border: '1px solid rgba(0,0,0,0.08)' }}>
+          <p className="text-[12px] font-black uppercase tracking-wider" style={{ color: GRAY }}>
+            {editingId ? 'Editar promo' : 'Nueva promo'}
+          </p>
           <input placeholder="Nombre (ej: Fundadores)" value={formName} onChange={e => setFormName(e.target.value)}
             className="w-full px-3 py-2.5 rounded-[10px] text-[15px] font-bold outline-none"
+            style={{ background: '#fff', border: '1px solid rgba(0,0,0,0.1)', color: DARK }} />
+          <input placeholder="Descripción (opcional)" value={formDesc} onChange={e => setFormDesc(e.target.value)}
+            className="w-full px-3 py-2.5 rounded-[10px] text-[14px] font-medium outline-none"
             style={{ background: '#fff', border: '1px solid rgba(0,0,0,0.1)', color: DARK }} />
           <div className="flex gap-2">
             <div className="flex-1">
@@ -1141,9 +1215,9 @@ function PromotionsPanel() {
             </div>
           </div>
           <div className="flex gap-2">
-            <button onClick={() => setShowForm(false)} className="flex-1 py-2 rounded-[10px] text-[14px] font-bold" style={{ background: LIGHT, color: GRAY }}>Cancelar</button>
-            <button onClick={handleCreate} disabled={isPending || !formName.trim()} className="flex-[2] py-2 rounded-[10px] text-[14px] font-black text-white disabled:opacity-50" style={{ background: BLUE }}>
-              {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : 'Crear'}
+            <button onClick={resetForm} className="flex-1 py-2 rounded-[10px] text-[14px] font-bold" style={{ background: '#fff', color: GRAY }}>Cancelar</button>
+            <button onClick={handleSubmit} disabled={isPending || !formName.trim()} className="flex-[2] py-2 rounded-[10px] text-[14px] font-black text-white disabled:opacity-50" style={{ background: BLUE }}>
+              {isPending ? <i className="fa-solid fa-spinner fa-spin" /> : editingId ? 'Guardar cambios' : 'Crear'}
             </button>
           </div>
         </div>
@@ -1155,6 +1229,7 @@ function PromotionsPanel() {
 
       {promotions.map(promo => {
         const pct = promo.max_uses > 0 ? Math.round((promo.used_count / promo.max_uses) * 100) : 0
+        const pctColor = pct >= 90 ? RED : pct >= 75 ? '#FF9500' : BLUE
         const isExp = expanded === promo.id
         return (
           <div key={promo.id} className="rounded-[16px] overflow-hidden" style={{ border: '1px solid rgba(0,0,0,0.08)' }}>
@@ -1167,12 +1242,28 @@ function PromotionsPanel() {
                     {promo.active ? 'Activa' : 'Inactiva'}
                   </span>
                 </div>
-                <p className="text-[13px] font-medium" style={{ color: GRAY }}>
-                  +{promo.extra_days} días · {promo.used_count}/{promo.max_uses} usos
-                  <span className="ml-2 font-black" style={{ color: pct >= 90 ? RED : BLUE }}>{pct}%</span>
-                </p>
+                {promo.description && (
+                  <p className="text-[12px] mb-1 truncate" style={{ color: GRAY }}>{promo.description}</p>
+                )}
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-1.5 rounded-full overflow-hidden max-w-[120px]" style={{ background: 'rgba(0,0,0,0.08)' }}>
+                    <div className="h-full rounded-full" style={{ width: `${Math.min(pct, 100)}%`, background: pctColor }} />
+                  </div>
+                  <p className="text-[13px] font-medium" style={{ color: GRAY }}>
+                    +{promo.extra_days} días · {promo.used_count}/{promo.max_uses}
+                    <span className="ml-1.5 font-black" style={{ color: pctColor }}>{pct}%</span>
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <button
+                  onClick={e => { e.stopPropagation(); startEdit(promo) }}
+                  className="w-8 h-8 rounded-[8px] flex items-center justify-center transition-all active:scale-95"
+                  style={{ background: LIGHT, color: GRAY }}
+                  title="Editar"
+                >
+                  <i className="fa-solid fa-pen text-[12px]" />
+                </button>
                 <button
                   onClick={e => { e.stopPropagation(); handleToggle(promo.id, !promo.active) }}
                   className="px-3 py-1.5 rounded-[8px] text-[12px] font-bold transition-all active:scale-95"
@@ -1188,22 +1279,66 @@ function PromotionsPanel() {
               <div className="px-4 pb-4" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', background: LIGHT }}>
                 {!uses[promo.id] ? (
                   <p className="py-3 text-[13px] text-center" style={{ color: GRAY }}>Cargando…</p>
-                ) : uses[promo.id].length === 0 ? (
-                  <p className="py-3 text-[13px] text-center" style={{ color: GRAY }}>Sin usos aún</p>
                 ) : (
                   <div className="space-y-2 pt-3">
-                    {uses[promo.id].map(u => (
-                      <div key={u.id} className="flex items-center justify-between py-2 px-3 rounded-[10px]" style={{ background: '#fff' }}>
-                        <div>
-                          <p className="text-[14px] font-bold" style={{ color: DARK }}>{u.profiles?.full_name ?? 'Usuario'}</p>
-                          <p className="text-[12px]" style={{ color: GRAY }}>{u.profiles?.email}</p>
+                    {uses[promo.id].length === 0 && (
+                      <p className="py-1 text-[13px] text-center" style={{ color: GRAY }}>Sin usos aún</p>
+                    )}
+                    {uses[promo.id].map(u => {
+                      const isExempt = u.extra_days_granted === 0
+                      return (
+                        <div key={u.id} className="flex items-center justify-between py-2 px-3 rounded-[10px]" style={{ background: '#fff' }}>
+                          <div className="min-w-0">
+                            <p className="text-[14px] font-bold truncate" style={{ color: DARK }}>{u.profiles?.full_name ?? 'Usuario'}</p>
+                            <p className="text-[12px] truncate" style={{ color: GRAY }}>{u.profiles?.email}</p>
+                          </div>
+                          <div className="flex items-center gap-3 flex-shrink-0">
+                            <div className="text-right">
+                              <p className="text-[13px] font-black" style={{ color: isExempt ? GRAY : GREEN }}>
+                                {isExempt ? 'Excluido' : `+${u.extra_days_granted} días`}
+                              </p>
+                              <p className="text-[11px]" style={{ color: GRAY }}>{new Date(u.applied_at).toLocaleDateString('es-MX')}</p>
+                            </div>
+                            <button
+                              onClick={() => handleRevoke(u, promo.id)}
+                              className="w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-95"
+                              style={{ background: 'rgba(255,0,79,0.08)', color: RED }}
+                              title={isExempt ? 'Quitar exclusión' : 'Revocar'}
+                            >
+                              <i className="fa-solid fa-xmark text-[11px]" />
+                            </button>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-[13px] font-black" style={{ color: GREEN }}>+{u.extra_days_granted} días</p>
-                          <p className="text-[11px]" style={{ color: GRAY }}>{new Date(u.applied_at).toLocaleDateString('es-MX')}</p>
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    })}
+
+                    {/* Exclude a specific user (e.g. an existing paying customer) without granting days */}
+                    <div className="flex gap-2 pt-1">
+                      <input
+                        placeholder="correo@ejemplo.com — excluir de esta promo"
+                        value={exemptEmail[promo.id] ?? ''}
+                        onChange={e => setExemptEmail(prev => ({ ...prev, [promo.id]: e.target.value }))}
+                        onKeyDown={e => { if (e.key === 'Enter') handleExempt(promo.id) }}
+                        className="flex-1 px-3 py-2 rounded-[10px] text-[13px] font-medium outline-none"
+                        style={{ background: '#fff', border: '1px solid rgba(0,0,0,0.1)', color: DARK }}
+                      />
+                      <button
+                        onClick={() => handleExempt(promo.id)}
+                        disabled={isPending || !(exemptEmail[promo.id] ?? '').trim()}
+                        className="px-3 rounded-[10px] text-[12px] font-bold disabled:opacity-50"
+                        style={{ background: '#fff', border: '1px solid rgba(0,0,0,0.1)', color: GRAY }}
+                      >
+                        Excluir
+                      </button>
+                    </div>
+
+                    <button
+                      onClick={() => handleDelete(promo)}
+                      className="w-full text-center py-2 text-[12px] font-bold"
+                      style={{ color: RED }}
+                    >
+                      Eliminar promoción
+                    </button>
                   </div>
                 )}
               </div>

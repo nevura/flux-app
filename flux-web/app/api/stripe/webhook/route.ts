@@ -45,22 +45,35 @@ export async function POST(req: NextRequest) {
         .single()
 
       if (promo && promo.used_count < promo.max_uses) {
-        const trialEnd = Math.floor(Date.now() / 1000) + promo.extra_days * 86400
-        try {
-          await stripe.subscriptions.update(sub.id, { trial_end: trialEnd })
-          await db.from('promotion_uses').insert({
-            promotion_id: promo.id,
-            user_id: uid,
-            stripe_subscription_id: sub.id,
-            extra_days_granted: promo.extra_days,
-          })
-          // Atomic increment — only if still under limit
-          await db.from('promotions')
-            .update({ used_count: promo.used_count + 1 })
-            .eq('id', promo.id)
-            .lt('used_count', promo.max_uses)
-        } catch {
-          // Promo application is non-critical — don't fail the webhook
+        // Guard against double-granting if this user ever goes through checkout
+        // again (e.g. cancel + resubscribe) — without this check, only the DB
+        // bookkeeping insert would fail (unique constraint), but the Stripe-side
+        // trial_end extension above it would still re-apply every time.
+        const { data: existingUse } = await db
+          .from('promotion_uses')
+          .select('id')
+          .eq('promotion_id', promo.id)
+          .eq('user_id', uid)
+          .maybeSingle()
+
+        if (!existingUse) {
+          const trialEnd = Math.floor(Date.now() / 1000) + promo.extra_days * 86400
+          try {
+            await stripe.subscriptions.update(sub.id, { trial_end: trialEnd })
+            await db.from('promotion_uses').insert({
+              promotion_id: promo.id,
+              user_id: uid,
+              stripe_subscription_id: sub.id,
+              extra_days_granted: promo.extra_days,
+            })
+            // Atomic increment — only if still under limit
+            await db.from('promotions')
+              .update({ used_count: promo.used_count + 1 })
+              .eq('id', promo.id)
+              .lt('used_count', promo.max_uses)
+          } catch {
+            // Promo application is non-critical — don't fail the webhook
+          }
         }
       }
       break

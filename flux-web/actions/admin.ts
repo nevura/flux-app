@@ -552,6 +552,28 @@ export async function togglePromotion(id: string, active: boolean): Promise<{ er
   return error ? { error: error.message } : {}
 }
 
+export async function updatePromotion(id: string, input: { name: string; description?: string; extra_days: number; max_uses: number }): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || user.email !== (process.env.ADMIN_AUTH_EMAIL ?? process.env.ADMIN_EMAIL ?? 'bernardo.perezro06@gmail.com')) {
+    return { error: 'No autorizado' }
+  }
+  const admin = createAdminClient() as any
+  const { error } = await admin.from('promotions').update(input).eq('id', id)
+  return error ? { error: error.message } : {}
+}
+
+export async function deletePromotion(id: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || user.email !== (process.env.ADMIN_AUTH_EMAIL ?? process.env.ADMIN_EMAIL ?? 'bernardo.perezro06@gmail.com')) {
+    return { error: 'No autorizado' }
+  }
+  const admin = createAdminClient() as any
+  const { error } = await admin.from('promotions').delete().eq('id', id)
+  return error ? { error: error.message } : {}
+}
+
 export async function getPromotionUses(promotionId: string): Promise<PromotionUse[]> {
   const admin = createAdminClient() as any
   const { data } = await admin
@@ -560,4 +582,52 @@ export async function getPromotionUses(promotionId: string): Promise<PromotionUs
     .eq('promotion_id', promotionId)
     .order('applied_at', { ascending: false })
   return (data ?? []) as PromotionUse[]
+}
+
+// Marks a user as permanently excluded from a promotion (e.g. an existing
+// paying customer who shouldn't receive a "new signup" perk) without
+// granting them any days — relies on the promotion_uses unique(promotion_id,
+// user_id) constraint to block any future auto-grant for that user.
+export async function exemptUserFromPromotion(promotionId: string, email: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || user.email !== (process.env.ADMIN_AUTH_EMAIL ?? process.env.ADMIN_EMAIL ?? 'bernardo.perezro06@gmail.com')) {
+    return { error: 'No autorizado' }
+  }
+  const admin = createAdminClient() as any
+  const { data: target } = await admin.from('profiles').select('id').eq('email', email.trim().toLowerCase()).maybeSingle()
+  if (!target) return { error: 'No existe un usuario con ese correo' }
+  const { error } = await admin.from('promotion_uses').insert({
+    promotion_id: promotionId,
+    user_id: target.id,
+    extra_days_granted: 0,
+  })
+  if (error) {
+    if (error.code === '23505') return { error: 'Ese usuario ya tiene un registro en esta promoción' }
+    return { error: error.message }
+  }
+  return {}
+}
+
+// Revokes a single grant — deletes the promotion_uses row and decrements the
+// promotion's used_count so the freed slot can go to someone else. The
+// stripe-side trial_end extension already applied is NOT undone (admin should
+// adjust that in Stripe directly if needed).
+export async function revokePromotionUse(useId: string, promotionId: string): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || user.email !== (process.env.ADMIN_AUTH_EMAIL ?? process.env.ADMIN_EMAIL ?? 'bernardo.perezro06@gmail.com')) {
+    return { error: 'No autorizado' }
+  }
+  const admin = createAdminClient() as any
+  const { data: deleted, error } = await admin.from('promotion_uses').delete().eq('id', useId).select('extra_days_granted').single()
+  if (error) return { error: error.message }
+  // Exempt markers (extra_days_granted = 0) were never counted toward used_count
+  if (deleted?.extra_days_granted > 0) {
+    const { data: promo } = await admin.from('promotions').select('used_count').eq('id', promotionId).single()
+    if (promo) {
+      await admin.from('promotions').update({ used_count: Math.max(0, promo.used_count - 1) }).eq('id', promotionId)
+    }
+  }
+  return {}
 }
