@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { verifyAdminAction } from '@/lib/admin'
 import { sendApprovalGrantedEmail } from '@/lib/email'
+import { TRIAL_DAYS } from '@/lib/subscriptionStatus'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
@@ -26,7 +27,7 @@ export async function GET(request: Request) {
   }
 
   const trialEnd = new Date()
-  trialEnd.setDate(trialEnd.getDate() + 20)
+  trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS)
   await (admin.from('profiles') as any).update({
     status: 'approved',
     subscription_status: 'trialing',

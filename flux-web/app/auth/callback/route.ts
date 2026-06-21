@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendApprovalGrantedEmail, sendNewUserRegistrationEmail } from '@/lib/email'
+import { TRIAL_DAYS } from '@/lib/subscriptionStatus'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
@@ -70,9 +71,9 @@ export async function GET(request: Request) {
   }
 
   if (profile?.status === 'pending') {
-    // Auto-approve on email confirmation — 20-day trial starts immediately
+    // Auto-approve on email confirmation — trial starts immediately
     const trialEnd = new Date()
-    trialEnd.setDate(trialEnd.getDate() + 20)
+    trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS)
     await (admin.from('profiles') as any).update({
       status: 'approved',
       subscription_status: 'trialing',

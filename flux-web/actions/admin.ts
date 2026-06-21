@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendSupportReplyEmail, sendTrialExpiryEmail, sendShortcutReminderEmail, sendReengagementEmail } from '@/lib/email'
+import { TRIAL_DAYS } from '@/lib/subscriptionStatus'
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? ''  // notification recipient
 const ADMIN_AUTH_EMAIL = process.env.ADMIN_AUTH_EMAIL || process.env.ADMIN_EMAIL || 'bernardo.perezro06@gmail.com'
@@ -195,7 +196,7 @@ export async function setUserAccountStatus(userId: string, status: 'approved' | 
   const update: Record<string, unknown> = { status }
   if (status === 'approved') {
     const trialEnd = new Date()
-    trialEnd.setDate(trialEnd.getDate() + 20)
+    trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS)
     update.trial_ends_at = trialEnd.toISOString()
     update.subscription_status = 'trialing'
   }

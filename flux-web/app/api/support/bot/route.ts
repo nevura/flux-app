@@ -72,7 +72,7 @@ Lo que hace FluxApp Finance:
 - Presupuesto mensual con alertas al 80%
 - Gastos e ingresos recurrentes (streaming, renta, nómina)
 - Estadísticas y gráficas de tendencia mensual
-- Plan: 20 días de prueba gratis, luego $89/mes
+- Plan: 14 días de prueba gratis, luego $89/mes
 
 Preguntas frecuentes y respuestas clave:
 - Atajo no funciona: el nombre de la cuenta en Flux debe ser IDÉNTICO al nombre de la tarjeta en Ajustes → Wallet y Apple Pay → [tarjeta]. Hasta el acento importa.

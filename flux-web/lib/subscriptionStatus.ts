@@ -4,6 +4,10 @@
 
 export type SubscriptionStatus = 'trialing' | 'active' | 'grace' | 'expired' | 'canceled'
 
+/** Single source of truth for trial/grace lengths — change here, not at each call site. */
+export const TRIAL_DAYS = 14
+export const GRACE_DAYS = 1
+
 export interface StatusBanner {
   title: string
   subtitle: string

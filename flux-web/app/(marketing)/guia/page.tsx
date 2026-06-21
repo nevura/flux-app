@@ -432,7 +432,7 @@ const sections: Record<string, Section> = {
     steps: [
       { icon: 'fa-comment-dots', title: 'Contactar soporte', desc: 'Ve a Configuración → Soporte y escribe tu mensaje. El equipo de Flux te responde directamente en la app. También puedes escribir a hola@fluxappfinance.com.' },
       { icon: 'fa-star', title: 'Gestionar tu suscripción', desc: 'Ve a Configuración → Plan y suscripción. Desde ahí puedes ver tu fecha de vencimiento, suscribirte a Flux Pro o gestionar (cancelar, actualizar) tu suscripción.' },
-      { icon: 'fa-clock', title: 'Período de prueba', desc: 'Flux incluye 20 días de prueba gratuita con acceso completo. Al vencerse, si no tienes suscripción activa, la app pasa a modo de solo lectura — tus datos se conservan.' },
+      { icon: 'fa-clock', title: 'Período de prueba', desc: 'Flux incluye 14 días de prueba gratuita con acceso completo. Al vencerse, tienes 1 día de gracia para suscribirte antes de que la app pase a modo de solo lectura — tus datos se conservan.' },
       { icon: 'fa-rotate-left', title: 'Al cancelar', desc: 'Si cancelas, conservas acceso hasta el final del período pagado. Tus datos nunca se borran — puedes reactivar en cualquier momento.' },
     ],
   },

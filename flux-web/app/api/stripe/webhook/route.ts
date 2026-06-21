@@ -34,46 +34,29 @@ export async function POST(req: NextRequest) {
       if (ends) patch.subscription_ends_at = ends
       await db.from('profiles').update(patch).eq('id', uid)
 
-      // Apply active promotion (e.g. Fundadores: +30 days free)
-      const { data: promo } = await db
-        .from('promotions')
-        .select('id, extra_days, used_count, max_uses')
-        .eq('active', true)
-        .eq('type', 'trial_extension')
-        .order('created_at', { ascending: true })
-        .limit(1)
-        .single()
-
-      if (promo && promo.used_count < promo.max_uses) {
-        // Guard against double-granting if this user ever goes through checkout
-        // again (e.g. cancel + resubscribe) — without this check, only the DB
-        // bookkeeping insert would fail (unique constraint), but the Stripe-side
-        // trial_end extension above it would still re-apply every time.
-        const { data: existingUse } = await db
-          .from('promotion_uses')
-          .select('id')
-          .eq('promotion_id', promo.id)
-          .eq('user_id', uid)
-          .maybeSingle()
-
-        if (!existingUse) {
-          const trialEnd = Math.floor(Date.now() / 1000) + promo.extra_days * 86400
-          try {
-            await stripe.subscriptions.update(sub.id, { trial_end: trialEnd })
-            await db.from('promotion_uses').insert({
-              promotion_id: promo.id,
-              user_id: uid,
-              stripe_subscription_id: sub.id,
-              extra_days_granted: promo.extra_days,
-            })
-            // Atomic increment — only if still under limit
+      // Promo days (e.g. Fundadores: +30 days) were already baked into the
+      // Stripe trial at checkout creation (see app/api/stripe/checkout/route.ts)
+      // — no charge has happened yet, so there's no proration to worry about.
+      // This just records usage so the same user can't stack the promo again.
+      const promoId = session.metadata?.promo_id
+      const promoDays = Number(session.metadata?.promo_days ?? 0)
+      if (promoId && promoDays > 0) {
+        try {
+          await db.from('promotion_uses').insert({
+            promotion_id: promoId,
+            user_id: uid,
+            stripe_subscription_id: sub.id,
+            extra_days_granted: promoDays,
+          })
+          const { data: promo } = await db.from('promotions').select('used_count, max_uses').eq('id', promoId).single()
+          if (promo && promo.used_count < promo.max_uses) {
             await db.from('promotions')
               .update({ used_count: promo.used_count + 1 })
-              .eq('id', promo.id)
+              .eq('id', promoId)
               .lt('used_count', promo.max_uses)
-          } catch {
-            // Promo application is non-critical — don't fail the webhook
           }
+        } catch {
+          // Duplicate (unique constraint) or other bookkeeping failure — non-critical
         }
       }
       break

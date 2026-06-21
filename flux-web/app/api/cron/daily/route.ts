@@ -5,6 +5,7 @@ import { sendTdcReminderEmail, sendMonthlyAdjustmentEmail, sendTrialExpiryEmail,
 import { fetchAndStoreDailyRates } from '@/actions/exchangeRates'
 import { notify } from '@/lib/notify'
 import { getStripe, periodEnd } from '@/lib/stripe'
+import { GRACE_DAYS } from '@/lib/subscriptionStatus'
 
 export const maxDuration = 60
 
@@ -192,10 +193,10 @@ export async function GET(request: Request) {
 
   // ── 4. Expiración de trials y suscripciones ──────────────────────────────
   const graceCutoff = new Date(today)
-  graceCutoff.setDate(graceCutoff.getDate() - 2) // 2 días de gracia
+  graceCutoff.setDate(graceCutoff.getDate() - GRACE_DAYS)
   const graceCutoffStr = graceCutoff.toISOString().slice(0, 10)
 
-  // trialing → grace (trial terminó hace ≤2 días)
+  // trialing → grace (trial terminó hace ≤GRACE_DAYS días)
   const { data: enteredGrace } = await (admin.from('profiles') as any)
     .update({ subscription_status: 'grace' })
     .eq('subscription_status', 'trialing')
@@ -207,10 +208,10 @@ export async function GET(request: Request) {
       await notify({
         userId: p.id,
         type: 'grace_started',
-        data: { grace_days: '2' },
+        data: { grace_days: String(GRACE_DAYS) },
         to: p.email,
         email: p.email
-          ? () => sendGraceStartedEmail({ to: p.email, graceDays: 2, upgradeUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://fluxappfinance.com'}/settings?tab=subscription` })
+          ? () => sendGraceStartedEmail({ to: p.email, graceDays: GRACE_DAYS, upgradeUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://fluxappfinance.com'}/settings?tab=subscription` })
           : undefined,
       })
     } catch (e) {
@@ -218,7 +219,7 @@ export async function GET(request: Request) {
     }
   }
 
-  // trialing/grace → expired (pasaron los 2 días de gracia)
+  // trialing/grace → expired (pasaron los GRACE_DAYS días de gracia)
   // Guard against expiring someone who actually has a live paid Stripe
   // subscription — trial_ends_at is the app's own pre-paid free-trial date
   // and is irrelevant once a user has converted, but a stale/mismatched
@@ -262,7 +263,7 @@ export async function GET(request: Request) {
     }
   }
 
-  // grace → expired (2 días después de que venció la suscripción)
+  // grace → expired (GRACE_DAYS días después de que venció la suscripción)
   await (admin.from('profiles') as any)
     .update({ subscription_status: 'expired' })
     .eq('subscription_status', 'grace')

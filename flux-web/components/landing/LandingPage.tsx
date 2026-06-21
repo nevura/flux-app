@@ -101,7 +101,7 @@ function Hero() {
               {[
                 'Empieza en segundos',
                 'No requiere instalación',
-                '20 días gratis · Sin tarjeta',
+                '14 días gratis · Sin tarjeta',
               ].map((item) => (
                 <p key={item} className="flex items-center gap-2 text-[14px] font-semibold" style={{ color: 'rgba(0,0,0,0.45)' }}>
                   <i className="fa-solid fa-check" style={{ color: BLUE, fontSize: 11, flexShrink: 0 }} />
@@ -500,7 +500,7 @@ function PricingSection() {
             Simple.<br />Sin sorpresas.
           </h2>
           <p className="text-[17px] font-medium mt-4" style={{ color: GRAY }}>
-            20 días gratis · Sin tarjeta · Cancela cuando quieras.
+            14 días gratis · Sin tarjeta · Cancela cuando quieras.
           </p>
         </RevealWrapper>
         <div className="grid sm:grid-cols-2 gap-5 mb-8">
@@ -581,7 +581,7 @@ function PricingSection() {
             <div>
               <p className="text-[15px] font-black mb-1" style={{ color: DARK }}>Oferta para los primeros usuarios</p>
               <p className="text-[14px] font-medium leading-relaxed" style={{ color: GRAY }}>
-                Además de los <strong style={{ color: DARK }}>20 días gratis</strong>, los primeros usuarios reciben{' '}
+                Además de los <strong style={{ color: DARK }}>14 días gratis</strong>, los primeros usuarios reciben{' '}
                 <strong style={{ color: DARK }}>1 mes adicional sin costo</strong> al ingresar su método de pago. Sin cobros sorpresa.
               </p>
             </div>
@@ -687,7 +687,7 @@ function CTASection() {
             <div className="relative">
               <p className="text-[12px] font-black uppercase tracking-[4px] mb-4 text-white/60">Comienza hoy</p>
               <h2 className="text-[36px] sm:text-[48px] font-black leading-[1.06] tracking-[-1.5px] text-white mb-4">
-                20 días gratis.<br />Sin tarjeta.
+                14 días gratis.<br />Sin tarjeta.
               </h2>
               <p className="text-[17px] font-medium text-white/70 mb-8 max-w-md mx-auto">
                 Únete y descubre por qué controlar tu dinero puede ser simple.
