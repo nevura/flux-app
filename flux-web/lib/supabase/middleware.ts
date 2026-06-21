@@ -24,13 +24,17 @@ export async function updateSession(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   const path = request.nextUrl.pathname
-  const isAuthRoute     = path.startsWith('/login') || path.startsWith('/signup')
+  const isAuthRoute     = path.startsWith('/login') || path.startsWith('/signup') || path.startsWith('/forgot-password')
+  // Reset-password is reachable both with a session (just-established recovery
+  // session, mid-flow) and without one (expired/invalid link) — the page itself
+  // renders the right state either way, so it's exempt from both redirects below.
+  const isPasswordReset = path.startsWith('/reset-password')
   const isAuthCallback  = path.startsWith('/auth/')
   const isApiRoute      = path.startsWith('/api/')
   const isStatusRoute   = path.startsWith('/pending') || path.startsWith('/rejected') || path.startsWith('/expired')
   const isMarketingRoute = path === '/' || path.startsWith('/terminos') || path.startsWith('/privacidad') || path.startsWith('/guia')
 
-  if (!user && !isAuthRoute && !isAuthCallback && !isApiRoute && !isMarketingRoute) {
+  if (!user && !isAuthRoute && !isAuthCallback && !isApiRoute && !isMarketingRoute && !isPasswordReset) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
@@ -43,7 +47,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Check approval + subscription status for authenticated users
-  if (user && !isAuthRoute && !isAuthCallback && !isApiRoute && !isStatusRoute && !isMarketingRoute) {
+  if (user && !isAuthRoute && !isAuthCallback && !isApiRoute && !isStatusRoute && !isMarketingRoute && !isPasswordReset) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('status, subscription_status, trial_ends_at, subscription_ends_at')
