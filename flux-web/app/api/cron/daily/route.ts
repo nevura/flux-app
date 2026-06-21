@@ -4,6 +4,7 @@ import { adjustmentFor, getMexicoNow, nextRecurringDate, formatCurrency } from '
 import { sendTdcReminderEmail, sendMonthlyAdjustmentEmail, sendTrialExpiryEmail, sendShortcutReminderEmail, sendReengagementEmail, sendGraceStartedEmail } from '@/lib/email'
 import { fetchAndStoreDailyRates } from '@/actions/exchangeRates'
 import { notify } from '@/lib/notify'
+import { getStripe, periodEnd } from '@/lib/stripe'
 
 export const maxDuration = 60
 
@@ -224,11 +225,37 @@ export async function GET(request: Request) {
     .lt('trial_ends_at', graceCutoffStr)
 
   // active → grace si la suscripción de Stripe venció (sin pago)
-  await (admin.from('profiles') as any)
-    .update({ subscription_status: 'grace' })
+  // Before demoting, re-verify against Stripe directly — a missed/late webhook
+  // event can leave subscription_ends_at stale for a subscriber who actually
+  // renewed, which would otherwise incorrectly demote a paying customer.
+  const { data: graceCandidates } = await (admin.from('profiles') as any)
+    .select('id, stripe_subscription_id, subscription_ends_at')
     .eq('subscription_status', 'active')
     .not('subscription_ends_at', 'is', null)
     .lt('subscription_ends_at', todayStr)
+
+  for (const p of (graceCandidates ?? [])) {
+    try {
+      if (p.stripe_subscription_id) {
+        const stripe = getStripe()
+        const sub = await stripe.subscriptions.retrieve(p.stripe_subscription_id, { expand: ['items'] })
+        const realEnd = periodEnd(sub)
+        if (sub.status === 'active' && realEnd && realEnd > todayStr) {
+          // Actually still current — webhook missed it. Resync instead of demoting.
+          await (admin.from('profiles') as any)
+            .update({ subscription_status: 'active', subscription_ends_at: realEnd })
+            .eq('id', p.id)
+          continue
+        }
+      }
+      await (admin.from('profiles') as any)
+        .update({ subscription_status: 'grace' })
+        .eq('id', p.id)
+    } catch (e) {
+      // Fail-safe: on a Stripe API error, don't demote — leave as active and retry tomorrow
+      results.errors.push(`grace_check(${p.id}): ${String(e)}`)
+    }
+  }
 
   // grace → expired (2 días después de que venció la suscripción)
   await (admin.from('profiles') as any)
