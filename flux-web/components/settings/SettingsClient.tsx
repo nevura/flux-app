@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { getCategoryDisplay, getPaymentMethod, formatCurrency } from '@/lib/utils'
-import { STATIC_ICONS, STATIC_COLORS, PAYMENT_METHODS, SHORTCUT_LINKS, SUPPORTED_CURRENCIES, getSmartSortedCurrencies, getCurrenciesByCode } from '@/lib/constants'
+import { STATIC_ICONS, STATIC_COLORS, PAYMENT_METHODS, SHORTCUT_LINKS, SUPPORTED_CURRENCIES, getCurrenciesByCode } from '@/lib/constants'
 import { saveCategory, deleteCategory, saveAccount, deleteAccount, reorderAccounts, saveScheduled, deleteScheduled, updateProfile, saveDefaultBudget, updateThemePreference, addPerson, updatePerson, deletePerson, updateBaseCurrency } from '@/actions/config'
 import SupportChat from '@/components/support/SupportChat'
 import { getUserUnreadCount } from '@/actions/support-chat'
@@ -1638,7 +1638,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, baseCurrency = 
                       className="text-[20px] font-black bg-transparent border-none outline-none appearance-none cursor-pointer"
                       style={{ color: 'var(--f-text-3)', colorScheme: 'dark' }}
                     >
-                      {getSmartSortedCurrencies().map(c => (
+                      {getCurrenciesByCode().map(c => (
                         <option key={c.code} value={c.code}>{c.code}</option>
                       ))}
                     </select>

@@ -304,38 +304,16 @@ export const SUPPORTED_CURRENCIES: { code: string; name: string; symbol: string;
 
 // ── Currency sort helpers ──────────────────────────────────────────────────────
 
-const COMMON_CURRENCY_CODES = ['MXN', 'USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CHF']
-
-/** Pure alphabetical by Spanish name — for onboarding and base-currency pickers */
+/** Pure alphabetical by Spanish name — for onboarding pickers */
 export function getAlphabeticalCurrencies() {
   return [...SUPPORTED_CURRENCIES].sort((a, b) =>
     a.name.localeCompare(b.name, 'es')
   )
 }
 
-/** Pure alphabetical by ISO code (MXN, USD, ZAR…) — for searchable currency pickers */
+/** Pure alphabetical by ISO code (MXN, USD, ZAR…) — for transaction/account currency pickers */
 export function getCurrenciesByCode() {
   return [...SUPPORTED_CURRENCIES].sort((a, b) => a.code.localeCompare(b.code))
-}
-
-/**
- * Smart sort for transaction / account pickers:
- * preferred code first → common currencies (MXN, USD, EUR…) → rest A→Z
- */
-export function getSmartSortedCurrencies(preferredCode?: string) {
-  const sorted = [...SUPPORTED_CURRENCIES].sort((a, b) =>
-    a.name.localeCompare(b.name, 'es')
-  )
-  const preferred = preferredCode
-    ? sorted.filter(c => c.code === preferredCode)
-    : []
-  const common = sorted.filter(
-    c => COMMON_CURRENCY_CODES.includes(c.code) && c.code !== preferredCode
-  )
-  const rest = sorted.filter(
-    c => !COMMON_CURRENCY_CODES.includes(c.code) && c.code !== preferredCode
-  )
-  return [...preferred, ...common, ...rest]
 }
 
 // Shortcut iCloud share links

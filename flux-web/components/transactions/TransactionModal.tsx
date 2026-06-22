@@ -8,7 +8,7 @@ import { addTransaction, updateTransaction, deleteTransaction, confirmTransactio
 import { addPerson } from '@/actions/config'
 import { getCategoryDisplay, formatCurrency } from '@/lib/utils'
 import { getExchangeRateForDate } from '@/actions/exchangeRates'
-import { getSmartSortedCurrencies } from '@/lib/constants'
+import { getCurrenciesByCode } from '@/lib/constants'
 import { useBottomSheetSwipe } from '@/lib/hooks/useBottomSheetSwipe'
 import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock'
 import type { Transaction, AccountWithBalance, Category, Person, SplitData } from '@/lib/types'
@@ -487,7 +487,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                       className="absolute left-2 text-[16px] font-black bg-transparent border-none outline-none appearance-none cursor-pointer"
                       style={{ color: isOriginalMode ? cfg.color : 'var(--f-text-3)', colorScheme: 'dark' }}
                     >
-                      {getSmartSortedCurrencies(accountCurrency).map(c => (
+                      {getCurrenciesByCode().map(c => (
                         <option key={c.code} value={c.code}>{c.code}</option>
                       ))}
                     </select>
