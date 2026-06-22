@@ -8,7 +8,7 @@ import { addTransaction, updateTransaction, deleteTransaction, confirmTransactio
 import { addPerson } from '@/actions/config'
 import { getCategoryDisplay, formatCurrency } from '@/lib/utils'
 import { getExchangeRateForDate } from '@/actions/exchangeRates'
-import { getCurrenciesByCode } from '@/lib/constants'
+import { CurrencyPicker } from '@/components/ui/CurrencyPicker'
 import { useBottomSheetSwipe } from '@/lib/hooks/useBottomSheetSwipe'
 import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock'
 import type { Transaction, AccountWithBalance, Category, Person, SplitData } from '@/lib/types'
@@ -474,23 +474,29 @@ export default function TransactionModal({ transaction, accounts, categories, pe
               ) : (
                 <div className="relative flex items-center justify-center">
                   {type !== 'TR-TRANSFER' ? (
-                    <select
-                      value={originalCurrency}
-                      onChange={e => {
-                        if (e.target.value !== originalCurrency) {
-                          userEditedCurrencyRef.current = true
-                          userEditedRateRef.current = false
-                          setOriginalCurrency(e.target.value)
-                          setFxRateSource('account')
-                        }
-                      }}
-                      className="absolute left-2 text-[16px] font-black bg-transparent border-none outline-none appearance-none cursor-pointer"
-                      style={{ color: isOriginalMode ? cfg.color : 'var(--f-text-3)', colorScheme: 'dark' }}
-                    >
-                      {getCurrenciesByCode().map(c => (
-                        <option key={c.code} value={c.code}>{c.code}</option>
-                      ))}
-                    </select>
+                    <div className="absolute left-2">
+                      <CurrencyPicker
+                        value={originalCurrency}
+                        onChange={code => {
+                          if (code !== originalCurrency) {
+                            userEditedCurrencyRef.current = true
+                            userEditedRateRef.current = false
+                            setOriginalCurrency(code)
+                            setFxRateSource('account')
+                          }
+                        }}
+                        renderTrigger={({ code, open }) => (
+                          <button
+                            type="button"
+                            onClick={open}
+                            className="text-[16px] font-black bg-transparent border-none outline-none cursor-pointer"
+                            style={{ color: isOriginalMode ? cfg.color : 'var(--f-text-3)' }}
+                          >
+                            {code}
+                          </button>
+                        )}
+                      />
+                    </div>
                   ) : (
                     <span className="absolute left-2 text-[16px] font-black tracking-wider" style={{ color: 'var(--f-transfer)' }}>{accountCurrency}</span>
                   )}

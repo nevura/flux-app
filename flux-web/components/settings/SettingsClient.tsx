@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useTransition, useEffect, useRef } from 'react'
-import { createPortal } from 'react-dom'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { getCategoryDisplay, getPaymentMethod, formatCurrency } from '@/lib/utils'
-import { STATIC_ICONS, STATIC_COLORS, PAYMENT_METHODS, SHORTCUT_LINKS, SUPPORTED_CURRENCIES, getCurrenciesByCode } from '@/lib/constants'
+import { STATIC_ICONS, STATIC_COLORS, PAYMENT_METHODS, SHORTCUT_LINKS } from '@/lib/constants'
+import { BottomSheet } from '@/components/ui/BottomSheet'
+import { CurrencyPicker } from '@/components/ui/CurrencyPicker'
 import { saveCategory, deleteCategory, saveAccount, deleteAccount, reorderAccounts, saveScheduled, deleteScheduled, updateProfile, saveDefaultBudget, updateThemePreference, addPerson, updatePerson, deletePerson, updateBaseCurrency } from '@/actions/config'
 import SupportChat from '@/components/support/SupportChat'
 import { getUserUnreadCount } from '@/actions/support-chat'
@@ -31,80 +32,6 @@ interface Props {
 
 type Tab = 'shortcuts' | 'categorias' | 'cuentas' | 'planificados' | 'personas' | 'suscripcion' | 'apariencia' | 'perfil' | 'guia' | 'presupuesto' | 'soporte' | 'datos'
 
-// ── Bottom Sheet ──────────────────────────────────────────────────────────────
-
-function BottomSheet({ onClose, children, title }: { onClose: () => void; children: React.ReactNode; title?: string }) {
-  const sheetRef = useRef<HTMLDivElement>(null)
-  const [closing, setClosing] = useState(false)
-
-  function handleClose() {
-    setClosing(true)
-    setTimeout(onClose, 260)
-  }
-
-  useEffect(() => {
-    const y = window.scrollY
-    const html = document.documentElement
-    html.style.overflow = 'hidden'
-    html.style.height = '100%'
-    document.body.style.overflow = 'hidden'
-    if (sheetRef.current) sheetRef.current.scrollTop = 0
-    return () => {
-      html.style.overflow = ''
-      html.style.height = ''
-      document.body.style.overflow = ''
-      window.scrollTo({ top: y, behavior: 'instant' })
-    }
-  }, [])
-
-  // Shrink maxHeight when keyboard opens — keeps bottom:0 stable (no "stuck" issue).
-  // transform:translateY approach fights with slide-up animation; maxHeight is cleaner.
-  useEffect(() => {
-    const vv = window.visualViewport
-    if (!vv) return
-    const update = () => {
-      if (sheetRef.current) {
-        const available = vv.height - 16 // 16px breathing room above sheet
-        sheetRef.current.style.maxHeight = `${available}px`
-      }
-    }
-    update()
-    vv.addEventListener('resize', update)
-    return () => {
-      vv.removeEventListener('resize', update)
-      if (sheetRef.current) sheetRef.current.style.maxHeight = ''
-    }
-  }, [])
-
-  return createPortal(
-    <>
-      <div className={`fixed inset-0 z-[200] bg-black/60 ${closing ? 'animate-fade-out' : 'animate-fade-in'}`} onClick={handleClose} />
-      <div
-        ref={sheetRef}
-        className={`fixed bottom-0 left-0 right-0 z-[200] rounded-t-[28px] mx-auto max-w-lg ${closing ? 'animate-slide-down' : 'animate-slide-up'}`}
-        style={{
-          background: 'var(--f-bg-elevated)',
-          paddingBottom: 'calc(1.5rem + var(--safe-bottom))',
-          maxHeight: '90dvh',
-          overflowY: 'auto',
-          WebkitOverflowScrolling: 'touch' as React.CSSProperties['WebkitOverflowScrolling'],
-          overscrollBehavior: 'contain',
-        }}
-      >
-        {title && (
-          <div className="flex items-center justify-between px-5 pt-5 pb-3">
-            <p className="text-[17px] font-black" style={{ color: 'var(--f-text)' }}>{title}</p>
-            <button onClick={handleClose} className="w-7 h-7 rounded-full flex items-center justify-center active:scale-90 transition-transform" style={{ background: 'var(--f-bg-input)' }}>
-              <i className="fa-solid fa-xmark text-xs" style={{ color: 'var(--f-text-3)' }} />
-            </button>
-          </div>
-        )}
-        {children}
-      </div>
-    </>,
-    document.body
-  )
-}
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
@@ -171,8 +98,6 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
   const [currencyInput, setCurrencyInput] = useState(profile?.currency ?? 'MXN')
   const [showCurrencyWarning, setShowCurrencyWarning] = useState(false)
   const [isCurrencyPending, startCurrencyTx] = useTransition()
-  const [baseCurrencyPickerOpen, setBaseCurrencyPickerOpen] = useState(false)
-  const [baseCurrencyQuery, setBaseCurrencyQuery] = useState('')
 
   function handleBaseCurrencyChange(newCurrency: string) {
     setCurrencyInput(newCurrency)
@@ -435,50 +360,8 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                 <div className="px-4 py-4" style={{ background: 'var(--f-bg-card)' }}>
                   <p className="text-[13px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Divisa base</p>
                   <div className="flex items-center gap-3">
-                    <div className="flex-1 relative">
-                      <button
-                        type="button"
-                        onClick={() => { setBaseCurrencyPickerOpen(v => !v); setBaseCurrencyQuery('') }}
-                        className="w-full rounded-[12px] px-3 py-2.5 text-[17px] font-bold text-left flex items-center justify-between [color:var(--f-text)] outline-none"
-                        style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
-                      >
-                        <span>{currencyInput} — {SUPPORTED_CURRENCIES.find(c => c.code === currencyInput)?.name}</span>
-                        <i className={`fa-solid fa-chevron-down text-[11px] transition-transform ${baseCurrencyPickerOpen ? 'rotate-180' : ''}`} style={{ color: 'var(--f-text-4)' }} />
-                      </button>
-                      {baseCurrencyPickerOpen && (
-                        <div className="absolute left-0 right-0 mt-2 rounded-xl overflow-hidden z-10" style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}>
-                          <div className="p-2 border-b" style={{ borderColor: 'var(--f-line)' }}>
-                            <input
-                              autoFocus
-                              value={baseCurrencyQuery}
-                              onChange={e => setBaseCurrencyQuery(e.target.value)}
-                              placeholder="Buscar por código o nombre..."
-                              className="w-full rounded-lg px-3 py-2 text-sm font-normal [color:var(--f-text)] placeholder:opacity-30 focus:outline-none"
-                              style={{ background: 'var(--f-bg-card)' }}
-                            />
-                          </div>
-                          <div className="max-h-56 overflow-y-auto">
-                            {getCurrenciesByCode()
-                              .filter(c => {
-                                const q = baseCurrencyQuery.trim().toLowerCase()
-                                if (!q) return true
-                                return c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q)
-                              })
-                              .map(c => (
-                                <button
-                                  key={c.code}
-                                  type="button"
-                                  onClick={() => { handleBaseCurrencyChange(c.code); setBaseCurrencyPickerOpen(false) }}
-                                  className="w-full px-4 py-2.5 text-left text-sm font-normal flex items-center justify-between active:opacity-60"
-                                  style={{ color: 'var(--f-text)', background: c.code === currencyInput ? 'var(--f-accent-bg)' : 'transparent' }}
-                                >
-                                  <span className="font-bold">{c.code}</span>
-                                  <span className="text-[13px] opacity-60 truncate ml-3">{c.name}</span>
-                                </button>
-                              ))}
-                          </div>
-                        </div>
-                      )}
+                    <div className="flex-1">
+                      <CurrencyPicker value={currencyInput} onChange={handleBaseCurrencyChange} />
                     </div>
                     {currencyInput !== (profile?.currency ?? 'MXN') && (
                       <button
@@ -975,8 +858,6 @@ function AccountsTab({ accounts, isPending, startTransition }: {
   const [ordered, setOrdered] = useState<Account[]>(accounts)
   const [draggingIdx, setDraggingIdx] = useState<number | null>(null)
   const [insertBeforeIdx, setInsertBeforeIdx] = useState<number | null>(null)
-  const [currencyPickerOpen, setCurrencyPickerOpen] = useState(false)
-  const [currencyQuery, setCurrencyQuery] = useState('')
   const dragState = useRef<{ fromIdx: number; currentIdx: number } | null>(null)
   const rowRefs = useRef<Array<HTMLDivElement | null>>([])
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -1208,58 +1089,11 @@ function AccountsTab({ accounts, isPending, startTransition }: {
             {/* Currency selector */}
             <div>
               <label className="text-[12px] font-black uppercase tracking-[1.5px] mb-1.5 block" style={{ color: 'var(--f-text-4)' }}>Divisa</label>
-              {!editing.id ? (
-                <button
-                  type="button"
-                  onClick={() => { setCurrencyPickerOpen(v => !v); setCurrencyQuery('') }}
-                  className="w-full rounded-xl px-4 py-3 text-sm text-left flex items-center justify-between [color:var(--f-text)] focus:outline-none"
-                  style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
-                >
-                  <span>{(editing.currency ?? 'MXN')} — {SUPPORTED_CURRENCIES.find(c => c.code === (editing.currency ?? 'MXN'))?.name}</span>
-                  <i className={`fa-solid fa-chevron-down text-[11px] transition-transform ${currencyPickerOpen ? 'rotate-180' : ''}`} style={{ color: 'var(--f-text-4)' }} />
-                </button>
-              ) : (
-                <div
-                  className="w-full rounded-xl px-4 py-3 text-sm opacity-50 [color:var(--f-text)]"
-                  style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
-                >
-                  {(editing.currency ?? 'MXN')} — {SUPPORTED_CURRENCIES.find(c => c.code === (editing.currency ?? 'MXN'))?.name}
-                </div>
-              )}
-              {currencyPickerOpen && !editing.id && (
-                <div className="mt-2 rounded-xl overflow-hidden" style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}>
-                  <div className="p-2 border-b" style={{ borderColor: 'var(--f-line)' }}>
-                    <input
-                      autoFocus
-                      value={currencyQuery}
-                      onChange={e => setCurrencyQuery(e.target.value)}
-                      placeholder="Buscar por código o nombre..."
-                      className="w-full rounded-lg px-3 py-2 text-sm [color:var(--f-text)] placeholder:opacity-30 focus:outline-none"
-                      style={{ background: 'var(--f-bg-card)' }}
-                    />
-                  </div>
-                  <div className="max-h-56 overflow-y-auto">
-                    {getCurrenciesByCode()
-                      .filter(c => {
-                        const q = currencyQuery.trim().toLowerCase()
-                        if (!q) return true
-                        return c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q)
-                      })
-                      .map(c => (
-                        <button
-                          key={c.code}
-                          type="button"
-                          onClick={() => { setEditing({ ...editing, currency: c.code }); setCurrencyPickerOpen(false) }}
-                          className="w-full px-4 py-2.5 text-left text-sm flex items-center justify-between active:opacity-60"
-                          style={{ color: 'var(--f-text)', background: c.code === (editing.currency ?? 'MXN') ? 'var(--f-accent-bg)' : 'transparent' }}
-                        >
-                          <span className="font-bold">{c.code}</span>
-                          <span className="text-[13px] opacity-60 truncate ml-3">{c.name}</span>
-                        </button>
-                      ))}
-                  </div>
-                </div>
-              )}
+              <CurrencyPicker
+                value={editing.currency ?? 'MXN'}
+                onChange={code => setEditing({ ...editing, currency: code })}
+                disabled={!!editing.id}
+              />
               {editing.id ? (
                 <p className="text-[11px] font-semibold mt-1 px-1" style={{ color: 'var(--f-text-4)' }}>
                   <i className="fa-solid fa-lock text-[10px] mr-1" />
@@ -1632,16 +1466,20 @@ function ScheduledTab({ scheduled, categories, accounts, people, baseCurrency = 
                 <p className="text-[12px] font-black tracking-[3px] uppercase mb-3" style={{ color: 'var(--f-text-4)' }}>Monto</p>
                 <div className="flex items-center justify-center gap-1">
                   {editing.type !== 'TR-TRANSFER' ? (
-                    <select
+                    <CurrencyPicker
                       value={editing.originalCurrency ?? (accounts.find(a => a.id === editing.account_id)?.currency ?? 'MXN')}
-                      onChange={e => setEditing({ ...editing, originalCurrency: e.target.value })}
-                      className="text-[20px] font-black bg-transparent border-none outline-none appearance-none cursor-pointer"
-                      style={{ color: 'var(--f-text-3)', colorScheme: 'dark' }}
-                    >
-                      {getCurrenciesByCode().map(c => (
-                        <option key={c.code} value={c.code}>{c.code}</option>
-                      ))}
-                    </select>
+                      onChange={code => setEditing({ ...editing, originalCurrency: code })}
+                      renderTrigger={({ code, open }) => (
+                        <button
+                          type="button"
+                          onClick={open}
+                          className="text-[20px] font-black bg-transparent border-none outline-none cursor-pointer"
+                          style={{ color: 'var(--f-text-3)' }}
+                        >
+                          {code}
+                        </button>
+                      )}
+                    />
                   ) : (
                     <span className="text-[28px] font-black" style={{ color: 'var(--f-text-3)' }}>$</span>
                   )}
