@@ -21,22 +21,32 @@ export function BottomSheet({ onClose, children, title }: { onClose: () => void;
     return lockBodyScroll()
   }, [])
 
-  // Shrink maxHeight when keyboard opens — keeps bottom:0 stable (no "stuck" issue).
-  // transform:translateY approach fights with slide-up animation; maxHeight is cleaner.
+  // Keep the sheet glued to the top of the keyboard, not the bottom of the
+  // (unchanged) layout viewport. Shrinking maxHeight alone isn't enough: with
+  // bottom:0 fixed to the full page, short content (e.g. a search box + a
+  // few results) renders shorter than maxHeight and slides down with it —
+  // sliding the whole sheet partly behind the keyboard. Lifting `bottom` by
+  // the keyboard's height keeps the sheet's bottom edge pinned to the visible
+  // viewport regardless of content height.
   useEffect(() => {
     const vv = window.visualViewport
     if (!vv) return
     const update = () => {
-      if (sheetRef.current) {
-        const available = vv.height - 16 // 16px breathing room above sheet
-        sheetRef.current.style.maxHeight = `${available}px`
-      }
+      if (!sheetRef.current) return
+      const keyboardInset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop)
+      sheetRef.current.style.bottom = `${keyboardInset}px`
+      sheetRef.current.style.maxHeight = `${vv.height - 16}px` // 16px breathing room above sheet
     }
     update()
     vv.addEventListener('resize', update)
+    vv.addEventListener('scroll', update) // iOS can fire scroll instead of resize mid keyboard-animation
     return () => {
       vv.removeEventListener('resize', update)
-      if (sheetRef.current) sheetRef.current.style.maxHeight = ''
+      vv.removeEventListener('scroll', update)
+      if (sheetRef.current) {
+        sheetRef.current.style.bottom = ''
+        sheetRef.current.style.maxHeight = ''
+      }
     }
   }, [])
 
