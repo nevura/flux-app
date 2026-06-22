@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { getCategoryDisplay, getPaymentMethod, formatCurrency } from '@/lib/utils'
-import { STATIC_ICONS, STATIC_COLORS, PAYMENT_METHODS, SHORTCUT_LINKS, SUPPORTED_CURRENCIES, getAlphabeticalCurrencies, getSmartSortedCurrencies, getCurrenciesByCode } from '@/lib/constants'
+import { STATIC_ICONS, STATIC_COLORS, PAYMENT_METHODS, SHORTCUT_LINKS, SUPPORTED_CURRENCIES, getSmartSortedCurrencies, getCurrenciesByCode } from '@/lib/constants'
 import { saveCategory, deleteCategory, saveAccount, deleteAccount, reorderAccounts, saveScheduled, deleteScheduled, updateProfile, saveDefaultBudget, updateThemePreference, addPerson, updatePerson, deletePerson, updateBaseCurrency } from '@/actions/config'
 import SupportChat from '@/components/support/SupportChat'
 import { getUserUnreadCount } from '@/actions/support-chat'
@@ -171,6 +171,8 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
   const [currencyInput, setCurrencyInput] = useState(profile?.currency ?? 'MXN')
   const [showCurrencyWarning, setShowCurrencyWarning] = useState(false)
   const [isCurrencyPending, startCurrencyTx] = useTransition()
+  const [baseCurrencyPickerOpen, setBaseCurrencyPickerOpen] = useState(false)
+  const [baseCurrencyQuery, setBaseCurrencyQuery] = useState('')
 
   function handleBaseCurrencyChange(newCurrency: string) {
     setCurrencyInput(newCurrency)
@@ -433,16 +435,51 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                 <div className="px-4 py-4" style={{ background: 'var(--f-bg-card)' }}>
                   <p className="text-[13px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Divisa base</p>
                   <div className="flex items-center gap-3">
-                    <select
-                      value={currencyInput}
-                      onChange={e => handleBaseCurrencyChange(e.target.value)}
-                      className="flex-1 rounded-[12px] px-3 py-2.5 text-[17px] font-bold [color:var(--f-text)] outline-none appearance-none"
-                      style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)', colorScheme: 'dark' }}
-                    >
-                      {getAlphabeticalCurrencies().map(c => (
-                        <option key={c.code} value={c.code}>{c.code} — {c.name}</option>
-                      ))}
-                    </select>
+                    <div className="flex-1 relative">
+                      <button
+                        type="button"
+                        onClick={() => { setBaseCurrencyPickerOpen(v => !v); setBaseCurrencyQuery('') }}
+                        className="w-full rounded-[12px] px-3 py-2.5 text-[17px] font-bold text-left flex items-center justify-between [color:var(--f-text)] outline-none"
+                        style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
+                      >
+                        <span>{currencyInput} — {SUPPORTED_CURRENCIES.find(c => c.code === currencyInput)?.name}</span>
+                        <i className={`fa-solid fa-chevron-down text-[11px] transition-transform ${baseCurrencyPickerOpen ? 'rotate-180' : ''}`} style={{ color: 'var(--f-text-4)' }} />
+                      </button>
+                      {baseCurrencyPickerOpen && (
+                        <div className="absolute left-0 right-0 mt-2 rounded-xl overflow-hidden z-10" style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}>
+                          <div className="p-2 border-b" style={{ borderColor: 'var(--f-line)' }}>
+                            <input
+                              autoFocus
+                              value={baseCurrencyQuery}
+                              onChange={e => setBaseCurrencyQuery(e.target.value)}
+                              placeholder="Buscar por código o nombre..."
+                              className="w-full rounded-lg px-3 py-2 text-sm font-normal [color:var(--f-text)] placeholder:opacity-30 focus:outline-none"
+                              style={{ background: 'var(--f-bg-card)' }}
+                            />
+                          </div>
+                          <div className="max-h-56 overflow-y-auto">
+                            {getCurrenciesByCode()
+                              .filter(c => {
+                                const q = baseCurrencyQuery.trim().toLowerCase()
+                                if (!q) return true
+                                return c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q)
+                              })
+                              .map(c => (
+                                <button
+                                  key={c.code}
+                                  type="button"
+                                  onClick={() => { handleBaseCurrencyChange(c.code); setBaseCurrencyPickerOpen(false) }}
+                                  className="w-full px-4 py-2.5 text-left text-sm font-normal flex items-center justify-between active:opacity-60"
+                                  style={{ color: 'var(--f-text)', background: c.code === currencyInput ? 'var(--f-accent-bg)' : 'transparent' }}
+                                >
+                                  <span className="font-bold">{c.code}</span>
+                                  <span className="text-[13px] opacity-60 truncate ml-3">{c.name}</span>
+                                </button>
+                              ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     {currencyInput !== (profile?.currency ?? 'MXN') && (
                       <button
                         onClick={() => setShowCurrencyWarning(true)}
