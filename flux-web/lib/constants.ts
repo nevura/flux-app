@@ -313,6 +313,11 @@ export function getAlphabeticalCurrencies() {
   )
 }
 
+/** Pure alphabetical by ISO code (MXN, USD, ZAR…) — for searchable currency pickers */
+export function getCurrenciesByCode() {
+  return [...SUPPORTED_CURRENCIES].sort((a, b) => a.code.localeCompare(b.code))
+}
+
 /**
  * Smart sort for transaction / account pickers:
  * preferred code first → common currencies (MXN, USD, EUR…) → rest A→Z

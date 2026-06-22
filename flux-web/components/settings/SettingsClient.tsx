@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { getCategoryDisplay, getPaymentMethod, formatCurrency } from '@/lib/utils'
-import { STATIC_ICONS, STATIC_COLORS, PAYMENT_METHODS, SHORTCUT_LINKS, getAlphabeticalCurrencies, getSmartSortedCurrencies } from '@/lib/constants'
+import { STATIC_ICONS, STATIC_COLORS, PAYMENT_METHODS, SHORTCUT_LINKS, SUPPORTED_CURRENCIES, getAlphabeticalCurrencies, getSmartSortedCurrencies, getCurrenciesByCode } from '@/lib/constants'
 import { saveCategory, deleteCategory, saveAccount, deleteAccount, reorderAccounts, saveScheduled, deleteScheduled, updateProfile, saveDefaultBudget, updateThemePreference, addPerson, updatePerson, deletePerson, updateBaseCurrency } from '@/actions/config'
 import SupportChat from '@/components/support/SupportChat'
 import { getUserUnreadCount } from '@/actions/support-chat'
@@ -938,6 +938,8 @@ function AccountsTab({ accounts, isPending, startTransition }: {
   const [ordered, setOrdered] = useState<Account[]>(accounts)
   const [draggingIdx, setDraggingIdx] = useState<number | null>(null)
   const [insertBeforeIdx, setInsertBeforeIdx] = useState<number | null>(null)
+  const [currencyPickerOpen, setCurrencyPickerOpen] = useState(false)
+  const [currencyQuery, setCurrencyQuery] = useState('')
   const dragState = useRef<{ fromIdx: number; currentIdx: number } | null>(null)
   const rowRefs = useRef<Array<HTMLDivElement | null>>([])
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -1169,17 +1171,58 @@ function AccountsTab({ accounts, isPending, startTransition }: {
             {/* Currency selector */}
             <div>
               <label className="text-[12px] font-black uppercase tracking-[1.5px] mb-1.5 block" style={{ color: 'var(--f-text-4)' }}>Divisa</label>
-              <select
-                value={editing.currency ?? 'MXN'}
-                onChange={e => setEditing({ ...editing, currency: e.target.value })}
-                disabled={!!editing.id}
-                className="w-full rounded-xl px-4 py-3 text-sm [color:var(--f-text)] focus:outline-none appearance-none disabled:opacity-50"
-                style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
-              >
-                {getSmartSortedCurrencies().map(c => (
-                  <option key={c.code} value={c.code}>{c.code} — {c.name}</option>
-                ))}
-              </select>
+              {!editing.id ? (
+                <button
+                  type="button"
+                  onClick={() => { setCurrencyPickerOpen(v => !v); setCurrencyQuery('') }}
+                  className="w-full rounded-xl px-4 py-3 text-sm text-left flex items-center justify-between [color:var(--f-text)] focus:outline-none"
+                  style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
+                >
+                  <span>{(editing.currency ?? 'MXN')} — {SUPPORTED_CURRENCIES.find(c => c.code === (editing.currency ?? 'MXN'))?.name}</span>
+                  <i className={`fa-solid fa-chevron-down text-[11px] transition-transform ${currencyPickerOpen ? 'rotate-180' : ''}`} style={{ color: 'var(--f-text-4)' }} />
+                </button>
+              ) : (
+                <div
+                  className="w-full rounded-xl px-4 py-3 text-sm opacity-50 [color:var(--f-text)]"
+                  style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}
+                >
+                  {(editing.currency ?? 'MXN')} — {SUPPORTED_CURRENCIES.find(c => c.code === (editing.currency ?? 'MXN'))?.name}
+                </div>
+              )}
+              {currencyPickerOpen && !editing.id && (
+                <div className="mt-2 rounded-xl overflow-hidden" style={{ background: 'var(--f-bg-input)', border: '1px solid var(--f-line)' }}>
+                  <div className="p-2 border-b" style={{ borderColor: 'var(--f-line)' }}>
+                    <input
+                      autoFocus
+                      value={currencyQuery}
+                      onChange={e => setCurrencyQuery(e.target.value)}
+                      placeholder="Buscar por código o nombre..."
+                      className="w-full rounded-lg px-3 py-2 text-sm [color:var(--f-text)] placeholder:opacity-30 focus:outline-none"
+                      style={{ background: 'var(--f-bg-card)' }}
+                    />
+                  </div>
+                  <div className="max-h-56 overflow-y-auto">
+                    {getCurrenciesByCode()
+                      .filter(c => {
+                        const q = currencyQuery.trim().toLowerCase()
+                        if (!q) return true
+                        return c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q)
+                      })
+                      .map(c => (
+                        <button
+                          key={c.code}
+                          type="button"
+                          onClick={() => { setEditing({ ...editing, currency: c.code }); setCurrencyPickerOpen(false) }}
+                          className="w-full px-4 py-2.5 text-left text-sm flex items-center justify-between active:opacity-60"
+                          style={{ color: 'var(--f-text)', background: c.code === (editing.currency ?? 'MXN') ? 'var(--f-accent-bg)' : 'transparent' }}
+                        >
+                          <span className="font-bold">{c.code}</span>
+                          <span className="text-[13px] opacity-60 truncate ml-3">{c.name}</span>
+                        </button>
+                      ))}
+                  </div>
+                </div>
+              )}
               {editing.id ? (
                 <p className="text-[11px] font-semibold mt-1 px-1" style={{ color: 'var(--f-text-4)' }}>
                   <i className="fa-solid fa-lock text-[10px] mr-1" />
