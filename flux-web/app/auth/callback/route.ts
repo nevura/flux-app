@@ -71,7 +71,9 @@ export async function GET(request: Request) {
   }
 
   if (profile?.status === 'pending') {
-    // Auto-approve on email confirmation — trial starts immediately
+    // Legacy manual-approval path — no longer reachable in practice since
+    // profiles.status now defaults to 'approved' at signup, but kept in case
+    // that default ever changes back.
     const trialEnd = new Date()
     trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS)
     await (admin.from('profiles') as any).update({
@@ -92,6 +94,19 @@ export async function GET(request: Request) {
 
   if (profile?.status === 'rejected') {
     return NextResponse.redirect(`${origin}/rejected`)
+  }
+
+  // Normal signup path: profiles.status defaults to 'approved' and
+  // trial_ends_at is set by the handle_new_user() DB trigger, so there's no
+  // separate approval step to react to — send the welcome email here instead,
+  // gated by isNewUser so existing users logging in again don't get it again.
+  if (isNewUser && profile?.status === 'approved') {
+    try {
+      await sendApprovalGrantedEmail({
+        to: profile.email ?? user.email ?? '',
+        loginUrl: `${origin}/home`,
+      })
+    } catch {}
   }
 
   return NextResponse.redirect(`${origin}/home`)
