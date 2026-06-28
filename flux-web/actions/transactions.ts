@@ -634,60 +634,91 @@ export async function abonoGlobalForPerson(personId: string, personName: string,
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autorizado' }
+  const userId = user.id
   if (amount <= 0) return { error: 'Monto inválido' }
 
   const { data: txs, error: fetchErr } = await supabase
-    .from('transactions').select('*').eq('user_id', user.id).not('split_data', 'is', null)
+    .from('transactions').select('*').eq('user_id', userId).not('split_data', 'is', null)
     .order('transaction_date', { ascending: true })
   if (fetchErr) return { error: fetchErr.message }
 
-  // Collect all pending items for this person FIFO (expenses + receivable incomes).
-  // Direction-filtered: theyPaidMe only drains THEY/DIV entries (they owe the
-  // user); otherwise only IOWE entries (the user owes them). Mixing directions
-  // would let a payment in one direction silently pay down a debt that runs
-  // the opposite way, corrupting the net balance shown in /shared.
-  const pending: Array<{ txId: string; participantId: string; unpaid: number; sd: object; isReceivable: boolean; txAmount: number }> = []
+  // Collect pending items for this person on both sides (expenses + receivable
+  // incomes), split into "same" direction (matches theyPaidMe — what the
+  // payment is for) and "opposite" (the reverse debt, if any).
+  type PendingItem = {
+    txId: string; unpaid: number
+    sd: { data: SplitParticipant[]; splitMode: string; mode: string; linked_tx_id?: string; linked_participant_id?: string }
+    isReceivable: boolean; txAmount: number
+  }
+  const same: PendingItem[] = []
+  const opposite: PendingItem[] = []
   for (const tx of txs ?? []) {
     const sd = tx.split_data
     if (!sd || !Array.isArray(sd.data)) continue
-    const isTheyOwe = sd.splitMode === 'THEY' || sd.splitMode === 'DIV'
-    if (isTheyOwe !== theyPaidMe) continue
     const p = (sd.data as SplitParticipant[]).find(p => p.id === personId)
     if (!p || p.paidStatus) continue
     const unpaid = p.value - (p.paidAmount ?? 0)
     if (unpaid <= 0.005) continue
-    pending.push({ txId: tx.id, participantId: personId, unpaid, sd, isReceivable: tx.is_receivable === true && tx.type === 'TR-INGRESO', txAmount: Number(tx.amount) })
+    const isTheyOwe = sd.splitMode === 'THEY' || sd.splitMode === 'DIV'
+    const item: PendingItem = { txId: tx.id, unpaid, sd, isReceivable: tx.is_receivable === true && tx.type === 'TR-INGRESO', txAmount: Number(tx.amount) }
+    ;(isTheyOwe === theyPaidMe ? same : opposite).push(item)
   }
 
-  if (pending.length === 0) return { error: 'Sin saldos pendientes' }
+  if (same.length === 0 && opposite.length === 0) return { error: 'Sin saldos pendientes' }
 
-  // FIFO: apply amount across transactions from oldest to newest
-  let remaining = amount
-  for (const item of pending) {
-    if (remaining <= 0.005) break
-    const apply = Math.min(remaining, item.unpaid)
-    remaining -= apply
-    const newPaid = (item.unpaid - apply <= 0.005)
-    const sd = item.sd as { data: SplitParticipant[]; splitMode: string; mode: string }
+  const admin = createAdminClient()
+
+  async function markPaid(item: PendingItem, apply: number, newPaid: boolean) {
+    const sd = item.sd
     const newData = sd.data.map(p =>
-      p.id === personId
-        ? { ...p, paidAmount: (p.paidAmount ?? 0) + apply, paidStatus: newPaid }
-        : p
+      p.id === personId ? { ...p, paidAmount: (p.paidAmount ?? 0) + apply, paidStatus: newPaid } : p
     )
     const updatePayload: Record<string, unknown> = { split_data: { ...sd, data: newData } }
-
-    // If this tx is a receivable income and is now fully paid, activate it
     if (newPaid && item.isReceivable) {
       updatePayload.is_receivable = false
       updatePayload.is_validated = true
       updatePayload.adjustment = item.txAmount
       updatePayload.transaction_date = getMexicoNow()
     }
+    const { error } = await supabase.from('transactions').update(updatePayload).eq('id', item.txId).eq('user_id', userId)
+    if (error) return error.message
 
-    const { error } = await supabase
-      .from('transactions').update(updatePayload)
-      .eq('id', item.txId).eq('user_id', user.id)
-    if (error) return { error: error.message }
+    // IOWE entries can carry a linked_tx_id back to the original creator's tx
+    // (the other side of a synced shared expense) — keep that copy in sync too.
+    if (newPaid && sd.linked_tx_id && sd.linked_participant_id) {
+      const { data: origTx } = await (admin.from('transactions') as any).select('*').eq('id', sd.linked_tx_id).maybeSingle()
+      if (origTx?.split_data && Array.isArray(origTx.split_data.data)) {
+        const origSd = origTx.split_data
+        const updatedData = origSd.data.map((p: SplitParticipant) =>
+          p.id === sd.linked_participant_id ? { ...p, paidStatus: true, paidAmount: p.value } : p
+        )
+        await (admin.from('transactions') as any).update({ split_data: { ...origSd, data: updatedData } }).eq('id', sd.linked_tx_id)
+      }
+    }
+    return null
+  }
+
+  // Auto-net: cancel the opposite-direction debt in full before touching any
+  // new cash. The abono UI only offers "theyPaidMe" when net > 0, so the
+  // same-direction total always covers the (smaller) opposite one — no real
+  // money needs to move for this part, it's pure bookkeeping, so it doesn't
+  // consume any of the incoming `amount`.
+  let netted = 0
+  for (const item of opposite) {
+    const err = await markPaid(item, item.unpaid, true)
+    if (err) return { error: err }
+    netted += item.unpaid
+  }
+
+  // FIFO: apply (netted + new cash) across the same-direction debts, oldest first
+  let remaining = netted + amount
+  for (const item of same) {
+    if (remaining <= 0.005) break
+    const apply = Math.min(remaining, item.unpaid)
+    remaining -= apply
+    const newPaid = (item.unpaid - apply <= 0.005)
+    const err = await markPaid(item, apply, newPaid)
+    if (err) return { error: err }
   }
 
   if (accountId) {
