@@ -34,6 +34,31 @@ async function notifyLinkedPersonSettled(
     .select('email, full_name').eq('id', person.linked_user_id).single()
 
   try {
+    // Coalesce: settling a person's balance across several quick actions
+    // (e.g. an abono followed by settling individual leftovers) used to fire
+    // one notification + one email per action. If the recipient still has an
+    // unread expense_settled_confirm from the same person in the same
+    // direction, fold this amount into it instead of sending a new one — the
+    // recipient ends up with a single notification reflecting the running
+    // total for that burst of activity, and only the first action emails them.
+    const { data: existing } = await (admin.from('notifications') as any)
+      .select('id, data')
+      .eq('user_id', person.linked_user_id)
+      .eq('read', false)
+      .eq('type', 'expense_settled_confirm')
+    const prior = (existing ?? []).find((n: any) => n.data?.from_user_id === myUserId && n.data?.is_they_owe === isTheyOwe)
+
+    if (prior) {
+      const mergedAmount = Number(prior.data?.amount ?? 0) + amount
+      await (admin.from('notifications') as any)
+        .update({
+          data: { ...prior.data, concept, amount: mergedAmount },
+          created_at: getMexicoNow(),
+        })
+        .eq('id', prior.id)
+      return
+    }
+
     await notify({
       userId: person.linked_user_id,
       type: 'expense_settled_confirm',
@@ -734,6 +759,11 @@ export async function abonoGlobalForPerson(personId: string, personName: string,
       is_validated: true,
     })
   }
+
+  // Tell a linked friend their payment was recorded — only the real cash
+  // amount, not the netted bookkeeping portion (that's internal to this side).
+  const abonoConcept = theyPaidMe ? `Abono de ${personName}` : `Abono a ${personName}`
+  await notifyLinkedPersonSettled(supabase, personId, userId, abonoConcept, amount, theyPaidMe)
 
   revalidatePath('/shared')
   revalidatePath('/home')
