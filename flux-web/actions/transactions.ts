@@ -630,7 +630,7 @@ export async function settleAndRecord(txId: string, participantId: string, accou
   return { error: null }
 }
 
-export async function abonoGlobalForPerson(personId: string, personName: string, amount: number, accountId?: string) {
+export async function abonoGlobalForPerson(personId: string, personName: string, amount: number, accountId?: string, theyPaidMe = true) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autorizado' }
@@ -641,11 +641,17 @@ export async function abonoGlobalForPerson(personId: string, personName: string,
     .order('transaction_date', { ascending: true })
   if (fetchErr) return { error: fetchErr.message }
 
-  // Collect all pending items for this person FIFO (expenses + receivable incomes)
+  // Collect all pending items for this person FIFO (expenses + receivable incomes).
+  // Direction-filtered: theyPaidMe only drains THEY/DIV entries (they owe the
+  // user); otherwise only IOWE entries (the user owes them). Mixing directions
+  // would let a payment in one direction silently pay down a debt that runs
+  // the opposite way, corrupting the net balance shown in /shared.
   const pending: Array<{ txId: string; participantId: string; unpaid: number; sd: object; isReceivable: boolean; txAmount: number }> = []
   for (const tx of txs ?? []) {
     const sd = tx.split_data
     if (!sd || !Array.isArray(sd.data)) continue
+    const isTheyOwe = sd.splitMode === 'THEY' || sd.splitMode === 'DIV'
+    if (isTheyOwe !== theyPaidMe) continue
     const p = (sd.data as SplitParticipant[]).find(p => p.id === personId)
     if (!p || p.paidStatus) continue
     const unpaid = p.value - (p.paidAmount ?? 0)
@@ -685,12 +691,13 @@ export async function abonoGlobalForPerson(personId: string, personName: string,
   }
 
   if (accountId) {
+    const txType = theyPaidMe ? 'TR-INGRESO' : 'TR-GASTO'
     await supabase.from('transactions').insert({
       user_id: user.id,
-      concept: `Cobro de ${personName}`,
-      type: 'TR-INGRESO',
+      concept: theyPaidMe ? `Cobro de ${personName}` : `Pago a ${personName}`,
+      type: txType,
       amount,
-      adjustment: adjustmentFor('TR-INGRESO', amount),
+      adjustment: adjustmentFor(txType, amount),
       account_id: accountId,
       transaction_date: getMexicoNow().slice(0, 10),
       is_validated: true,

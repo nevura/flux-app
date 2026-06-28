@@ -171,8 +171,9 @@ export default function SharedClient({ transactions, people, accounts, categorie
   function executeAbonoGlobal(personId: string, personName: string) {
     const amt = parseFloat(abonoAmount.replace(',', '.'))
     if (isNaN(amt) || amt <= 0) { toast.error('Monto inválido'); return }
+    const theyPaidMe = (abonoModal?.net ?? 0) > 0
     startAbono(async () => {
-      const res = await abonoGlobalForPerson(personId, personName, amt, abonoAccId || undefined)
+      const res = await abonoGlobalForPerson(personId, personName, amt, abonoAccId || undefined, theyPaidMe)
       if (res.error) { toast.error(res.error); return }
       toast.success(abonoAccId ? 'Abono registrado' : 'Abono aplicado')
       setAbonoModal(null)
