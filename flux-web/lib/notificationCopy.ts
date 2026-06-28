@@ -38,9 +38,9 @@ export function notifLabel(type: NotificationType, data: Record<string, unknown>
     case 'expense_settle_rejected':
       return { icon: 'fa-solid fa-circle-xmark', iconColor: 'var(--f-expense)', text: `No confirmaste el pago de @${d.from_username} en "${d.concept}"` }
     case 'receivable_invite':
-      return { icon: 'fa-solid fa-file-invoice-dollar', iconColor: '#FF9F0A', text: `@${d.from_username} dice que le debes: "${d.concept}" · ${formatCurrency(Number(d.participant_amount))}` }
+      return { icon: 'fa-solid fa-file-invoice-dollar', iconColor: '#FF9F0A', text: `@${d.from_username} dice que le debes: "${d.concept}" · ${formatCurrency(Number(d.participant_amount), String(d.currency ?? 'MXN'))}` }
     case 'receivable_abono':
-      return { icon: 'fa-solid fa-coins', iconColor: 'var(--f-income)', text: `@${d.from_username} anotó que les pagaste ${formatCurrency(Number(d.amount))} de: "${d.concept}"` }
+      return { icon: 'fa-solid fa-coins', iconColor: 'var(--f-income)', text: `@${d.from_username} anotó que les pagaste ${formatCurrency(Number(d.amount), String(d.currency ?? 'MXN'))} de: "${d.concept}"` }
     case 'receivable_settled':
       return { icon: 'fa-solid fa-circle-check', iconColor: 'var(--f-income)', text: `@${d.from_username} confirmó que ya les pagaste todo: "${d.concept}"` }
     case 'scheduled_due':

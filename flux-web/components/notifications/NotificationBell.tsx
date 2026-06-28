@@ -365,7 +365,7 @@ export default function NotificationBell() {
                     {n.type === 'expense_settled_confirm' && !n.read && (
                       <div className="mt-3 space-y-2">
                         <p className="text-[14px] font-bold tabular-nums" style={{ color: 'var(--f-income)' }}>
-                          Monto reportado: {formatCurrency(Number(d.amount))}
+                          Monto reportado: {formatCurrency(Number(d.amount), String(d.currency ?? 'MXN'))}
                         </p>
                         <p className="text-[13px] font-medium leading-snug" style={{ color: 'var(--f-text-4)' }}>
                           ¿Realmente recibiste este pago? Si confirmas, el saldo compartido se cierra. Si seleccionas una cuenta, se registra también como ingreso en tu saldo.
@@ -422,7 +422,7 @@ export default function NotificationBell() {
                     {(n.type === 'shared_expense_invite' || n.type === 'shared_expense_updated') && !n.read && (
                       <>
                         <p className="text-[14px] mt-1 font-bold tabular-nums" style={{ color: 'var(--f-transfer)' }}>
-                          Tu parte: {formatCurrency(Number(d.participant_amount))}
+                          Tu parte: {formatCurrency(Number(d.participant_amount), String(d.currency ?? 'MXN'))}
                         </p>
                         <p className="text-[13px] mt-1 font-medium leading-snug" style={{ color: 'var(--f-text-4)' }}>
                           Si aceptas, quedará en <strong style={{ color: 'var(--f-text-3)' }}>Compartidos</strong>. Tu saldo no cambia ahora — solo cuando registres el pago.
@@ -450,7 +450,7 @@ export default function NotificationBell() {
                     {n.type === 'sync_proposal' && !n.read && (
                       <>
                         <p className="text-[14px] mt-1 font-bold tabular-nums" style={{ color: 'var(--f-blue)' }}>
-                          Tu parte: {formatCurrency(Number(d.participant_amount))}
+                          Tu parte: {formatCurrency(Number(d.participant_amount), String(d.currency ?? 'MXN'))}
                         </p>
                         <p className="text-[13px] mt-1 font-medium leading-snug" style={{ color: 'var(--f-text-4)' }}>
                           Si aceptas, se creará este gasto en tu app para que lo registres.
@@ -478,7 +478,7 @@ export default function NotificationBell() {
                     {n.type === 'receivable_invite' && !n.read && (
                       <>
                         <p className="text-[14px] mt-1 font-bold tabular-nums" style={{ color: '#FF9F0A' }}>
-                          Monto: {formatCurrency(Number(d.participant_amount))}
+                          Monto: {formatCurrency(Number(d.participant_amount), String(d.currency ?? 'MXN'))}
                         </p>
                         <p className="text-[13px] mt-1 font-medium leading-snug" style={{ color: 'var(--f-text-4)' }}>
                           Si aceptas, aparecerá en <strong style={{ color: 'var(--f-text-3)' }}>Compartidos</strong>. Tu saldo no cambia ahora — solo cuando registres el pago allí.

@@ -28,7 +28,8 @@ async function notifyLinkedPersonSettled(
     .from('people').select('linked_user_id').eq('id', personId).eq('user_id', myUserId).maybeSingle()
   if (!person?.linked_user_id) return
   const { data: myProfile } = await supabase
-    .from('profiles').select('username, full_name').eq('id', myUserId).single()
+    .from('profiles').select('username, full_name, currency').eq('id', myUserId).single()
+  const currency = myProfile?.currency ?? 'MXN'
   const admin = createAdminClient()
   const { data: recipientProfile } = await (admin.from('profiles') as any)
     .select('email, full_name').eq('id', person.linked_user_id).single()
@@ -68,6 +69,7 @@ async function notifyLinkedPersonSettled(
         from_name: myProfile?.full_name ?? '',
         concept,
         amount,
+        currency,
         is_they_owe: isTheyOwe,
         linked_tx_id: extra?.linked_tx_id ?? null,
         linked_participant_id: extra?.linked_participant_id ?? null,
@@ -82,7 +84,7 @@ async function notifyLinkedPersonSettled(
             fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
             fromUsername: myProfile?.username ?? '',
             concept,
-            amount: formatCurrency(amount),
+            amount: formatCurrency(amount, currency),
           })
         : undefined,
     })
@@ -245,7 +247,7 @@ export async function addTransaction(form: TransactionForm): Promise<{ error: st
                     fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
                     fromUsername: myProfile?.username ?? '',
                     concept: form.concept,
-                    amount: formatCurrency(participant.value),
+                    amount: formatCurrency(participant.value, accountCurrency),
                   })
                 : undefined,
             })
@@ -398,7 +400,7 @@ export async function updateTransaction(id: string, form: TransactionForm) {
                   fromName: myProfile?.full_name ?? myProfile?.username ?? 'Alguien',
                   fromUsername: myProfile?.username ?? '',
                   concept: isNew ? form.concept : `[Actualizado] ${form.concept}`,
-                  amount: formatCurrency(participant.value),
+                  amount: formatCurrency(participant.value, accountCurrency),
                 })
               : undefined,
           })
@@ -542,8 +544,28 @@ export async function partialSettle(txId: string, participantId: string, amount:
     .eq('id', txId).eq('user_id', user.id)
   if (error) return { error: error.message }
 
+  // Keep the linked friend's own copy of this shared expense in sync — unlike
+  // a full settle, this only applies the same partial amount, not the full value.
+  const linked_tx_id = (sd as import('@/lib/types').SplitData).linked_tx_id
+  const linked_participant_id = (sd as import('@/lib/types').SplitData).linked_participant_id
+  if (linked_tx_id && linked_participant_id) {
+    const admin = createAdminClient()
+    const { data: origTx } = await (admin.from('transactions') as any).select('*').eq('id', linked_tx_id).maybeSingle()
+    if (origTx?.split_data && Array.isArray(origTx.split_data.data)) {
+      const origSd = origTx.split_data as import('@/lib/types').SplitData
+      const updatedData = (origSd.data as SplitParticipant[]).map(p => {
+        if (p.id !== linked_participant_id) return p
+        const newPaid = (p.paidAmount ?? 0) + amount
+        return { ...p, paidAmount: newPaid, paidStatus: newPaid >= p.value }
+      })
+      await (admin.from('transactions') as any)
+        .update({ split_data: { ...origSd, data: updatedData } })
+        .eq('id', linked_tx_id)
+    }
+  }
+
   const isTheyOwePartial = sd.splitMode === 'THEY' || sd.splitMode === 'DIV'
-  await notifyLinkedPersonSettled(supabase, participantId, user.id, tx.concept, amount, isTheyOwePartial)
+  await notifyLinkedPersonSettled(supabase, participantId, user.id, tx.concept, amount, isTheyOwePartial, { linked_tx_id, linked_participant_id })
 
   if (accountId) {
     const isTheyOwe = isTheyOwePartial
@@ -584,7 +606,7 @@ export async function settleAndRecord(txId: string, participantId: string, accou
   const unpaid = participant.value - (participant.paidAmount ?? 0)
   if (unpaid <= 0) return { error: 'Sin saldo pendiente' }
 
-  const isTheyOwe = sd.splitMode === 'THEY'
+  const isTheyOwe = sd.splitMode === 'THEY' || sd.splitMode === 'DIV'
 
   const newData = (sd.data as SplitParticipant[]).map(p =>
     p.id === participantId ? { ...p, paidStatus: true, paidAmount: p.value } : p
@@ -708,6 +730,12 @@ export async function abonoGlobalForPerson(personId: string, personName: string,
     const { error } = await supabase.from('transactions').update(updatePayload).eq('id', item.txId).eq('user_id', userId)
     if (error) return error.message
 
+    // Receivables don't carry their own linked_tx_id — reverse-sync the
+    // linked friend's mirrored IOWE so their side reflects this payment too.
+    if (item.isReceivable) {
+      await syncLinkedReceivableMirror(supabase, personId, userId, item.txId, apply, newPaid)
+    }
+
     // IOWE entries can carry a linked_tx_id back to the original creator's tx
     // (the other side of a synced shared expense) — keep that copy in sync too.
     if (newPaid && sd.linked_tx_id && sd.linked_participant_id) {
@@ -812,8 +840,9 @@ export async function collectReceivable(
     }).eq('id', txId).eq('user_id', user.id)
     if (error) return { error: error.message }
 
-    // Notify linked contact
+    // Notify linked contact, and settle their mirrored IOWE too
     await notifyLinkedPersonReceivable(supabase, participantId, user.id, tx.concept, Number(tx.amount), 'settled')
+    await syncLinkedReceivableMirror(supabase, participantId, user.id, txId, Number(tx.amount), true)
   } else {
     // Partial: create a new validated income for the collected amount, reduce original
     const newPaidAmount = (participant.paidAmount ?? 0) + collectAmount
@@ -841,8 +870,9 @@ export async function collectReceivable(
       notes: `Abono parcial (original: ${txId})`,
     })
 
-    // Notify linked contact of partial payment
+    // Notify linked contact of partial payment, and apply the same partial amount to their mirrored IOWE
     await notifyLinkedPersonReceivable(supabase, participantId, user.id, tx.concept, collectAmount, 'abono')
+    await syncLinkedReceivableMirror(supabase, participantId, user.id, txId, collectAmount, false)
   }
 
   revalidatePath('/shared')
@@ -864,7 +894,7 @@ async function notifyLinkedPersonReceivable(
     .from('people').select('linked_user_id').eq('id', personId).eq('user_id', myUserId).maybeSingle()
   if (!person?.linked_user_id) return
   const { data: myProfile } = await supabase
-    .from('profiles').select('username, full_name').eq('id', myUserId).single()
+    .from('profiles').select('username, full_name, currency').eq('id', myUserId).single()
   const admin = createAdminClient()
   const { data: recipientProfile } = await (admin.from('profiles') as any)
     .select('email').eq('id', person.linked_user_id).single()
@@ -878,10 +908,47 @@ async function notifyLinkedPersonReceivable(
         from_name: myProfile?.full_name ?? '',
         concept,
         amount,
+        currency: myProfile?.currency ?? 'MXN',
       },
       to: recipientProfile?.email,
     })
   } catch { /* best-effort */ }
+}
+
+// A receivable's split_data never stores a linked_tx_id of its own (only the
+// IOWE side created via acceptReceivableInvite does, pointing back at this
+// tx). So collecting a receivable has to search the linked friend's
+// transactions for whichever one points back here, instead of following a
+// forward reference — without this, the friend's mirrored IOWE never
+// reflects a receivable being collected, only a best-effort notification
+// tells them, and the two sides can permanently disagree about whether it's paid.
+async function syncLinkedReceivableMirror(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  personId: string,
+  myUserId: string,
+  txId: string,
+  amountPaid: number,
+  fullyPaid: boolean,
+) {
+  const { data: person } = await supabase
+    .from('people').select('linked_user_id').eq('id', personId).eq('user_id', myUserId).maybeSingle()
+  if (!person?.linked_user_id) return
+  const admin = createAdminClient()
+  const { data: linkedTxs } = await (admin.from('transactions') as any)
+    .select('id, split_data')
+    .eq('user_id', person.linked_user_id)
+    .not('split_data', 'is', null)
+  const mirror = (linkedTxs ?? []).find((t: any) => String(t.split_data?.linked_tx_id) === txId)
+  if (!mirror?.split_data?.data || !Array.isArray(mirror.split_data.data)) return
+  const mirrorSd = mirror.split_data
+  const updatedData = (mirrorSd.data as SplitParticipant[]).map(p => {
+    if (fullyPaid) return { ...p, paidAmount: p.value, paidStatus: true }
+    const newPaid = (p.paidAmount ?? 0) + amountPaid
+    return { ...p, paidAmount: newPaid, paidStatus: newPaid >= p.value }
+  })
+  await (admin.from('transactions') as any)
+    .update({ split_data: { ...mirrorSd, data: updatedData } })
+    .eq('id', mirror.id)
 }
 
 export async function settleAllForPerson(personId: string, personName: string, accountId?: string) {
@@ -948,6 +1015,11 @@ export async function settleAllForPerson(personId: string, personName: string, a
     const { error } = await supabase
       .from('transactions').update(payload).eq('id', u.id).eq('user_id', user.id)
     if (error) return { error: error.message }
+
+    // Settle the linked friend's mirrored IOWE for this receivable too
+    if (u.isReceivable) {
+      await syncLinkedReceivableMirror(supabase, personId, user.id, u.id, u.unpaid, true)
+    }
 
     // Update creator's linked tx (A sees B as paid) — only for IOWE
     if (u.isIowe && u.linked_tx_id && u.linked_participant_id) {
@@ -1527,6 +1599,7 @@ export async function proposeSyncTransaction(txId: string, participantPersonId: 
       participant_amount: participant.value,
       participant_person_id: participantPersonId,
       category_id: tx.category_id || null,
+      currency: tx.currency ?? 'MXN',
     },
     to: recipientProfile?.email,
   })
