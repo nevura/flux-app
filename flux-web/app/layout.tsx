@@ -35,11 +35,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         {/* Apply stored theme before paint to avoid flash */}
         <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('flux-theme');if(t==='light')document.documentElement.setAttribute('data-theme','light')}catch(e){}` }} />
-        <link
-          rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-          crossOrigin="anonymous"
-        />
       </head>
       <body className="min-h-full bg-[#020617] text-slate-50">
         {children}

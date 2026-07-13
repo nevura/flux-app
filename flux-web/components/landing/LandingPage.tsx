@@ -1,8 +1,9 @@
-'use client'
-
-import { useState, useEffect, Fragment } from 'react'
+import { Fragment } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { RevealWrapper } from './RevealWrapper'
+import { LandingNavbar } from './LandingNavbar'
+import { LandingFAQ } from './LandingFAQ'
 
 const BLUE = '#007AFF'
 const DARK = '#1D1D1F'
@@ -10,50 +11,6 @@ const GRAY = '#6E6E73'
 const LIGHT_GRAY = '#F5F5F7'
 const WHITE = '#FFFFFF'
 
-/* ── Navbar ─────────────────────────────────────────────────────────────── */
-function Navbar({ scrolled, isAuthenticated }: { scrolled: boolean; isAuthenticated: boolean }) {
-  return (
-    <nav
-      className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
-      style={{
-        background: scrolled ? 'rgba(255,255,255,0.85)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(20px)' : 'none',
-        WebkitBackdropFilter: scrolled ? 'blur(20px)' : 'none',
-        borderBottom: scrolled ? '1px solid rgba(0,0,0,0.08)' : 'none',
-      }}
-    >
-      <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-[60px]">
-        <span className="text-[22px] font-black tracking-tight" style={{ color: BLUE }}>fluxapp finance</span>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/guia"
-            className="hidden sm:block text-[15px] font-semibold px-3 py-1.5 rounded-[10px] transition-all"
-            style={{ color: GRAY }}
-          >
-            Guía
-          </Link>
-          {isAuthenticated ? (
-            <Link
-              href="/home"
-              className="text-[15px] font-bold px-4 py-2 rounded-[10px] transition-all active:scale-95"
-              style={{ background: BLUE, color: WHITE }}
-            >
-              Ir a la app →
-            </Link>
-          ) : (
-            <Link
-              href="/login"
-              className="text-[15px] font-bold px-4 py-2 rounded-[10px] transition-all active:scale-95"
-              style={{ background: BLUE, color: WHITE }}
-            >
-              Comenzar gratis
-            </Link>
-          )}
-        </div>
-      </div>
-    </nav>
-  )
-}
 
 /* ── Hero ────────────────────────────────────────────────────────────────── */
 function Hero() {
@@ -112,11 +69,14 @@ function Hero() {
           </div>
           <div className="flex justify-center lg:justify-end">
             <div style={{ animation: 'heroFloat 6s ease-in-out infinite', display: 'inline-block', width: '100%' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src="/inicio-section.png"
                 alt="FluxApp Finance dashboard"
-                style={{ width: '100%', display: 'block', filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.12))' }}
+                priority
+                width={2100}
+                height={2400}
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                style={{ width: '100%', height: 'auto', display: 'block', filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.12))' }}
               />
             </div>
           </div>
@@ -222,12 +182,14 @@ function AppShowcaseSection() {
       </div>
       <RevealWrapper>
         <div className="overflow-hidden pt-[22%] pb-[3%] md:pt-[5%] md:pb-[1%]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src="/carrusel-section.png"
             alt="FluxApp Finance — pantallas de la app"
+            width={1773}
+            height={1595}
+            sizes="100vw"
             className="w-full block scale-[1.5] origin-center md:scale-[1.1]"
-            style={{ marginLeft: '-50px' }}
+            style={{ height: 'auto', marginLeft: '-50px' }}
           />
         </div>
       </RevealWrapper>
@@ -292,23 +254,27 @@ function ApplePaySection() {
               </p>
             </RevealWrapper>
             <RevealWrapper delay={320} className="flex sm:block">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src="/applepay-not.png"
                 alt="Notificación Flux Apple Pay"
+                width={1715}
+                height={917}
+                sizes="320px"
                 className="rounded-[18px] mx-auto sm:mx-0"
-                style={{ maxWidth: 320, width: '100%', display: 'block', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}
+                style={{ maxWidth: 320, width: '100%', height: 'auto', display: 'block', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}
               />
             </RevealWrapper>
           </div>
 
           <RevealWrapper direction="right" delay={160} className="flex justify-center lg:justify-end">
             <div style={{ animation: 'appleFloat 5s ease-in-out infinite', display: 'inline-block' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src="/applepay-section.png"
                 alt="Apple Pay en FluxApp Finance"
-                style={{ width: '100%', display: 'block', filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.5))' }}
+                width={1562}
+                height={1116}
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                style={{ width: '100%', height: 'auto', display: 'block', filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.5))' }}
               />
             </div>
           </RevealWrapper>
@@ -403,11 +369,13 @@ function SharedSection() {
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <RevealWrapper direction="left" className="flex justify-center lg:justify-start">
             <div style={{ width: '100%' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src="/compartidos-section.png"
                 alt="Gastos compartidos en FluxApp Finance"
-                style={{ width: '100%', display: 'block', transform: 'scale(1.5)', transformOrigin: '40% center' }}
+                width={2400}
+                height={1350}
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                style={{ width: '100%', height: 'auto', display: 'block', transform: 'scale(1.5)', transformOrigin: '40% center' }}
               />
             </div>
           </RevealWrapper>
@@ -592,85 +560,6 @@ function PricingSection() {
   )
 }
 
-/* ── FAQ Section ─────────────────────────────────────────────────────────── */
-function FAQSection() {
-  const [open, setOpen] = useState<number | null>(null)
-
-  const faqs: { q: string; a: string }[] = [
-    {
-      q: '¿Funciona en Android?',
-      a: 'Sí. FluxApp funciona en cualquier dispositivo con navegador — iPhone, Android o computadora.\n\nLa única función exclusiva de iPhone es el registro automático con Apple Pay a través de Atajos de iPhone. Todo lo demás — movimientos, presupuestos, gastos compartidos y reportes — funciona igual en Android.',
-    },
-    {
-      q: '¿Está en la App Store?',
-      a: 'Todavía no. FluxApp Finance es una Progressive Web App (PWA): se instala desde el navegador sin pasar por la App Store ni Google Play.\n\nSin actualizaciones manuales y sin ocupar espacio de almacenamiento — siempre tienes la versión más reciente.',
-    },
-    {
-      q: '¿Tengo que abrir el navegador cada vez que la uso?',
-      a: 'No. Instálala en tu pantalla de inicio y se abre directamente como una app nativa — sin barra del navegador, a pantalla completa.\n\niPhone · Safari: toca el botón Compartir → "Agregar a inicio"\nAndroid · Chrome: toca el menú (⋮) → "Añadir a pantalla de inicio"',
-    },
-    {
-      q: '¿Cómo instalo el Atajo de iPhone?',
-      a: 'Más fácil de lo que suena:\n\n1. Abre FluxApp → Ajustes → "Atajos de iPhone"\n2. Copia tu token personal\n3. Descarga el Atajo desde el enlace de iCloud que aparece ahí\n\nSe configura una sola vez y se activa automáticamente cada vez que pagas con Apple Pay.',
-    },
-    {
-      q: '¿Cómo cancelo mi suscripción?',
-      a: 'Puedes cancelar en cualquier momento directamente desde la misma app: ve a Ajustes → Suscripción. Se abre el portal de Stripe donde puedes gestionar o cancelar tu plan.\n\nTambién puedes escribirnos a hola@fluxappfinance.com. Sin contratos ni permanencia mínima — tu acceso continúa hasta el final del periodo pagado.',
-    },
-    {
-      q: '¿Necesito conexión a internet para usar FluxApp?',
-      a: 'Sí. FluxApp requiere conexión a internet tanto para usar la app como para que los Atajos de iPhone funcionen.\n\nLa app sincroniza tus datos en tiempo real desde la nube, por lo que sin conexión no podrás registrar ni consultar movimientos. Los Atajos de Apple Pay también necesitan internet para enviar el registro a tu cuenta en el momento del pago.',
-    },
-    {
-      q: '¿Mis datos financieros están seguros?',
-      a: 'Sí. Tus datos se almacenan con cifrado en reposo y en tránsito. FluxApp nunca tiene acceso a tus cuentas bancarias ni comparte tu información con terceros — solo registras lo que tú decides registrar.',
-    },
-  ]
-
-  return (
-    <section style={{ background: WHITE }}>
-      <div className="max-w-3xl mx-auto px-6 py-24">
-        <RevealWrapper className="text-center mb-14">
-          <p className="text-[12px] font-black uppercase tracking-[4px] mb-4" style={{ color: BLUE }}>FAQ</p>
-          <h2 className="text-[40px] sm:text-[52px] font-black leading-[1.06] tracking-[-1.5px]" style={{ color: DARK }}>
-            Preguntas<br />frecuentes.
-          </h2>
-        </RevealWrapper>
-        <div className="space-y-2">
-          {faqs.map((faq, i) => (
-            <RevealWrapper key={i} delay={i * 40}>
-              <div
-                className="rounded-[18px] overflow-hidden transition-all"
-                style={{
-                  background: LIGHT_GRAY,
-                  border: `1px solid ${open === i ? 'rgba(0,122,255,0.25)' : 'rgba(0,0,0,0.06)'}`,
-                  boxShadow: open === i ? '0 4px 20px rgba(0,122,255,0.08)' : 'none',
-                }}
-              >
-                <button
-                  className="w-full text-left flex items-center justify-between gap-4 px-6 py-5"
-                  onClick={() => setOpen(open === i ? null : i)}
-                >
-                  <span className="text-[16px] font-bold" style={{ color: DARK }}>{faq.q}</span>
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-colors"
-                    style={{ background: open === i ? 'rgba(0,122,255,0.1)' : 'rgba(0,0,0,0.05)' }}>
-                    <i className={`fa-solid fa-chevron-${open === i ? 'up' : 'down'} text-[11px]`}
-                      style={{ color: open === i ? BLUE : GRAY }} />
-                  </div>
-                </button>
-                {open === i && (
-                  <div className="px-6 pb-5">
-                    <p className="text-[15px] font-medium leading-relaxed" style={{ color: GRAY, whiteSpace: 'pre-line' }}>{faq.a}</p>
-                  </div>
-                )}
-              </div>
-            </RevealWrapper>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
 
 /* ── CTA ─────────────────────────────────────────────────────────────────── */
 function CTASection() {
@@ -756,17 +645,9 @@ function Footer() {
 
 /* ── Main ────────────────────────────────────────────────────────────────── */
 export default function LandingPage({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
-  const [scrolled, setScrolled] = useState(false)
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 30)
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
   return (
     <div style={{ background: WHITE, color: DARK, fontFamily: 'var(--font-geist-sans)', overflowX: 'hidden' }}>
-      <Navbar scrolled={scrolled} isAuthenticated={isAuthenticated} />
+      <LandingNavbar isAuthenticated={isAuthenticated} />
       <Hero />
       <PainSection />
       <AppShowcaseSection />
@@ -776,7 +657,7 @@ export default function LandingPage({ isAuthenticated = false }: { isAuthenticat
       <SharedSection />
       <HowItWorks />
       <PricingSection />
-      <FAQSection />
+      <LandingFAQ />
       <CTASection />
       <Footer />
     </div>
