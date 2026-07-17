@@ -828,7 +828,7 @@ function CategoriesTab({ customCategories, defaultCategories, categoryPreference
         Predeterminadas <span className="normal-case font-medium tracking-normal opacity-60">· toca el ojo para ocultar</span>
       </p>
       <div className="space-y-2">
-        {defaultCategories.map((cat, i) => {
+        {defaultCategories.filter(c => c.id !== 'CAT-AUDIT' && c.id !== 'CAT-APPLE').map((cat, i) => {
           const display = getDisplayCat(cat)
           const d = getCategoryDisplay(display)
           const hidden = getPref(cat.id)?.is_hidden ?? false

@@ -200,6 +200,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
       if (res.error) { toast.error(res.error); setCollectingKey(null); return }
       toast.success(mode === 'full' ? '¡Cobrado!' : 'Abono registrado')
       setCollectingKey(null)
+      onRefresh?.()
     })
   }
 

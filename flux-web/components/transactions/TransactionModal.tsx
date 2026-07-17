@@ -582,7 +582,6 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                   {filteredCats.map(cat => {
                     const d = getCategoryDisplay(cat)
                     const selected = catId === cat.id
-                    const isSuggested = cat.id === suggestedCatId
                     return (
                       <button
                         key={cat.id}
@@ -600,9 +599,6 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                           border: '1px solid transparent',
                         }}
                       >
-                        {isSuggested && (
-                          <span className="absolute top-1 right-1 text-[7px] font-black bg-violet-500 text-white rounded px-[3px] py-[1px] leading-none">IA</span>
-                        )}
                         <i
                           className={`${d.icon} text-[20px]`}
                           style={{ color: selected ? cfg.color : 'var(--f-text-3)' }}
