@@ -62,6 +62,7 @@ interface Props {
   friendships: Friendship[]
   myUserId: string
   baseCurrency: string
+  onRefresh?: () => void
 }
 
 interface PersonBalance {
@@ -72,7 +73,7 @@ interface PersonBalance {
   pending: Array<{ tx: Transaction; participant: SplitParticipant }>
 }
 
-export default function SharedClient({ transactions, people, accounts, categories, friendships, myUserId, baseCurrency }: Props) {
+export default function SharedClient({ transactions, people, accounts, categories, friendships, myUserId, baseCurrency, onRefresh }: Props) {
   const [mounted, setMounted] = useState(false)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -128,6 +129,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
       const res = await settleParticipant(txId, participantId)
       if (res.error) { toast.error(res.error); return }
       toast.success('Liquidado')
+      onRefresh?.()
     })
   }
 
@@ -137,6 +139,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
       const res = await settleParticipant(txId, participantId, false)
       if (res.error) { toast.error(res.error); return }
       toast.success('Deuda olvidada')
+      onRefresh?.()
     })
   }
 
@@ -146,6 +149,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
       const res = await settleAndRecord(txId, participantId, accountId)
       if (res.error) { toast.error(res.error); return }
       toast.success('Liquidado y registrado')
+      onRefresh?.()
     })
   }
 
@@ -155,6 +159,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
       const res = await partialSettle(txId, participantId, amt, accountId || undefined)
       if (res.error) { toast.error(res.error); return }
       toast.success(accountId ? 'Abono registrado' : 'Abono aplicado')
+      onRefresh?.()
     })
   }
 
@@ -165,6 +170,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
       toast.success(settleAccId ? 'Saldo liquidado y registrado' : 'Saldo liquidado')
       setSettleModal(null)
       setSettleAccId('')
+      onRefresh?.()
     })
   }
 
@@ -179,6 +185,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
       setAbonoModal(null)
       setAbonoAmount('')
       setAbonoAccId('')
+      onRefresh?.()
     })
   }
 

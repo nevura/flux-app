@@ -82,5 +82,5 @@ export default function SharedTab({ userId, active, refreshSignal }: Props) {
   }, [userId, supabase, load])
 
   if (!data) return active ? <Skeleton /> : null
-  return <SharedClient {...data} myUserId={userId} baseCurrency={data.baseCurrency} />
+  return <SharedClient {...data} myUserId={userId} baseCurrency={data.baseCurrency} onRefresh={load} />
 }

@@ -513,6 +513,9 @@ export async function settleParticipant(txId: string, participantId: string, not
       from_tx_id: txId,
       from_participant_id: participantId,
     })
+    if (isTheyOwe) {
+      await syncLinkedReceivableMirror(supabase, participantId, user.id, txId, participant.value, true)
+    }
   }
 
   revalidatePath('/shared')
@@ -662,6 +665,9 @@ export async function settleAndRecord(txId: string, participantId: string, accou
           .eq('id', linked_tx_id)
       }
     }
+  }
+  if (isTheyOwe) {
+    await syncLinkedReceivableMirror(supabase, participantId, user.id, txId, unpaid, true)
   }
 
   await notifyLinkedPersonSettled(supabase, participantId, user.id, tx.concept, unpaid, isTheyOwe, {
