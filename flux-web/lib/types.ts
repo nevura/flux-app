@@ -169,6 +169,15 @@ export interface Transaction {
   updated_at: string
 }
 
+export interface UserCategoryPreference {
+  user_id: string
+  category_id: string
+  is_hidden: boolean
+  custom_name: string | null
+  custom_icon_id: string | null
+  custom_color_id: string | null
+}
+
 export interface ScheduledTransaction {
   id: string
   user_id: string

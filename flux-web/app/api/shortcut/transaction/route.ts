@@ -120,6 +120,25 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // If no category was resolved from the shortcut payload, look up history for this concept
+  if (!categoryId && body.concept) {
+    const { data: hist } = await supabaseAdmin
+      .from('transactions')
+      .select('category_id')
+      .eq('user_id', userId)
+      .ilike('concept', body.concept)
+      .not('category_id', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(20)
+    if (hist?.length) {
+      const counts = hist.reduce((acc, t: { category_id: string | null }) => {
+        if (t.category_id) acc[t.category_id] = (acc[t.category_id] ?? 0) + 1
+        return acc
+      }, {} as Record<string, number>)
+      categoryId = Object.entries(counts).sort(([, a], [, b]) => b - a)[0]?.[0] ?? null
+    }
+  }
+
   // Resolve account
   const userAccounts = accountsResult.data ?? []
   let resolvedAccount: (typeof userAccounts)[number] | null = null

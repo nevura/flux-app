@@ -37,7 +37,7 @@ function FitText({ children, className, style }: { children: React.ReactNode; cl
 import { settleParticipant, partialSettle, settleAndRecord, settleAllForPerson, abonoGlobalForPerson, collectReceivable, proposeSyncTransaction } from '@/actions/transactions'
 import { linkPersonToUser } from '@/actions/friends'
 import CoachMarkTour from '@/components/onboarding/CoachMarkTour'
-import type { Transaction, Person, SplitParticipant, Account, Category, AccountWithBalance, Friendship } from '@/lib/types'
+import type { Transaction, Person, SplitParticipant, Account, Category, AccountWithBalance, Friendship, UserCategoryPreference } from '@/lib/types'
 import TransactionModal from '@/components/transactions/TransactionModal'
 import FriendSearchModal from '@/components/friends/FriendSearchModal'
 import LinkPersonModal from '@/components/friends/LinkPersonModal'
@@ -63,6 +63,7 @@ interface Props {
   myUserId: string
   baseCurrency: string
   onRefresh?: () => void
+  categoryPreferences?: UserCategoryPreference[]
 }
 
 interface PersonBalance {
@@ -73,7 +74,7 @@ interface PersonBalance {
   pending: Array<{ tx: Transaction; participant: SplitParticipant }>
 }
 
-export default function SharedClient({ transactions, people, accounts, categories, friendships, myUserId, baseCurrency, onRefresh }: Props) {
+export default function SharedClient({ transactions, people, accounts, categories, friendships, myUserId, baseCurrency, onRefresh, categoryPreferences }: Props) {
   const [mounted, setMounted] = useState(false)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -589,6 +590,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
           accounts={accounts as unknown as AccountWithBalance[]}
           categories={categories}
           people={people}
+          categoryPreferences={categoryPreferences}
           onClose={() => setEditingTx(null)}
         />
       )}

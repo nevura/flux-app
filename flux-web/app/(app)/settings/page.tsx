@@ -16,6 +16,7 @@ export default async function SettingsPage() {
     { data: accounts },
     { data: scheduled },
     { data: people },
+    { data: categoryPreferences },
   ] = await Promise.all([
     supabase.from('profiles').select('id,email,full_name,avatar_url,username,phone,timezone,currency,default_monthly_budget,subscription_status,stripe_customer_id,stripe_subscription_id,trial_ends_at,subscription_ends_at,theme_preference,created_at,updated_at').eq('id', user.id).single(),
     supabase.from('shortcut_tokens').select('*').eq('user_id', user.id).single(),
@@ -23,6 +24,7 @@ export default async function SettingsPage() {
     supabase.from('accounts').select('*').eq('user_id', user.id).order('sort_order'),
     supabase.from('scheduled_transactions').select('*').eq('user_id', user.id).order('created_at'),
     supabase.from('people').select('*, linked_profile:profiles!linked_user_id(id, username, full_name)').eq('user_id', user.id).order('created_at'),
+    supabase.from('user_category_preferences').select('*').eq('user_id', user.id),
   ])
 
   const adminAuthEmail = process.env.ADMIN_AUTH_EMAIL || process.env.ADMIN_EMAIL || 'bernardo.perezro06@gmail.com'
@@ -36,6 +38,7 @@ export default async function SettingsPage() {
       accounts={accounts ?? []}
       scheduled={scheduled ?? []}
       people={people ?? []}
+      categoryPreferences={categoryPreferences ?? []}
       isAdmin={isAdmin}
     />
   )

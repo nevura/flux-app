@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { monthRange } from '@/lib/utils'
 import TransactionsClient from '@/components/transactions/TransactionsClient'
-import type { Transaction, Category, AccountWithBalance, Person } from '@/lib/types'
+import type { Transaction, Category, AccountWithBalance, Person, UserCategoryPreference } from '@/lib/types'
 
 interface TabData {
   transactions: Transaction[]
@@ -15,6 +15,7 @@ interface TabData {
   baseCurrency: string
   year: number
   month: number
+  categoryPreferences: UserCategoryPreference[]
 }
 
 function Skeleton() {
@@ -52,7 +53,7 @@ export default function TransactionsTab({ userId, active, refreshSignal }: Props
 
   const load = useCallback(async (y: number, m: number) => {
     const { from, to } = monthRange(y, m)
-    const [{ data: txs }, { data: pendingAll }, { data: cats }, { data: accs }, { data: people }, { data: profileRow }] = await Promise.all([
+    const [{ data: txs }, { data: pendingAll }, { data: cats }, { data: accs }, { data: people }, { data: profileRow }, { data: catPrefs }] = await Promise.all([
       supabase.from('transactions').select('*').eq('user_id', userId)
         .gte('transaction_date', from.slice(0, 10)).lte('transaction_date', to.slice(0, 10))
         .order('transaction_date', { ascending: false }),
@@ -64,6 +65,7 @@ export default function TransactionsTab({ userId, active, refreshSignal }: Props
       supabase.from('accounts').select('*').eq('user_id', userId).eq('is_active', true).order('sort_order'),
       supabase.from('people').select('*').eq('user_id', userId),
       supabase.from('profiles').select('currency').eq('id', userId).single(),
+      supabase.from('user_category_preferences').select('*').eq('user_id', userId),
     ])
     // Merge pending from other months (dedup by id)
     const monthlyTxs = (txs ?? []) as Transaction[]
@@ -77,6 +79,7 @@ export default function TransactionsTab({ userId, active, refreshSignal }: Props
       baseCurrency: profileRow?.currency ?? 'MXN',
       year: y,
       month: m,
+      categoryPreferences: (catPrefs ?? []) as UserCategoryPreference[],
     })
     loadedRef.current = true
   }, [userId, supabase])
@@ -121,6 +124,7 @@ export default function TransactionsTab({ userId, active, refreshSignal }: Props
       baseCurrency={data.baseCurrency}
       year={data.year}
       month={data.month}
+      categoryPreferences={data.categoryPreferences}
     />
   )
 }

@@ -9,12 +9,12 @@ import { getCategoryDisplay, getPaymentMethod, formatCurrency } from '@/lib/util
 import { STATIC_ICONS, STATIC_COLORS, PAYMENT_METHODS, SHORTCUT_LINKS } from '@/lib/constants'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { CurrencyPicker } from '@/components/ui/CurrencyPicker'
-import { saveCategory, deleteCategory, saveAccount, deleteAccount, reorderAccounts, saveScheduled, deleteScheduled, updateProfile, saveDefaultBudget, updateThemePreference, addPerson, updatePerson, deletePerson, updateBaseCurrency } from '@/actions/config'
+import { saveCategory, deleteCategory, saveAccount, deleteAccount, reorderAccounts, saveScheduled, deleteScheduled, updateProfile, saveDefaultBudget, updateThemePreference, addPerson, updatePerson, deletePerson, updateBaseCurrency, saveUserCategoryPreference } from '@/actions/config'
 import SupportChat from '@/components/support/SupportChat'
 import { getUserUnreadCount } from '@/actions/support-chat'
 import { exportTransactionsCSV, importTransactions, type ImportRow } from '@/actions/data'
 import { setUsername, updatePhone, checkUsernameAvailable, linkPersonToUser } from '@/actions/friends'
-import type { Profile, Category, Account, ScheduledTransaction, Person, PublicProfile } from '@/lib/types'
+import type { Profile, Category, Account, ScheduledTransaction, Person, PublicProfile, UserCategoryPreference } from '@/lib/types'
 import ShortcutInstall from './ShortcutInstall'
 import GuideTab from './GuideTab'
 import LinkPersonModal from '@/components/friends/LinkPersonModal'
@@ -27,6 +27,7 @@ interface Props {
   accounts: Account[]
   scheduled: ScheduledTransaction[]
   people: Person[]
+  categoryPreferences: UserCategoryPreference[]
   isAdmin?: boolean
 }
 
@@ -56,7 +57,7 @@ const SECTIONS: { key: Tab; icon: string; label: string; description: string; hi
   return a.label.localeCompare(b.label, 'es')
 })
 
-export default function SettingsClient({ profile, shortcutToken, categories, accounts, scheduled, people, isAdmin }: Props) {
+export default function SettingsClient({ profile, shortcutToken, categories, accounts, scheduled, people, categoryPreferences, isAdmin }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [section, setSection] = useState<Tab | null>(() => {
@@ -493,7 +494,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
           )}
 
           {section === 'categorias' && (
-            <CategoriesTab customCategories={customCategories} defaultCategories={defaultCategories} isPending={isPending} startTransition={startTransition} />
+            <CategoriesTab customCategories={customCategories} defaultCategories={defaultCategories} categoryPreferences={categoryPreferences} isPending={isPending} startTransition={startTransition} />
           )}
           {section === 'cuentas' && (
             <AccountsTab accounts={accounts} isPending={isPending} startTransition={startTransition} />
@@ -697,23 +698,61 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
 
 // ── Categories Tab ────────────────────────────────────────────────────────────
 
-function CategoriesTab({ customCategories, defaultCategories, isPending, startTransition }: {
+function CategoriesTab({ customCategories, defaultCategories, categoryPreferences: initialPrefs, isPending, startTransition }: {
   customCategories: Category[]
   defaultCategories: Category[]
+  categoryPreferences: UserCategoryPreference[]
   isPending: boolean
   startTransition: (fn: () => void) => void
 }) {
   const router = useRouter()
-  const [editing, setEditing] = useState<Partial<Category> | null>(null)
+  const [editing, setEditing] = useState<(Partial<Category> & { _isDefault?: boolean }) | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [localPrefs, setLocalPrefs] = useState<UserCategoryPreference[]>(initialPrefs)
+
+  function getPref(catId: string) {
+    return localPrefs.find(p => p.category_id === catId) ?? null
+  }
+
+  function getDisplayCat(cat: Category) {
+    const pref = getPref(cat.id)
+    return {
+      ...cat,
+      name: pref?.custom_name ?? cat.name,
+      icon_id: pref?.custom_icon_id ?? cat.icon_id,
+      color_id: pref?.custom_color_id ?? cat.color_id,
+    }
+  }
 
   function handleSave() {
     if (!editing?.name) return
-    startTransition(async () => {
-      const res = await saveCategory({ name: editing.name!, icon_id: editing.icon_id ?? 'IC-009', color_id: editing.color_id ?? 'COL-21', id: editing.id })
-      if (res.error) toast.error(res.error)
-      else { toast.success('Categoría guardada'); setEditing(null); router.refresh() }
-    })
+    if (editing._isDefault) {
+      // Save as user override (not touching the global category row)
+      startTransition(async () => {
+        const res = await saveUserCategoryPreference(editing.id!, {
+          is_hidden: getPref(editing.id!)?.is_hidden ?? false,
+          custom_name: editing.name!,
+          custom_icon_id: editing.icon_id ?? null,
+          custom_color_id: editing.color_id ?? null,
+        })
+        if (res.error) { toast.error(res.error); return }
+        toast.success('Categoría actualizada')
+        setLocalPrefs(prev => {
+          const existing = prev.find(p => p.category_id === editing.id!)
+          const updated: UserCategoryPreference = existing
+            ? { ...existing, custom_name: editing.name!, custom_icon_id: editing.icon_id ?? null, custom_color_id: editing.color_id ?? null }
+            : { user_id: '', category_id: editing.id!, is_hidden: false, custom_name: editing.name!, custom_icon_id: editing.icon_id ?? null, custom_color_id: editing.color_id ?? null }
+          return [...prev.filter(p => p.category_id !== editing.id!), updated]
+        })
+        setEditing(null)
+      })
+    } else {
+      startTransition(async () => {
+        const res = await saveCategory({ name: editing.name!, icon_id: editing.icon_id ?? 'IC-009', color_id: editing.color_id ?? 'COL-21', id: editing.id })
+        if (res.error) toast.error(res.error)
+        else { toast.success('Categoría guardada'); setEditing(null); router.refresh() }
+      })
+    }
   }
 
   function handleDelete(id: string) {
@@ -721,6 +760,27 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
       const res = await deleteCategory(id)
       if (res.error) toast.error(res.error)
       else { toast.success('Eliminada'); setDeleteConfirm(null); router.refresh() }
+    })
+  }
+
+  function handleToggleHide(cat: Category) {
+    const pref = getPref(cat.id)
+    const newHidden = !(pref?.is_hidden ?? false)
+    startTransition(async () => {
+      const res = await saveUserCategoryPreference(cat.id, {
+        is_hidden: newHidden,
+        custom_name: pref?.custom_name ?? null,
+        custom_icon_id: pref?.custom_icon_id ?? null,
+        custom_color_id: pref?.custom_color_id ?? null,
+      })
+      if (res.error) { toast.error(res.error); return }
+      setLocalPrefs(prev => {
+        const existing = prev.find(p => p.category_id === cat.id)
+        const updated: UserCategoryPreference = existing
+          ? { ...existing, is_hidden: newHidden }
+          : { user_id: '', category_id: cat.id, is_hidden: newHidden, custom_name: null, custom_icon_id: null, custom_color_id: null }
+        return [...prev.filter(p => p.category_id !== cat.id), updated]
+      })
     })
   }
 
@@ -764,14 +824,43 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
         })}
       </div>
 
-      <p className="text-[12px] font-black uppercase tracking-[2px] mt-4" style={{ color: 'var(--f-text-4)' }}>Predeterminadas</p>
-      <div className="grid grid-cols-4 gap-2">
-        {defaultCategories.map(cat => {
-          const d = getCategoryDisplay(cat)
+      <p className="text-[12px] font-black uppercase tracking-[2px] mt-4" style={{ color: 'var(--f-text-4)' }}>
+        Predeterminadas <span className="normal-case font-medium tracking-normal opacity-60">· toca el ojo para ocultar</span>
+      </p>
+      <div className="space-y-2">
+        {defaultCategories.map((cat, i) => {
+          const display = getDisplayCat(cat)
+          const d = getCategoryDisplay(display)
+          const hidden = getPref(cat.id)?.is_hidden ?? false
           return (
-            <div key={cat.id} className={`flex flex-col items-center gap-1 p-2 rounded-xl ${d.bg} opacity-60`}>
-              <i className={`${d.icon} ${d.color} text-base`} />
-              <span className={`text-[11px] font-semibold text-center ${d.color}`}>{cat.name.split(' ')[0]}</span>
+            <div
+              key={cat.id}
+              className="rounded-2xl px-4 py-3 flex items-center gap-3 animate-fade-up"
+              style={{
+                background: 'var(--f-bg-elevated)',
+                border: '1px solid var(--f-accent-bg)',
+                opacity: hidden ? 0.45 : 1,
+                animationDelay: `${i * 0.03}s`,
+              }}
+            >
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${d.bg}`}>
+                <i className={`${d.icon} ${d.color} text-xs`} />
+              </div>
+              <span className="flex-1 text-[15px] font-semibold truncate" style={{ color: 'var(--f-text)' }}>{display.name}</span>
+              <button
+                onClick={() => setEditing({ ...display, _isDefault: true })}
+                className="px-1.5"
+                style={{ color: 'var(--f-text-3)' }}
+              >
+                <i className="fa-solid fa-pen text-xs" />
+              </button>
+              <button
+                onClick={() => handleToggleHide(cat)}
+                className="px-1.5"
+                style={{ color: hidden ? 'var(--f-text-4)' : 'var(--f-text-2)' }}
+              >
+                <i className={`fa-solid ${hidden ? 'fa-eye-slash' : 'fa-eye'} text-sm`} />
+              </button>
             </div>
           )
         })}
@@ -779,7 +868,7 @@ function CategoriesTab({ customCategories, defaultCategories, isPending, startTr
 
       {/* Bottom sheet editor */}
       {editing !== null && (
-        <BottomSheet title={editing.id ? 'Editar categoría' : 'Nueva categoría'} onClose={() => setEditing(null)}>
+        <BottomSheet title={editing.id ? (editing._isDefault ? 'Personalizar categoría' : 'Editar categoría') : 'Nueva categoría'} onClose={() => setEditing(null)}>
           <div className="px-5 pb-2 space-y-4">
             <input
               value={editing.name ?? ''}

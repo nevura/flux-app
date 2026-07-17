@@ -4,9 +4,9 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { getTransactionModalData } from '@/actions/transactions'
 import TransactionModal from '@/components/transactions/TransactionModal'
-import type { AccountWithBalance, Category, Person } from '@/lib/types'
+import type { AccountWithBalance, Category, Person, UserCategoryPreference } from '@/lib/types'
 
-interface ModalData { accounts: AccountWithBalance[]; categories: Category[]; people: Person[]; baseCurrency: string }
+interface ModalData { accounts: AccountWithBalance[]; categories: Category[]; people: Person[]; baseCurrency: string; categoryPreferences: UserCategoryPreference[] }
 
 export default function GlobalFAB() {
   const [open, setOpen] = useState(false)
@@ -49,6 +49,7 @@ export default function GlobalFAB() {
           categories={data.categories}
           people={data.people}
           baseCurrency={data.baseCurrency}
+          categoryPreferences={data.categoryPreferences}
           onClose={() => setOpen(false)}
         />,
         document.body

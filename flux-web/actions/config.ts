@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { generateCategoryId, generateAccountId, adjustmentFor, getMexicoNow } from '@/lib/utils'
-import type { Category, Account, ScheduledTransaction } from '@/lib/types'
+import type { Category, Account, ScheduledTransaction, UserCategoryPreference } from '@/lib/types'
 
 // ── Categories ────────────────────────────────────────────────────────────────
 
@@ -25,6 +25,21 @@ export async function deleteCategory(id: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autorizado' }
   const { error } = await supabase.from('categories').delete().eq('id', id).eq('user_id', user.id)
+  if (error) return { error: error.message }
+  revalidatePath('/settings')
+  return { error: null }
+}
+
+export async function saveUserCategoryPreference(
+  categoryId: string,
+  data: Pick<UserCategoryPreference, 'is_hidden' | 'custom_name' | 'custom_icon_id' | 'custom_color_id'>
+) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+  const { error } = await supabase
+    .from('user_category_preferences')
+    .upsert({ ...data, user_id: user.id, category_id: categoryId })
   if (error) return { error: error.message }
   revalidatePath('/settings')
   return { error: null }

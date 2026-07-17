@@ -4,14 +4,14 @@ import { useState, useTransition, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { addTransaction, updateTransaction, deleteTransaction, confirmTransaction, settlePayable } from '@/actions/transactions'
+import { addTransaction, updateTransaction, deleteTransaction, confirmTransaction, settlePayable, suggestCategoryForConcept } from '@/actions/transactions'
 import { addPerson } from '@/actions/config'
 import { getCategoryDisplay, formatCurrency } from '@/lib/utils'
 import { getExchangeRateForDate } from '@/actions/exchangeRates'
 import { CurrencyPicker } from '@/components/ui/CurrencyPicker'
 import { useBottomSheetSwipe } from '@/lib/hooks/useBottomSheetSwipe'
 import { useBodyScrollLock } from '@/lib/hooks/useBodyScrollLock'
-import type { Transaction, AccountWithBalance, Category, Person, SplitData } from '@/lib/types'
+import type { Transaction, AccountWithBalance, Category, Person, SplitData, UserCategoryPreference } from '@/lib/types'
 import ModalTip from './ModalTip'
 
 interface Props {
@@ -22,6 +22,7 @@ interface Props {
   onClose: () => void
   presetType?: 'TR-GASTO' | 'TR-INGRESO' | 'TR-TRANSFER'
   baseCurrency?: string
+  categoryPreferences?: UserCategoryPreference[]
 }
 
 type TxType = 'TR-GASTO' | 'TR-INGRESO' | 'TR-TRANSFER'
@@ -32,10 +33,12 @@ const TYPE_CONFIG = {
   'TR-TRANSFER': { label: 'Transferencia',   color: 'var(--f-transfer)', rawColor: '#64D2FF', icon: 'fa-solid fa-shuffle' },
 }
 
-export default function TransactionModal({ transaction, accounts, categories, people, onClose, presetType, baseCurrency = 'MXN' }: Props) {
+export default function TransactionModal({ transaction, accounts, categories, people, onClose, presetType, baseCurrency = 'MXN', categoryPreferences }: Props) {
   const isEdit = Boolean(transaction)
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+  const [, startSuggesting] = useTransition()
+  const [suggestedCatId, setSuggestedCatId] = useState<string | null>(null)
   const [closing, setClosing] = useState(false)
 
   function handleClose() {
@@ -292,8 +295,19 @@ export default function TransactionModal({ transaction, accounts, categories, pe
 
   const filteredCats = categories.filter(c => {
     if (c.id === 'CAT-AUDIT' || c.id === 'CAT-APPLE') return false
+    const pref = categoryPreferences?.find(p => p.category_id === c.id)
+    if (pref?.is_hidden) return false
     if (type === 'TR-INGRESO') return ['CAT-DEF-HON', 'CAT-DEF-INV', 'CAT-DEF-VENT', 'CAT-DEF-OTHER'].includes(c.id) || c.user_id !== null
     return true
+  }).map(c => {
+    const pref = categoryPreferences?.find(p => p.category_id === c.id)
+    if (!pref) return c
+    return {
+      ...c,
+      name: pref.custom_name ?? c.name,
+      icon_id: pref.custom_icon_id ?? c.icon_id,
+      color_id: pref.custom_color_id ?? c.color_id,
+    }
   })
 
   function buildReceivableData(): import('@/lib/types').SplitData | null {
@@ -543,7 +557,18 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                   transition: 'border-color 0.2s ease',
                 }}
                 onFocus={e => { e.currentTarget.style.borderColor = cfg.rawColor + '80' }}
-                onBlur={e => { e.currentTarget.style.borderColor = 'var(--f-line)' }}
+                onBlur={e => {
+                  e.currentTarget.style.borderColor = 'var(--f-line)'
+                  if (!isEdit && !catId && concept.trim().length >= 2) {
+                    startSuggesting(async () => {
+                      const res = await suggestCategoryForConcept(concept.trim())
+                      if (res.categoryId) {
+                        setSuggestedCatId(res.categoryId)
+                        setCatId(res.categoryId)
+                      }
+                    })
+                  }
+                }}
               />
             </div>
 
@@ -557,12 +582,16 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                   {filteredCats.map(cat => {
                     const d = getCategoryDisplay(cat)
                     const selected = catId === cat.id
+                    const isSuggested = cat.id === suggestedCatId
                     return (
                       <button
                         key={cat.id}
                         type="button"
-                        onClick={() => setCatId(selected ? '' : cat.id)}
-                        className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-[12px] transition-all active:scale-[0.92]"
+                        onClick={() => {
+                          if (selected) { setCatId(''); setSuggestedCatId(null) }
+                          else { setCatId(cat.id); if (cat.id !== suggestedCatId) setSuggestedCatId(null) }
+                        }}
+                        className="relative flex flex-col items-center gap-1.5 py-3 px-1 rounded-[12px] transition-all active:scale-[0.92]"
                         style={selected ? {
                           background: `color-mix(in srgb, ${cfg.rawColor} 10%, transparent)`,
                           border: `1px solid color-mix(in srgb, ${cfg.rawColor} 30%, transparent)`,
@@ -571,6 +600,9 @@ export default function TransactionModal({ transaction, accounts, categories, pe
                           border: '1px solid transparent',
                         }}
                       >
+                        {isSuggested && (
+                          <span className="absolute top-1 right-1 text-[7px] font-black bg-violet-500 text-white rounded px-[3px] py-[1px] leading-none">IA</span>
+                        )}
                         <i
                           className={`${d.icon} text-[20px]`}
                           style={{ color: selected ? cfg.color : 'var(--f-text-3)' }}

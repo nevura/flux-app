@@ -6,7 +6,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { adjustmentFor, parseAmount, getMexicoNow, formatCurrency } from '@/lib/utils'
 import { sendSharedExpenseInviteEmail, sendSharedExpensePaidEmail } from '@/lib/email'
 import { notify } from '@/lib/notify'
-import type { TransactionForm, SplitParticipant, AccountWithBalance, Category, Person } from '@/lib/types'
+import type { TransactionForm, SplitParticipant, AccountWithBalance, Category, Person, UserCategoryPreference } from '@/lib/types'
 
 // Sends expense_settled_confirm notification to a person if they have a linked Flux user.
 // linked_tx_id / linked_participant_id let the receiver update their own transaction on confirmation.
@@ -91,17 +91,18 @@ async function notifyLinkedPersonSettled(
   } catch { /* ignore — notification is best-effort */ }
 }
 
-export async function getTransactionModalData(): Promise<{ accounts: AccountWithBalance[]; categories: Category[]; people: Person[]; baseCurrency: string }> {
+export async function getTransactionModalData(): Promise<{ accounts: AccountWithBalance[]; categories: Category[]; people: Person[]; baseCurrency: string; categoryPreferences: UserCategoryPreference[] }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { accounts: [], categories: [], people: [], baseCurrency: 'MXN' }
+  if (!user) return { accounts: [], categories: [], people: [], baseCurrency: 'MXN', categoryPreferences: [] }
 
-  const [{ data: accounts }, { data: allCategories }, { data: people }, { data: transactions }, { data: profile }] = await Promise.all([
+  const [{ data: accounts }, { data: allCategories }, { data: people }, { data: transactions }, { data: profile }, { data: catPrefs }] = await Promise.all([
     supabase.from('accounts').select('*').eq('user_id', user.id).eq('is_active', true).order('sort_order'),
     supabase.from('categories').select('*').or(`user_id.eq.${user.id},user_id.is.null`).order('sort_order'),
     supabase.from('people').select('*').eq('user_id', user.id),
     supabase.from('transactions').select('account_id, amount').eq('user_id', user.id),
     supabase.from('profiles').select('currency').eq('id', user.id).single(),
+    supabase.from('user_category_preferences').select('*').eq('user_id', user.id),
   ])
 
   const accountsWithBalance = (accounts ?? []).map(a => ({
@@ -114,6 +115,7 @@ export async function getTransactionModalData(): Promise<{ accounts: AccountWith
     categories: (allCategories ?? []) as Category[],
     people: (people ?? []) as Person[],
     baseCurrency: profile?.currency ?? 'MXN',
+    categoryPreferences: (catPrefs ?? []) as UserCategoryPreference[],
   }
 }
 
@@ -1649,4 +1651,29 @@ export async function declineSyncProposal(notificationId: string) {
     } catch { /* ignore */ }
   }
   return { error: null }
+}
+
+export async function suggestCategoryForConcept(concept: string): Promise<{ categoryId: string | null }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || !concept.trim()) return { categoryId: null }
+
+  const { data } = await supabase
+    .from('transactions')
+    .select('category_id')
+    .eq('user_id', user.id)
+    .ilike('concept', concept.trim())
+    .not('category_id', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(30)
+
+  if (!data?.length) return { categoryId: null }
+
+  const counts = data.reduce((acc, t) => {
+    if (t.category_id) acc[t.category_id] = (acc[t.category_id] ?? 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  const best = Object.entries(counts).sort(([, a], [, b]) => b - a)[0]?.[0] ?? null
+  return { categoryId: best }
 }

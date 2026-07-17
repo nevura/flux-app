@@ -19,7 +19,7 @@ import { MONTHS_ES } from '@/lib/constants'
 import { searchAllTransactions, fetchSharedTransactions, deleteTransaction, confirmTransaction } from '@/actions/transactions'
 import CoachMarkTour from '@/components/onboarding/CoachMarkTour'
 import { SwipeableRow } from '@/components/shared/SwipeableRow'
-import type { Transaction, Category, AccountWithBalance, Person } from '@/lib/types'
+import type { Transaction, Category, AccountWithBalance, Person, UserCategoryPreference } from '@/lib/types'
 import TransactionModal from './TransactionModal'
 
 interface Props {
@@ -30,9 +30,10 @@ interface Props {
   baseCurrency?: string
   year: number
   month: number
+  categoryPreferences?: UserCategoryPreference[]
 }
 
-export default function TransactionsClient({ initialTransactions, categories, accounts, people, baseCurrency = 'MXN', year, month }: Props) {
+export default function TransactionsClient({ initialTransactions, categories, accounts, people, baseCurrency = 'MXN', year, month, categoryPreferences }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [isNavigating, startNavigate] = useTransition()
@@ -655,6 +656,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
           categories={categories}
           people={people}
           baseCurrency={baseCurrency}
+          categoryPreferences={categoryPreferences}
           onClose={() => setModalOpen(false)}
         />,
         document.body
