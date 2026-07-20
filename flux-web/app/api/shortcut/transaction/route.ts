@@ -21,7 +21,7 @@ async function findBestCategoryFromHistory(
   userId: string,
   concept: string,
 ): Promise<string | null> {
-  for (const token of extractSearchTokens(concept)) {
+  for (const token of [concept, ...extractSearchTokens(concept)]) {
     const { data } = await admin
       .from('transactions')
       .select('category_id')
