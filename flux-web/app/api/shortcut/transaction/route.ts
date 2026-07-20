@@ -6,14 +6,14 @@ import type { ShortcutPayload } from '@/lib/types'
 
 export const maxDuration = 30
 
-function extractSearchToken(concept: string): string {
-  const token = concept
+function extractSearchTokens(concept: string): string[] {
+  const tokens = concept
     .replace(/[*#\-_.]/g, ' ')
     .replace(/\b\d{3,}\b/g, '')
     .trim()
     .split(/\s+/)
-    .filter(w => w.length > 2)[0]
-  return token ?? concept
+    .filter(w => w.length > 2)
+  return tokens.length ? tokens : [concept]
 }
 
 async function findBestCategoryFromHistory(
@@ -21,21 +21,25 @@ async function findBestCategoryFromHistory(
   userId: string,
   concept: string,
 ): Promise<string | null> {
-  const token = extractSearchToken(concept)
-  const { data } = await admin
-    .from('transactions')
-    .select('category_id')
-    .eq('user_id', userId)
-    .ilike('concept', `%${token}%`)
-    .not('category_id', 'is', null)
-    .order('created_at', { ascending: false })
-    .limit(30)
-  if (!data?.length) return null
-  const counts = data.reduce((acc, t: { category_id: string | null }) => {
-    if (t.category_id) acc[t.category_id] = (acc[t.category_id] ?? 0) + 1
-    return acc
-  }, {} as Record<string, number>)
-  return Object.entries(counts).sort(([, a], [, b]) => b - a)[0]?.[0] ?? null
+  for (const token of extractSearchTokens(concept)) {
+    const { data } = await admin
+      .from('transactions')
+      .select('category_id')
+      .eq('user_id', userId)
+      .ilike('concept', `%${token}%`)
+      .not('category_id', 'is', null)
+      .neq('category_id', 'CAT-APPLE')
+      .order('created_at', { ascending: false })
+      .limit(30)
+    if (!data?.length) continue
+    const counts = data.reduce((acc, t: { category_id: string | null }) => {
+      if (t.category_id) acc[t.category_id] = (acc[t.category_id] ?? 0) + 1
+      return acc
+    }, {} as Record<string, number>)
+    const best = Object.entries(counts).sort(([, a], [, b]) => b - a)[0]?.[0] ?? null
+    if (best) return best
+  }
+  return null
 }
 
 function getAdminClient() {
