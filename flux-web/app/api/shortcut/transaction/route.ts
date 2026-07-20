@@ -1,10 +1,42 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { adjustmentFor, parseAmount, getMexicoNow } from '@/lib/utils'
 import { DEFAULT_CATEGORIES } from '@/lib/constants'
 import type { ShortcutPayload } from '@/lib/types'
 
 export const maxDuration = 30
+
+function extractSearchToken(concept: string): string {
+  const token = concept
+    .replace(/[*#\-_.]/g, ' ')
+    .replace(/\b\d{3,}\b/g, '')
+    .trim()
+    .split(/\s+/)
+    .filter(w => w.length > 2)[0]
+  return token ?? concept
+}
+
+async function findBestCategoryFromHistory(
+  admin: ReturnType<typeof getAdminClient>,
+  userId: string,
+  concept: string,
+): Promise<string | null> {
+  const token = extractSearchToken(concept)
+  const { data } = await admin
+    .from('transactions')
+    .select('category_id')
+    .eq('user_id', userId)
+    .ilike('concept', `%${token}%`)
+    .not('category_id', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(30)
+  if (!data?.length) return null
+  const counts = data.reduce((acc, t: { category_id: string | null }) => {
+    if (t.category_id) acc[t.category_id] = (acc[t.category_id] ?? 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+  return Object.entries(counts).sort(([, a], [, b]) => b - a)[0]?.[0] ?? null
+}
 
 function getAdminClient() {
   return createClient(
@@ -120,25 +152,6 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // If no category was resolved from the shortcut payload, look up history for this concept
-  if (!categoryId && body.concept) {
-    const { data: hist } = await supabaseAdmin
-      .from('transactions')
-      .select('category_id')
-      .eq('user_id', userId)
-      .ilike('concept', body.concept)
-      .not('category_id', 'is', null)
-      .order('created_at', { ascending: false })
-      .limit(20)
-    if (hist?.length) {
-      const counts = hist.reduce((acc, t: { category_id: string | null }) => {
-        if (t.category_id) acc[t.category_id] = (acc[t.category_id] ?? 0) + 1
-        return acc
-      }, {} as Record<string, number>)
-      categoryId = Object.entries(counts).sort(([, a], [, b]) => b - a)[0]?.[0] ?? null
-    }
-  }
-
   // Resolve account
   const userAccounts = accountsResult.data ?? []
   let resolvedAccount: (typeof userAccounts)[number] | null = null
@@ -180,7 +193,7 @@ export async function POST(req: NextRequest) {
     })
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   } else {
-    const { error } = await supabaseAdmin.from('transactions').insert({
+    const { data: inserted, error } = await supabaseAdmin.from('transactions').insert({
       user_id: userId,
       concept: body.concept,
       type: txType,
@@ -196,8 +209,23 @@ export async function POST(req: NextRequest) {
       source: txSource,
       original_currency: body.original_currency ? String(body.original_currency) : null,
       original_amount: body.original_currency ? amount : null,
-    })
+    }).select('id')
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    // If no category was resolved from the payload, look up history in the background
+    // so the shortcut response is not delayed
+    if (!categoryId && body.concept && inserted?.[0]?.id) {
+      const txId = inserted[0].id
+      const concept = body.concept
+      after(async () => {
+        const best = await findBestCategoryFromHistory(supabaseAdmin, userId, concept)
+        await supabaseAdmin
+          .from('transactions')
+          .update({ category_id: best ?? 'CAT-APPLE' })
+          .eq('id', txId)
+          .is('category_id', null)
+      })
+    }
   }
 
   return NextResponse.json({ status: 'ok', amount, type: txType, account: accountId, currency: accountCurrency })
