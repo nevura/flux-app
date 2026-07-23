@@ -155,6 +155,9 @@ export async function POST(req: NextRequest) {
       }
     }
   }
+  // CAT-APPLE is a generic "I don't know" fallback, not a real category choice —
+  // treat it like no category so history-based auto-categorization still runs.
+  if (categoryId === 'CAT-APPLE') categoryId = null
 
   // Resolve account
   const userAccounts = accountsResult.data ?? []
