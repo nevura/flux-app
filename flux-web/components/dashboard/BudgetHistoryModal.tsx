@@ -149,7 +149,7 @@ export default function BudgetHistoryModal({ userId, baseCurrency, onClose }: Pr
     <>
       <div
         className={`fixed inset-0 z-[60] ${closing ? 'animate-fade-out' : 'animate-fade-in'}`}
-        style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
+        style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)' }}
         onClick={handleClose}
       />
       <div
@@ -209,7 +209,13 @@ export default function BudgetHistoryModal({ userId, baseCurrency, onClose }: Pr
               {/* Discipline badges — all-time, don't move with the window */}
               {totalWithTarget > 0 && (
                 <div className="flex items-center gap-2.5 px-5 pt-3">
-                  <div className="flex-1 flex items-center gap-2 rounded-[14px] px-3.5 py-2.5" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)' }}>
+                  <div
+                    className="flex-1 flex items-center gap-2 rounded-[14px] px-3.5 py-2.5"
+                    style={{
+                      background: streak > 0 ? 'color-mix(in srgb, var(--f-warning) 10%, var(--f-bg-card))' : 'var(--f-bg-card)',
+                      border: `1px solid ${streak > 0 ? 'color-mix(in srgb, var(--f-warning) 30%, transparent)' : 'var(--f-line-strong)'}`,
+                    }}
+                  >
                     <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: streak > 0 ? 'var(--f-warning-bg)' : 'var(--f-bg-input)' }}>
                       <i className="fa-solid fa-fire text-[14px]" style={{ color: streak > 0 ? 'var(--f-warning)' : 'var(--f-text-4)' }} />
                     </div>
@@ -218,7 +224,13 @@ export default function BudgetHistoryModal({ userId, baseCurrency, onClose }: Pr
                       <p className="text-[11px] font-bold mt-0.5" style={{ color: 'var(--f-text-4)' }}>racha actual</p>
                     </div>
                   </div>
-                  <div className="flex-1 flex items-center gap-2 rounded-[14px] px-3.5 py-2.5" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)' }}>
+                  <div
+                    className="flex-1 flex items-center gap-2 rounded-[14px] px-3.5 py-2.5"
+                    style={{
+                      background: 'color-mix(in srgb, var(--f-income) 10%, var(--f-bg-card))',
+                      border: '1px solid color-mix(in srgb, var(--f-income) 30%, transparent)',
+                    }}
+                  >
                     <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--f-income-bg)' }}>
                       <i className="fa-solid fa-circle-check text-[14px]" style={{ color: 'var(--f-income)' }} />
                     </div>
@@ -232,11 +244,23 @@ export default function BudgetHistoryModal({ userId, baseCurrency, onClose }: Pr
 
               {/* Stats strip — scoped to the visible window */}
               <div className="grid grid-cols-2 gap-2.5 px-5 pt-3 pb-2">
-                <div className="rounded-[14px] p-3" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)' }}>
+                <div
+                  className="rounded-[14px] p-3"
+                  style={{
+                    background: 'color-mix(in srgb, var(--f-blue) 8%, var(--f-bg-card))',
+                    border: '1px solid color-mix(in srgb, var(--f-blue) 25%, transparent)',
+                  }}
+                >
                   <p className="text-[11px] font-black tracking-widest uppercase mb-1" style={{ color: 'var(--f-text-4)' }}>Promedio gastado</p>
                   <p className="text-[17px] font-black tabular-nums" style={{ color: 'var(--f-text)' }}>{formatCurrency(avgSpent, baseCurrency)}</p>
                 </div>
-                <div className="rounded-[14px] p-3" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)' }}>
+                <div
+                  className="rounded-[14px] p-3"
+                  style={{
+                    background: `color-mix(in srgb, ${monthsOver > 0 ? 'var(--f-expense)' : 'var(--f-income)'} 8%, var(--f-bg-card))`,
+                    border: `1px solid color-mix(in srgb, ${monthsOver > 0 ? 'var(--f-expense)' : 'var(--f-income)'} 25%, transparent)`,
+                  }}
+                >
                   <p className="text-[11px] font-black tracking-widest uppercase mb-1" style={{ color: 'var(--f-text-4)' }}>Meses excedidos</p>
                   <p className="text-[17px] font-black tabular-nums" style={{ color: monthsOver > 0 ? 'var(--f-expense)' : 'var(--f-text)' }}>
                     {monthsOver} <span className="text-[12px] font-bold opacity-50">de {windowRows.length}</span>
@@ -314,7 +338,7 @@ export default function BudgetHistoryModal({ userId, baseCurrency, onClose }: Pr
                       className="rounded-[14px] px-3.5 py-3 transition-colors"
                       style={{
                         background: isSelected ? `color-mix(in srgb, ${color} 10%, var(--f-bg-card))` : 'var(--f-bg-card)',
-                        border: `1px solid ${isSelected ? color : 'var(--f-line)'}`,
+                        border: `1px solid ${isSelected ? color : 'var(--f-line-strong)'}`,
                       }}
                     >
                       {isEditing ? (
