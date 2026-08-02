@@ -9,6 +9,7 @@ import { MONTHS_ES } from '@/lib/constants'
 import { saveBudget, chargeScheduled, saveCreditPayment, deleteCreditPayment } from '@/actions/config'
 import type { AccountWithBalance, Transaction, Category, ScheduledTransaction, Budget, CreditPayment } from '@/lib/types'
 import AuditModal from './AuditModal'
+import BudgetHistoryModal from './BudgetHistoryModal'
 import { useCountUp, useAnimatedWidth } from '@/lib/hooks'
 import NotificationBell from '@/components/notifications/NotificationBell'
 import CoachMarkTour from '@/components/onboarding/CoachMarkTour'
@@ -159,6 +160,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
   const [budgetEditOpen, setBudgetEditOpen] = useState(false)
   const [budgetInput, setBudgetInput] = useState('')
   const [auditOpen, setAuditOpen] = useState(false)
+  const [budgetHistoryOpen, setBudgetHistoryOpen] = useState(false)
   const [isBudgetPending, startBudget] = useTransition()
   const [scheduledAction, setScheduledAction] = useState<{ id: string; name: string; amount: number; type: string } | null>(null)
   const [isChargePending, startCharge] = useTransition()
@@ -257,6 +259,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
       if (res.error) { toast.error(res.error); return }
       toast.success(skip ? 'Ciclo omitido' : 'Pago registrado')
       setScheduledAction(null)
+      onRefresh?.()
     })
   }
 
@@ -268,6 +271,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
       if (res.error) { toast.error(res.error); return }
       toast.success('Presupuesto guardado')
       setBudgetEditOpen(false)
+      onRefresh?.()
     })
   }
 
@@ -404,13 +408,22 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
             </div>
             <div className="flex items-center gap-2">
               {!budgetEditOpen && (
-                <button
-                  onClick={() => { setBudgetInput(budgetAmount > 0 ? String(budgetAmount) : ''); setBudgetEditOpen(true) }}
-                  className="w-7 h-7 rounded-full flex items-center justify-center"
-                  style={{ background: 'var(--f-bg-input)' }}
-                >
-                  <i className="fa-solid fa-pencil text-[12px]" style={{ color: 'var(--f-text)' }} />
-                </button>
+                <>
+                  <button
+                    onClick={() => setBudgetHistoryOpen(true)}
+                    className="w-7 h-7 rounded-full flex items-center justify-center"
+                    style={{ background: 'var(--f-bg-input)' }}
+                  >
+                    <i className="fa-solid fa-chart-column text-[12px]" style={{ color: 'var(--f-text)' }} />
+                  </button>
+                  <button
+                    onClick={() => { setBudgetInput(budgetAmount > 0 ? String(budgetAmount) : ''); setBudgetEditOpen(true) }}
+                    className="w-7 h-7 rounded-full flex items-center justify-center"
+                    style={{ background: 'var(--f-bg-input)' }}
+                  >
+                    <i className="fa-solid fa-pencil text-[12px]" style={{ color: 'var(--f-text)' }} />
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -1002,6 +1015,11 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
 
       {auditOpen && createPortal(
         <AuditModal accounts={accounts} onClose={() => setAuditOpen(false)} />,
+        document.body
+      )}
+
+      {budgetHistoryOpen && createPortal(
+        <BudgetHistoryModal userId={user.id} baseCurrency={baseCurrency} onClose={() => setBudgetHistoryOpen(false)} />,
         document.body
       )}
 

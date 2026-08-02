@@ -456,5 +456,47 @@ export async function GET(request: Request) {
   const fxResult = await fetchAndStoreDailyRates(todayStr)
   if (fxResult.error) results.errors.push(`exchange_rates: ${fxResult.error}`)
 
-  return NextResponse.json({ ok: true, date: todayStr, exchange_rates_inserted: fxResult.inserted, ...results })
+  // ── 9. Budget history backfill ────────────────────────────────────────────
+  // Freeze the effective default_monthly_budget into a real `budgets` row for
+  // any month that has fully elapsed and doesn't have one yet, so later edits
+  // to the global default can never retroactively change a past month's target.
+  let budgetsBackfilled = 0
+  const curYear = today.getFullYear()
+  const curMonth = today.getMonth() + 1
+  const { data: budgetProfiles } = await (admin.from('profiles') as any)
+    .select('id, default_monthly_budget, currency, created_at')
+    .not('default_monthly_budget', 'is', null)
+
+  for (const p of (budgetProfiles ?? [])) {
+    try {
+      const createdAt = new Date(p.created_at)
+      let y = createdAt.getFullYear()
+      let m = createdAt.getMonth() + 1
+      if (y > curYear || (y === curYear && m >= curMonth)) continue // nothing elapsed yet
+
+      const { data: existing } = await (admin.from('budgets') as any)
+        .select('year, month')
+        .eq('user_id', p.id)
+      const existingSet = new Set((existing ?? []).map((b: any) => `${b.year}-${b.month}`))
+
+      const toInsert: { user_id: string; year: number; month: number; amount: number; currency: string }[] = []
+      while (y < curYear || (y === curYear && m < curMonth)) {
+        if (!existingSet.has(`${y}-${m}`)) {
+          toInsert.push({ user_id: p.id, year: y, month: m, amount: p.default_monthly_budget, currency: p.currency ?? 'MXN' })
+        }
+        m++
+        if (m > 12) { m = 1; y++ }
+      }
+
+      if (toInsert.length > 0) {
+        const { error: insErr } = await (admin.from('budgets') as any).insert(toInsert)
+        if (insErr) results.errors.push(`budget_backfill(${p.id}): ${insErr.message}`)
+        else budgetsBackfilled += toInsert.length
+      }
+    } catch (e) {
+      results.errors.push(`budget_backfill(${p.id}): ${String(e)}`)
+    }
+  }
+
+  return NextResponse.json({ ok: true, date: todayStr, exchange_rates_inserted: fxResult.inserted, budgets_backfilled: budgetsBackfilled, ...results })
 }
