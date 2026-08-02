@@ -12,6 +12,7 @@ interface TabData {
   categories: Category[]
   friendships: Friendship[]
   baseCurrency: string
+  travelModeCurrency: string | null
 }
 
 function Skeleton() {
@@ -47,7 +48,7 @@ export default function SharedTab({ userId, active, refreshSignal }: Props) {
       supabase.from('accounts').select('*').eq('user_id', userId).eq('is_active', true).order('sort_order'),
       supabase.from('categories').select('*').or(`user_id.eq.${userId},user_id.is.null`).order('sort_order'),
       supabase.from('friendships').select('*').or(`requester_id.eq.${userId},addressee_id.eq.${userId}`),
-      supabase.from('profiles').select('currency').eq('id', userId).single(),
+      supabase.from('profiles').select('currency, travel_mode_currency').eq('id', userId).single(),
     ])
     setData({
       transactions: (txs ?? []) as Transaction[],
@@ -56,6 +57,7 @@ export default function SharedTab({ userId, active, refreshSignal }: Props) {
       categories: (cats ?? []) as Category[],
       friendships: (friends ?? []) as Friendship[],
       baseCurrency: profile?.currency ?? 'MXN',
+      travelModeCurrency: (profile as { travel_mode_currency?: string | null } | null)?.travel_mode_currency ?? null,
     })
     loadedRef.current = true
   }, [userId, supabase])

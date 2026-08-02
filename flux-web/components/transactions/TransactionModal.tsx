@@ -22,6 +22,7 @@ interface Props {
   onClose: () => void
   presetType?: 'TR-GASTO' | 'TR-INGRESO' | 'TR-TRANSFER'
   baseCurrency?: string
+  travelModeCurrency?: string | null
   categoryPreferences?: UserCategoryPreference[]
 }
 
@@ -33,7 +34,7 @@ const TYPE_CONFIG = {
   'TR-TRANSFER': { label: 'Transferencia',   color: 'var(--f-transfer)', rawColor: '#64D2FF', icon: 'fa-solid fa-shuffle' },
 }
 
-export default function TransactionModal({ transaction, accounts, categories, people, onClose, presetType, baseCurrency = 'MXN', categoryPreferences }: Props) {
+export default function TransactionModal({ transaction, accounts, categories, people, onClose, presetType, baseCurrency = 'MXN', travelModeCurrency = null, categoryPreferences }: Props) {
   const isEdit = Boolean(transaction)
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -101,7 +102,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
   const destCurrency = destAccount?.currency ?? accountCurrency
   const isCrossCurrencyTransfer = type === 'TR-TRANSFER' && !!destAccount && destCurrency !== accountCurrency
   const [originalCurrency, setOriginalCurrency] = useState<string>(
-    transaction?.original_currency ?? accountCurrency
+    transaction?.original_currency ?? (isEdit ? accountCurrency : (travelModeCurrency ?? accountCurrency))
   )
   const isOriginalMode = originalCurrency !== accountCurrency
   const needsExchangeRate = isCrossCurrencyTransfer || isOriginalMode || accountCurrency !== baseCurrency

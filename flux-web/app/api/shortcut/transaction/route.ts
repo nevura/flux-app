@@ -2,6 +2,7 @@ import { NextRequest, NextResponse, after } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { adjustmentFor, parseAmount, getMexicoNow } from '@/lib/utils'
 import { DEFAULT_CATEGORIES } from '@/lib/constants'
+import { getExchangeRateForDate } from '@/actions/exchangeRates'
 import type { ShortcutPayload } from '@/lib/types'
 
 export const maxDuration = 30
@@ -123,7 +124,7 @@ export async function POST(req: NextRequest) {
   const needsUserCats = catLower && !catLower.startsWith('cat-') && !DEFAULT_CATEGORIES.find(c => c.name.toLowerCase().includes(catLower))
 
   const [subResult, , accountsResult, userCatsResult] = await Promise.all([
-    supabaseAdmin.from('profiles').select('subscription_status').eq('id', userId).single(),
+    supabaseAdmin.from('profiles').select('subscription_status, travel_mode_currency').eq('id', userId).single(),
     supabaseAdmin.from('shortcut_tokens').update(sourceUpdate).eq('token', token),
     supabaseAdmin.from('accounts').select('id,name,payment_method_id,currency,display_exchange_rate').eq('user_id', userId).eq('is_active', true),
     needsUserCats
@@ -180,6 +181,20 @@ export async function POST(req: NextRequest) {
 
   const date = body.date ? String(body.date) : getMexicoNow()
 
+  // Foreign-currency capture: an explicit payload currency wins; otherwise, if travel
+  // mode is on and differs from the account's currency, treat the raw amount (e.g. what
+  // Apple Pay charged, since it never reports currency) as that foreign amount.
+  const travelModeCurrency: string | null = (subResult.data as { travel_mode_currency?: string | null } | null)?.travel_mode_currency ?? null
+  const originalCurrency: string | null = body.original_currency
+    ? String(body.original_currency)
+    : (travelModeCurrency && travelModeCurrency !== accountCurrency ? travelModeCurrency : null)
+
+  let storedAmount = amount
+  if (originalCurrency) {
+    const rate = await getExchangeRateForDate(originalCurrency, accountCurrency, date.slice(0, 10))
+    if (rate) storedAmount = Math.round(amount * rate * 100) / 100
+  }
+
   // Insert transaction
   if (txType === 'TR-TRANSFER') {
     let destId: string | null = null
@@ -204,8 +219,8 @@ export async function POST(req: NextRequest) {
       user_id: userId,
       concept: body.concept,
       type: txType,
-      amount,
-      adjustment: adjustmentFor(txType, amount),
+      amount: storedAmount,
+      adjustment: adjustmentFor(txType, storedAmount),
       currency: accountCurrency,
       exchange_rate: displayExchangeRate,
       category_id: categoryId,
@@ -214,8 +229,8 @@ export async function POST(req: NextRequest) {
       is_validated: false,
       notes: body.notes ?? null,
       source: txSource,
-      original_currency: body.original_currency ? String(body.original_currency) : null,
-      original_amount: body.original_currency ? amount : null,
+      original_currency: originalCurrency,
+      original_amount: originalCurrency ? amount : null,
     }).select('id')
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 

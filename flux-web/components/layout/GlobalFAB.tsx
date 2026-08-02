@@ -6,7 +6,7 @@ import { getTransactionModalData } from '@/actions/transactions'
 import TransactionModal from '@/components/transactions/TransactionModal'
 import type { AccountWithBalance, Category, Person, UserCategoryPreference } from '@/lib/types'
 
-interface ModalData { accounts: AccountWithBalance[]; categories: Category[]; people: Person[]; baseCurrency: string; categoryPreferences: UserCategoryPreference[] }
+interface ModalData { accounts: AccountWithBalance[]; categories: Category[]; people: Person[]; baseCurrency: string; travelModeCurrency: string | null; categoryPreferences: UserCategoryPreference[] }
 
 export default function GlobalFAB() {
   const [open, setOpen] = useState(false)
@@ -49,6 +49,7 @@ export default function GlobalFAB() {
           categories={data.categories}
           people={data.people}
           baseCurrency={data.baseCurrency}
+          travelModeCurrency={data.travelModeCurrency}
           categoryPreferences={data.categoryPreferences}
           onClose={() => setOpen(false)}
         />,

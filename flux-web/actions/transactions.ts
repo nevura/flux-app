@@ -91,17 +91,17 @@ async function notifyLinkedPersonSettled(
   } catch { /* ignore — notification is best-effort */ }
 }
 
-export async function getTransactionModalData(): Promise<{ accounts: AccountWithBalance[]; categories: Category[]; people: Person[]; baseCurrency: string; categoryPreferences: UserCategoryPreference[] }> {
+export async function getTransactionModalData(): Promise<{ accounts: AccountWithBalance[]; categories: Category[]; people: Person[]; baseCurrency: string; travelModeCurrency: string | null; categoryPreferences: UserCategoryPreference[] }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { accounts: [], categories: [], people: [], baseCurrency: 'MXN', categoryPreferences: [] }
+  if (!user) return { accounts: [], categories: [], people: [], baseCurrency: 'MXN', travelModeCurrency: null, categoryPreferences: [] }
 
   const [{ data: accounts }, { data: allCategories }, { data: people }, { data: transactions }, { data: profile }, { data: catPrefs }] = await Promise.all([
     supabase.from('accounts').select('*').eq('user_id', user.id).eq('is_active', true).order('sort_order'),
     supabase.from('categories').select('*').or(`user_id.eq.${user.id},user_id.is.null`).order('sort_order'),
     supabase.from('people').select('*').eq('user_id', user.id),
     supabase.from('transactions').select('account_id, amount').eq('user_id', user.id),
-    supabase.from('profiles').select('currency').eq('id', user.id).single(),
+    supabase.from('profiles').select('currency, travel_mode_currency').eq('id', user.id).single(),
     supabase.from('user_category_preferences').select('*').eq('user_id', user.id),
   ])
 
@@ -115,6 +115,7 @@ export async function getTransactionModalData(): Promise<{ accounts: AccountWith
     categories: (allCategories ?? []) as Category[],
     people: (people ?? []) as Person[],
     baseCurrency: profile?.currency ?? 'MXN',
+    travelModeCurrency: (profile as { travel_mode_currency?: string | null } | null)?.travel_mode_currency ?? null,
     categoryPreferences: (catPrefs ?? []) as UserCategoryPreference[],
   }
 }

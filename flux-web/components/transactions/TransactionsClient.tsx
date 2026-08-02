@@ -28,12 +28,13 @@ interface Props {
   accounts: AccountWithBalance[]
   people: Person[]
   baseCurrency?: string
+  travelModeCurrency?: string | null
   year: number
   month: number
   categoryPreferences?: UserCategoryPreference[]
 }
 
-export default function TransactionsClient({ initialTransactions, categories, accounts, people, baseCurrency = 'MXN', year, month, categoryPreferences }: Props) {
+export default function TransactionsClient({ initialTransactions, categories, accounts, people, baseCurrency = 'MXN', travelModeCurrency = null, year, month, categoryPreferences }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [isNavigating, startNavigate] = useTransition()
@@ -656,6 +657,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
           categories={categories}
           people={people}
           baseCurrency={baseCurrency}
+          travelModeCurrency={travelModeCurrency}
           categoryPreferences={categoryPreferences}
           onClose={() => setModalOpen(false)}
         />,

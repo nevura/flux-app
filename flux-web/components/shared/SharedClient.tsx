@@ -62,6 +62,7 @@ interface Props {
   friendships: Friendship[]
   myUserId: string
   baseCurrency: string
+  travelModeCurrency?: string | null
   onRefresh?: () => void
   categoryPreferences?: UserCategoryPreference[]
 }
@@ -74,7 +75,7 @@ interface PersonBalance {
   pending: Array<{ tx: Transaction; participant: SplitParticipant }>
 }
 
-export default function SharedClient({ transactions, people, accounts, categories, friendships, myUserId, baseCurrency, onRefresh, categoryPreferences }: Props) {
+export default function SharedClient({ transactions, people, accounts, categories, friendships, myUserId, baseCurrency, travelModeCurrency = null, onRefresh, categoryPreferences }: Props) {
   const [mounted, setMounted] = useState(false)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -591,6 +592,8 @@ export default function SharedClient({ transactions, people, accounts, categorie
           accounts={accounts as unknown as AccountWithBalance[]}
           categories={categories}
           people={people}
+          baseCurrency={baseCurrency}
+          travelModeCurrency={travelModeCurrency}
           categoryPreferences={categoryPreferences}
           onClose={() => setEditingTx(null)}
         />

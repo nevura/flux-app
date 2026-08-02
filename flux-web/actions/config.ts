@@ -209,6 +209,18 @@ export async function updateBaseCurrency(currency: string) {
   return { error: null }
 }
 
+export async function updateTravelMode(currency: string | null) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autorizado' }
+  const { error } = await supabase.from('profiles').update({ travel_mode_currency: currency }).eq('id', user.id)
+  if (error) return { error: error.message }
+  revalidatePath('/home')
+  revalidatePath('/settings')
+  revalidatePath('/transactions')
+  return { error: null }
+}
+
 export async function saveDefaultBudget(amount: number | null) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

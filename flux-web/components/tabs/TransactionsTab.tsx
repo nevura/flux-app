@@ -13,6 +13,7 @@ interface TabData {
   accounts: AccountWithBalance[]
   people: Person[]
   baseCurrency: string
+  travelModeCurrency: string | null
   year: number
   month: number
   categoryPreferences: UserCategoryPreference[]
@@ -64,7 +65,7 @@ export default function TransactionsTab({ userId, active, refreshSignal }: Props
       supabase.from('categories').select('*').or(`user_id.eq.${userId},user_id.is.null`).order('sort_order'),
       supabase.from('accounts').select('*').eq('user_id', userId).eq('is_active', true).order('sort_order'),
       supabase.from('people').select('*').eq('user_id', userId),
-      supabase.from('profiles').select('currency').eq('id', userId).single(),
+      supabase.from('profiles').select('currency, travel_mode_currency').eq('id', userId).single(),
       supabase.from('user_category_preferences').select('*').eq('user_id', userId),
     ])
     // Merge pending from other months (dedup by id)
@@ -77,6 +78,7 @@ export default function TransactionsTab({ userId, active, refreshSignal }: Props
       accounts: (accs ?? []) as AccountWithBalance[],
       people: (people ?? []) as Person[],
       baseCurrency: profileRow?.currency ?? 'MXN',
+      travelModeCurrency: (profileRow as { travel_mode_currency?: string | null } | null)?.travel_mode_currency ?? null,
       year: y,
       month: m,
       categoryPreferences: (catPrefs ?? []) as UserCategoryPreference[],
@@ -122,6 +124,7 @@ export default function TransactionsTab({ userId, active, refreshSignal }: Props
       accounts={data.accounts}
       people={data.people}
       baseCurrency={data.baseCurrency}
+      travelModeCurrency={data.travelModeCurrency}
       year={data.year}
       month={data.month}
       categoryPreferences={data.categoryPreferences}

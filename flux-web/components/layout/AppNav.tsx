@@ -17,7 +17,7 @@ const TABS = [
   { href: '/shared',       icon: 'fa-solid fa-users',     label: 'Compartidos' },
 ]
 
-interface ModalData { accounts: AccountWithBalance[]; categories: Category[]; people: Person[]; baseCurrency: string; categoryPreferences: UserCategoryPreference[] }
+interface ModalData { accounts: AccountWithBalance[]; categories: Category[]; people: Person[]; baseCurrency: string; travelModeCurrency: string | null; categoryPreferences: UserCategoryPreference[] }
 
 const TAB_PATHS = ['/home', '/transactions', '/insights', '/shared']
 
@@ -134,6 +134,7 @@ export default function AppNav({ isReadOnly }: NavProps) {
           categories={fabData.categories}
           people={fabData.people}
           baseCurrency={fabData.baseCurrency}
+          travelModeCurrency={fabData.travelModeCurrency}
           categoryPreferences={fabData.categoryPreferences}
           onClose={() => setFabOpen(false)}
         />,

@@ -9,6 +9,7 @@ export interface Profile {
   phone: string | null
   timezone: string
   currency: string
+  travel_mode_currency: string | null
   default_monthly_budget: number | null
   subscription_status: 'trialing' | 'active' | 'grace' | 'expired' | 'canceled' | 'past_due' | 'unpaid' | 'incomplete' | null
   stripe_customer_id: string | null

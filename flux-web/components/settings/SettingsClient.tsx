@@ -9,7 +9,7 @@ import { getCategoryDisplay, getPaymentMethod, formatCurrency } from '@/lib/util
 import { STATIC_ICONS, STATIC_COLORS, PAYMENT_METHODS, SHORTCUT_LINKS } from '@/lib/constants'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { CurrencyPicker } from '@/components/ui/CurrencyPicker'
-import { saveCategory, deleteCategory, saveAccount, deleteAccount, reorderAccounts, saveScheduled, deleteScheduled, updateProfile, saveDefaultBudget, updateThemePreference, addPerson, updatePerson, deletePerson, updateBaseCurrency, saveUserCategoryPreference } from '@/actions/config'
+import { saveCategory, deleteCategory, saveAccount, deleteAccount, reorderAccounts, saveScheduled, deleteScheduled, updateProfile, saveDefaultBudget, updateThemePreference, addPerson, updatePerson, deletePerson, updateBaseCurrency, updateTravelMode, saveUserCategoryPreference } from '@/actions/config'
 import SupportChat from '@/components/support/SupportChat'
 import { getUserUnreadCount } from '@/actions/support-chat'
 import { exportTransactionsCSV, importTransactions, type ImportRow } from '@/actions/data'
@@ -99,6 +99,31 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
   const [currencyInput, setCurrencyInput] = useState(profile?.currency ?? 'MXN')
   const [showCurrencyWarning, setShowCurrencyWarning] = useState(false)
   const [isCurrencyPending, startCurrencyTx] = useTransition()
+
+  const [travelModeOn, setTravelModeOn] = useState(!!profile?.travel_mode_currency)
+  const [travelCurrencyInput, setTravelCurrencyInput] = useState(profile?.travel_mode_currency ?? 'USD')
+  const [isTravelModePending, startTravelModeTx] = useTransition()
+
+  function handleToggleTravelMode() {
+    const next = !travelModeOn
+    setTravelModeOn(next)
+    startTravelModeTx(async () => {
+      const res = await updateTravelMode(next ? travelCurrencyInput : null)
+      if (res.error) { toast.error(res.error); setTravelModeOn(!next) }
+      else { toast.success(next ? 'Modo viaje activado' : 'Modo viaje desactivado'); router.refresh() }
+    })
+  }
+
+  function handleTravelCurrencyChange(newCurrency: string) {
+    setTravelCurrencyInput(newCurrency)
+    if (travelModeOn) {
+      startTravelModeTx(async () => {
+        const res = await updateTravelMode(newCurrency)
+        if (res.error) toast.error(res.error)
+        else router.refresh()
+      })
+    }
+  }
 
   function handleBaseCurrencyChange(newCurrency: string) {
     setCurrencyInput(newCurrency)
@@ -377,6 +402,28 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                   </div>
                   <p className="text-[13px] mt-1.5" style={{ color: 'var(--f-text-4)' }}>
                     Se usa para convertir y mostrar el total en estadísticas y saldo
+                  </p>
+                </div>
+
+                {/* Modo viaje */}
+                <div className="px-4 py-4" style={{ background: 'var(--f-bg-card)', borderTop: '1px solid var(--f-line)' }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-[13px] font-black tracking-widest uppercase" style={{ color: 'var(--f-text-4)' }}>Modo viaje</p>
+                    <div
+                      onClick={handleToggleTravelMode}
+                      className="w-11 h-6 rounded-full relative cursor-pointer transition-colors flex-shrink-0"
+                      style={{ background: travelModeOn ? 'var(--f-blue)' : 'var(--f-line-strong)' }}
+                    >
+                      <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${travelModeOn ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                    </div>
+                  </div>
+                  {travelModeOn && (
+                    <div className="mt-1">
+                      <CurrencyPicker value={travelCurrencyInput} onChange={handleTravelCurrencyChange} />
+                    </div>
+                  )}
+                  <p className="text-[13px] mt-1.5" style={{ color: 'var(--f-text-4)' }}>
+                    Los pagos con Apple Pay que lleguen sin moneda detectada, y las que captures manualmente, usarán esta divisa por defecto mientras esté activo
                   </p>
                 </div>
               </div>
