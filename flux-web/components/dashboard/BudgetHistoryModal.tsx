@@ -264,8 +264,7 @@ export default function BudgetHistoryModal({ userId, baseCurrency, onClose }: Pr
                           style={{
                             height: CHART_HEIGHT,
                             background: 'var(--f-bg-input)',
-                            outline: isSelected ? `2px solid ${color}` : 'none',
-                            outlineOffset: 1,
+                            border: `1.5px solid ${isSelected ? color : 'var(--f-line-strong)'}`,
                             transform: isSelected ? 'scale(1.04)' : 'none',
                           }}
                         >
@@ -276,7 +275,7 @@ export default function BudgetHistoryModal({ userId, baseCurrency, onClose }: Pr
                           {r.target > 0 && (
                             <div
                               className="absolute left-0 right-0"
-                              style={{ bottom: `${tickPct}%`, height: 2, background: 'var(--f-text)', opacity: 0.6 }}
+                              style={{ bottom: `${tickPct}%`, height: 2.5, background: 'var(--f-text)', boxShadow: '0 0 0 1px var(--f-bg-elevated)' }}
                             />
                           )}
                         </div>
