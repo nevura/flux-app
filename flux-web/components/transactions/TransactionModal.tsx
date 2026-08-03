@@ -410,7 +410,7 @@ export default function TransactionModal({ transaction, accounts, categories, pe
       {/* Backdrop */}
       <div
         className={`fixed inset-0 z-[60] ${closing ? 'animate-fade-out' : 'animate-fade-in'}`}
-        style={{ background: 'rgba(0,0,0,0.7)' }}
+        style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
         onClick={handleClose}
       />
 

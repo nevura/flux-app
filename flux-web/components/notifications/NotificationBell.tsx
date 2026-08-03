@@ -260,7 +260,7 @@ export default function NotificationBell() {
   const panel = (open || closing) && mounted && createPortal(
     <div
       className={`fixed inset-0 z-[200] ${closing ? 'animate-fade-out' : 'animate-fade-in'}`}
-      style={{ background: 'rgba(0,0,0,0.55)' }}
+      style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
       onClick={handleClose}
     >
       <div
