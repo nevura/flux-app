@@ -156,10 +156,11 @@ export default function BudgetHistoryModal({ userId, baseCurrency, onClose }: Pr
         className={`fixed bottom-0 left-0 right-0 z-[60] ${closing ? 'animate-slide-down' : 'animate-slide-up'} flex flex-col mx-auto max-w-lg`}
         style={{
           maxHeight: '92dvh',
-          background: 'var(--f-bg-elevated)',
+          background: 'var(--f-bg-card)',
           borderRadius: '28px 28px 0 0',
           border: '1px solid var(--f-line-strong)',
           borderBottom: 'none',
+          boxShadow: 'var(--f-shadow-pop), 0 0 32px var(--f-accent-glow)',
           ...sheetStyle,
         }}
       >
@@ -212,8 +213,8 @@ export default function BudgetHistoryModal({ userId, baseCurrency, onClose }: Pr
                   <div
                     className="flex-1 flex items-center gap-2 rounded-[14px] px-3.5 py-2.5"
                     style={{
-                      background: streak > 0 ? 'color-mix(in srgb, var(--f-warning) 10%, var(--f-bg-card))' : 'var(--f-bg-card)',
-                      border: `1px solid ${streak > 0 ? 'color-mix(in srgb, var(--f-warning) 30%, transparent)' : 'var(--f-line-strong)'}`,
+                      background: streak > 0 ? 'color-mix(in srgb, var(--f-warning) 10%, var(--f-bg-elevated))' : 'var(--f-bg-elevated)',
+                      border: `1px solid ${streak > 0 ? 'color-mix(in srgb, var(--f-warning) 30%, transparent)' : 'var(--f-accent-border)'}`,
                     }}
                   >
                     <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: streak > 0 ? 'var(--f-warning-bg)' : 'var(--f-bg-input)' }}>
@@ -227,7 +228,7 @@ export default function BudgetHistoryModal({ userId, baseCurrency, onClose }: Pr
                   <div
                     className="flex-1 flex items-center gap-2 rounded-[14px] px-3.5 py-2.5"
                     style={{
-                      background: 'color-mix(in srgb, var(--f-income) 10%, var(--f-bg-card))',
+                      background: 'color-mix(in srgb, var(--f-income) 10%, var(--f-bg-elevated))',
                       border: '1px solid color-mix(in srgb, var(--f-income) 30%, transparent)',
                     }}
                   >
@@ -247,7 +248,7 @@ export default function BudgetHistoryModal({ userId, baseCurrency, onClose }: Pr
                 <div
                   className="rounded-[14px] p-3"
                   style={{
-                    background: 'color-mix(in srgb, var(--f-blue) 8%, var(--f-bg-card))',
+                    background: 'color-mix(in srgb, var(--f-blue) 8%, var(--f-bg-elevated))',
                     border: '1px solid color-mix(in srgb, var(--f-blue) 25%, transparent)',
                   }}
                 >
@@ -257,7 +258,7 @@ export default function BudgetHistoryModal({ userId, baseCurrency, onClose }: Pr
                 <div
                   className="rounded-[14px] p-3"
                   style={{
-                    background: `color-mix(in srgb, ${monthsOver > 0 ? 'var(--f-expense)' : 'var(--f-income)'} 8%, var(--f-bg-card))`,
+                    background: `color-mix(in srgb, ${monthsOver > 0 ? 'var(--f-expense)' : 'var(--f-income)'} 8%, var(--f-bg-elevated))`,
                     border: `1px solid color-mix(in srgb, ${monthsOver > 0 ? 'var(--f-expense)' : 'var(--f-income)'} 25%, transparent)`,
                   }}
                 >
@@ -337,8 +338,8 @@ export default function BudgetHistoryModal({ userId, baseCurrency, onClose }: Pr
                       key={key}
                       className="rounded-[14px] px-3.5 py-3 transition-colors"
                       style={{
-                        background: isSelected ? `color-mix(in srgb, ${color} 10%, var(--f-bg-card))` : 'var(--f-bg-card)',
-                        border: `1px solid ${isSelected ? color : 'var(--f-line-strong)'}`,
+                        background: isSelected ? `color-mix(in srgb, ${color} 10%, var(--f-bg-elevated))` : 'var(--f-bg-elevated)',
+                        border: `1px solid ${isSelected ? color : 'var(--f-accent-border)'}`,
                       }}
                     >
                       {isEditing ? (
