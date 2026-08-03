@@ -288,8 +288,8 @@ export default function BudgetHistoryModal({ userId, baseCurrency, onClose }: Pr
                           className="relative w-full rounded-[6px] overflow-hidden transition-transform"
                           style={{
                             height: CHART_HEIGHT,
-                            background: 'var(--f-bg-input)',
-                            border: `1.5px solid ${isSelected ? color : 'var(--f-line-strong)'}`,
+                            background: 'color-mix(in srgb, var(--f-blue) 14%, var(--f-bg-elevated))',
+                            border: `1.5px solid ${isSelected ? color : 'var(--f-accent-border)'}`,
                             transform: isSelected ? 'scale(1.04)' : 'none',
                           }}
                         >
@@ -338,7 +338,7 @@ export default function BudgetHistoryModal({ userId, baseCurrency, onClose }: Pr
                       key={key}
                       className="rounded-[14px] px-3.5 py-3 transition-colors"
                       style={{
-                        background: isSelected ? `color-mix(in srgb, ${color} 10%, var(--f-bg-elevated))` : 'var(--f-bg-elevated)',
+                        background: isSelected ? `color-mix(in srgb, ${color} 14%, var(--f-bg-elevated))` : 'color-mix(in srgb, var(--f-blue) 14%, var(--f-bg-elevated))',
                         border: `1px solid ${isSelected ? color : 'var(--f-accent-border)'}`,
                       }}
                     >
