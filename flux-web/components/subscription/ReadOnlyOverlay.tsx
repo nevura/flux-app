@@ -10,8 +10,8 @@ export default function ReadOnlyOverlay({ status }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center px-6"
       style={{ background: 'rgba(2,6,23,0.92)', backdropFilter: 'blur(12px)' }}>
-      <div className="w-full max-w-sm rounded-3xl p-8 flex flex-col items-center gap-5 text-center animate-fade-up"
-        style={{ background: 'var(--f-sheet-bg)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-glow-shadow)' }}>
+      <div className="f-glass w-full max-w-sm rounded-3xl p-8 flex flex-col items-center gap-5 text-center animate-fade-up"
+        style={{ background: 'var(--f-glass-bg)', border: '1px solid var(--f-glass-border)', boxShadow: 'var(--f-glass-shadow)' }}>
 
         <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
           style={{ background: 'var(--f-accent-bg)', border: '1px solid var(--f-accent-border)' }}>

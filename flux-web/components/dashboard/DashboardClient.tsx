@@ -831,8 +831,8 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
         <>
           <div className="fixed inset-0 z-[200] bg-black/60 animate-fade-in" onClick={() => setScheduledAction(null)} />
           <div
-            className="fixed bottom-0 left-0 right-0 z-[200] rounded-t-[28px] px-5 pt-5 animate-slide-up"
-            style={{ background: 'var(--f-sheet-bg)', boxShadow: 'var(--f-glow-shadow)', paddingBottom: 'calc(2rem + var(--safe-bottom))' }}
+            className="f-glass fixed bottom-0 left-0 right-0 z-[200] rounded-t-[28px] px-5 pt-5 animate-slide-up"
+            style={{ background: 'var(--f-glass-bg)', border: '1px solid var(--f-glass-border)', boxShadow: 'var(--f-glass-shadow)', paddingBottom: 'calc(2rem + var(--safe-bottom))' }}
           >
             <div className="flex items-center gap-3 mb-5">
               <div className="flex-1 min-w-0">
@@ -877,8 +877,8 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
         <>
           <div className="fixed inset-0 z-[200] bg-black/60 animate-fade-in" onClick={() => setTdcModal(null)} />
           <div
-            className="fixed bottom-0 left-0 right-0 z-[200] rounded-t-[28px] animate-slide-up mx-auto max-w-lg"
-            style={{ background: 'var(--f-sheet-bg)', boxShadow: 'var(--f-glow-shadow)', paddingBottom: 'calc(1.5rem + var(--safe-bottom))', maxHeight: '90dvh', overflowY: 'auto' }}
+            className="f-glass fixed bottom-0 left-0 right-0 z-[200] rounded-t-[28px] animate-slide-up mx-auto max-w-lg"
+            style={{ background: 'var(--f-glass-bg)', border: '1px solid var(--f-glass-border)', boxShadow: 'var(--f-glass-shadow)', paddingBottom: 'calc(1.5rem + var(--safe-bottom))', maxHeight: '90dvh', overflowY: 'auto' }}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 pt-5 pb-4">

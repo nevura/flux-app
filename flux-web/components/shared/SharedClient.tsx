@@ -625,8 +625,8 @@ export default function SharedClient({ transactions, people, accounts, categorie
           onClick={closeModal}
         >
           <div
-            className="animate-slide-up rounded-t-[28px] p-5 pb-8 space-y-4 max-h-[85vh] overflow-y-auto"
-            style={{ background: 'var(--f-sheet-bg)', boxShadow: 'var(--f-glow-shadow)', paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
+            className="f-glass animate-slide-up rounded-t-[28px] p-5 pb-8 space-y-4 max-h-[85vh] overflow-y-auto"
+            style={{ background: 'var(--f-glass-bg)', border: '1px solid var(--f-glass-border)', boxShadow: 'var(--f-glass-shadow)', paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
             onClick={e => e.stopPropagation()}
           >
             {/* Handle bar */}
@@ -791,8 +791,8 @@ export default function SharedClient({ transactions, people, accounts, categorie
           onClick={closeAbonoModal}
         >
           <div
-            className={`${abonoExiting ? 'animate-sheet-exit' : 'animate-slide-up'} rounded-t-[28px] p-5 space-y-4`}
-            style={{ background: 'var(--f-sheet-bg)', boxShadow: 'var(--f-glow-shadow)', paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
+            className={`f-glass ${abonoExiting ? 'animate-sheet-exit' : 'animate-slide-up'} rounded-t-[28px] p-5 space-y-4`}
+            style={{ background: 'var(--f-glass-bg)', border: '1px solid var(--f-glass-border)', boxShadow: 'var(--f-glass-shadow)', paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
             onClick={e => e.stopPropagation()}
           >
             <div className="w-10 h-1 rounded-full mx-auto mb-1" style={{ background: 'var(--f-line-strong)' }} />
@@ -853,8 +853,8 @@ export default function SharedClient({ transactions, people, accounts, categorie
           onClick={closeSettleModal}
         >
           <div
-            className={`${settleExiting ? 'animate-sheet-exit' : 'animate-slide-up'} rounded-t-[28px] p-5 space-y-4`}
-            style={{ background: 'var(--f-sheet-bg)', boxShadow: 'var(--f-glow-shadow)', paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
+            className={`f-glass ${settleExiting ? 'animate-sheet-exit' : 'animate-slide-up'} rounded-t-[28px] p-5 space-y-4`}
+            style={{ background: 'var(--f-glass-bg)', border: '1px solid var(--f-glass-border)', boxShadow: 'var(--f-glass-shadow)', paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
             onClick={e => e.stopPropagation()}
           >
             <div className="w-10 h-1 rounded-full mx-auto mb-1" style={{ background: 'var(--f-line-strong)' }} />

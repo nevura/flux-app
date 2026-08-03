@@ -84,8 +84,8 @@ export default function UsernameSetupModal({ suggestedUsername, suggestedName }:
       style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       <div
-        className="w-full max-w-lg rounded-t-[28px] p-6"
-        style={{ background: 'var(--f-sheet-bg)', border: '1px solid var(--f-line)', boxShadow: 'var(--f-glow-shadow)', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
+        className="f-glass w-full max-w-lg rounded-t-[28px] p-6"
+        style={{ background: 'var(--f-glass-bg)', border: '1px solid var(--f-glass-border)', boxShadow: 'var(--f-glass-shadow)', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
       >
         {step === 1 ? (
           <>

@@ -134,6 +134,15 @@
   --f-card-bg: color-mix(in srgb, var(--f-blue) 14%, var(--f-bg-elevated));
   --f-card-border: var(--f-accent-border);
 
+  /* ── Liquid glass — modals/sheets & Movimientos cards only (dark mode) ── */
+  --f-glass-bg: rgba(255, 255, 255, 0.07);
+  --f-glass-border: rgba(255, 255, 255, 0.26);
+  --f-glass-border-bottom: rgba(255, 255, 255, 0.10);
+  --f-glass-shadow: 0 10px 28px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  --f-glass-highlight: rgba(255, 255, 255, 0.65);
+  --f-glass-blur: blur(6px) url(#f-glass-distort) saturate(180%) brightness(1.05);
+  --f-glass-blur-webkit: blur(20px) saturate(180%) brightness(1.05);
+
   /* ── Skeleton loader ── */
   --f-skeleton-base: #2C2C2E;
   --f-skeleton-shine: #3A3A3C;
@@ -207,6 +216,15 @@
   --f-card-bg: var(--f-bg-card);
   --f-card-border: var(--f-line);
 
+  /* ── Liquid glass — inert in light mode, same flat look as before ── */
+  --f-glass-bg: var(--f-bg-elevated);
+  --f-glass-border: var(--f-line);
+  --f-glass-border-bottom: var(--f-line);
+  --f-glass-shadow: var(--f-shadow-pop);
+  --f-glass-highlight: transparent;
+  --f-glass-blur: none;
+  --f-glass-blur-webkit: none;
+
   /* ── Skeleton ── */
   --f-skeleton-base: #E5E5EA;
   --f-skeleton-shine: #F2F2F7;
@@ -226,6 +244,33 @@ html.theme-transitioning *::after {
     color 0.20s ease,
     border-color 0.25s ease,
     box-shadow 0.25s ease !important;
+}
+
+/* ── Liquid glass utility ───────────────────────────────────────────────────
+   Apply alongside background: var(--f-glass-bg) / border: var(--f-glass-border)
+   on a sheet/modal or card. Adds the actual blur (via --f-glass-blur tokens,
+   already theme-aware — inert in light mode) plus a thin top specular
+   highlight. Kept as a class since backdrop-filter + a pseudo-element can't
+   be expressed through inline style alone.
+   ─────────────────────────────────────────────────────────────────────────── */
+.f-glass {
+  position: relative;
+  backdrop-filter: var(--f-glass-blur);
+  -webkit-backdrop-filter: var(--f-glass-blur-webkit);
+  /* No overflow: hidden here on purpose — several sheets set their own
+     overflow-y: auto (via className, e.g. SharedClient.tsx) on this same
+     element to scroll their content; backdrop-filter already clips to the
+     element's own border-radius without needing it. */
+}
+.f-glass::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--f-glass-highlight), transparent);
+  pointer-events: none;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────

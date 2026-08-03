@@ -37,6 +37,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('flux-theme');if(t==='light')document.documentElement.setAttribute('data-theme','light')}catch(e){}` }} />
       </head>
       <body className="min-h-full bg-[#020617] text-slate-50">
+        {/* Backdrop distortion used by .f-glass (var(--f-glass-blur)) — Chromium only, Safari ignores it and falls back to plain blur */}
+        <svg aria-hidden="true" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}>
+          <filter id="f-glass-distort" x="-20%" y="-20%" width="140%" height="140%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="2" seed="12" result="n" />
+            <feGaussianBlur in="n" stdDeviation="2" result="bn" />
+            <feDisplacementMap in="SourceGraphic" in2="bn" scale="24" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </svg>
         {children}
         <Toaster
           theme="dark"

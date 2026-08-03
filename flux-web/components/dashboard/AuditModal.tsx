@@ -82,14 +82,14 @@ export default function AuditModal({ accounts, onClose }: Props) {
         onClick={handleClose}
       />
       <div
-        className={`fixed bottom-0 left-0 right-0 z-[60] ${closing ? 'animate-slide-down' : 'animate-slide-up'} flex flex-col mx-auto max-w-lg`}
+        className={`f-glass fixed bottom-0 left-0 right-0 z-[60] ${closing ? 'animate-slide-down' : 'animate-slide-up'} flex flex-col mx-auto max-w-lg`}
         style={{
           maxHeight: '92dvh',
-          background: 'var(--f-sheet-bg)',
+          background: 'var(--f-glass-bg)',
           borderRadius: '28px 28px 0 0',
-          border: '1px solid var(--f-line-strong)',
+          border: '1px solid var(--f-glass-border)',
           borderBottom: 'none',
-          boxShadow: 'var(--f-glow-shadow)',
+          boxShadow: 'var(--f-glass-shadow)',
           ...sheetStyle,
         }}
       >

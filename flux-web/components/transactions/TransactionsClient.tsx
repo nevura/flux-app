@@ -255,8 +255,8 @@ export default function TransactionsClient({ initialTransactions, categories, ac
             <>
               <div className="fixed inset-0 z-40" onClick={() => setPickerOpen(false)} />
               <div
-                className="absolute left-0 right-0 top-full mt-2 rounded-[20px] p-4 z-50"
-                style={{ background: 'var(--f-sheet-bg)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-glow-shadow)' }}
+                className="f-glass absolute left-0 right-0 top-full mt-2 rounded-[20px] p-4 z-50"
+                style={{ background: 'var(--f-glass-bg)', border: '1px solid var(--f-glass-border)', boxShadow: 'var(--f-glass-shadow)' }}
               >
                 <div className="flex items-center justify-between mb-3">
                   <button
@@ -449,8 +449,8 @@ export default function TransactionsClient({ initialTransactions, categories, ac
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setTypeDropOpen(false)} />
                 <div
-                  className="absolute top-full mt-1 left-0 rounded-[16px] p-2 z-50 max-h-64 overflow-y-auto animate-scale-in"
-                  style={{ minWidth: 180, background: 'var(--f-sheet-bg)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-glow-shadow)', transformOrigin: 'top left' }}
+                  className="f-glass absolute top-full mt-1 left-0 rounded-[16px] p-2 z-50 max-h-64 overflow-y-auto animate-scale-in"
+                  style={{ minWidth: 180, background: 'var(--f-glass-bg)', border: '1px solid var(--f-glass-border)', boxShadow: 'var(--f-glass-shadow)', transformOrigin: 'top left' }}
                 >
                   {TYPE_OPTIONS.map(opt => {
                     const checked = filterTypes.includes(opt.value)
@@ -472,8 +472,8 @@ export default function TransactionsClient({ initialTransactions, categories, ac
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setAccDropOpen(false)} />
                 <div
-                  className="absolute top-full mt-1 left-0 rounded-[16px] p-2 z-50 max-h-64 overflow-y-auto animate-scale-in"
-                  style={{ minWidth: 200, background: 'var(--f-sheet-bg)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-glow-shadow)', transformOrigin: 'top left' }}
+                  className="f-glass absolute top-full mt-1 left-0 rounded-[16px] p-2 z-50 max-h-64 overflow-y-auto animate-scale-in"
+                  style={{ minWidth: 200, background: 'var(--f-glass-bg)', border: '1px solid var(--f-glass-border)', boxShadow: 'var(--f-glass-shadow)', transformOrigin: 'top left' }}
                 >
                   {accounts.filter(a => a.is_active).map(acc => {
                     const checked = filterAccounts.includes(acc.id)
@@ -496,8 +496,8 @@ export default function TransactionsClient({ initialTransactions, categories, ac
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setCatDropOpen(false)} />
                 <div
-                  className="absolute top-full mt-1 left-0 rounded-[16px] p-2 z-50 max-h-64 overflow-y-auto animate-scale-in"
-                  style={{ minWidth: 200, background: 'var(--f-sheet-bg)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-glow-shadow)', transformOrigin: 'top left' }}
+                  className="f-glass absolute top-full mt-1 left-0 rounded-[16px] p-2 z-50 max-h-64 overflow-y-auto animate-scale-in"
+                  style={{ minWidth: 200, background: 'var(--f-glass-bg)', border: '1px solid var(--f-glass-border)', boxShadow: 'var(--f-glass-shadow)', transformOrigin: 'top left' }}
                 >
                   {categories.filter(c => c.id !== 'CAT-AUDIT').map(cat => {
                     const d = getCategoryDisplay(cat)
@@ -600,10 +600,11 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                       >
                         <button
                           onClick={() => openEdit(tx)}
-                          className="w-full rounded-[16px] px-4 py-3.5 flex items-center gap-3 active:scale-[0.98] transition-transform text-left animate-spring-in"
+                          className={`w-full rounded-[16px] px-4 py-3.5 flex items-center gap-3 active:scale-[0.98] transition-transform text-left animate-spring-in ${isTxPending ? '' : 'f-glass'}`}
                           style={{
-                            background: isTxPending ? 'var(--f-pending-bg)' : 'var(--f-bg-card)',
-                            border: isTxPending ? '1px solid var(--f-pending-border)' : '1px solid var(--f-accent-border)',
+                            background: isTxPending ? 'var(--f-pending-bg)' : 'var(--f-glass-bg)',
+                            border: isTxPending ? '1px solid var(--f-pending-border)' : '1px solid var(--f-glass-border)',
+                            boxShadow: isTxPending ? undefined : 'var(--f-glass-shadow)',
                             animationDelay: `${gi * 0.045 + ti * 0.03}s`,
                           }}
                         >
