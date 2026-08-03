@@ -298,7 +298,7 @@ export default function InsightsClient({ transactions, categories, monthlySummar
             <div className="fixed inset-0 z-40" onClick={() => setPickerOpen(false)} />
             <div
               className="absolute left-4 right-4 top-full mt-2 rounded-[20px] p-4 z-50"
-              style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-shadow-pop)' }}
+              style={{ background: 'var(--f-sheet-bg)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-glow-shadow)' }}
             >
               <div className="flex items-center justify-between mb-3">
                 <button
@@ -392,7 +392,7 @@ export default function InsightsClient({ transactions, categories, monthlySummar
               <DonutChart slices={chartSlices} currency={baseCurrency} exiting={isDataStale} />
             </div>
           ) : (
-            <div className="rounded-[20px] p-10 text-center" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)' }}>
+            <div className="rounded-[20px] p-10 text-center" style={{ background: 'var(--f-card-bg)', border: '1px solid var(--f-card-border)' }}>
               <i className="fa-solid fa-chart-pie text-4xl mb-3 block" style={{ color: 'var(--f-text-4)' }} />
               <p className="text-[15px] font-bold" style={{ color: 'var(--f-text-3)' }}>Sin gastos este mes</p>
             </div>
@@ -400,7 +400,7 @@ export default function InsightsClient({ transactions, categories, monthlySummar
 
           {/* Category breakdown */}
           {byCategory.length > 0 && (
-            <div className="rounded-[20px] p-5 animate-fade-up" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', animationDelay: '0.06s' }}>
+            <div className="rounded-[20px] p-5 animate-fade-up" style={{ background: 'var(--f-card-bg)', border: '1px solid var(--f-card-border)', animationDelay: '0.06s' }}>
               <p className="text-[12px] font-black tracking-[3px] uppercase mb-4" style={{ color: 'var(--f-text-3)' }}>
                 Desglose
               </p>
@@ -484,7 +484,7 @@ export default function InsightsClient({ transactions, categories, monthlySummar
             return (
               <div className="grid grid-cols-2 gap-2">
                 {kpis.map((k, i) => (
-                  <div key={k.label} className="rounded-[16px] px-4 py-2 animate-fade-up" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', animationDelay: `${0.06 + i * 0.04}s` }}>
+                  <div key={k.label} className="rounded-[16px] px-4 py-2 animate-fade-up" style={{ background: 'var(--f-card-bg)', border: '1px solid var(--f-card-border)', animationDelay: `${0.06 + i * 0.04}s` }}>
                     <p className="text-[12px] font-black tracking-[2px] uppercase mt-0.5 mb-2" style={{ color: 'var(--f-text-3)' }}>{k.label}</p>
                     <FitText className="text-[21px] font-black tabular-nums leading-none" style={{ color: k.color }}>{k.value}</FitText>
                     <p className="text-[14px] font-black tracking-[0.5px] mt-0.5 mb-0" style={{ color: 'var(--f-text)' }}>{k.sub}</p>
@@ -496,7 +496,7 @@ export default function InsightsClient({ transactions, categories, monthlySummar
 
           {/* 6-month trend bars */}
           {last6.length > 1 && (
-            <div className="rounded-[20px] p-5 animate-fade-up" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', animationDelay: '0.08s' }}>
+            <div className="rounded-[20px] p-5 animate-fade-up" style={{ background: 'var(--f-card-bg)', border: '1px solid var(--f-card-border)', animationDelay: '0.08s' }}>
               <p className="text-[13px] font-black tracking-[3px] uppercase mb-5" style={{ color: 'var(--f-text-3)' }}>
                 Tendencia
               </p>

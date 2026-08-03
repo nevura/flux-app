@@ -266,8 +266,9 @@ export default function NotificationBell() {
       <div
         className={`absolute inset-x-0 bottom-0 rounded-t-[28px] flex flex-col ${closing ? 'animate-slide-down' : 'animate-slide-up'}`}
         style={{
-          background: 'var(--f-bg-card)',
+          background: 'var(--f-sheet-bg)',
           border: '1px solid var(--f-line)',
+          boxShadow: 'var(--f-glow-shadow)',
           maxHeight: '85dvh',
           paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
           ...sheetStyle,
@@ -546,7 +547,7 @@ export default function NotificationBell() {
       <div className="absolute inset-0 bg-black/60" onClick={() => !isPending && setCrossCurrencyPending(null)} />
       <div
         className="relative w-full rounded-t-[24px] p-6 pb-10 animate-slide-up"
-        style={{ background: 'var(--f-bg-card)' }}
+        style={{ background: 'var(--f-sheet-bg)', boxShadow: 'var(--f-glow-shadow)' }}
       >
         <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: 'var(--f-text-5)' }} />
         <div className="flex items-center gap-3 mb-4">

@@ -485,7 +485,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
         <div
           data-coach="home-daily"
           className="rounded-[20px] overflow-hidden animate-fade-up"
-          style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', animationDelay: '0.06s' }}
+          style={{ background: 'var(--f-card-bg)', border: '1px solid var(--f-card-border)', animationDelay: '0.06s' }}
         >
           <div className="flex" style={{ borderBottom: '1px solid var(--f-line)' }}>
             {(['daily', 'weekly'] as const).map(v => (
@@ -533,7 +533,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
         {scheduled.length === 0 && (
           <div
             className="rounded-[20px] p-5 animate-fade-up flex flex-col items-center gap-3 text-center"
-            style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', animationDelay: '0.08s' }}
+            style={{ background: 'var(--f-card-bg)', border: '1px solid var(--f-card-border)', animationDelay: '0.08s' }}
           >
             <div className="w-12 h-12 rounded-[14px] flex items-center justify-center" style={{ background: 'rgba(0,122,255,0.12)', border: '1px solid rgba(0,122,255,0.2)' }}>
               <i className="fa-solid fa-arrows-rotate text-lg" style={{ color: 'var(--f-blue)' }} />
@@ -596,7 +596,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
             <div
               data-coach="home-recurring"
               className="rounded-[20px] p-4 animate-fade-up"
-              style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', animationDelay: '0.08s' }}
+              style={{ background: 'var(--f-card-bg)', border: '1px solid var(--f-card-border)', animationDelay: '0.08s' }}
             >
               <p className="text-[13px] font-black tracking-[3px] uppercase mb-4" style={{ color: 'var(--f-text-3)' }}>
                 Próximos recurrentes
@@ -738,7 +738,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
             <p className="text-[12px] font-black tracking-[3px] uppercase mb-3" style={{ color: 'var(--f-text-3)' }}>
               Pagos TDC
             </p>
-            <div className="rounded-[20px] overflow-hidden" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)' }}>
+            <div className="rounded-[20px] overflow-hidden" style={{ background: 'var(--f-card-bg)', border: '1px solid var(--f-card-border)' }}>
               {creditCards.map((acc, i) => {
                 const payment = creditPayMap[acc.id]
                 const isPaid = !!payment
@@ -832,7 +832,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
           <div className="fixed inset-0 z-[200] bg-black/60 animate-fade-in" onClick={() => setScheduledAction(null)} />
           <div
             className="fixed bottom-0 left-0 right-0 z-[200] rounded-t-[28px] px-5 pt-5 animate-slide-up"
-            style={{ background: 'var(--f-bg-elevated)', paddingBottom: 'calc(2rem + var(--safe-bottom))' }}
+            style={{ background: 'var(--f-sheet-bg)', boxShadow: 'var(--f-glow-shadow)', paddingBottom: 'calc(2rem + var(--safe-bottom))' }}
           >
             <div className="flex items-center gap-3 mb-5">
               <div className="flex-1 min-w-0">
@@ -878,7 +878,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
           <div className="fixed inset-0 z-[200] bg-black/60 animate-fade-in" onClick={() => setTdcModal(null)} />
           <div
             className="fixed bottom-0 left-0 right-0 z-[200] rounded-t-[28px] animate-slide-up mx-auto max-w-lg"
-            style={{ background: 'var(--f-bg-elevated)', paddingBottom: 'calc(1.5rem + var(--safe-bottom))', maxHeight: '90dvh', overflowY: 'auto' }}
+            style={{ background: 'var(--f-sheet-bg)', boxShadow: 'var(--f-glow-shadow)', paddingBottom: 'calc(1.5rem + var(--safe-bottom))', maxHeight: '90dvh', overflowY: 'auto' }}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 pt-5 pb-4">

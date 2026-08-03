@@ -90,7 +90,7 @@ export default function FriendSearchModal({ onClose, existingFriendships, myUser
     >
       <div
         className={`w-full max-w-lg rounded-t-[28px] pb-[max(1.5rem,env(safe-area-inset-bottom))] ${closing ? 'animate-slide-down' : 'animate-slide-up'}`}
-        style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', ...sheetStyle }}
+        style={{ background: 'var(--f-sheet-bg)', border: '1px solid var(--f-line)', boxShadow: 'var(--f-glow-shadow)', ...sheetStyle }}
         onClick={e => e.stopPropagation()}
       >
         {/* Drag handle */}

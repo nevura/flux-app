@@ -57,7 +57,8 @@ export function BottomSheet({ onClose, children, title }: { onClose: () => void;
         ref={sheetRef}
         className={`fixed bottom-0 left-0 right-0 z-[200] rounded-t-[28px] mx-auto max-w-lg ${closing ? 'animate-slide-down' : 'animate-slide-up'}`}
         style={{
-          background: 'var(--f-bg-elevated)',
+          background: 'var(--f-sheet-bg)',
+          boxShadow: 'var(--f-glow-shadow)',
           paddingBottom: 'calc(1.5rem + var(--safe-bottom))',
           maxHeight: '90dvh',
           overflowY: 'auto',

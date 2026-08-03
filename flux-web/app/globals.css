@@ -128,6 +128,12 @@
   --f-shadow-income: 0 4px 20px rgba(48, 209, 88, 0.20);
   --f-shadow-expense: 0 4px 20px rgba(255, 69, 58, 0.20);
 
+  /* ── Sheets & cards — navy + blue-glow treatment (dark mode only) ── */
+  --f-sheet-bg: var(--f-bg-card);
+  --f-glow-shadow: var(--f-shadow-pop), 0 0 32px var(--f-accent-glow);
+  --f-card-bg: color-mix(in srgb, var(--f-blue) 14%, var(--f-bg-elevated));
+  --f-card-border: var(--f-accent-border);
+
   /* ── Skeleton loader ── */
   --f-skeleton-base: #2C2C2E;
   --f-skeleton-shine: #3A3A3C;
@@ -194,6 +200,12 @@
   --f-shadow-accent: 0 4px 20px rgba(0, 122, 255, 0.22);
   --f-shadow-income: 0 4px 20px rgba(48, 209, 88, 0.14);
   --f-shadow-expense: 0 4px 20px rgba(255, 69, 58, 0.14);
+
+  /* ── Sheets & cards — unchanged look in light mode ── */
+  --f-sheet-bg: var(--f-bg-elevated);
+  --f-glow-shadow: var(--f-shadow-pop);
+  --f-card-bg: var(--f-bg-card);
+  --f-card-border: var(--f-line);
 
   /* ── Skeleton ── */
   --f-skeleton-base: #E5E5EA;

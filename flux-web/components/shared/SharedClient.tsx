@@ -330,7 +330,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
               </p>
             </div>
             <div className="space-y-2">
-              <div className="rounded-[16px] p-4" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)' }}>
+              <div className="rounded-[16px] p-4" style={{ background: 'var(--f-card-bg)', border: '1px solid var(--f-card-border)' }}>
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0"
                     style={{ background: 'var(--f-income-bg)' }}>
@@ -344,7 +344,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                   </div>
                 </div>
               </div>
-              <div className="rounded-[16px] p-4" style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)' }}>
+              <div className="rounded-[16px] p-4" style={{ background: 'var(--f-card-bg)', border: '1px solid var(--f-card-border)' }}>
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0"
                     style={{ background: 'rgba(255,159,10,0.1)' }}>
@@ -400,7 +400,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                   ]}
                 >
                 <div className="rounded-[20px] overflow-hidden animate-spring-in"
-                  style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', animationDelay: `${bi * 0.07}s` }}>
+                  style={{ background: 'var(--f-card-bg)', border: '1px solid var(--f-card-border)', animationDelay: `${bi * 0.07}s` }}>
 
                   {/* Header row — tap to toggle desglose */}
                   <button
@@ -626,7 +626,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
         >
           <div
             className="animate-slide-up rounded-t-[28px] p-5 pb-8 space-y-4 max-h-[85vh] overflow-y-auto"
-            style={{ background: 'var(--f-bg-elevated)', paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
+            style={{ background: 'var(--f-sheet-bg)', boxShadow: 'var(--f-glow-shadow)', paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
             onClick={e => e.stopPropagation()}
           >
             {/* Handle bar */}
@@ -792,7 +792,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
         >
           <div
             className={`${abonoExiting ? 'animate-sheet-exit' : 'animate-slide-up'} rounded-t-[28px] p-5 space-y-4`}
-            style={{ background: 'var(--f-bg-elevated)', paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
+            style={{ background: 'var(--f-sheet-bg)', boxShadow: 'var(--f-glow-shadow)', paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
             onClick={e => e.stopPropagation()}
           >
             <div className="w-10 h-1 rounded-full mx-auto mb-1" style={{ background: 'var(--f-line-strong)' }} />
@@ -854,7 +854,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
         >
           <div
             className={`${settleExiting ? 'animate-sheet-exit' : 'animate-slide-up'} rounded-t-[28px] p-5 space-y-4`}
-            style={{ background: 'var(--f-bg-elevated)', paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
+            style={{ background: 'var(--f-sheet-bg)', boxShadow: 'var(--f-glow-shadow)', paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
             onClick={e => e.stopPropagation()}
           >
             <div className="w-10 h-1 rounded-full mx-auto mb-1" style={{ background: 'var(--f-line-strong)' }} />

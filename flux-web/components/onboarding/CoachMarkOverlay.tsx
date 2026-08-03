@@ -106,7 +106,7 @@ export default function CoachMarkOverlay({
       >
         <div
           className="rounded-[20px] p-4 animate-fade-up"
-          style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
+          style={{ background: 'var(--f-sheet-bg)', border: '1px solid var(--f-line)', boxShadow: 'var(--f-glow-shadow)' }}
         >
           {/* Progress dots */}
           <div className="flex items-center gap-1 mb-3">

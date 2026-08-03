@@ -256,7 +256,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
               <div className="fixed inset-0 z-40" onClick={() => setPickerOpen(false)} />
               <div
                 className="absolute left-0 right-0 top-full mt-2 rounded-[20px] p-4 z-50"
-                style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-shadow-pop)' }}
+                style={{ background: 'var(--f-sheet-bg)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-glow-shadow)' }}
               >
                 <div className="flex items-center justify-between mb-3">
                   <button
@@ -450,7 +450,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                 <div className="fixed inset-0 z-40" onClick={() => setTypeDropOpen(false)} />
                 <div
                   className="absolute top-full mt-1 left-0 rounded-[16px] p-2 z-50 max-h-64 overflow-y-auto animate-scale-in"
-                  style={{ minWidth: 180, background: 'var(--f-bg-card)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-shadow-pop)', transformOrigin: 'top left' }}
+                  style={{ minWidth: 180, background: 'var(--f-sheet-bg)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-glow-shadow)', transformOrigin: 'top left' }}
                 >
                   {TYPE_OPTIONS.map(opt => {
                     const checked = filterTypes.includes(opt.value)
@@ -473,7 +473,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                 <div className="fixed inset-0 z-40" onClick={() => setAccDropOpen(false)} />
                 <div
                   className="absolute top-full mt-1 left-0 rounded-[16px] p-2 z-50 max-h-64 overflow-y-auto animate-scale-in"
-                  style={{ minWidth: 200, background: 'var(--f-bg-card)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-shadow-pop)', transformOrigin: 'top left' }}
+                  style={{ minWidth: 200, background: 'var(--f-sheet-bg)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-glow-shadow)', transformOrigin: 'top left' }}
                 >
                   {accounts.filter(a => a.is_active).map(acc => {
                     const checked = filterAccounts.includes(acc.id)
@@ -497,7 +497,7 @@ export default function TransactionsClient({ initialTransactions, categories, ac
                 <div className="fixed inset-0 z-40" onClick={() => setCatDropOpen(false)} />
                 <div
                   className="absolute top-full mt-1 left-0 rounded-[16px] p-2 z-50 max-h-64 overflow-y-auto animate-scale-in"
-                  style={{ minWidth: 200, background: 'var(--f-bg-card)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-shadow-pop)', transformOrigin: 'top left' }}
+                  style={{ minWidth: 200, background: 'var(--f-sheet-bg)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-glow-shadow)', transformOrigin: 'top left' }}
                 >
                   {categories.filter(c => c.id !== 'CAT-AUDIT').map(cat => {
                     const d = getCategoryDisplay(cat)
