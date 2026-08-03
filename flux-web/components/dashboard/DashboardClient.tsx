@@ -387,16 +387,12 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
         {/* Budget — always visible, editable inline */}
         <div
           data-coach="home-budget"
-          className="rounded-[20px] p-4 animate-fade-up overflow-hidden relative"
+          className="f-glass rounded-[20px] p-4 animate-fade-up overflow-hidden relative"
           style={{
-            background: budgetAmount > 0
-              ? budgetOver
-                ? 'linear-gradient(135deg, var(--f-expense-bg) 0%, transparent 100%)'
-                : 'linear-gradient(135deg, var(--f-accent-bg) 0%, transparent 100%)'
-              : 'var(--f-bg-card)',
+            background: 'var(--f-glass-bg)',
             border: budgetAmount > 0
               ? budgetOver ? '1px solid var(--f-expense-border)' : '1px solid var(--f-accent-border)'
-              : '1px solid var(--f-line)',
+              : '1px solid var(--f-glass-border)',
             animationDelay: '0.04s',
           }}
         >
@@ -484,8 +480,8 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
         {/* Daily / Weekly spend — arrows beside the amount */}
         <div
           data-coach="home-daily"
-          className="rounded-[20px] overflow-hidden animate-fade-up"
-          style={{ background: 'var(--f-card-bg)', border: '1px solid var(--f-card-border)', animationDelay: '0.06s' }}
+          className="f-glass rounded-[20px] overflow-hidden animate-fade-up"
+          style={{ background: 'var(--f-glass-bg)', border: '1px solid var(--f-glass-border)', animationDelay: '0.06s' }}
         >
           <div className="flex" style={{ borderBottom: '1px solid var(--f-line)' }}>
             {(['daily', 'weekly'] as const).map(v => (
@@ -532,8 +528,8 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
         {/* Upcoming scheduled — empty state */}
         {scheduled.length === 0 && (
           <div
-            className="rounded-[20px] p-5 animate-fade-up flex flex-col items-center gap-3 text-center"
-            style={{ background: 'var(--f-card-bg)', border: '1px solid var(--f-card-border)', animationDelay: '0.08s' }}
+            className="f-glass rounded-[20px] p-5 animate-fade-up flex flex-col items-center gap-3 text-center"
+            style={{ background: 'var(--f-glass-bg)', border: '1px solid var(--f-glass-border)', animationDelay: '0.08s' }}
           >
             <div className="w-12 h-12 rounded-[14px] flex items-center justify-center" style={{ background: 'rgba(0,122,255,0.12)', border: '1px solid rgba(0,122,255,0.2)' }}>
               <i className="fa-solid fa-arrows-rotate text-lg" style={{ color: 'var(--f-blue)' }} />
@@ -595,8 +591,8 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
           return (
             <div
               data-coach="home-recurring"
-              className="rounded-[20px] p-4 animate-fade-up"
-              style={{ background: 'var(--f-card-bg)', border: '1px solid var(--f-card-border)', animationDelay: '0.08s' }}
+              className="f-glass rounded-[20px] p-4 animate-fade-up"
+              style={{ background: 'var(--f-glass-bg)', border: '1px solid var(--f-glass-border)', animationDelay: '0.08s' }}
             >
               <p className="text-[13px] font-black tracking-[3px] uppercase mb-4" style={{ color: 'var(--f-text-3)' }}>
                 Próximos recurrentes
@@ -738,7 +734,7 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
             <p className="text-[12px] font-black tracking-[3px] uppercase mb-3" style={{ color: 'var(--f-text-3)' }}>
               Pagos TDC
             </p>
-            <div className="rounded-[20px] overflow-hidden" style={{ background: 'var(--f-card-bg)', border: '1px solid var(--f-card-border)' }}>
+            <div className="f-glass rounded-[20px] overflow-hidden" style={{ background: 'var(--f-glass-bg)', border: '1px solid var(--f-glass-border)' }}>
               {creditCards.map((acc, i) => {
                 const payment = creditPayMap[acc.id]
                 const isPaid = !!payment
