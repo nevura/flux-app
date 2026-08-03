@@ -149,7 +149,7 @@ export default function BudgetHistoryModal({ userId, baseCurrency, onClose }: Pr
     <>
       <div
         className={`fixed inset-0 z-[60] ${closing ? 'animate-fade-out' : 'animate-fade-in'}`}
-        style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)' }}
+        style={{ background: 'rgba(0,0,0,0.55)' }}
         onClick={handleClose}
       />
       <div

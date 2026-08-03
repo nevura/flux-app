@@ -78,7 +78,7 @@ export default function AuditModal({ accounts, onClose }: Props) {
     <>
       <div
         className={`fixed inset-0 z-[60] ${closing ? 'animate-fade-out' : 'animate-fade-in'}`}
-        style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
+        style={{ background: 'rgba(0,0,0,0.7)' }}
         onClick={handleClose}
       />
       <div

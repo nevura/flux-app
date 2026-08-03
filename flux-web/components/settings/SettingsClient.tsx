@@ -269,9 +269,9 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                 </div>
               </div>
 
-              <div className="rounded-[20px] overflow-hidden" style={{ border: '1px solid var(--f-line)' }}>
+              <div className="f-glass rounded-[20px] overflow-hidden" style={{ background: 'var(--f-glass-bg)', border: '1px solid var(--f-glass-border)' }}>
                 {/* Nombre */}
-                <div className="px-4 py-4" style={{ background: 'var(--f-card-bg)', borderBottom: '1px solid var(--f-card-border)' }}>
+                <div className="px-4 py-4" style={{ borderBottom: '1px solid var(--f-glass-border)' }}>
                   <p className="text-[13px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Nombre</p>
                   {editingName ? (
                     <div className="flex gap-2 items-center">
@@ -298,7 +298,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                 </div>
 
                 {/* @username */}
-                <div className="px-4 py-4" style={{ background: 'var(--f-card-bg)', borderBottom: '1px solid var(--f-card-border)' }}>
+                <div className="px-4 py-4" style={{ borderBottom: '1px solid var(--f-glass-border)' }}>
                   <p className="text-[13px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Usuario</p>
                   {editingUsername ? (
                     <div className="space-y-2">
@@ -347,7 +347,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                 </div>
 
                 {/* Teléfono */}
-                <div className="px-4 py-4" style={{ background: 'var(--f-card-bg)', borderBottom: '1px solid var(--f-card-border)' }}>
+                <div className="px-4 py-4" style={{ borderBottom: '1px solid var(--f-glass-border)' }}>
                   <p className="text-[13px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Teléfono</p>
                   {editingPhone ? (
                     <div className="flex gap-2 items-center">
@@ -376,14 +376,14 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                 </div>
 
                 {/* Correo (read-only) */}
-                <div className="px-4 py-4" style={{ background: 'var(--f-card-bg)', borderBottom: '1px solid var(--f-card-border)' }}>
+                <div className="px-4 py-4" style={{ borderBottom: '1px solid var(--f-glass-border)' }}>
                   <p className="text-[13px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Correo electrónico</p>
                   <p className="text-[17px] font-bold" style={{ color: 'var(--f-text-3)' }}>{profile?.email}</p>
                   <p className="text-[13px] mt-1" style={{ color: 'var(--f-text-4)' }}>El correo no se puede cambiar desde aquí</p>
                 </div>
 
                 {/* Divisa base */}
-                <div className="px-4 py-4" style={{ background: 'var(--f-card-bg)' }}>
+                <div className="px-4 py-4">
                   <p className="text-[13px] font-black tracking-widest uppercase mb-2" style={{ color: 'var(--f-text-4)' }}>Divisa base</p>
                   <div className="flex items-center gap-3">
                     <div className="flex-1">
@@ -406,7 +406,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
                 </div>
 
                 {/* Modo viaje */}
-                <div className="px-4 py-4" style={{ background: 'var(--f-card-bg)', borderTop: '1px solid var(--f-card-border)' }}>
+                <div className="px-4 py-4" style={{ borderTop: '1px solid var(--f-glass-border)' }}>
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-[13px] font-black tracking-widest uppercase" style={{ color: 'var(--f-text-4)' }}>Modo viaje</p>
                     <div
@@ -468,7 +468,7 @@ export default function SettingsClient({ profile, shortcutToken, categories, acc
           )}
 
           {section === 'presupuesto' && (
-            <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--f-card-bg)', border: '1px solid var(--f-accent-border)' }}>
+            <div className="f-glass rounded-2xl overflow-hidden" style={{ background: 'var(--f-glass-bg)', border: '1px solid var(--f-accent-border)' }}>
               <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid var(--f-accent-bg)' }}>
                 <i className="fa-solid fa-chart-bar text-xl" style={{ color: 'var(--f-blue)' }} />
                 <p className="text-sm font-bold" style={{ color: 'var(--f-text)' }}>Presupuesto predeterminado</p>
@@ -1996,7 +1996,7 @@ function ScheduledTab({ scheduled, categories, accounts, people, baseCurrency = 
               )}
 
               {/* Status / Active toggle */}
-              <div className="flex items-center justify-between px-4 py-3.5 rounded-[14px]" style={{ background: 'var(--f-card-bg)', border: '1px solid var(--f-bg-input)' }}>
+              <div className="f-glass flex items-center justify-between px-4 py-3.5 rounded-[14px]" style={{ background: 'var(--f-glass-bg)', border: '1px solid var(--f-bg-input)' }}>
                 <div>
                   <p className="text-[15px] font-bold" style={{ color: 'var(--f-text)' }}>Activo</p>
                   <p className="text-[13px] mt-0.5" style={{ color: 'var(--f-text-3)' }}>
@@ -2274,7 +2274,7 @@ function SubscriptionTab({ profile }: { profile: Profile | null }) {
   return (
     <div className="space-y-4">
       {status === 'canceled' && (
-        <div className="rounded-[16px] px-4 py-3 flex items-center gap-2" style={{ background: 'var(--f-card-bg)', border: '1px solid var(--f-bg-input)' }}>
+        <div className="f-glass rounded-[16px] px-4 py-3 flex items-center gap-2" style={{ background: 'var(--f-glass-bg)', border: '1px solid var(--f-bg-input)' }}>
           <i className="fa-solid fa-circle-xmark text-sm" style={{ color: 'var(--f-text-4)' }} />
           <p className="text-[15px] font-bold" style={{ color: 'var(--f-text-3)' }}>Tu suscripción fue cancelada</p>
         </div>
@@ -2341,8 +2341,8 @@ function PriceCard({ label, price, period, badge, loading, onSelect }: {
     <button
       onClick={onSelect}
       disabled={loading}
-      className="w-full rounded-[18px] px-5 py-4 flex items-center justify-between transition-all active:scale-[0.98] disabled:opacity-50"
-      style={{ background: 'var(--f-card-bg)', border: '1px solid var(--f-accent-border)' }}
+      className="f-glass w-full rounded-[18px] px-5 py-4 flex items-center justify-between transition-all active:scale-[0.98] disabled:opacity-50"
+      style={{ background: 'var(--f-glass-bg)', border: '1px solid var(--f-accent-border)' }}
     >
       <div className="flex flex-col items-start gap-0.5">
         <p className="text-[16px] font-black text-white">{label}</p>
@@ -2725,8 +2725,8 @@ function DataTab({ isActive, categories, accounts }: { isActive: boolean; catego
     <div className="space-y-5">
 
       {/* Export */}
-      <div className="rounded-[20px] overflow-hidden" style={{ border: '1px solid var(--f-card-border)' }}>
-        <div className="px-4 py-4 space-y-3" style={{ background: 'var(--f-card-bg)' }}>
+      <div className="rounded-[20px] overflow-hidden" style={{ border: '1px solid var(--f-glass-border)' }}>
+        <div className="f-glass px-4 py-4 space-y-3" style={{ background: 'var(--f-glass-bg)' }}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(48,209,88,0.15)' }}>
               <i className="fa-solid fa-file-arrow-down text-sm" style={{ color: 'var(--f-income)' }} />
@@ -2756,8 +2756,8 @@ function DataTab({ isActive, categories, accounts }: { isActive: boolean; catego
       </div>
 
       {/* Import */}
-      <div className="rounded-[20px] overflow-hidden" style={{ border: '1px solid var(--f-card-border)' }}>
-        <div className="px-4 py-4 space-y-3" style={{ background: 'var(--f-card-bg)' }}>
+      <div className="rounded-[20px] overflow-hidden" style={{ border: '1px solid var(--f-glass-border)' }}>
+        <div className="f-glass px-4 py-4 space-y-3" style={{ background: 'var(--f-glass-bg)' }}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(0,122,255,0.15)' }}>
               <i className="fa-solid fa-file-arrow-up text-sm" style={{ color: 'var(--f-blue)' }} />

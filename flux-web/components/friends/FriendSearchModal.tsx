@@ -85,7 +85,7 @@ export default function FriendSearchModal({ onClose, existingFriendships, myUser
   return createPortal(
     <div
       className={`fixed inset-0 z-[200] flex items-end justify-center ${closing ? 'animate-fade-out' : 'animate-fade-in'}`}
-      style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+      style={{ background: 'rgba(0,0,0,0.55)' }}
       onClick={handleClose}
     >
       <div

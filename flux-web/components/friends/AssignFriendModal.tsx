@@ -55,7 +55,7 @@ export default function AssignFriendModal({ linkedUserId, linkedUserName, onClos
   return createPortal(
     <div
       className="fixed inset-0 z-[300] flex items-end justify-center"
-      style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+      style={{ background: 'rgba(0,0,0,0.6)' }}
       onClick={onClose}
     >
       <div

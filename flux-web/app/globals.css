@@ -140,12 +140,12 @@
      this project's Tailwind v4/@tailwindcss/postcss build, mishandles
      url() inside backdrop-filter — that's what broke every modal). Just
      blur + a touch of brightness, real transparency, and a thin top edge. */
-  --f-glass-bg: rgba(255, 255, 255, 0.10);
+  --f-glass-bg: rgba(255, 255, 255, 0.14);
   --f-glass-border: rgba(255, 255, 255, 0.26);
   --f-glass-border-bottom: rgba(255, 255, 255, 0.10);
   --f-glass-shadow: 0 10px 28px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.45);
   --f-glass-highlight: rgba(255, 255, 255, 0.65);
-  --f-glass-blur: blur(24px) brightness(1.10);
+  --f-glass-blur: blur(18px) brightness(1.15) saturate(85%);
 
   /* ── Skeleton loader ── */
   --f-skeleton-base: #2C2C2E;
@@ -562,6 +562,28 @@ body {
 
 .animate-slide-up {
   animation: slide-up 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Backdrop-filter is expensive to recompute every frame while a sheet is
+   mid-transform on iOS Safari — combined with a full-height slide this can
+   freeze the tab. These compound selectors (more specific than the plain
+   .animate-slide-up/-down rules above, so they win only where both classes
+   are present) keep blur OFF for the entire slide and only turn it on once
+   the sheet is sitting still — no per-component JS needed. */
+@keyframes slide-up-glass {
+  from { opacity: 0; transform: translateY(100%); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  85%  { backdrop-filter: none; -webkit-backdrop-filter: none; }
+  to   { opacity: 1; transform: translateY(0); backdrop-filter: var(--f-glass-blur); -webkit-backdrop-filter: var(--f-glass-blur); }
+}
+@keyframes slide-down-glass {
+  from { opacity: 1; transform: translateY(0); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  to   { opacity: 0; transform: translateY(100%); backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+.f-glass.animate-slide-up {
+  animation: slide-up-glass 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.f-glass.animate-slide-down {
+  animation: slide-down-glass 0.28s cubic-bezier(0.36, 0, 0.66, 0) both;
 }
 
 .animate-scale-in {

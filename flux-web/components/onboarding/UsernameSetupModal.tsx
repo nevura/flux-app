@@ -81,7 +81,7 @@ export default function UsernameSetupModal({ suggestedUsername, suggestedName }:
   return createPortal(
     <div
       className="fixed inset-0 z-[9999] flex items-end justify-center"
-      style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+      style={{ background: 'rgba(0,0,0,0.6)', paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       <div
         className="f-glass w-full max-w-lg rounded-t-[28px] p-6"

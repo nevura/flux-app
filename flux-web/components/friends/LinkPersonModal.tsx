@@ -63,7 +63,7 @@ export default function LinkPersonModal({ personId, personName, currentLinkedUse
   return createPortal(
     <div
       className="fixed inset-0 z-[200] flex items-end justify-center"
-      style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+      style={{ background: 'rgba(0,0,0,0.55)' }}
       onClick={onClose}
     >
       <div

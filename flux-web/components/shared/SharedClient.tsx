@@ -330,7 +330,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
               </p>
             </div>
             <div className="space-y-2">
-              <div className="rounded-[16px] p-4" style={{ background: 'var(--f-card-bg)', border: '1px solid var(--f-card-border)' }}>
+              <div className="f-glass rounded-[16px] p-4" style={{ background: 'var(--f-glass-bg)', border: '1px solid var(--f-glass-border)' }}>
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0"
                     style={{ background: 'var(--f-income-bg)' }}>
@@ -344,7 +344,7 @@ export default function SharedClient({ transactions, people, accounts, categorie
                   </div>
                 </div>
               </div>
-              <div className="rounded-[16px] p-4" style={{ background: 'var(--f-card-bg)', border: '1px solid var(--f-card-border)' }}>
+              <div className="f-glass rounded-[16px] p-4" style={{ background: 'var(--f-glass-bg)', border: '1px solid var(--f-glass-border)' }}>
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0"
                     style={{ background: 'rgba(255,159,10,0.1)' }}>
@@ -399,8 +399,8 @@ export default function SharedClient({ transactions, people, accounts, categorie
                     },
                   ]}
                 >
-                <div className="rounded-[20px] overflow-hidden animate-spring-in"
-                  style={{ background: 'var(--f-card-bg)', border: '1px solid var(--f-card-border)', animationDelay: `${bi * 0.07}s` }}>
+                <div className="f-glass rounded-[20px] overflow-hidden animate-spring-in"
+                  style={{ background: 'var(--f-glass-bg)', border: '1px solid var(--f-glass-border)', animationDelay: `${bi * 0.07}s` }}>
 
                   {/* Header row — tap to toggle desglose */}
                   <button
