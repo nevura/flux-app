@@ -105,8 +105,8 @@ export default function CoachMarkOverlay({
         onClick={e => e.stopPropagation()}
       >
         <div
-          className="f-glass rounded-[20px] p-4 animate-fade-up"
-          style={{ background: 'var(--f-glass-bg)', border: '1px solid var(--f-glass-border)', boxShadow: 'var(--f-glass-shadow)' }}
+          className="rounded-[20px] p-4 animate-fade-up"
+          style={{ background: 'var(--f-sheet-bg)', border: '1px solid var(--f-line)', boxShadow: 'var(--f-glow-shadow)' }}
         >
           {/* Progress dots */}
           <div className="flex items-center gap-1 mb-3">

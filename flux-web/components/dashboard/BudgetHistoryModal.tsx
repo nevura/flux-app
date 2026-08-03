@@ -153,14 +153,14 @@ export default function BudgetHistoryModal({ userId, baseCurrency, onClose }: Pr
         onClick={handleClose}
       />
       <div
-        className={`f-glass fixed bottom-0 left-0 right-0 z-[60] ${closing ? 'animate-slide-down' : 'animate-slide-up'} flex flex-col mx-auto max-w-lg`}
+        className={`fixed bottom-0 left-0 right-0 z-[60] ${closing ? 'animate-slide-down' : 'animate-slide-up'} flex flex-col mx-auto max-w-lg`}
         style={{
           maxHeight: '92dvh',
-          background: 'var(--f-glass-bg)',
+          background: 'var(--f-bg-card)',
           borderRadius: '28px 28px 0 0',
-          border: '1px solid var(--f-glass-border)',
+          border: '1px solid var(--f-line-strong)',
           borderBottom: 'none',
-          boxShadow: 'var(--f-glass-shadow)',
+          boxShadow: 'var(--f-shadow-pop), 0 0 32px var(--f-accent-glow)',
           ...sheetStyle,
         }}
       >

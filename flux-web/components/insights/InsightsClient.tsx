@@ -297,8 +297,8 @@ export default function InsightsClient({ transactions, categories, monthlySummar
           <>
             <div className="fixed inset-0 z-40" onClick={() => setPickerOpen(false)} />
             <div
-              className="f-glass absolute left-4 right-4 top-full mt-2 rounded-[20px] p-4 z-50"
-              style={{ background: 'var(--f-glass-bg)', border: '1px solid var(--f-glass-border)', boxShadow: 'var(--f-glass-shadow)' }}
+              className="absolute left-4 right-4 top-full mt-2 rounded-[20px] p-4 z-50"
+              style={{ background: 'var(--f-sheet-bg)', border: '1px solid var(--f-line-strong)', boxShadow: 'var(--f-glow-shadow)' }}
             >
               <div className="flex items-center justify-between mb-3">
                 <button

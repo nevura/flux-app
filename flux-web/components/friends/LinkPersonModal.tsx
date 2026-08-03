@@ -67,8 +67,8 @@ export default function LinkPersonModal({ personId, personName, currentLinkedUse
       onClick={onClose}
     >
       <div
-        className="f-glass w-full max-w-lg rounded-t-[28px] pb-[max(1.5rem,env(safe-area-inset-bottom))]"
-        style={{ background: 'var(--f-glass-bg)', border: '1px solid var(--f-glass-border)', boxShadow: 'var(--f-glass-shadow)', ...sheetStyle }}
+        className="w-full max-w-lg rounded-t-[28px] pb-[max(1.5rem,env(safe-area-inset-bottom))]"
+        style={{ background: 'var(--f-sheet-bg)', border: '1px solid var(--f-line)', boxShadow: 'var(--f-glow-shadow)', ...sheetStyle }}
         onClick={e => e.stopPropagation()}
       >
         {/* Drag handle */}
