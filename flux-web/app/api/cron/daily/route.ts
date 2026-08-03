@@ -3,7 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { adjustmentFor, getMexicoNow, nextRecurringDate, formatCurrency } from '@/lib/utils'
 import { sendTdcReminderEmail, sendMonthlyAdjustmentEmail, sendTrialExpiryEmail, sendShortcutReminderEmail, sendReengagementEmail, sendGraceStartedEmail } from '@/lib/email'
 import { fetchAndStoreDailyRates } from '@/actions/exchangeRates'
-import { notify } from '@/lib/notify'
+import { notify, fetchExistingSourceKeys } from '@/lib/notify'
 import { getStripe, periodEnd } from '@/lib/stripe'
 import { GRACE_DAYS } from '@/lib/subscriptionStatus'
 
@@ -18,6 +18,12 @@ export async function GET(request: Request) {
   const admin = createAdminClient()
   const todayStr = getMexicoNow().slice(0, 10) // 'YYYY-MM-DD'
   const today    = new Date(todayStr)
+
+  // Notifications already created today (by this cron run or by a user opening
+  // the app earlier today) — prevents double bell/push entries for the same event.
+  const todayISOStart = `${todayStr}T00:00:00`
+  const existingScheduledKeys = await fetchExistingSourceKeys(admin, ['scheduled_due'], todayISOStart)
+  const existingTdcKeys = await fetchExistingSourceKeys(admin, ['tdc_due'], todayISOStart)
 
   const results = { recurring: 0, tdc: 0, adjustment: 0, trialWarnings: 0, shortcutReminders: 0, reengagements: 0, errors: [] as string[] }
 
@@ -73,6 +79,17 @@ export async function GET(request: Request) {
         await (admin.from('scheduled_transactions') as any)
           .update({ next_charge_date: next.toISOString().slice(0, 10), last_charge_date: todayStr })
           .eq('id', s.id)
+
+        // Bell/push notification (no email here — the grouped digest email below covers it)
+        const scheduledNotifKey = `${s.user_id}:scheduled_due:${s.id}`
+        if (!existingScheduledKeys.has(scheduledNotifKey)) {
+          await notify({
+            userId: s.user_id,
+            type: 'scheduled_due',
+            data: { source_id: s.id, name: s.name, amount: String(s.amount), transaction_type: s.type },
+          })
+          existingScheduledKeys.add(scheduledNotifKey)
+        }
 
         // Collect for grouped email notification
         if (!recurringByUser[s.user_id]) {
@@ -159,6 +176,16 @@ export async function GET(request: Request) {
         .eq('id', acc.user_id)
         .eq('status', 'approved')
         .single()
+
+      const tdcNotifKey = `${acc.user_id}:tdc_due:${acc.id}`
+      if (!existingTdcKeys.has(tdcNotifKey)) {
+        await notify({
+          userId: acc.user_id,
+          type: 'tdc_due',
+          data: { source_id: acc.id, name: acc.name, days_until: '1' },
+        })
+        existingTdcKeys.add(tdcNotifKey)
+      }
 
       if (profile?.email) {
         await sendTdcReminderEmail({ to: profile.email, accountName: acc.name, paymentDay: acc.payment_day })

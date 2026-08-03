@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getMexicoNow, currentYearMonth, formatCurrency, effectiveExpenseAmount } from '@/lib/utils'
 import { sendScheduledDueEmail, sendTdcDueEmail, sendBudgetAlertEmail } from '@/lib/email'
-import { notify } from '@/lib/notify'
+import { notify, fetchExistingSourceKeys } from '@/lib/notify'
 
 export async function generateSystemNotifications() {
   const supabase = await createClient()
@@ -19,7 +19,6 @@ export async function generateSystemNotifications() {
   const [
     { data: scheduled },
     { data: tdcAccounts },
-    { data: existing },
     { data: creditPayments },
     { data: budgetRow },
     { data: profileRow },
@@ -39,12 +38,6 @@ export async function generateSystemNotifications() {
       .eq('payment_method_id', 'MP-TDC')
       .eq('is_active', true)
       .not('payment_day', 'is', null),
-    supabase
-      .from('notifications')
-      .select('type, data')
-      .eq('user_id', user.id)
-      .in('type', ['scheduled_due', 'tdc_due'])
-      .gte('created_at', today + 'T00:00:00'),
     supabase
       .from('credit_payments')
       .select('account_id')
@@ -78,16 +71,14 @@ export async function generateSystemNotifications() {
       .gte('created_at', monthStart + 'T00:00:00'),
   ])
 
-  // Keys of notifications already created today — avoids duplicates
-  const existingKeys = new Set(
-    (existing ?? []).map((n: any) => `${n.type}:${(n.data as any)?.source_id}`)
-  )
+  // Keys of notifications already created today (by either this path or cron) — avoids duplicates
+  const existingKeys = await fetchExistingSourceKeys(supabase, ['scheduled_due', 'tdc_due'], today + 'T00:00:00', user.id)
   const paidAccountIds = new Set((creditPayments ?? []).map((p: any) => p.account_id))
   const inserts: any[] = []
 
   // Scheduled transactions overdue/due today
   for (const s of (scheduled ?? [])) {
-    const key = `scheduled_due:${s.id}`
+    const key = `${user.id}:scheduled_due:${s.id}`
     if (!existingKeys.has(key)) {
       inserts.push({
         user_id: user.id,
@@ -108,7 +99,7 @@ export async function generateSystemNotifications() {
     }
     const daysUntil = Math.ceil((payDate.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24))
     if (daysUntil <= 3) {
-      const key = `tdc_due:${acc.id}`
+      const key = `${user.id}:tdc_due:${acc.id}`
       if (!existingKeys.has(key)) {
         inserts.push({
           user_id: user.id,

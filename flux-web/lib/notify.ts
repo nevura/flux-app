@@ -26,3 +26,19 @@ export async function notify(opts: {
   const { text } = notifLabel(opts.type, opts.data)
   sendGenericNotificationEmail({ to: opts.to, subject: text, text }).catch(() => {})
 }
+
+// Shared "already notified today" check, keyed by user_id:type:source_id so it
+// works both for a single authenticated user (actions/notifications.ts) and
+// across all users at once (the cron route) without double-inserting a bell
+// notification for the same event from both paths.
+export async function fetchExistingSourceKeys(
+  client: any,
+  types: NotificationType[],
+  sinceISO: string,
+  userId?: string,
+): Promise<Set<string>> {
+  let q = client.from('notifications').select('user_id, type, data').in('type', types).gte('created_at', sinceISO)
+  if (userId) q = q.eq('user_id', userId)
+  const { data } = await q
+  return new Set((data ?? []).map((n: any) => `${n.user_id}:${n.type}:${(n.data as any)?.source_id}`))
+}
