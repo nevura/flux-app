@@ -134,18 +134,14 @@
   --f-card-bg: color-mix(in srgb, var(--f-blue) 14%, var(--f-bg-elevated));
   --f-card-border: var(--f-accent-border);
 
-  /* ── Liquid glass — modals/sheets, Movimientos & Home cards (dark mode) ──
-     Neutral on purpose: no saturate boost (that was amplifying whatever
-     blue was behind it) and no SVG url() filter (Lightning CSS, used by
-     this project's Tailwind v4/@tailwindcss/postcss build, mishandles
-     url() inside backdrop-filter — that's what broke every modal). Just
-     blur + a touch of brightness, real transparency, and a thin top edge. */
-  --f-glass-bg: rgba(255, 255, 255, 0.10);
+  /* ── Liquid glass — modals/sheets & Movimientos cards only (dark mode) ── */
+  --f-glass-bg: rgba(255, 255, 255, 0.07);
   --f-glass-border: rgba(255, 255, 255, 0.26);
   --f-glass-border-bottom: rgba(255, 255, 255, 0.10);
   --f-glass-shadow: 0 10px 28px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.45);
   --f-glass-highlight: rgba(255, 255, 255, 0.65);
-  --f-glass-blur: blur(24px) brightness(1.10);
+  --f-glass-blur: blur(6px) url(#f-glass-distort) saturate(180%) brightness(1.05);
+  --f-glass-blur-webkit: blur(20px) saturate(180%) brightness(1.05);
 
   /* ── Skeleton loader ── */
   --f-skeleton-base: #2C2C2E;
@@ -227,6 +223,7 @@
   --f-glass-shadow: var(--f-shadow-pop);
   --f-glass-highlight: transparent;
   --f-glass-blur: none;
+  --f-glass-blur-webkit: none;
 
   /* ── Skeleton ── */
   --f-skeleton-base: #E5E5EA;
@@ -259,7 +256,7 @@ html.theme-transitioning *::after {
 .f-glass {
   position: relative;
   backdrop-filter: var(--f-glass-blur);
-  -webkit-backdrop-filter: var(--f-glass-blur);
+  -webkit-backdrop-filter: var(--f-glass-blur-webkit);
   /* No overflow: hidden here on purpose — several sheets set their own
      overflow-y: auto (via className, e.g. SharedClient.tsx) on this same
      element to scroll their content; backdrop-filter already clips to the
