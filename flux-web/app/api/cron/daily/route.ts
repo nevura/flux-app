@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { adjustmentFor, getMexicoNow, nextRecurringDate, formatCurrency } from '@/lib/utils'
-import { sendTdcReminderEmail, sendMonthlyAdjustmentEmail, sendTrialExpiryEmail, sendShortcutReminderEmail, sendReengagementEmail, sendGraceStartedEmail } from '@/lib/email'
+import { sendTdcReminderEmail, sendTdcDueEmail, sendMonthlyAdjustmentEmail, sendTrialExpiryEmail, sendShortcutReminderEmail, sendReengagementEmail, sendGraceStartedEmail } from '@/lib/email'
 import { fetchAndStoreDailyRates } from '@/actions/exchangeRates'
 import { notify, fetchExistingSourceKeys } from '@/lib/notify'
 import { getStripe, periodEnd } from '@/lib/stripe'
@@ -145,6 +145,10 @@ export async function GET(request: Request) {
   }
 
   // ── 2. Recordatorios TDC ──────────────────────────────────────────────────
+  // Checks both "due today" and "due tomorrow" — a same-day fallback matters
+  // since a single missed cron run would otherwise silently skip the only
+  // reminder a card ever gets.
+  const todayDay    = today.getDate()
   const tomorrow    = new Date(today)
   tomorrow.setDate(tomorrow.getDate() + 1)
   const tomorrowDay = tomorrow.getDate()
@@ -153,19 +157,22 @@ export async function GET(request: Request) {
     .from('accounts') as any)
     .select('id, user_id, name, payment_day')
     .eq('payment_method_id', 'MP-TDC')
-    .eq('payment_day', tomorrowDay)
+    .in('payment_day', [todayDay, tomorrowDay])
     .eq('is_active', true)
 
   for (const acc of (tdcAccounts ?? [])) {
     try {
+      const daysUntil = acc.payment_day === todayDay ? 0 : 1
+      const dueDate   = daysUntil === 0 ? today : tomorrow
+
       // Skip if payment already recorded for this month
       const { data: alreadyPaid } = await (admin
         .from('credit_payments') as any)
         .select('id')
         .eq('user_id', acc.user_id)
         .eq('account_id', acc.id)
-        .eq('year', tomorrow.getFullYear())
-        .eq('month', tomorrow.getMonth() + 1)
+        .eq('year', dueDate.getFullYear())
+        .eq('month', dueDate.getMonth() + 1)
         .maybeSingle()
 
       if (alreadyPaid) continue
@@ -182,13 +189,17 @@ export async function GET(request: Request) {
         await notify({
           userId: acc.user_id,
           type: 'tdc_due',
-          data: { source_id: acc.id, name: acc.name, days_until: '1' },
+          data: { source_id: acc.id, name: acc.name, days_until: String(daysUntil) },
         })
         existingTdcKeys.add(tdcNotifKey)
       }
 
       if (profile?.email) {
-        await sendTdcReminderEmail({ to: profile.email, accountName: acc.name, paymentDay: acc.payment_day })
+        if (daysUntil === 0) {
+          await sendTdcDueEmail({ to: profile.email, accountName: acc.name, daysUntil: 0 })
+        } else {
+          await sendTdcReminderEmail({ to: profile.email, accountName: acc.name, paymentDay: acc.payment_day })
+        }
         results.tdc++
       }
     } catch (e) {
