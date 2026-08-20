@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { currentYearMonth, monthRange } from '@/lib/utils'
+import { currentYearMonth, monthRange, getMexicoNow } from '@/lib/utils'
 import DashboardClient from '@/components/dashboard/DashboardClient'
 import { generateSystemNotifications } from '@/actions/notifications'
+import { getExchangeRateForDate } from '@/actions/exchangeRates'
 import type { AccountWithBalance, Transaction, Category, ScheduledTransaction, Budget, CreditPayment } from '@/lib/types'
 
 interface DashboardData {
@@ -83,9 +84,34 @@ export default function DashboardTab({ userId, fullName, email, active, refreshS
       }
     }
 
+    // Account balances (and projected recurring totals) approximate a foreign-currency
+    // account's value in the base currency using TODAY's rate, not accounts.display_exchange_rate
+    // — that column only tracks whatever rate the last transaction on the account happened to
+    // use, so it goes stale the moment FX moves and nothing gets recorded on that account for a
+    // while. Individual past transactions keep their own frozen exchange_rate — this only changes
+    // the live "what's this account worth right now" approximation.
+    const baseCurrency = profile?.currency ?? 'MXN'
+    const foreignCurrencies = Array.from(new Set(
+      (accounts ?? []).map(a => a.currency).filter((c): c is string => !!c && c !== baseCurrency)
+    ))
+    const todayStr = getMexicoNow().slice(0, 10)
+    const liveRates: Record<string, number> = {}
+    if (foreignCurrencies.length > 0) {
+      const rateResults = await Promise.all(
+        foreignCurrencies.map(cur => getExchangeRateForDate(cur, baseCurrency, todayStr))
+      )
+      foreignCurrencies.forEach((cur, i) => {
+        const rate = rateResults[i]
+        if (rate != null) liveRates[cur] = rate
+      })
+    }
+
     const accountsWithBalance: AccountWithBalance[] = (accounts ?? []).map(a => ({
       ...a,
       balance: balanceMap[a.id] ?? 0,
+      display_exchange_rate: a.currency && a.currency !== baseCurrency
+        ? (liveRates[a.currency] ?? a.display_exchange_rate ?? 1)
+        : 1,
     })) as AccountWithBalance[]
 
     // Apply default_monthly_budget fallback, same as the original server page
@@ -103,7 +129,7 @@ export default function DashboardTab({ userId, fullName, email, active, refreshS
       scheduled: (scheduled ?? []) as ScheduledTransaction[],
       budget: budget as Budget | null,
       creditPayments: (creditPayments ?? []) as CreditPayment[],
-      baseCurrency: profile?.currency ?? 'MXN',
+      baseCurrency,
       year,
       month,
     })
