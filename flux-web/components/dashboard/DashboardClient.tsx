@@ -179,6 +179,21 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
     () => accounts.reduce((s, a) => s + a.balance * (a.display_exchange_rate ?? 1), 0),
     [accounts],
   )
+  // Breakdown of totalBalance for display only — does not affect totalBalance itself.
+  // Debt = TDC accounts currently in the red; a TDC with a positive balance counts as available.
+  const { positiveBalance, debtBalance } = useMemo(() => {
+    let positive = 0
+    let debt = 0
+    for (const a of accounts) {
+      const val = a.balance * (a.display_exchange_rate ?? 1)
+      if (a.payment_method_id === 'MP-TDC' && val < 0) {
+        debt += val
+      } else {
+        positive += val
+      }
+    }
+    return { positiveBalance: positive, debtBalance: debt }
+  }, [accounts])
 
   const creditPayMap = useMemo(() => Object.fromEntries(creditPayments.map(p => [p.account_id, p])), [creditPayments])
   const nonTdcAccounts = useMemo(() => accounts.filter(a => a.payment_method_id !== 'MP-TDC'), [accounts])
@@ -677,6 +692,26 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
             </div>
           )
         })()}
+
+        {/* Balance breakdown: disponible (efectivo + débito) vs. deudas (TDC en negativo) */}
+        <div className="grid grid-cols-2 gap-3 animate-fade-up" style={{ animationDelay: '0.10s' }}>
+          <div className="rounded-[20px] p-4" style={{ background: 'var(--f-income-bg)', border: '1px solid var(--f-income-border)' }}>
+            <p className="text-[11px] font-black tracking-[2px] uppercase mb-1" style={{ color: 'var(--f-income)', opacity: 0.7 }}>
+              Disponible
+            </p>
+            <p className="text-[20px] font-black tabular-nums leading-none" style={{ color: 'var(--f-income)' }}>
+              <AnimatedCurrency value={positiveBalance} currency={baseCurrency} />
+            </p>
+          </div>
+          <div className="rounded-[20px] p-4" style={{ background: 'var(--f-expense-bg)', border: '1px solid var(--f-expense-border)' }}>
+            <p className="text-[11px] font-black tracking-[2px] uppercase mb-1" style={{ color: 'var(--f-expense)', opacity: 0.7 }}>
+              Deudas
+            </p>
+            <p className="text-[20px] font-black tabular-nums leading-none" style={{ color: 'var(--f-expense)' }}>
+              -<AnimatedCurrency value={Math.abs(debtBalance)} currency={baseCurrency} />
+            </p>
+          </div>
+        </div>
 
         {/* Accounts grid — gradient tinted cards */}
         <div data-coach="home-accounts" className="animate-fade-up" style={{ animationDelay: '0.12s' }}>
