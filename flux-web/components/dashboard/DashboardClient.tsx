@@ -53,6 +53,32 @@ function FitBalance({ value, currency, textColor }: { value: number; currency: s
   )
 }
 
+// Compact shrink-to-fit currency for secondary stat rows — same measure-and-scale
+// approach as FitBalance, sized down so a long number never wraps or gets clipped.
+function FitAmount({ value, textColor, prefix }: { value: number; textColor: string; prefix?: string }) {
+  const containerRef = useRef<HTMLSpanElement>(null)
+  const textRef = useRef<HTMLSpanElement>(null)
+  const animated = useCountUp(value, 900)
+
+  useLayoutEffect(() => {
+    const c = containerRef.current
+    const t = textRef.current
+    if (!c || !t) return
+    t.style.transform = 'scale(1)'
+    const scale = Math.min(1, c.clientWidth / t.scrollWidth)
+    t.style.transform = scale < 1 ? `scale(${scale})` : 'none'
+    t.style.transformOrigin = 'right center'
+  }, [animated])
+
+  return (
+    <span ref={containerRef} className="block w-full overflow-hidden text-right">
+      <span ref={textRef} className="inline-block text-[13px] font-black tabular-nums leading-none whitespace-nowrap" style={{ color: textColor }}>
+        {prefix}{formatCurrency(animated)}
+      </span>
+    </span>
+  )
+}
+
 
 function AnimatedBar({ pct, color }: { pct: number; color: string }) {
   const w = useAnimatedWidth(pct)
@@ -397,6 +423,25 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
 
             <AnimatedCurrency value={totalBalance} currency={baseCurrency} />
           </p>
+
+          {/* Secondary breakdown: disponible (efectivo + débito) vs. deudas (TDC en negativo) */}
+          <div
+            className="grid grid-cols-2 gap-3 mt-4 pt-3"
+            style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}
+          >
+            <div className="min-w-0">
+              <p className="text-[9.5px] font-black tracking-[1.5px] uppercase mb-0.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                Disponible
+              </p>
+              <FitAmount value={positiveBalance} textColor="rgba(255,255,255,0.92)" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[9.5px] font-black tracking-[1.5px] uppercase mb-0.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                Deudas
+              </p>
+              <FitAmount value={Math.abs(debtBalance)} textColor="rgba(255,255,255,0.92)" prefix="-" />
+            </div>
+          </div>
         </div>
 
         {/* Budget — always visible, editable inline */}
@@ -692,26 +737,6 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
             </div>
           )
         })()}
-
-        {/* Balance breakdown: disponible (efectivo + débito) vs. deudas (TDC en negativo) */}
-        <div className="grid grid-cols-2 gap-3 animate-fade-up" style={{ animationDelay: '0.10s' }}>
-          <div className="rounded-[20px] p-4" style={{ background: 'var(--f-income-bg)', border: '1px solid var(--f-income-border)' }}>
-            <p className="text-[11px] font-black tracking-[2px] uppercase mb-1" style={{ color: 'var(--f-income)', opacity: 0.7 }}>
-              Disponible
-            </p>
-            <p className="text-[20px] font-black tabular-nums leading-none" style={{ color: 'var(--f-income)' }}>
-              <AnimatedCurrency value={positiveBalance} currency={baseCurrency} />
-            </p>
-          </div>
-          <div className="rounded-[20px] p-4" style={{ background: 'var(--f-expense-bg)', border: '1px solid var(--f-expense-border)' }}>
-            <p className="text-[11px] font-black tracking-[2px] uppercase mb-1" style={{ color: 'var(--f-expense)', opacity: 0.7 }}>
-              Deudas
-            </p>
-            <p className="text-[20px] font-black tabular-nums leading-none" style={{ color: 'var(--f-expense)' }}>
-              -<AnimatedCurrency value={Math.abs(debtBalance)} currency={baseCurrency} />
-            </p>
-          </div>
-        </div>
 
         {/* Accounts grid — gradient tinted cards */}
         <div data-coach="home-accounts" className="animate-fade-up" style={{ animationDelay: '0.12s' }}>
