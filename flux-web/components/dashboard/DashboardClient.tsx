@@ -67,12 +67,12 @@ function FitAmount({ value, textColor, prefix }: { value: number; textColor: str
     t.style.transform = 'scale(1)'
     const scale = Math.min(1, c.clientWidth / t.scrollWidth)
     t.style.transform = scale < 1 ? `scale(${scale})` : 'none'
-    t.style.transformOrigin = 'right center'
+    t.style.transformOrigin = 'center'
   }, [animated])
 
   return (
-    <span ref={containerRef} className="block w-full overflow-hidden text-right">
-      <span ref={textRef} className="inline-block text-[13px] font-black tabular-nums leading-none whitespace-nowrap" style={{ color: textColor }}>
+    <span ref={containerRef} className="block w-full overflow-hidden text-center">
+      <span ref={textRef} className="inline-block text-[15px] font-black tabular-nums leading-none whitespace-nowrap" style={{ color: textColor }}>
         {prefix}{formatCurrency(animated)}
       </span>
     </span>
@@ -423,24 +423,24 @@ export default function DashboardClient({ user, accounts, transactions, loadedFr
 
             <AnimatedCurrency value={totalBalance} currency={baseCurrency} />
           </p>
+        </div>
 
-          {/* Secondary breakdown: disponible (efectivo + débito) vs. deudas (TDC en negativo) */}
-          <div
-            className="grid grid-cols-2 gap-3 mt-4 pt-3"
-            style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}
-          >
-            <div className="min-w-0">
-              <p className="text-[9.5px] font-black tracking-[1.5px] uppercase mb-0.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                Disponible
-              </p>
-              <FitAmount value={positiveBalance} textColor="rgba(255,255,255,0.92)" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[9.5px] font-black tracking-[1.5px] uppercase mb-0.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                Deudas
-              </p>
-              <FitAmount value={Math.abs(debtBalance)} textColor="rgba(255,255,255,0.92)" prefix="-" />
-            </div>
+        {/* Secondary breakdown: disponible (efectivo + débito) vs. deudas (TDC en negativo) */}
+        <div
+          className="grid grid-cols-2 rounded-[16px] py-3 animate-fade-up"
+          style={{ background: 'var(--f-bg-card)', border: '1px solid var(--f-line)', animationDelay: '0.04s' }}
+        >
+          <div className="text-center px-2 min-w-0" style={{ borderRight: '1px solid var(--f-line)' }}>
+            <p className="text-[9.5px] font-black tracking-[1.5px] uppercase mb-1" style={{ color: 'var(--f-income)', opacity: 0.75 }}>
+              Disponible
+            </p>
+            <FitAmount value={positiveBalance} textColor="var(--f-income)" />
+          </div>
+          <div className="text-center px-2 min-w-0">
+            <p className="text-[9.5px] font-black tracking-[1.5px] uppercase mb-1" style={{ color: 'var(--f-expense)', opacity: 0.75 }}>
+              Deudas
+            </p>
+            <FitAmount value={Math.abs(debtBalance)} textColor="var(--f-expense)" prefix="-" />
           </div>
         </div>
 
